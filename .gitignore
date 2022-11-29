@@ -3,6 +3,7 @@ logs/
 **/*.png
 **/*.svg
 **/*.gif
+**/*.txt
 **/*.pdf
 **/__pycache__/
 **/*.bin

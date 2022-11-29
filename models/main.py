@@ -2,8 +2,6 @@ import os
 import pathlib
 import re
 
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(where_am_i)
 
 import sys
 sys.path.append("../config/")
@@ -18,10 +16,12 @@ from matplotlib import rcParams
 from formal_layers import Concatenation, Multiply, Transpose
 import numpy as np
 import argparse
-import pickle
 from SimpleTuner import SimpleTuner
 from model_utils import cNNUtils as U
 import config
+import json
+where_am_i = pathlib.Path(__file__).parent.resolve()
+os.chdir(where_am_i)
 
 rcParams['font.family'] = 'serif'
 rcParams['font.size'] = 13
@@ -217,7 +217,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     for x in config:
         exec(f"{x} = {config[x]}")
 
-    tokdict = pickle.load(open("../bin/tok_dict.pkl", "rb"))
+    tokdict = json.load(open("./json/tok_dict.json", "rb"))
     tokdict['-'] = tokdict['<PADDING>']
 
     (train_loader, _, _, _), info_dict = gather_data(train_filename, trf=1, vf=0, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=process_device, maxsize=KIN_LEN)
@@ -243,7 +243,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     the_nn = NNInterface(model, crit, torch.optim.Adam(model.parameters(), lr=config['learning_rate']), inp_size=NNInterface.get_input_size(train_loader), model_summary_name="../architectures/architecture (id-%d).txt" %(U.id_params(config)), device=process_device)
 
     cutoff = 0.4
-    metric = 'acc'
+    metric = 'roc'
     
     if process_device == 'cpu':
         input("WARNING: Running without CUDA. Are you sure you want to proceed? Press any key to proceed. (ctrl + c to quit)\n")
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     assert 'formatted' in val_filename, "'formatted' is not in the test filename. Did you select the correct file?"
     assert 'formatted' in test_filename, "'formatted' is not in the test filename. Did you select the correct file?"    
     assert os.path.exists(train_filename), f"Train file '{train_filename}' does not exist."
-    assert os.path.exists(test_filename), f"Val file '{val_filename}' does not exist."
+    assert os.path.exists(val_filename), f"Val file '{val_filename}' does not exist."
     assert os.path.exists(test_filename), f"Test file '{test_filename}' does not exist."
 
     # torch.use_deterministic_algorithms(True)
@@ -319,7 +319,7 @@ if __name__ == "__main__":
         "num_conv_layers": 1,
         "dropout_pr": 0.4,
         "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
-        "kin_param_dict": {"kernels": [80], "out_lengths": [8], "out_channels": [20]},
+        "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
     }
     
 
