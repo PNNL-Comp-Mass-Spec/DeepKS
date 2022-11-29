@@ -1,0 +1,1 @@
+python3 attention_one_layer_k_fold.py --train ../data/raw_data_17502_formatted_60_15088.csv --val ../data/raw_data_2294_formatted_95_2161.csv --test ../data/raw_data_1925_formatted_95_1768.csv --device cpu

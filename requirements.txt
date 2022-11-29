@@ -1,0 +1,11 @@
+matplotlib~=3.5.3
+numpy~=1.23.2
+pandas~=1.4.3
+prettytable~=3.3.0
+requests~=2.28.1
+scikit_learn~=1.1.3
+scipy~=1.9.0
+sigfig~=1.3.2
+torch>=1.12.0
+git+https://github.com/Ben-Drucker/torchinfo-modified@main#egg=torchinfo_modified
+git+https://github.com/Ben-Drucker/psankey-modified@master#egg=psankey_modified

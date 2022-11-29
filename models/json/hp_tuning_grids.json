@@ -1,0 +1,112 @@
+{
+    "hp_dict" : {
+        "emb_dim": [10, 16, 22, 28, 34, 40],
+        "num_epochs": [6, 10, 14, 18, 22, 26],
+        "ll_dim": [100, 150, 200, 250]
+    },
+
+    "hp_dict_medium" : {
+        "emb_dim": [22],
+        "batch_size": [50],
+        "num_epochs": [20, 30],
+        "ll_dim": [225, 250],
+        "learning_rate": [0.0027, 0.003, 0.0033]
+    },
+
+    "small_cf" : {
+        "learning_rate": [0.0027, 0.003, 0.0033],
+        "batch_size": [50],
+        "ll_size": [200, 225],
+        "emb_dim": [22],
+        "num_epochs": [20, 24, 28, 32],
+        "n_gram": [1],
+        "lr_decay_amt": [0.96],
+        "lr_decay_freq": [1]
+    },
+
+    "small_cf_2" : {
+        "learning_rate": [0.001, 0.003, 0.0027, 0.01],
+        "batch_size": [50],
+        "ll_size": [175, 200, 225],
+        "emb_dim": [22],
+        "num_epochs": [24],
+        "n_gram": [1],
+        "lr_decay_amt": [0.96],
+        "lr_decay_freq": [1]
+    },
+
+    "tiny_cf" : {
+        "learning_rate": [0.0027, 0.1],
+        "batch_size": [50],
+        "ll_size": [200],
+        "emb_dim": [22],
+        "num_epochs": [1],
+        "n_gram": [1],
+        "lr_decay_amt": [0.96],
+        "lr_decay_freq": [1]
+    },
+
+    "cf_old" : {
+        "learning_rate": [0.003],
+        "batch_size": [43, 46, 50, 54, 57],
+        "ll_size": [20, 25, 30],
+        "emb_dim": [22],
+        "num_epochs": [15, 20],
+        "n_gram": [1],
+        "lr_decay_amt": [0.95, 0.96, 0.97],
+        "lr_decay_freq": [1],
+        "num_conv_layers": [1],
+        "site_param_dict": "_@pyex_[{'kernels': [skern], 'out_lengths': [o], 'out_channels': [c]} for skern, o, c in [(6, 10, 14), (8, 8, 20), (10, 6, 22)]]",
+        "kin_param_dict": "_@pyex_[{'kernels': [kkern], 'out_lengths': [o], 'out_channels': [c]} for kkern, o, c in [(60, 10, 14), (80, 8, 20), (100, 6, 22)]]",
+        "dropout_pr": [0.3, 0.32, 0.34, 0.37, 0.4]
+    },
+
+    "cf" : {
+        "learning_rate": [0.003],
+        "batch_size": [54, 57, 60, 64],
+        "ll1_size": [10, 20, 50, 100],
+        "ll2_size": [10, 20, 50, 100],
+        "emb_dim": [22],
+        "num_epochs": [12, 14, 18, 22],
+        "n_gram": [1],
+        "lr_decay_amt": [0.95],
+        "lr_decay_freq": [1],
+        "num_conv_layers": [1],
+        "site_param_dict": [{"kernels": [8], "out_lengths":[8], "out_channels":[20]}],
+        "kin_param_dict": [{"kernels": [80], "out_lengths":[8], "out_channels":[20]}],
+        "dropout_pr": [0.25, 0.3, 0.335, 0.37, 0.405, 0.440]
+    },
+
+    "cf2" : {
+        "learning_rate": [0.003],
+        "batch_size": [57, 64],
+        "ll1_size": [20, 50, 100],
+        "ll2_size": [10, 25, 50],
+        "emb_dim": [22],
+        "num_epochs": [18],
+        "n_gram": [1],
+        "lr_decay_amt": [0.95],
+        "lr_decay_freq": [1],
+        "num_conv_layers": [1],
+        "site_param_dict": "_@pyex_[{'kernels': [skern], 'out_lengths': [o], 'out_channels': [c]} for skern, o, c in [(1, 15, 18), (6, 10, 14), (8, 8, 20), (10, 6, 22)]]",
+        "kin_param_dict": "_@pyex_[{'kernels': [kkern], 'out_lengths': [o], 'out_channels': [c]} for kkern, o, c in [(256, 15, 18), (60, 10, 14), (80, 8, 20), (100, 6, 22)]]",
+        "dropout_pr": [0.25, 0.3, 0.35, 0.4]
+    },
+
+    "cf_new_data" : {
+        "learning_rate": [0.003],
+        "batch_size": [57, 64],
+        "ll1_size": [20, 50],
+        "ll2_size": [10, 25],
+        "emb_dim": [22],
+        "num_epochs": [8, 9, 10],
+        "n_gram": [1],
+        "lr_decay_amt": [0.3, 0.4, 0.5],
+        "lr_decay_freq": [2, 3, 5],
+        "num_conv_layers": [1],
+        "site_param_dict": [{"kernels": [8], "out_lengths":[8], "out_channels":[20]}],
+        "kin_param_dict": [{"kernels": [80], "out_lengths":[8], "out_channels":[20]}],
+        "dropout_pr": [0.25, 0.3, 0.35, 0.4]
+    }
+
+}
