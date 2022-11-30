@@ -26,7 +26,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
         "^PIK[0-9A-Z]+$": "PIK", 
         "^CDK[0-9A-Z]+$": "CDK", 
         "^NME[0-9]$": "NDP", 
-        "^PAK[0-9]": "PAK", 
+        "^PAK[0-9]": "STE20", 
         "^GRK[0-9]": "GRK", 
         "^PRKA[A-Z][0-9]$": "CAMKL",
         "^ENPP[0-9]$": "ENPP",
@@ -43,9 +43,12 @@ def get_kin_to_fam_to_grp(relevant_kinases):
         "^FAM[0-9A-Z]+$": "FAM",
         "^SNF[0-9A-Z]+$": "SNF",
         "^GTF[0-9A-Z]+$": "GTF",
-        "^EPHB[0-9A-Z]+$": "EPHB",
+        "^EPH[0-9A-Z]+$": "EPH",
         "^UL[0-9A-Z]+$": "UL",
         "^JMJD[0-9A-Z]+$": "JMJD",
+        "^.*RET.*$": "RET",
+        "^AURK.*$": "AUR",
+        "^.*ABL.*$": "ABL",
         }
 
     checkpoints = []

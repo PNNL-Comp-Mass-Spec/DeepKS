@@ -42,16 +42,17 @@ def get_overall_plot(counts, savefig = False):
     baxes.axs[0].set_yticks(list(range(15000, 23000, 1000)))
     baxes.axs[1].set_yticks(list(range(0, 9000, 1000)))
     if savefig:
-        fig.savefig("./relative_distributions.svg")
-    plt.show()
+        fig.savefig("./relative_distributions.svg", bbox_inches='tight')
+    else:
+        plt.show()
 
 def get_proportional_plot(counts, savefig = False):
     cnt_tr = counts[0]
     cnt_vl = counts[1]
     cnt_te = counts[2]
 
-    plt.figure(figsize=(10, 7.5))
-    plt.subplots_adjust(bottom=0.3)
+    plt.figure(figsize=(10, 6))
+    # plt.subplots_adjust(bottom=0.3, top=0.3)
     r = list(range(len(labs)))
     raw_data = {'greenBars': [cnt_tr[la] for la in labs], 'orangeBars': [cnt_vl[la] for la in labs],'blueBars': [cnt_te[la] for la in labs]}
     df = pd.DataFrame(raw_data)
@@ -82,8 +83,9 @@ def get_proportional_plot(counts, savefig = False):
     plt.legend(loc='lower right')
     plt.xlim(-0.5, 10.5)
     if savefig:
-        plt.savefig("./proportional_distribution.svg")
-    plt.show()
+        plt.savefig("./proportional_distribution.svg", bbox_inches='tight')
+    else:
+        plt.show()
 
 if __name__ == "__main__":
     import os, pathlib
