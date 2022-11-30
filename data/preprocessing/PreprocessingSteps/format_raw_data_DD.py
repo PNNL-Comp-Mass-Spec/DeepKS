@@ -147,7 +147,7 @@ def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: 
     # orig_data = pd.read_csv(input_fn).sort_values(by=['num_sites', 'lab', 'seq'], ascending=[False, True, True]).reset_index(drop=True)
     # orig_data = orig_data[orig_data['seq'].isin(all_data_w_seqs['seq'])]
     if write_file:
-        all_data_w_seqs.to_csv(fn:=re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn).replace(".csv", "") + f"_formatted{extra}.csv", index=False)
+        all_data_w_seqs.to_csv(fn:="../"+re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn).replace(".csv", "") + f"_formatted{extra}.csv", index=False)
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
     print(f"Size: {len(all_data_w_seqs)}")
     # return all_data_w_seqs #orig_data
