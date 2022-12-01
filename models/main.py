@@ -17,7 +17,6 @@ from NNInterface import NNInterface
 from matplotlib import rcParams
 from formal_layers import Concatenation, Multiply, Transpose
 import numpy as np
-import argparse
 import pickle
 from SimpleTuner import SimpleTuner
 from model_utils import cNNUtils as U
@@ -244,7 +243,8 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     results.append(the_nn.train(train_loader, lr_decay_amount=config['lr_decay_amt'], lr_decay_freq=config['lr_decay_freq'], num_epochs=config['num_epochs'], include_val = True, val_dl = val_loader, fold = 0, maxfold=0, cutoff = cutoff, metric = metric)) 
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
-    
+    the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/Preliminary_ROC")
+
     del model, the_nn
     torch.cuda.empty_cache()
 
