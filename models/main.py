@@ -1,9 +1,7 @@
 import os
 import pathlib
-import re
+import json
 
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(where_am_i)
 
 import sys
 sys.path.append("../config/")
@@ -22,6 +20,9 @@ from SimpleTuner import SimpleTuner
 from model_utils import cNNUtils as U
 import config
 from parse import parsing
+
+where_am_i = pathlib.Path(__file__).parent.resolve()
+os.chdir(where_am_i)
 
 rcParams['font.family'] = 'serif'
 rcParams['font.size'] = 13
@@ -209,7 +210,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     for x in config:
         exec(f"{x} = {config[x]}")
 
-    tokdict = pickle.load(open("../bin/tok_dict.pkl", "rb"))
+    tokdict = json.load(open("json/tok_dict.json", "rb"))
     tokdict['-'] = tokdict['<PADDING>']
 
     (train_loader, _, _, _), info_dict = gather_data(train_filename, trf=1, vf=0, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=process_device, maxsize=KIN_LEN)
@@ -232,7 +233,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
         print("WARNING: AssertionError for the parameter set: ")
         print(ae)
         return tuple(["N/A"]*5)
-    the_nn = NNInterface(model, crit, torch.optim.Adam(model.parameters(), lr=config['learning_rate']), inp_size=NNInterface.get_input_size(train_loader), model_summary_name="../architectures/architecture (id-%d).txt" %(U.id_params(config)), device=process_device)
+    the_nn = NNInterface(model, crit, torch.optim.Adam(model.parameters(), lr=config['learning_rate']), inp_size=NNInterface.get_input_size(train_loader), inp_types = NNInterface.get_input_types(train_loader), model_summary_name="../architectures/architecture (id-%d).txt" %(U.id_params(config)), device=process_device)
 
     cutoff = 0.4
     metric = 'roc'
@@ -243,7 +244,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     results.append(the_nn.train(train_loader, lr_decay_amount=config['lr_decay_amt'], lr_decay_freq=config['lr_decay_freq'], num_epochs=config['num_epochs'], include_val = True, val_dl = val_loader, fold = 0, maxfold=0, cutoff = cutoff, metric = metric)) 
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
-    the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/Preliminary_ROC")
+    the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/Preliminary_ROC_Test")
 
     del model, the_nn
     torch.cuda.empty_cache()
@@ -275,10 +276,10 @@ if __name__ == "__main__":
         "emb_dim": 22,
         "num_epochs": 10,
         "n_gram": 1,
-        "lr_decay_amt": 0.4,
+        "lr_decay_amt": 0.35,
         "lr_decay_freq": 3,
         "num_conv_layers": 1,
-        "dropout_pr": 0.3,
+        "dropout_pr": 0.4,
         "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
         "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
     }

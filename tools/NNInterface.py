@@ -12,19 +12,20 @@ from PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 rcParams['font.family'] = 'Palatino'
 rcParams['font.size'] = 13
 class NNInterface:
-    def __init__(self, model_to_train, loss_fn, optim, inp_size=(100, 15), model_summary_name = "model_summary.txt", device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
+    def __init__(self, model_to_train, loss_fn, optim, inp_size=(100, 15), inp_types=[torch.long], model_summary_name = "model_summary.txt", device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
         self.model = model_to_train
         self.criterion = loss_fn
         self.optimizer = optim
         self.device = device
         self.inp_size = inp_size
+        self.inp_types = inp_types
         fp = open(model_summary_name, "w", encoding="utf-8")
         fp.write(str(self))
         fp.close()
     
     def __str__(self):
         try:
-            self.representation = "\n" + "--- Model Summary ---\n" + str(ms := summary(self.model, device=self.device, input_size=self.inp_size, dtypes=[torch.float]*len(self.inp_size), col_names=['input_size', 'output_size', 'num_params', 'trainable'], row_settings = ["var_names"], verbose=0, col_width=50)) + "\n"
+            self.representation = "\n" + "--- Model Summary ---\n" + str(ms := summary(self.model, device=self.device, input_size=self.inp_size, dtypes=self.inp_types, col_names=['input_size', 'output_size', 'num_params', 'trainable'], row_settings = ["var_names"], verbose=0, col_width=50)) + "\n"
             self.model_summary = ms
             torch.cuda.empty_cache()
         except Exception as e:
@@ -147,7 +148,7 @@ class NNInterface:
     def get_all_rocs(self, tl, vl, tel, ho, savefile = ""):
         fig = plt.figure(figsize=(12, 12))
         linecolors = ['orange', 'violet', (0, .5, 0), 'blue']
-        set_labels = ['Train', 'Validation', 'Test', f'Held Out Family--{HELD_OUT_FAMILY}']
+        set_labels = ['Train', 'Validation', 'Test', f'Held Out Family — {HELD_OUT_FAMILY}']
         for i, loader in enumerate([tl, vl, tel, ho]):
             eval_res = self.eval(dataloader=loader)
             outputs = eval_res[2]
@@ -155,7 +156,7 @@ class NNInterface:
             roc_data = sklearn.metrics.roc_curve(labels, outputs)
             aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
             sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(color=linecolors[i], linewidth=1, ax=plt.gca(), label=f"{set_labels[i]} Set (AUC = {aucscore:.3f})")
-            if aucscore > .9:
+            if aucscore > .98:
                 self.inset_auc()
 
         plt.title("ROC Curves")
@@ -229,3 +230,14 @@ class NNInterface:
             assert(isinstance(X, torch.Tensor))
             inp_sizes.append(list(X.size()))
         return inp_sizes
+    
+    @staticmethod
+    def get_input_types(dl, leave_out_last=True):
+        types = []
+        assert(isinstance(dl, torch.utils.data.DataLoader))
+        dl = list(dl)
+        iterab = dl[0] if not leave_out_last else dl[0][:-1]
+        for X in iterab:
+            assert(isinstance(X, torch.Tensor))
+            types.append(X.dtype)
+        return types
