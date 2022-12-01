@@ -5,6 +5,7 @@ from torchinfo_modified import summary
 import sklearn.metrics
 from matplotlib import pyplot as plt, rcParams
 import pickle
+import numpy as np
 import sys
 sys.path.append('../data/preprocessing/')
 from PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
@@ -144,6 +145,27 @@ class NNInterface:
                 avg_loss += [loss.item()]*len(labels)
                     
             return sum(avg_perf)/len(avg_perf), sum(avg_loss)/len(avg_loss), all_outputs, all_labels, all_preds, torch.sigmoid(outputs.data.cpu()).cpu()
+
+    def get_all_conf_mats(self, tl, vl, tel, ho, savefile = "", cutoffs = [0.4, 0.45, 0.5, 0.55, 0.6]):
+        set_labels = ['Train', 'Validation', 'Test', f'Held Out Family — {HELD_OUT_FAMILY}']
+        for li, l in enumerate([tl, vl, tel, ho]):
+            preds = []
+            eval_res = self.eval(dataloader=l)
+            outputs = [x[0] for x in eval_res[2]]
+            labels = eval_res[3]
+
+            for cutoff in cutoffs:
+                preds.append([1 if x > cutoff else 0 for x in outputs])
+
+            fig, ax = plt.subplots(nrows = int(len(cutoffs)**1/2), ncols=int(np.ceil(len(cutoffs)/int(len(cutoffs)**1/2))), figsize = (12, 12))
+            for i, fp in enumerate(preds):
+                cm = sklearn.metrics.confusion_matrix(labels, fp)
+                sklearn.metrics.ConfusionMatrixDisplay(cm).plot(ax = ax.ravel()[i])
+                ax.ravel()[i].set_title(f"Cutoff = {cutoffs[i]} | Acc = {(cm[0, 0] + cm[1, 1])/sum(cm.ravel())}")
+            
+            if savefile:
+                fig.savefig(savefile + "_" + set_labels[li] + ".pdf", bbox_inches='tight')
+
 
     def get_all_rocs(self, tl, vl, tel, ho, savefile = ""):
         fig = plt.figure(figsize=(12, 12))
