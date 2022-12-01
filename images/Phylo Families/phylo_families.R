@@ -9,7 +9,17 @@ library(readr)
 library(stringr)
 library(broman)
 library(numbers)
+library(this.path)
 set.seed(0)
+
+set_wd <- function() {
+  cur_file_loc <- this.path()
+  dir <- str_split(cur_file_loc, "/")
+  path <- do.call(file.path, dir[[1]][1:(length(dir[[1]]) - 1)] %>% as.list())
+  setwd(path)
+}
+
+set_wd()
 
 is_dark <- function(color) {
   r <- str_sub(color, 2, 3) %>% hex2dec()
@@ -19,15 +29,35 @@ is_dark <- function(color) {
   return(lum < 0.5)
 }
 
-dm <- read.csv("../../data/preprocessing/mtx_822.csv", row.names = 1)
+kfg <- read.csv("../../data/preprocessing/kin_to_fam_to_grp_817.csv") %>%
+  mutate(mtx_names = paste(gsub("[\\(\\)\\*]", "", Kinase), sep = "|", Uniprot)) # %>%
+
+the_subset <- seq_len(nrow(kfg)) # 100:175
+
+dm <- read.csv("../../data/preprocessing/mtx_822.csv", row.names = 1) %>%
+  filter(rownames(.) %in% kfg$mtx_names)
 # Distance matrix
 d <- dist(dm)
 # Hierarchical clustering dendrogram
-hc <- as.dendrogram(hclust(d, method = "ward.D2"))
-num_families <- read.csv("../../data/preprocessing/kin_to_fam_to_grp_817.csv") %>%
+hc <- set(as.dendrogram(hclust(d, method = "ward.D2")), "branches_lwd", 0.25)
+dend_order <- rownames(dm)[order.dendrogram(hc)]
+hc <- dendextend::prune(hc, dend_order[setdiff(seq_len(nrow(dm)), the_subset)], reindex_dend = F)
+
+num_families <- kfg %>%
+  filter(mtx_names %in% dend_order[the_subset]) %>%
   select(Family) %>%
   dplyr::distinct() %>%
   nrow(.)
+
+num_groups <- kfg %>%
+  filter(mtx_names %in% dend_order[the_subset]) %>%
+  select(Group) %>%
+  dplyr::distinct() %>%
+  nrow(.)
+
+kfg <- kfg %>%
+  filter(mtx_names %in% dend_order[the_subset]) %>%
+  mutate(Group_index = as.numeric(as.factor(Group)))
 
 dend_order <- rownames(dm)[order.dendrogram(hc)]
 ct <- cutree(hc, k = num_families)
@@ -46,8 +76,9 @@ hc <- hc %>%
 
 par(cex = 0.25)
 
-cmap_groups <- circlize::colorRamp2(c(1, 5, 10), c("#000044", "#ff00ff", "#ffc9ea"))
-cmap_families <- circlize::colorRamp2(c(0, 4, 9), c("#660000", "#ffff00", "#00aaff"))
+num_fam_levels <- 10
+cmap_groups <- circlize::colorRamp2(c(1, (num_groups + 1) / 2, num_groups), c("#000082", "#366fff", "#bddfff"))
+cmap_families <- circlize::colorRamp2(c(0, (num_fam_levels - 1) / 2, num_fam_levels - 1), c("#b00000", "#ffff00", "#00bba5"))
 
 vals <- c()
 counter <- 1
@@ -68,33 +99,33 @@ fam_color_order <- vals_inv
 
 stopifnot(sort(fam_color_order) == 1:num_families)
 
-fam_anno_data <- read.csv("../../data/preprocessing/kin_to_fam_to_grp_817.csv") %>%
-  mutate(Group_index = as.numeric(as.factor(Group)))
+fam_anno_data <- kfg
 
 rownames(fam_anno_data) <- paste(gsub("[\\(\\)*]", "", fam_anno_data$Kinase), "|", fam_anno_data$Uniprot, sep = "")
 
 fam_anno_data <- fam_anno_data %>%
   .[dend_order, ] %>%
   mutate(Family_index = as.numeric(
-    factor(Family, 
-           levels = (Family %>% unique()))) - 1
-           ) %>%
+    factor(Family,
+      levels = (Family %>% unique())
+    )
+  ) - 1) %>%
   mutate(Group_color = cmap_groups(Group_index)) %>%
-  mutate(Family_color = cmap_families(Family_index %% 10))
+  mutate(Family_color = cmap_families(Family_index %% num_fam_levels))
 
 key_group <- fam_anno_data %>%
   distinct(Group, Group_index) %>%
   deframe()
 
 key_family <- fam_anno_data %>%
-  distinct(Family, Family_index %% 10) %>%
+  distinct(Family, Family_index %% num_fam_levels) %>%
   deframe()
 
-make_main <- function(fin = NULL) {
+make_main <- function(fin = NULL, cex = 1) {
   if (is.null(fin)) {
-    par(cex = 0.4, family = "Palatino", fig = c(0, 1, 0, 1))
+    par(cex = cex, family = "Palatino", fig = c(0, 1, 0, 1))
   } else {
-    par(cex = 0.4, family = "Palatino", fin = fin)
+    par(cex = cex, family = "Palatino", fin = fin)
   }
   circos.par(
     cell.padding = rep(0, 4),
@@ -105,10 +136,17 @@ make_main <- function(fin = NULL) {
   circos.track(
     ylim = c(0, 1),
     bg.border = NA,
-    track.height = 0.05,
+    track.height = 0.1,
     panel.fun = function(x, y) {
       for (i in seq_len(nrow(fam_anno_data))) {
         circos.rect(i - 1, 0, i, 1, col = fam_anno_data[i, "Group_color"], border = NA)
+        circos.text(i - 0.5, 0.5,
+          fam_anno_data[i, "Group"],
+          facing = "clockwise",
+          niceFacing = TRUE,
+          cex = 0.3, # 1,
+          col = ifelse(is_dark(fam_anno_data[i, "Group_color"]), "white", "black")
+        )
       }
     }
   )
@@ -116,7 +154,7 @@ make_main <- function(fin = NULL) {
   circos.track(
     ylim = c(0, 1),
     bg.border = NA,
-    track.height = 0.05,
+    track.height = 0.1,
     panel.fun = function(x, y) {
       for (i in seq_len(nrow(fam_anno_data))) {
         circos.rect(i - 1, 0, i, 1, col = fam_anno_data[i, "Family_color"], border = NA)
@@ -124,7 +162,7 @@ make_main <- function(fin = NULL) {
           fam_anno_data[i, "Family"],
           facing = "clockwise",
           niceFacing = TRUE,
-          cex = 0.3,
+          cex = 0.3, # .6,
           col = ifelse(is_dark(fam_anno_data[i, "Family_color"]), "white", "black")
         )
       }
@@ -135,7 +173,7 @@ make_main <- function(fin = NULL) {
   circos.track(
     ylim = c(0, 1),
     bg.border = NA,
-    track.height = 0.05,
+    track.height = 0.04,
     panel.fun = function(x, y) {
       for (i in seq_len(length(dend_order))) {
         circos.text(
@@ -145,7 +183,7 @@ make_main <- function(fin = NULL) {
           adj = c(0, 0.5),
           facing = "clockwise",
           niceFacing = TRUE,
-          cex = 0.5
+          cex = 0.2 # ifelse(str_length(dend_order[i]) > 15, 0.33, 0.65)
         )
       }
     }
@@ -156,36 +194,36 @@ make_main <- function(fin = NULL) {
   circos.track(
     ylim = c(0, dend_height),
     bg.border = NA,
-    track.height = 0.4,
+    track.height = 0.4, # 0.5
     panel.fun = function(x, y) {
       circos.dendrogram(dend)
       circos.segments(0, dend_height - cut_height, length(dend_order), dend_height - cut_height, lty = "dotted", lwd = 0.5)
     }
   )
 
-  legend(
-    x = -1.5,
-    y = 1,
-    legend = names(key_group),
-    fill = cmap_groups(key_group),
-    title = "Group Color Map",
-    cex = 1,
-    border = "#FFFFFF00"
-  )
+  # legend(
+  #   x = -1.5,
+  #   y = 1,
+  #   legend = names(key_group),
+  #   fill = cmap_groups(key_group),
+  #   title = "Group Color Map",
+  #   cex = 1,
+  #   border = "#FFFFFF00"
+  # )
 
-  legend(
-    x = -1.5,
-    y = -1,
-    legend = c("Alternating Tree Cut Clusters", "Alternating Tree Cut Clusters", "Cut Height for\n# clusters = # families"),
-    col = c("#001eff", "#f58700", "black"),
-    title = "Dendrogram Colors",
-    cex = 1,
-    border = "#FFFFFF00",
-    yjust = 0,
-    lwd = unit(1, "mm"),
-    lty = c("solid", "solid", "dotted"),
-    text.width = 0.5
-  )
+  # legend(
+  #   x = -1.5,
+  #   y = -1,
+  #   legend = c("Alternating Tree Cut Clusters", "Alternating Tree Cut Clusters", "Cut Height for\n# clusters = # families"),
+  #   col = c("#001eff", "#f58700", "black"),
+  #   title = "Dendrogram Colors",
+  #   cex = 1,
+  #   border = "#FFFFFF00",
+  #   yjust = 0,
+  #   lwd = unit(1, "mm"),
+  #   lty = c("solid", "solid", "dotted"),
+  #   text.width = 0.5
+  # )
 }
 
 ################################################################################
@@ -258,8 +296,8 @@ make_legend <- function() {
   write(svg_txt, file = "legend.svg")
 }
 
-cairo_pdf("proto.pdf", family = "Palatino", width = 7.5, height = 5, pointsize = 8)
-make_main(c(7.5, 5))
+cairo_pdf("proto-small.pdf", family = "Palatino", width = 10, height = 10)
+make_main(c(10, 10), cex = 0.5)
 dev.off()
 # make_legend()
 # rsvg_svg("legend.svg", "legend-B.svg")

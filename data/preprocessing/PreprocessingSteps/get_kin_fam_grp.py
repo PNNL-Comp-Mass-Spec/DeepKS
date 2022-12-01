@@ -38,7 +38,8 @@ def get_kin_to_fam_to_grp(relevant_kinases):
         "^CERT[0-9]$": "CERT",
         "^DCAF[0-9]$": "DCAF",
         "^TGM[0-9]$": "TGM",
-        "^MAP3K[0-9]+$": "STE11",
+        "^MAP3K21$": "MLK",
+        "^MAP3K20$": "STE11",
         "^PHK[A-Z0-9]+$": "PHK",
         "^FAM[0-9A-Z]+$": "FAM",
         "^SNF[0-9A-Z]+$": "SNF",
@@ -50,10 +51,14 @@ def get_kin_to_fam_to_grp(relevant_kinases):
         "^AURK.*$": "AUR",
         "^.*ABL.*$": "ABL",
         }
+    
+    additional_group = {
+        'CILK': 'CMGC',
+    }
 
     checkpoints = []
     not_found = 1
-    for i, r in combined_df[~combined_df['Family'].notna()].iterrows():
+    for i, r in combined_df[combined_df['Family'].isna()].iterrows():
         checkpoints.append(i)
         for a in additional:
             if bool(re.match(a, r['Kinase'])):
@@ -66,10 +71,17 @@ def get_kin_to_fam_to_grp(relevant_kinases):
             combined_df.at[i, 'Kinase'] = f"*{r['Kinase']}"
             print(f"{not_found}. No family found for {r['Kinase']}.")
             not_found += 1
-        if len(check := combined_df[(combined_df['Family'] == combined_df.at[i, 'Family']) & (combined_df['Group'] != "<UNANNOTATED>") & (combined_df['Group'].notna())]) != 0:
-            combined_df.at[i, 'Group'] = check.iloc[0]['Group']
+    for i, r in combined_df[combined_df['Group'].isna()].iterrows():        
+        for ag in additional_group:
+            if bool(re.match(ag, str(r['Family']))):
+                combined_df.at[i, 'Group'] = additional_group[ag]
+                combined_df.at[i, 'Kinase'] = f"({r['Kinase']})"
+                break
         else:
-            combined_df.at[i, "Group"] = "<UNANNOTATED>"
+            if len(check := combined_df[(combined_df['Family'] == combined_df.at[i, 'Family']) & (combined_df['Group'] != "<UNANNOTATED>") & (combined_df['Group'].notna())]) != 0:
+                combined_df.at[i, 'Group'] = check.iloc[0]['Group']
+            else:
+                combined_df.at[i, "Group"] = "<UNANNOTATED>"
         
     for i, r in combined_df[combined_df.isnull().any(axis=1)].iterrows():
         if ~pd.notna(r['Kinase']):

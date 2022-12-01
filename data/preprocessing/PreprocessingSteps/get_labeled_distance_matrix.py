@@ -15,7 +15,7 @@ def get_labeled_distance_matrix(input_fasta):
     csved_mtx = "\n".join([re.sub(" +", ",", x) for x in unformatted_mtx])
     mtx = pd.read_csv(io.StringIO(csved_mtx), index_col=0, header=None)
     mtx = mtx.applymap(lambda x: round(1-x, 8))
-    mtx.index = pd.Index([x.upper() for x in mtx.index.tolist()])
+    mtx.index = pd.Index([x.upper().replace("---", " ") for x in mtx.index.tolist()])
     mtx.columns = mtx.index.tolist()
     mtx = mtx.sort_index(0).sort_index(1)
     mtx.to_csv(f"../mtx_{len(mtx)}.csv")
@@ -30,10 +30,10 @@ def make_fasta(df_in):
     assert 'gene_name' in df.columns, "Input df to `make_fasta` must have column \"gene_name.\""
     rows = []
     for i in df[df['gene_name'].isna()].index:
-        df.at[i, 'gene_name'] = f"!{df.at[i, 'kinase']}!"
+        raise RuntimeError("NA for gene_name!")
 
     for _, r in df.iterrows():
-        rows.append(">"+r['gene_name']+"|"+r['kinase'])
+        rows.append(">"+r['gene_name'].replace(" ", "---")+"|"+r['kinase'])
         rows.append("\n")
         rows.append(tw.fill(r['kinase_seq']))
         rows.append("\n")
@@ -44,4 +44,5 @@ def make_fasta(df_in):
     return temp_fasta
 
 if __name__ == "__main__":
-    get_labeled_distance_matrix(make_fasta("../../raw_data/kinase_seq_822.txt"))
+    f = make_fasta("../../raw_data/kinase_seq_822.txt")
+    # get_labeled_distance_matrix(f)
