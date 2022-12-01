@@ -2,6 +2,8 @@ import os
 import pathlib
 import re
 
+where_am_i = pathlib.Path(__file__).parent.resolve()
+os.chdir(where_am_i)
 
 import sys
 sys.path.append("../config/")
@@ -16,24 +18,17 @@ from matplotlib import rcParams
 from formal_layers import Concatenation, Multiply, Transpose
 import numpy as np
 import argparse
+import pickle
 from SimpleTuner import SimpleTuner
 from model_utils import cNNUtils as U
 import config
-import json
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(where_am_i)
+from parse import parsing
 
 rcParams['font.family'] = 'serif'
 rcParams['font.size'] = 13
 
 NUM_EMBS = 22
 SITE_LEN = 15
-
-
-# Device configuration
-# device = torch.device("cpu")
-# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 def batch_dot(x, y):
     return torch.einsum("ij,ij->i", x, y)
@@ -207,8 +202,6 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         out = self.dropout(out)
         return self.final(out).squeeze()
 
-torch.use_deterministic_algorithms(True)
-
 def perform_k_fold(config, display_within_train = False, process_device = "cpu"):
     print(f"Using Device > {process_device} <")
     global NUM_EMBS
@@ -217,7 +210,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     for x in config:
         exec(f"{x} = {config[x]}")
 
-    tokdict = json.load(open("./json/tok_dict.json", "rb"))
+    tokdict = pickle.load(open("../bin/tok_dict.pkl", "rb"))
     tokdict['-'] = tokdict['<PADDING>']
 
     (train_loader, _, _, _), info_dict = gather_data(train_filename, trf=1, vf=0, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=process_device, maxsize=KIN_LEN)
@@ -250,12 +243,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
 
     results.append(the_nn.train(train_loader, lr_decay_amount=config['lr_decay_amt'], lr_decay_freq=config['lr_decay_freq'], num_epochs=config['num_epochs'], include_val = True, val_dl = val_loader, fold = 0, maxfold=0, cutoff = cutoff, metric = metric)) 
 
-    # the_nn.save_model(model.to('cpu'), "bin/current_best_model.pkl")
-    # pickle.dump(train_loader, open("bin/train_loader.pkl", "wb"))
-    # pickle.dump(val_loader, open("bin/val_loader.pkl", "wb"))
-
-    
-    the_nn.test(test_loader, roc = False, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
+    the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
     
     del model, the_nn
     torch.cuda.empty_cache()
@@ -266,46 +254,19 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     return results[:, 0].tolist(), np.mean(results[:, 0]), np.mean(results[:, 1]), np.std(results[:, 0]), np.std(results[:, 1])  # accuracy, loss, acc_std, loss_std
 
 mode = config.get_mode()
+torch.use_deterministic_algorithms(True)
 if mode == "no_alin":
     KIN_LEN = 4128
 else:
     KIN_LEN = 9264
 
+args = parsing()
+train_filename = args['train']
+val_filename = args['val']
+test_filename = args['test']
+
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-
-    def device(arg_value):
-        try:
-            assert(bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value)))
-            if "cuda" in arg_value:
-                if arg_value == "cuda":
-                    return arg_value
-                cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
-                assert(0 <= cuda_num <= torch.cuda.device_count())
-        except Exception:
-            raise argparse.ArgumentTypeError(f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:<gpu #>]'}.")
-        
-        return arg_value
-        
-    parser.add_argument("--device", type=device, help="Specify device. Choices are {'cpu', 'cuda:<gpu#>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
-    parser.add_argument("--train", type=str, help="Specify train file name", required=True, metavar='<train_file_name.csv>')
-    parser.add_argument("--val", type=str, help="Specify validation file name", required=True, metavar='<val_file_name.csv>')
-    parser.add_argument("--test", type=str, help="Specify test file name", required=True, metavar='<test_file_name.csv>')
-
-    args = vars(parser.parse_args())
-    train_filename = args['train']
-    val_filename = args['val']
-    test_filename = args['test']
-
-    assert 'formatted' in train_filename, "'formatted' is not in the train filename. Did you select the correct file?"
-    assert 'formatted' in val_filename, "'formatted' is not in the test filename. Did you select the correct file?"
-    assert 'formatted' in test_filename, "'formatted' is not in the test filename. Did you select the correct file?"    
-    assert os.path.exists(train_filename), f"Train file '{train_filename}' does not exist."
-    assert os.path.exists(val_filename), f"Val file '{val_filename}' does not exist."
-    assert os.path.exists(test_filename), f"Test file '{test_filename}' does not exist."
-
-    # torch.use_deterministic_algorithms(True)
     cf = {
         "learning_rate": 0.003,
         "batch_size": 64,
@@ -317,7 +278,7 @@ if __name__ == "__main__":
         "lr_decay_amt": 0.4,
         "lr_decay_freq": 3,
         "num_conv_layers": 1,
-        "dropout_pr": 0.4,
+        "dropout_pr": 0.3,
         "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
         "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
     }

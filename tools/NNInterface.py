@@ -5,8 +5,6 @@ from torchinfo_modified import summary
 import sklearn.metrics
 from matplotlib import pyplot as plt, rcParams
 import pickle
-# import ray
-# import os
 
 rcParams['font.family'] = 'Palatino'
 rcParams['font.size'] = 13
@@ -131,14 +129,27 @@ class NNInterface:
                     self.plot_roc(labels, outputs, savefile)
                     
                 return performance, loss.item(), outputs.cpu(), labels, predictions, torch.sigmoid(outputs.data.cpu()).cpu()
-                
-    def plot_roc(self, labels, outputs, savefile=True, metric = 'roc'):
+    
+    @staticmethod
+    def get_three_rocs(self, model, tl, vl, tel):
+        model.eval()
+        rocs = []
+        for loader in [tl, vl, tel]:
+            eval_res = self.eval(loader)
+            outputs = eval_res[2]
+            labels = eval_res[3]
+            self.plot_roc()
+            rocs.append(sklearn.metrics.roc_curve(labels, outputs))
+
+    def plot_roc(self, labels, outputs, savefile=True, just_data=True):
         if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
             probabilites = torch.sigmoid(outputs).cpu()
         elif isinstance(self.criterion, torch.nn.CrossEntropyLoss):
             probabilites_all = outputs
             probabilites = probabilites_all[:,1]
         fpr, tpr, _ = sklearn.metrics.roc_curve(labels.cpu(), probabilites)
+        if just_data:
+            return fpr, tpr
         sklearn.metrics.RocCurveDisplay(fpr=fpr, tpr=tpr).plot(color='b', linewidth=1)
         plt.title("ROC Curve | AUC = {:.4f}".format(aucscore := sklearn.metrics.roc_auc_score(labels.cpu(), probabilites)))
         plt.plot([0, 1], [0, 1], color='r', linestyle='--', alpha = 0.5, linewidth=0.5)
