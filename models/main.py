@@ -245,6 +245,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
     the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/Preliminary_ROC_Test")
+    the_nn.get_all_conf_mats(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/CM_", cutoffs = [0.3, 0.4, 0.5, 0.6])
 
     del model, the_nn
     torch.cuda.empty_cache()
@@ -274,7 +275,7 @@ if __name__ == "__main__":
         "ll1_size": 50,
         "ll2_size": 25,
         "emb_dim": 22,
-        "num_epochs": 10,
+        "num_epochs": 1,
         "n_gram": 1,
         "lr_decay_amt": 0.35,
         "lr_decay_freq": 3,

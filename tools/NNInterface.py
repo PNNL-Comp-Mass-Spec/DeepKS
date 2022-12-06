@@ -151,7 +151,7 @@ class NNInterface:
         for li, l in enumerate([tl, vl, tel, ho]):
             preds = []
             eval_res = self.eval(dataloader=l)
-            outputs = [x[0] for x in eval_res[2]]
+            outputs = [x if not isinstance(x, list) else x[0] for x in eval_res[2]]
             labels = eval_res[3]
 
             for cutoff in cutoffs:
@@ -159,9 +159,9 @@ class NNInterface:
 
             fig, ax = plt.subplots(nrows = int(len(cutoffs)**1/2), ncols=int(np.ceil(len(cutoffs)/int(len(cutoffs)**1/2))), figsize = (12, 12))
             for i, fp in enumerate(preds):
-                cm = sklearn.metrics.confusion_matrix(labels, fp)
-                sklearn.metrics.ConfusionMatrixDisplay(cm).plot(ax = ax.ravel()[i])
-                ax.ravel()[i].set_title(f"Cutoff = {cutoffs[i]} | Acc = {(cm[0, 0] + cm[1, 1])/sum(cm.ravel())}")
+                cm = sklearn.metrics.confusion_matrix(labels, fp, labels=['Decoy', 'Target'])
+                sklearn.metrics.ConfusionMatrixDisplay(cm).plot(ax = ax.ravel()[i], im_kw = {'vmin' : 600, 'vmax' : 2000})
+                ax.ravel()[i].set_title(f"Cutoff = {cutoffs[i]} | Acc = {(cm[0, 0] + cm[1, 1])/sum(cm.ravel()):3.3f}")
             
             if savefile:
                 fig.savefig(savefile + "_" + set_labels[li] + ".pdf", bbox_inches='tight')
