@@ -1,5 +1,6 @@
 logs/
 !bin/pickle_graph.pkl
+.gitig-*
 **/*.png
 **/*.svg
 **/*.gif
