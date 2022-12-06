@@ -7,16 +7,15 @@ os.chdir(where_am_i)
 import pandas as pd
 import sys
 sys.path.append("../../../tools")
-sys.path.append("../../../config")
+sys.path.append("../../../")
 import config
 sys.path.append("../../")
 from bipartite_derangement import get_groups_derangement4
 import random
 import re
 import json
-import pickle
 
-mode = config.get_mode()
+mode = config.cfg.get_mode()
 random.seed(0)
 
 # %%

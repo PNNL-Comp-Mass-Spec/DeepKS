@@ -202,7 +202,7 @@ def gather_data(
         test_loader = None
 
     return (train_loader, val_loader, tune_loader, test_loader), {
-        "kin_names": data.loc[train_ids]['lab_name'].to_list(),
+        "kin_orders": {'train': data.loc[train_ids]['lab_name'].to_list(), 'val': data.loc[val_ids]['lab_name'].to_list(), 'test':data.loc[test_ids]['lab_name'].to_list()},
         "classes": classes,
         "class_labels": class_labels,
         "remapping_class_label_dict_inv": remapping_class_label_dict_inv,

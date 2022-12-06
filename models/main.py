@@ -1,3 +1,4 @@
+import datetime
 import os
 import pathlib
 import json
@@ -18,7 +19,7 @@ import numpy as np
 import pickle
 from SimpleTuner import SimpleTuner
 from model_utils import cNNUtils as U
-from cfg.cfg import get_mode
+from config.cfg import get_mode
 from parse import parsing
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -210,7 +211,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     results = []
     (_, _, _, test_loader), info_dict_te = gather_data(test_filename, trf=0, vf=0, tuf=0, tef=1, n_gram=config['n_gram'], tokdict=tokdict, device=torch.device(process_device), maxsize=KIN_LEN)
     
-    kinase_order = [info['kin_names'] for info in [info_dict_tr, info_dict_vl, info_dict_te]]
+    kinase_order = [info_dict_tr['kin_orders']['train'], info_dict_vl['kin_orders']['val'], info_dict_te['kin_orders']['test']]
 
     crit = torch.nn.BCEWithLogitsLoss()
     if isinstance(crit, torch.nn.BCEWithLogitsLoss):
@@ -238,9 +239,15 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     results.append(the_nn.train(train_loader, lr_decay_amount=config['lr_decay_amt'], lr_decay_freq=config['lr_decay_freq'], num_epochs=config['num_epochs'], include_val = True, val_dl = val_loader, fold = 0, maxfold=0, cutoff = cutoff, metric = metric)) 
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
+    
+    the_nn.save_model(f"../bin/Saved State Dicts/{(now := datetime.datetime.now().isoformat())}.pkl")
+    the_nn.save_eval_results(test_loader, f"../res/{now}.json", kin_order = kinase_order[2])
     the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/Preliminary_ROC_Test")
-    the_nn.get_all_rocs_by_group(train_loader, val_loader, test_loader, test_loader, kinase_order, savefile = "../images/Evaluation and Results/ROC/ROC_by_group")
+    the_nn.get_all_rocs_by_group(test_loader, kinase_order[2], savefile = "../images/Evaluation and Results/ROC/ROC_by_group", kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv")
     the_nn.get_all_conf_mats(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/CM_", cutoffs = [0.3, 0.4, 0.5, 0.6])
+    
+
+
 
     del model, the_nn
     torch.cuda.empty_cache()
@@ -257,12 +264,14 @@ if mode == "no_alin":
 else:
     KIN_LEN = 9264
 
-args = parsing()
-train_filename = args['train']
-val_filename = args['val']
-test_filename = args['test']
+
 
 if __name__ == "__main__":
+
+    args = parsing()
+    train_filename = args['train']
+    val_filename = args['val']
+    test_filename = args['test']
 
     cf = {
         "learning_rate": 0.003,
