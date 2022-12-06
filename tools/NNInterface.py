@@ -1,5 +1,8 @@
 from datetime import datetime
+import re
+from select import KQ_FILTER_SIGNAL
 import torch
+import torch.utils.data
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 import sklearn.metrics
@@ -7,6 +10,9 @@ from matplotlib import pyplot as plt, rcParams
 import pickle
 import numpy as np
 import sys
+import pandas as pd
+from numbers import Number
+import collections
 sys.path.append('../data/preprocessing/')
 from PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
@@ -35,16 +41,16 @@ class NNInterface:
             exit(1)
         return self.representation
     
-    def train(self, train_loader, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, thsh = None, include_val = True, val_dl = None, verbose = 1, fold = 1, maxfold = 1, roc = False, savefile = False, cutoff = 0.5, metric = 'acc'):
+    def train(self, train_loader, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, threshold = None, include_val = True, val_dl = None, verbose = 1, fold = 1, maxfold = 1, roc = False, savefile = False, cutoff = 0.5, metric = 'acc'):
         assert metric.lower().strip() in ['roc', 'acc'], "Scoring `metric` needs to be one of `roc` or `acc`."
         train_scores = []
         if verbose:
             print(f"--- Training ---", flush=True)
         lowest_loss = float('inf')
         epoch = 0
-        if thsh is None:
-            thsh = float("inf")
-        while not ((lowest_loss < thsh and epoch >= num_epochs) or epoch >= 2*num_epochs):
+        if threshold is None:
+            threshold = float("inf")
+        while not ((lowest_loss < threshold and epoch >= num_epochs) or epoch >= 2*num_epochs):
             self.model.train()
             total_step = len(train_loader)
             if epoch % lr_decay_freq == 0 and epoch > 0:
@@ -158,6 +164,7 @@ class NNInterface:
                 preds.append([1 if x > cutoff else 0 for x in outputs])
 
             fig, ax = plt.subplots(nrows = int(len(cutoffs)**1/2), ncols=int(np.ceil(len(cutoffs)/int(len(cutoffs)**1/2))), figsize = (12, 12))
+            ax = np.asarray(ax)
             for i, fp in enumerate(preds):
                 cm = sklearn.metrics.confusion_matrix(labels, fp, labels=['Decoy', 'Target'])
                 sklearn.metrics.ConfusionMatrixDisplay(cm).plot(ax = ax.ravel()[i], im_kw = {'vmin' : 600, 'vmax' : 2000})
@@ -166,41 +173,73 @@ class NNInterface:
             if savefile:
                 fig.savefig(savefile + "_" + set_labels[li] + ".pdf", bbox_inches='tight')
 
+    def get_all_rocs_by_group(self, loader, kinase_order, savefile = "", kin_fam_grp_file = "../data/preprocessing/kin_to_fam_to_grp_817.csv"):
+        kin_to_grp = pd.read_csv(kin_fam_grp_file).applymap(lambda c: re.sub(r"[\(\)\*]", "", c))
+        kin_to_grp['Kinase'] = [f"{r['Kinase']}|{r['Uniprot']}" for _, r in kin_to_grp.iterrows()]
+        kin_to_grp = kin_to_grp.set_index("Kinase").to_dict()['Group']
+        fig = plt.figure(figsize=(12, 12))
+        eval_res = self.eval(dataloader=loader)
+        outputs: list[float] = eval_res[2]
+        labels: list[int] = eval_res[3]
+        grp_to_indices = collections.defaultdict(list[int])
+        for i in range(len(outputs)):
+            grp_to_indices[kin_to_grp[kinase_order[i]]].append(i)
+
+        outputs_dd = collections.defaultdict(list[float])
+        labels_dd = collections.defaultdict(list[int])
+        for g, inds in grp_to_indices.items():
+            outputs_dd[g] = [outputs[i] for i in inds]
+            labels_dd[g] = [labels[i] for i in inds]
+
+        for i, g in enumerate(grp_to_indices):
+            self.roc_core(outputs_dd[g], labels_dd[g], i, line_labels=[g])
+        
+        if savefile:
+            fig.savefig(savefile + "_" + str(len(outputs_dd)) + ".pdf", bbox_inches='tight')
 
     def get_all_rocs(self, tl, vl, tel, ho, savefile = ""):
         fig = plt.figure(figsize=(12, 12))
-        linecolors = ['orange', 'violet', (0, .5, 0), 'blue']
-        set_labels = ['Train', 'Validation', 'Test', f'Held Out Family — {HELD_OUT_FAMILY}']
+        ii = 0
         for i, loader in enumerate([tl, vl, tel, ho]):
             eval_res = self.eval(dataloader=loader)
             outputs = eval_res[2]
             labels = eval_res[3]
-            roc_data = sklearn.metrics.roc_curve(labels, outputs)
-            aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
-            sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(color=linecolors[i], linewidth=1, ax=plt.gca(), label=f"{set_labels[i]} Set (AUC = {aucscore:.3f})")
-            if aucscore > .98:
-                self.inset_auc()
+            self.roc_core(outputs, labels, i)
+            ii = i
+        if savefile:
+            fig.savefig(savefile + "_" + str(ii + 1) + ".pdf", bbox_inches='tight')
+
+    def roc_core(self, outputs, labels, i, linecolors = None, line_labels = ['Train', 'Validation', 'Test', f'Held Out Family — {HELD_OUT_FAMILY}']):
+        assert len(outputs) == len(labels), f"Something is wrong in NNInterface.roc_core; the length of outputs ({len(outputs)}) does not equal the number of labels ({len(labels)})"
+        if linecolors is None:
+            wheel = plt.rcParams['axes.prop_cycle'].by_key()['color'][i]
+            linecolors = [wheel[i % len(wheel)] for i in range(len(line_labels))]
+        
+        roc_data = sklearn.metrics.roc_curve(labels, outputs)
+        aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
+        sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(color=linecolors[i], linewidth=1, ax=plt.gca(), label=f"{line_labels[i]} Set (AUC = {aucscore:.3f})")
+        if aucscore > .98:
+            self.inset_auc()
 
         plt.title("ROC Curves")
         plt.plot([0, 1], [0, 1], color='r', linestyle='--', alpha = 0.5, linewidth=0.5, label = "Random Model")
         plt.xticks([x/100 for x in range(0, 110, 10)])
         plt.yticks([x/100 for x in range(0, 110, 10)])
         plt.legend(loc='lower right')
-        if savefile:
-            fig.savefig(savefile + "_" + str(len(linecolors)) + ".pdf", bbox_inches='tight')
+
 
     def inset_auc(self):
         ax = plt.gca()
-        axins = ax.inset_axes([0.5, 0.1, 0.45, 0.65])
+        ax_inset = ax.inset_axes([0.5, 0.1, 0.45, 0.65])
         x1, x2, y1, y2 = 0, 0.2, 0.8, 1
-        axins.set_xlim(x1, x2)
-        axins.set_ylim(y1, y2)
-        ax.indicate_inset_zoom(axins, linestyle='dashed')
-        axins.set_xticks([x1, x2])
-        axins.set_yticks([y1, y2])
-        axins.set_xticklabels([x1, x2])
-        axins.set_yticklabels([y1, y2])
-        axins.plot(ax.lines[0].get_xdata(), ax.lines[0].get_ydata(), color='b', linewidth=1)
+        ax_inset.set_xlim(x1, x2)
+        ax_inset.set_ylim(y1, y2)
+        ax.indicate_inset_zoom(ax_inset, linestyle='dashed')
+        ax_inset.set_xticks([x1, x2])
+        ax_inset.set_yticks([y1, y2])
+        ax_inset.set_xticklabels([x1, x2])
+        ax_inset.set_yticklabels([y1, y2])
+        ax_inset.plot(ax.lines[0].get_xdata(), ax.lines[0].get_ydata(), color='b', linewidth=1)
 
     def test(self, test_loader, verbose=True, roc=False, savefile=True, cutoff = 0.5, text = "Test Accuracy of the model", metric = "acc"):
         print("\n--- Testing ---", flush=True)

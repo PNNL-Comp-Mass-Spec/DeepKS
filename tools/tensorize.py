@@ -9,22 +9,22 @@ import sys
 
 def get_tok_dict(data, n_gram = 3, verbose = False, include_metadata = False):
     tok_dict = {}
-    tok_occurence = collections.Counter()
+    tok_occurrence = collections.Counter()
     all_iters = 0
-    def iter_through(ible):
+    def iter_through(iterable):
         nonlocal all_iters
-        for x in ible:
+        for x in iterable:
             for i in range(len(x) - n_gram + 1):
                 all_iters += 1
                 if x[i:i+n_gram] not in tok_dict:
                     tok_dict[x[i:i+n_gram]] = len(tok_dict)
-                tok_occurence[x[i:i+n_gram]] += 1
+                tok_occurrence[x[i:i+n_gram]] += 1
 
     iter_through(data["lab"].unique())
     iter_through(data["seq"].unique())
-    assert(sum(tok_occurence.values()) == all_iters)
+    assert(sum(tok_occurrence.values()) == all_iters)
     if verbose:
-        print("Token frequency (top 50):", tok_occurence.most_common(50))
+        print("Token frequency (top 50):", tok_occurrence.most_common(50))
         print("Total iterations: ", all_iters)
         print(f"Total unique {n_gram}-grams: ", len(tok_dict))
 
@@ -202,7 +202,7 @@ def gather_data(
         test_loader = None
 
     return (train_loader, val_loader, tune_loader, test_loader), {
-        "full_train_loader_kin_names": data.loc[train_ids]['lab_name'].to_list(),
+        "kin_names": data.loc[train_ids]['lab_name'].to_list(),
         "classes": classes,
         "class_labels": class_labels,
         "remapping_class_label_dict_inv": remapping_class_label_dict_inv,

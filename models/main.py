@@ -4,7 +4,7 @@ import json
 
 
 import sys
-sys.path.append("../config/")
+sys.path.append("../cfg/")
 sys.path.append("../tools/")
 sys.path.append("../data/preprocessing/")
 
@@ -18,7 +18,7 @@ import numpy as np
 import pickle
 from SimpleTuner import SimpleTuner
 from model_utils import cNNUtils as U
-import config
+from cfg.cfg import get_mode
 from parse import parsing
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -72,23 +72,13 @@ class CNN(nn.Module):
             return out.size()
         return out
 
-class CNNW(nn.Module):
-    def __init__(self, module_list):
-        super().__init__()
-        self.module_list = module_list
-    def forward(self, x):
-        out = x
-        for mod in self.module_list:
-            out = mod(out)
-        return out
-
 # Convolutional neural network (two convolutional layers)
 class KinaseSubstrateRelationshipNN(nn.Module):
     def __init__(self, inp_size, num_classes=1, ll1_size = 200, ll2_size = 200, emb_dim = 30, num_conv_layers = 1, site_param_dict = {"kernels": [4], "out_lengths":[12], "out_channels":[11]}, kin_param_dict = {"kernels": [10], "out_lengths":[12], "out_channels":[11]}, dropout_pr=0.3):
         super().__init__()
-        spvals = site_param_dict.values()
-        kpvals = kin_param_dict.values()
-        assert all(num_conv_layers == len(x) for x in list(spvals) + list(kpvals)), "Layer parameter lists do not all equal `num_conv_layers`"
+        site_param_vals = site_param_dict.values()
+        kinase_param_vals = kin_param_dict.values()
+        assert all(num_conv_layers == len(x) for x in list(site_param_vals) + list(kinase_param_vals)), "Layer parameter lists do not all equal `num_conv_layers`"
         self.inp_size = inp_size
 
         self.emb_site = nn.Embedding(NUM_EMBS, emb_dim)
@@ -213,18 +203,22 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     tokdict = json.load(open("json/tok_dict.json", "rb"))
     tokdict['-'] = tokdict['<PADDING>']
 
-    (train_loader, _, _, _), info_dict = gather_data(train_filename, trf=1, vf=0, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=process_device, maxsize=KIN_LEN)
-    ( _, val_loader, _, _), info_dict = gather_data(val_filename, trf=0, vf=1, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=process_device, maxsize=KIN_LEN)
+    (train_loader, _, _, _), info_dict_tr = gather_data(train_filename, trf=1, vf=0, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=torch.device(process_device), maxsize=KIN_LEN)
+    ( _, val_loader, _, _), info_dict_vl = gather_data(val_filename, trf=0, vf=1, tuf=0, tef=0, train_batch_size=config['batch_size'], n_gram=config['n_gram'], tokdict=tokdict, device=torch.device(process_device), maxsize=KIN_LEN)
     NUM_EMBS = 22
     
     results = []
-    (_, _, _, test_loader), _ = gather_data(test_filename, trf=0, vf=0, tuf=0, tef=1, n_gram=config['n_gram'], tokdict=tokdict, device=process_device, maxsize=KIN_LEN)
+    (_, _, _, test_loader), info_dict_te = gather_data(test_filename, trf=0, vf=0, tuf=0, tef=1, n_gram=config['n_gram'], tokdict=tokdict, device=torch.device(process_device), maxsize=KIN_LEN)
     
+    kinase_order = [info['kin_names'] for info in [info_dict_tr, info_dict_vl, info_dict_te]]
+
     crit = torch.nn.BCEWithLogitsLoss()
     if isinstance(crit, torch.nn.BCEWithLogitsLoss):
         num_classes = 1
     elif isinstance(crit, torch.nn.CrossEntropyLoss):
         num_classes = 2
+    else:
+        raise RuntimeError("Don't know how many classes to output.")
 
     torch.manual_seed(3)
     try:
@@ -233,7 +227,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
         print("WARNING: AssertionError for the parameter set: ")
         print(ae)
         return tuple(["N/A"]*5)
-    the_nn = NNInterface(model, crit, torch.optim.Adam(model.parameters(), lr=config['learning_rate']), inp_size=NNInterface.get_input_size(train_loader), inp_types = NNInterface.get_input_types(train_loader), model_summary_name="../architectures/architecture (id-%d).txt" %(U.id_params(config)), device=process_device)
+    the_nn = NNInterface(model, crit, torch.optim.Adam(model.parameters(), lr=config['learning_rate']), inp_size=NNInterface.get_input_size(train_loader), inp_types = NNInterface.get_input_types(train_loader), model_summary_name="../architectures/architecture (id-%d).txt" %(U.id_params(config)), device=torch.device(process_device))
 
     cutoff = 0.4
     metric = 'roc'
@@ -245,6 +239,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
     the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/Preliminary_ROC_Test")
+    the_nn.get_all_rocs_by_group(train_loader, val_loader, test_loader, test_loader, kinase_order, savefile = "../images/Evaluation and Results/ROC/ROC_by_group")
     the_nn.get_all_conf_mats(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/CM_", cutoffs = [0.3, 0.4, 0.5, 0.6])
 
     del model, the_nn
@@ -255,7 +250,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
         SimpleTuner.table_intermediates(config, results[:, 0].tolist(), np.mean(results[:, 0]), np.mean(results[:, 1]), np.std(results[:, 0]), np.std(results[:, 1]))
     return results[:, 0].tolist(), np.mean(results[:, 0]), np.mean(results[:, 1]), np.std(results[:, 0]), np.std(results[:, 1])  # accuracy, loss, acc_std, loss_std
 
-mode = config.get_mode()
+mode = get_mode()
 torch.use_deterministic_algorithms(True)
 if mode == "no_alin":
     KIN_LEN = 4128
