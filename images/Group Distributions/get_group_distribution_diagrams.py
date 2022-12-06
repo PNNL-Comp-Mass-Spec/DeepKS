@@ -4,7 +4,7 @@ from brokenaxes import brokenaxes
 import pandas as pd
 import sys
 sys.path.append("../../data/preprocessing/")
-from PreprocessingSteps import split_into_sets
+from PreprocessingSteps import split_into_sets_individual
 
 mpl.rcParams['font.family'] = "Palatino"
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     where_am_i = pathlib.Path(__file__).parent.resolve()
     os.chdir(where_am_i)
 
-    data = get_group_distribution_diagrams(split_into_sets.get_assignment_info_dict("../../data/preprocessing/kin_to_fam_to_grp_817.csv", "../../data/preprocessing/raw_data_22473.csv", *[f"../../data/preprocessing/{x}_kins.json" for x in ["tr", "vl", "te"]]))
+    data = get_group_distribution_diagrams(split_into_sets_individual.get_assignment_info_dict("../../data/preprocessing/kin_to_fam_to_grp_817.csv", "../../data/preprocessing/raw_data_22473.csv", *[f"../../data/preprocessing/{x}_kins.json" for x in ["tr", "vl", "te"]]))
 
     get_overall_plot(data, savefig = True)
     get_proportional_plot(data, savefig = True)
