@@ -23,7 +23,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
     combined_df = combined_df[combined_df['Kinase'].isin(relevant_kinases['Kinase'])]
 
     additional = {
-        "^PIK[0-9A-Z]+$": "PIK", 
+        # "^PIK[0-9A-Z]+$": "PIK", 
         "^CDK[0-9A-Z]+$": "CDK", 
         "^NME[0-9]$": "NDP", 
         "^PAK[0-9]": "STE20", 
