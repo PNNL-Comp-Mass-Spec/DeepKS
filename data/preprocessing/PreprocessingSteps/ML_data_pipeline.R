@@ -85,17 +85,28 @@ loading_fn <- function(libnames) {
 
 
 
-errs <- loading_fn(c("dplyr", "tidyverse", "readr", "seqinr", "DECIPHER"))
+errs <- loading_fn(c("dplyr", "tidyverse", "readr", "seqinr", "DECIPHER", "this.path", "stringr"))
 
 # suppress editor warnings by showing bindings
 library(dplyr)
 library(readr)
+library(this.path)
+library(stringr)
+
+set_wd <- function() {
+  cur_file_loc <- this.path()
+  dir <- str_split(cur_file_loc, "/")
+  path <- do.call(file.path, dir[[1]][1:(length(dir[[1]]) - 1)] %>% as.list())
+  setwd(path)
+}
+
+set_wd()
 
 source("Kinase_Inference_Testing.R")
 cat("[R] Reading in data...\n")
 mode <- colnames(read.delim("../../../config/mode.cfg"))
 
-n <- 1000000 # How many kinases to pull from PhosphositePlusDB (max number of kinanses is  so use `1000000` to get all)
+n <- 1000000 # How many kinases to pull from PhosphositePlusDB (max number of kinases is  so use `1000000` to get all)
 
 dat <- read_data(n, data_path = "../../raw_data/Kinase_Substrate_Dataset_(Downloaded).xlsx", disct = F)
 top_n_x0 <- dat[[2]]
@@ -109,7 +120,7 @@ top_n_x0 <- top_n_x0 %>%
   arrange(desc(num_sites), lab) %>%
   mutate(class = 1)
 
-large_fn <- sprintf("../../raw_data_%d.csv", nrow(top_n_x0))
+large_fn <- sprintf("../../raw_data/raw_data_%d.csv", nrow(top_n_x0))
 write.csv(top_n_x0, file = large_fn, row.names = FALSE, quote = FALSE)
 
 

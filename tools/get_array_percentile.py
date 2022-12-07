@@ -4,7 +4,7 @@ import numpy as np
 
 
 def get_array_percentile(
-        arr: np.array, percentile: Union[Number, Iterable[Number]],
+        arr: np.array, percentile: Union[Union[int, float], Iterable[Union[int, float]]],
         axes: Union[int, Iterable[int]],
         tf: Iterable = (1, 0)) -> np.array:
     """Gets np.array of numbers of the same shape as an input depending on whether or not each 

@@ -48,18 +48,20 @@ class SimpleTuner:
         print(f"{len(samples)} out of {len(samples) + len(not_chosen)} were picked. See {(fn := f'../logs/leftover-configs-{datetime.datetime.now().isoformat()}.log')} for leftover configurations.")
         with open(fn, "w") as f:
             f.write("\n".join([str(x) for x in not_chosen_config_dicts]) + "\n")
+        k_outer = -1
         for d in self.sampled_config_dicts:
             splits = []
             for k in d:
                 if re.search(r'group__\[\[(.+\+.+)\]\]__', k):
-                    ksub = re.sub("group__\[\[(.+\+.+)\]\]__", r"\1", k)
+                    ksub = re.sub(r"group__\[\[(.+\+.+)\]\]__", r"\1", k)
                     splits = ksub.split("+")
+                k_outer = k
 
             for i, hp in enumerate(splits):
-                d[hp] = d[k][i]
+                d[hp] = d[k_outer][i]
 
             if len(splits) != 0:
-                del d[k]
+                del d[k_outer]
 
 
         self._print_combinations()

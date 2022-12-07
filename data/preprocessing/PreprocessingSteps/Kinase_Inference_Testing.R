@@ -40,7 +40,8 @@ read_data <-
             kinase = GENE,
             site = paste0(SUB_GENE, "-", SUB_MOD_RSD),
             flank_seq = gsub("_", "X", toupper(`SITE_+/-7_AA`)),
-            uniprot_id = KIN_ACC_ID
+            uniprot_id = KIN_ACC_ID,
+            organism = KIN_ORGANISM
           )
       }
       

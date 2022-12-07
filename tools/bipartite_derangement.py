@@ -1,8 +1,10 @@
+from typing import Union
 import warnings
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix, csgraph
 import itertools
+from numbers import Number
 from get_array_percentile import get_array_percentile
 
 def get_groups_derangement2(NUM_KINS, SUBS_PER_KIN):
@@ -16,15 +18,15 @@ def get_groups_derangement2(NUM_KINS, SUBS_PER_KIN):
             if i // m == j // m:
                 graph[i][j] = 0
 
-    neworderc = np.random.permutation(k*m)
-    graph_new = graph[neworderc, :]
-    graph_new = graph_new[:, neworderc]
+    neworder = np.random.permutation(k*m)
+    graph_new = graph[neworder, :]
+    graph_new = graph_new[:, neworder]
 
     ma = csgraph.maximum_bipartite_matching(csr_matrix(graph_new), perm_type= 'column')
 
-    crypted = zip(range(len(ma)), ma)
-    pi = lambda p: neworderc[p]
-    decoded = ((pi(x), pi(y)) for x, y in crypted)
+    permuted = zip(range(len(ma)), ma)
+    pi = lambda p: neworder[p]
+    decoded = ((pi(x), pi(y)) for x, y in permuted)
     unscrambled = [x[1] for x in sorted(decoded)]
 
     chunks = [range(i*SUBS_PER_KIN, (i+1)*SUBS_PER_KIN) for i in range(NUM_KINS)]
@@ -50,15 +52,15 @@ def get_groups_derangement3(group_lengths):
             for y in c:
                 graph[x][y] = 0
 
-    neworderc = np.random.permutation(total_nodes)
-    graph_new = graph[neworderc, :]
-    graph_new = graph_new[:, neworderc]
+    neworder = np.random.permutation(total_nodes)
+    graph_new = graph[neworder, :]
+    graph_new = graph_new[:, neworder]
 
     ma = csgraph.maximum_bipartite_matching(csr_matrix(graph_new), perm_type= 'column')
 
-    crypted = zip(range(len(ma)), ma)
-    pi = lambda p: neworderc[p]
-    decoded = ((pi(x), pi(y)) for x, y in crypted)
+    permuted = zip(range(len(ma)), ma)
+    pi = lambda p: neworder[p]
+    decoded = ((pi(x), pi(y)) for x, y in permuted)
     unscrambled = [x[1] for x in sorted(decoded)]
 
     chunks_new = [[unscrambled[j] for j in c] for c in chunks]
@@ -68,7 +70,7 @@ def get_groups_derangement3(group_lengths):
 
     return(unscrambled)
 
-def get_groups_derangement4(order, sizes, kin_seq_fn, distance_matrix_file, percentile = 90):
+def get_groups_derangement4(order, sizes, kin_seq_fn, distance_matrix_file, percentile: Union[int, float] = 90):
     graph = None
     np.random.seed(0)
 
@@ -81,9 +83,9 @@ def get_groups_derangement4(order, sizes, kin_seq_fn, distance_matrix_file, perc
     graph = np.array(list(itertools.chain(*[[list(itertools.chain(*[[a[i][j]]*sizes[j] for j in range(len(sizes))])) for k in range(sizes[i])] for i in range(len(sizes))])), dtype = np.uint8)
 
 
-    neworderc = np.random.permutation(sum(sizes))
-    graph_new = graph[neworderc, :]
-    graph_new = graph_new[:, neworderc]
+    neworder = np.random.permutation(sum(sizes))
+    graph_new = graph[neworder, :]
+    graph_new = graph_new[:, neworder]
 
     ma = csgraph.maximum_bipartite_matching(csr_matrix(graph_new), perm_type= 'column')
     matched_len = len([x for x in ma.tolist() if x != -1])
@@ -93,9 +95,9 @@ def get_groups_derangement4(order, sizes, kin_seq_fn, distance_matrix_file, perc
         raise RuntimeError(str(ae))
 
     ma = [x if x != -1 else None for x in ma]
-    crypted = list(zip(range(len(ma)), ma))
-    pi = lambda p: neworderc[p] if p is not None else None
-    decoded = [(pi(x), pi(y)) for x, y in crypted]
+    permuted = list(zip(range(len(ma)), ma))
+    pi = lambda p: neworder[p] if p is not None else None
+    decoded = [(pi(x), pi(y)) for x, y in permuted]
     unscrambled = [x[1] for x in sorted(decoded)]
 
     for i in range(graph.shape[0]):

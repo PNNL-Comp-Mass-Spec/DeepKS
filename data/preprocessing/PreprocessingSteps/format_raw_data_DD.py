@@ -1,5 +1,7 @@
 # %%
 import pathlib, os
+from numbers import Number
+from typing import Union
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -88,7 +90,7 @@ def generate_real(input_fn, kin_seq_file, config):
         raise RuntimeError("`pre_split_or_post_split` is not one of `pre` or `post`.")
 # %%
 
-def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: str, percentile: float, write_file=True):
+def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: str, percentile: Union[int, float], write_file=True):
     all_data = section_df.reset_index(drop=True)
     start_dict = {}
     end_dict = {}
@@ -118,7 +120,7 @@ def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: 
 
     print("processing derangement...")
     derangement = [x if x is not None else len(decoy) for x in get_groups_derangement4(order, sizes, kin_seq_file, re.sub("[^0-9]*([0-9]+)[^0-9]*", "../mtx_\\1.csv", kin_seq_file),percentile)]
-    decoy.loc[len(decoy)] = ['NOLAB', 'NOSITE', 'NOSEQ', 'NOID', 'NONUM', 'NOCLASS', 'NOORIG']
+    decoy.loc[len(decoy)] = ['NOLAB', 'NOSITE', 'NOSEQ', 'NOID', 'NONUM', 'NOCLASS', 'NOORIG']  # type: ignore
     decoy_seqs = decoy.iloc[derangement][['seq', 'original_kinase', 'num_sites']].reset_index().drop("index", axis=1).squeeze()
 
     print("done processing derangement.\n")
