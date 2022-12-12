@@ -3,12 +3,13 @@ from psankey_modified.sankey import sankey
 import re
 from matplotlib import rcParams
 from matplotlib import pyplot as plt
+import os
 
 rcParams['font.family'] = 'Palatino'
 
 size = dict(width=2000, height=300)
 
-flows = pd.read_csv("flows.csv")
+flows = pd.read_csv("./flows.csv")
 
 plot_order = flows.set_index('target').to_dict()['order']
 
@@ -22,3 +23,5 @@ nodes, fig, ax = sankey(flows, aspect_ratio=3, nodelabels=True, linklabels=False
 # fig.set_size_inches(fig.get_size_inches()[0], fig.get_size_inches()[1]*1.5)
 fig.savefig("big_sankey.svg", transparent=True, bbox_inches='tight')
 plt.show()
+os.system("/Applications/Inkscape.app/Contents/MacOS/inkscape -D big_sankey.svg -o big_sankey.svg")
+pass
