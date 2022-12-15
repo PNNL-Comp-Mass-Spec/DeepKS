@@ -1,0 +1,1 @@
+python3 group_classifier.py --train ../data/raw_data_446_group_classifier_formatted.csv --val ../data/raw_data_209_group_classifier_formatted.csv --test ../data/raw_data_162_group_classifier_formatted.csv

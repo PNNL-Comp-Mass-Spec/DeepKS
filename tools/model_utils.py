@@ -154,12 +154,12 @@ class KSDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-class ToyDataset(Dataset):
+class KSDataset(Dataset):
     def __init__(self, data, target, class_):
         self.data = data
         self.target = target
         self.class_ = class_
-        len(self.data) == len(self.target) == len(self.class_)
+        assert len(self.data) == len(self.target) == len(self.class_)
 
     def __getitem__(self, index):
         return (self.data[index], self.target[index], self.class_[index])
@@ -167,6 +167,17 @@ class ToyDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
+class KGroupDataset(Dataset):
+    def __init__(self, sequence, class_):
+        self.sequence = sequence
+        self.class_ = class_
+        assert  len(self.sequence) == len(self.class_)
+
+    def __getitem__(self, index):
+        return (self.sequence[index], self.class_[index])
+
+    def __len__(self):
+        return len(self.sequence)
 
 def make_plot(main_fn, fn):
     figure(figsize=(15, 8))

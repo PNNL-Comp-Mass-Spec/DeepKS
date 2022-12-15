@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.sparse import csr_matrix, csgraph
 import itertools
 from numbers import Number
-from get_array_percentile import get_array_percentile
+from .get_array_percentile import get_array_percentile
 
 def get_groups_derangement2(NUM_KINS, SUBS_PER_KIN):
     np.random.seed(0)

@@ -8,16 +8,13 @@ os.chdir(where_am_i)
 
 import pandas as pd
 import sys
-sys.path.append("../../../tools")
-sys.path.append("../../../")
-import config
-sys.path.append("../../")
-from bipartite_derangement import get_groups_derangement4
+from ....config import cfg
+from ....tools.bipartite_derangement import get_groups_derangement4
 import random
 import re
 import json
 
-mode = config.cfg.get_mode()
+mode = cfg.get_mode()
 random.seed(0)
 
 # %%

@@ -1,4 +1,6 @@
-import argparse, re, os, torch
+import argparse, re, os, torch, pathlib
+where_am_i = pathlib.Path(__file__).parent.resolve()
+os.chdir(os.path.join(os.path.abspath(os.path.join(where_am_i, os.pardir)), "models"))
 
 def parsing():
     global train_filename, val_filename, test_filename
@@ -22,7 +24,11 @@ def parsing():
     parser.add_argument("--val", type=str, help="Specify validation file name", required=True, metavar='<val_file_name.csv>')
     parser.add_argument("--test", type=str, help="Specify test file name", required=True, metavar='<test_file_name.csv>')
 
-    args = vars(parser.parse_args())
+    try:
+        args = vars(parser.parse_args())
+    except Exception as e:
+        print(e)
+        exit(1)
     train_filename = args['train']
     val_filename = args['val']
     test_filename = args['test']

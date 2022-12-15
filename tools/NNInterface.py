@@ -1,19 +1,11 @@
-from datetime import datetime
-import json
-import re
-import torch
-import torch.nn
-import torch.utils.data
+import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, sys, pandas as pd, collections
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from typing import Tuple
 from prettytable import PrettyTable
 from torchinfo_modified import summary
-import sklearn.metrics
 from matplotlib import pyplot as plt, rcParams
-import pickle
-import numpy as np
-import sys
-import pandas as pd
-from numbers import Number
-import collections
+
 sys.path.append('../data/preprocessing/')
 from PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
@@ -21,9 +13,10 @@ rcParams['font.family'] = 'serif'
 rcParams['font.size'] = 13
 rcParams['font.serif'] = ['Palatino', 'Times', 'Times New Roman', 'Gentinum', 'URW Bookman', "Roman", "Nimbus Roman"]
 class NNInterface:
-    def __init__(self, model_to_train, loss_fn, optim = None, inp_size=None, inp_types=None, model_summary_name = None, device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
+    def __init__(self, model_to_train, loss_fn, optim, inp_size=None, inp_types=None, model_summary_name: str = "model_summary.txt", device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
         self.model: torch.nn.Module = model_to_train
         self.criterion = loss_fn
+        assert type(self.criterion) in [torch.nn.BCEWithLogitsLoss, torch.nn.CrossEntropyLoss], "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
         self.optimizer = optim
         self.device = device
         self.inp_size = inp_size
@@ -42,10 +35,10 @@ class NNInterface:
         except Exception as e:
             print("Failed to run model summary:", flush=True)
             print(e, flush=True)
-            exit(1)
+            raise
         return self.representation
     
-    def train(self, train_loader, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, threshold = None, include_val = True, val_dl = None, verbose = 1, fold = 1, maxfold = 1, roc = False, savefile = False, cutoff = 0.5, metric = 'acc'):
+    def train(self, train_loader, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, threshold = None, val_dl = None, verbose = 1, roc = False, savefile = False, cutoff = 0.5, metric = 'acc'):
         assert metric.lower().strip() in ['roc', 'acc'], "Scoring `metric` needs to be one of `roc` or `acc`."
         train_scores = []
         if verbose:
@@ -60,6 +53,7 @@ class NNInterface:
             if epoch % lr_decay_freq == 0 and epoch > 0:
                 for param in self.optimizer.param_groups:
                     param['lr'] *= lr_decay_amount
+            b = 0
             for b, (*X, labels) in enumerate(list(train_loader)):
                 X = [x.to(self.device) for x in X]
                 labels = labels.to(self.device)
@@ -71,7 +65,7 @@ class NNInterface:
                 torch.cuda.empty_cache()
                 if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
                     loss = self.criterion(outputs, labels.long())
-                elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+                else: # AKA isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
                     loss = self.criterion(outputs, labels.float())
                 
                 # Backward and optimize
@@ -82,11 +76,15 @@ class NNInterface:
                 print_every = max(len(train_loader) // 2, 1)
                 if (b+1) % print_every == 0 and verbose:
                     if metric == "roc":
-                        score = sklearn.metrics.roc_auc_score(labels.cpu(), outputs.data.cpu())
-
-                    elif metric == "acc":
-                        score = sklearn.metrics.accuracy_score(labels.cpu(), torch.heaviside(torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.])).cpu())
-
+                        if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+                            score = sklearn.metrics.roc_auc_score(labels.cpu(), torch.sigmoid(outputs.data.cpu()).cpu())
+                        else: # AKA isinstance(self.criterion, torch.nn.CrossEntropyLoss):
+                            score = sklearn.metrics.roc_auc_score(labels.cpu(), outputs.data.cpu())
+                    else: # AKA metric == "acc":
+                        if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+                            score = sklearn.metrics.accuracy_score(labels.cpu(), torch.heaviside(torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.])).cpu())
+                        else: # AKA isinstance(self.criterion, torch.nn.CrossEntropyLoss):
+                            score = sklearn.metrics.accuracy_score(labels.cpu(), torch.argmax(outputs.data.cpu(), dim=1).cpu())
                     train_scores += [score]*len(labels)            
                     if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
                         print ('Epoch [{}/{}], Batch [{}/{}], Train Loss: {:.4f}, Train {}: {:.2f}'
@@ -98,19 +96,17 @@ class NNInterface:
                 lowest_loss = min(lowest_loss, loss.item())
             
             print(f"Overall Train {metric} for Epoch [{epoch}] was {sum(train_scores)/len(train_scores):.3f}")
-            assert include_val, "Need to have `include_val == True` for K-fold cross-validation."
-            if include_val:
+            if val_dl is not None:
                 total_step = len(val_dl)
                 if verbose:
-                    accuracy, loss, _, _, _, _ = self.eval(val_dl, roc, savefile, cutoff, metric)
+                    accuracy, loss, _, _, _, _ = self.eval(val_dl, cutoff, metric)
                     print ('VAL Epoch [{}/{}], Batch [{}/{}], Val Loss: {:.4f}, Val {}: {:.2f} <<<'
                         .format(epoch+1, num_epochs, b+1, total_step, loss, metric, accuracy))
                     
 
             epoch += 1
-        return accuracy, loss
     
-    def eval(self, dataloader, roc = False, savefile = False, cutoff = 0.5, metric = 'roc'):
+    def eval(self, dataloader, cutoff = 0.5, metric = 'roc') -> Tuple[float, float, list[float], list[int], list[float], list[float]]:
         assert metric.lower().strip() in ['roc', 'acc'], "Scoring `metric` needs to be one of `roc` or `acc`."
 
         all_labels = []
@@ -144,7 +140,7 @@ class NNInterface:
                     outputs = torch.sigmoid(outputs.data.cpu())
 
                 if metric == 'acc':
-                        performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
+                    performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
                 elif metric == 'roc':
                     scores = outputs.data.cpu()
                     performance = sklearn.metrics.roc_auc_score(labels.cpu(), scores)
@@ -157,23 +153,39 @@ class NNInterface:
                     
             return sum(avg_perf)/len(avg_perf), sum(avg_loss)/len(avg_loss), all_outputs, all_labels, all_preds, torch.sigmoid(torch.Tensor(all_outputs)).data.cpu().numpy().tolist()
 
-    def get_all_conf_mats(self, tl, vl, tel, ho, savefile = "", cutoffs = [0.4, 0.45, 0.5, 0.55, 0.6]):
+    def get_all_conf_mats(self, *loaders, savefile = "", cutoffs = None, metric = 'roc', cm_labels = None):
+        assert metric.lower().strip() in ['roc', 'acc'], "Scoring `metric` needs to be one of `roc` or `acc`."
         set_labels = ['Train', 'Validation', 'Test', f'Held Out Family — {HELD_OUT_FAMILY}']
-        for li, l in enumerate([tl, vl, tel, ho]):
+        for li, l in enumerate([*loaders]):
             preds = []
-            eval_res = self.eval(dataloader=l)
+            eval_res = self.eval(dataloader=l, metric=metric)
             outputs = [x if not isinstance(x, list) else x[0] for x in eval_res[2]]
             labels = eval_res[3]
+            
+            if cutoffs is not None:
+                for cutoff in cutoffs:
+                    preds.append([1 if x > cutoff else 0 for x in outputs])
+            else:
+                cutoffs = list(range(len(loaders)))
+                preds = [eval_res[4]]
 
-            for cutoff in cutoffs:
-                preds.append([1 if x > cutoff else 0 for x in outputs])
+            nr = int(max(1, len(cutoffs)**1/2))
+            nc = int(max(1, (len(cutoffs)/nr)))
+            
+            # fig: Figure
+            # axs: list[list[Axes]]
 
-            fig, ax = plt.subplots(nrows = int(len(cutoffs)**1/2), ncols=int(np.ceil(len(cutoffs)/int(len(cutoffs)**1/2))), figsize = (12, 12))
-            ax = np.asarray(ax)
+            fig, axs = plt.subplots(nrows = nr, ncols=nc, figsize = (12, 12))
+
+            axes_list: list[Axes] = np.array(axs).ravel().tolist()
             for i, fp in enumerate(preds):
-                cm = sklearn.metrics.confusion_matrix(labels, fp, labels=['Decoy', 'Target'])
-                sklearn.metrics.ConfusionMatrixDisplay(cm).plot(ax = ax.ravel()[i], im_kw = {'vmin' : 600, 'vmax' : 2000})
-                ax.ravel()[i].set_title(f"Cutoff = {cutoffs[i]} | Acc = {(cm[0, 0] + cm[1, 1])/sum(cm.ravel()):3.3f}")
+                cur_ax = axes_list[i]
+                plt.sca(cur_ax)
+                kwa = {'display_labels': sorted(list(cm_labels.values()))} if cm_labels is not None else {}
+                cm = sklearn.metrics.confusion_matrix(labels, fp)
+                sklearn.metrics.ConfusionMatrixDisplay(cm, **kwa).plot(ax = cur_ax, im_kw = {'vmin' : 0, 'vmax' : int(np.ceil(np.max(cm)/10**int(np.log10(np.max(cm))))*10**int(np.log10(np.max(cm))))}, cmap = 'Blues')
+                plt.xticks(plt.xticks()[0], plt.xticks()[1], rotation = 45, ha = 'right', va = 'top') # type: ignore
+                # plt.xticks(f"Cutoff = {cutoffs[i]} | Acc = {(cm[0, 0] + cm[1, 1])/sum(cm.ravel()):3.3f}")
             
             if savefile:
                 fig.savefig(savefile + "_" + set_labels[li] + ".pdf", bbox_inches='tight')
@@ -246,23 +258,22 @@ class NNInterface:
         ax_inset.set_yticklabels([y1, y2])
         ax_inset.plot(ax.lines[0].get_xdata(), ax.lines[0].get_ydata(), color='b', linewidth=1)
 
-    def test(self, test_loader, verbose=True, roc=False, savefile=True, cutoff = 0.5, text = "Test Accuracy of the model", metric = "acc"):
-        print("\n--- Testing ---", flush=True)
+    def test(self, test_loader, verbose=True, savefile=True, cutoff = 0.5, text = "Test Accuracy of the model", metric = "acc") -> None :
+        "Verbosity: False = No table of first n predictions, True = Show first n predictions, 2 = `pickle` probabilities and labels"
         
-
+        print("\n--- Testing ---", flush=True)
         if cutoff is None:
             cutoff = 0.5
-            performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, roc, savefile, cutoff, metric)
+            performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, cutoff, metric)
             for i in range(5, 95 + 1, 5):
                 cutoff = i/100
-                print(f"Cutoff {cutoff} accuracy:", sklearn.metrics.accuracy_score(labels.cpu(), torch.heaviside(torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.]))))
+                print(f"Cutoff {cutoff} accuracy:", sklearn.metrics.accuracy_score(labels, torch.heaviside(torch.sigmoid(torch.FloatTensor(outputs)).cpu() - cutoff, values=torch.tensor([0.]))))
         else:
-            performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, roc, savefile, cutoff, metric)
+            performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, cutoff, metric)
 
         print('{}: {:.3f} %\n'.format(text, performance))
 
-
-        if verbose == True:
+        if verbose:
             tab = PrettyTable(['Index', 'Label', 'Prediction'])
             num_rows = min(25, len(labels))
             tab.title = f'First {num_rows} labels mapped to predictions'
@@ -270,11 +281,8 @@ class NNInterface:
                 tab.add_row([i, labels[i], predictions[i]])
             print(tab, flush=True)
         if verbose == 2:
-            fp = open("../bin/probs.pkl", "wb")
-            fl = open("../bin/labels.pkl", "wb")
-            pickle.dump(probabilities.cpu().numpy(), fp)
-            pickle.dump(labels.cpu().numpy(), fl)
-        return predictions
+            json.dump(probabilities, open("../bin/probs.pkl", "w"))
+            json.dump(labels, open("../bin/labels.pkl", "w"))
     
     def save_model(self, path):
         torch.save(self.model.state_dict(), open(path, "wb"))

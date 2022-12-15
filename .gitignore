@@ -1,7 +1,12 @@
+*
+!/**/
+!*.*
 logs/
 !bin/pickle_graph.pkl
 .gitig-*
 **/*.png
+**/*.tsv
+**/*.error
 **/*.svg
 **/*.gif
 **/*.txt
