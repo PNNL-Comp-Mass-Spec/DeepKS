@@ -34,7 +34,7 @@ class IndividualClassifiers:
             assert group in grp_to_interface_args, "No interface args for group %s" % group
 
         self.device = torch.device(device)
-        self.training_args = grp_to_training_args
+        self.grp_to_training_args = grp_to_training_args
         self.individual_classifiers = {
             group: KinaseSubstrateRelationshipNN(**grp_to_model_args[group]) for group in grp_to_model_args
         }
@@ -48,7 +48,7 @@ class IndividualClassifiers:
                     if isinstance(gia["grp"]["loss_fn"], type)
                     else RAISE_ASSERTION_ERROR("Loss function must be a class, not an instance"),
                     optim=gia["grp"]["optim"](
-                        self.individual_classifiers[grp].parameters(), lr=self.training_args["grp"]["lr"]
+                        self.individual_classifiers[grp].parameters(), lr=self.grp_to_training_args["grp"]["lr"]
                     )
                     if isinstance(gia["grp"]["optim"], type)
                     else RAISE_ASSERTION_ERROR("Optimizer must be a class, not an instance"),
@@ -79,7 +79,6 @@ class IndividualClassifiers:
         which_groups: list[str],
         Xy_formatted_train_file: str,
         Xy_formatted_val_file: str,
-        grp_to_training_args: dict[str, dict[str, Union[int, float, bool, str]]],
     ):
         locals_ = locals()
         gen_train = self._run_dl_core(which_groups, Xy_formatted_train_file)
@@ -109,12 +108,15 @@ class IndividualClassifiers:
             )
             self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader)
             self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader)
-            self.interfaces[group_tr].model_summary_name = str(self.grp_to_interface_args[group_tr]["model_summary_name"]) + "-" + group_tr.upper()
+            self.interfaces[group_tr].model_summary_name = (
+                str(self.grp_to_interface_args[group_tr]["model_summary_name"]) + "-" + group_tr.upper()
+            )
             self.interfaces[group_tr].write_model_summary()
             self.interfaces[group_tr].train(
                 train_loader,
-                val_dl = val_loader,
-                **grp_to_training_args[group_tr]
+                val_dl=val_loader,
+                **self.grp_to_training_args[group_tr],
+                extra_description="(Group: %s)" % group_tr.upper()
             )
 
     def evaluate(
@@ -139,7 +141,11 @@ if __name__ == "__main__":
     val_filename = args["val"]
     test_filename = args["test"]
     device = args["device"]
-    groups: list[str] = pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_817.csv")["Group"].unique().tolist()
+    groups: list[str] = [
+        "TK",
+        "AGC",
+        "TKL",
+    ]  # pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_817.csv")["Group"].unique().tolist()
     default_grp_to_model_args = {
         "ll1_size": 50,
         "ll2_size": 25,
@@ -174,3 +180,7 @@ if __name__ == "__main__":
         device=device,
         kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv",
     )
+
+    fat_model.train(which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename)
+
+    fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=test_filename)

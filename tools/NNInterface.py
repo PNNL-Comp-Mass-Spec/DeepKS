@@ -43,11 +43,11 @@ class NNInterface:
             raise
         return self.representation
     
-    def train(self, train_loader, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, threshold = None, val_dl = None, verbose = 1, roc = False, savefile = False, cutoff = 0.5, metric = 'acc'):
+    def train(self, train_loader, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, threshold = None, val_dl = None, verbose = 1, roc = False, savefile = False, cutoff = 0.5, metric = 'acc', extra_description = ""):
         assert metric.lower().strip() in ['roc', 'acc'], "Scoring `metric` needs to be one of `roc` or `acc`."
         train_scores = []
         if verbose:
-            print(f"--- Training ---", flush=True)
+            print(f"--- Training {extra_description}{'' if extra_description == '' else ' '}---", flush=True)
         lowest_loss = float('inf')
         epoch = 0
         if threshold is None:
