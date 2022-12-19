@@ -21,9 +21,14 @@ class NNInterface:
         self.device = device
         self.inp_size = inp_size
         self.inp_types = inp_types
+        self.model_summary_name = model_summary_name
         if optim is None and inp_size is None and inp_types is None and model_summary_name is None:
             return
-        fp = open(model_summary_name, "w", encoding="utf-8")
+        if inp_size is None or inp_types is None:
+            self.write_model_summary()
+
+    def write_model_summary(self):
+        fp = open(self.model_summary_name, "w", encoding="utf-8")
         fp.write(str(self))
         fp.close()
     

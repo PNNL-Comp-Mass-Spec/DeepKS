@@ -2,7 +2,8 @@ import functools, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as
 from random import seed, shuffle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
-from typing import Union
+from typing import Callable, ClassVar, TypeVar, Union, Protocol
+import typing
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve
@@ -18,41 +19,34 @@ matplotlib.rcParams["font.family"] = "Palatino"
 KIN_SEQS = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_index("kinase")
 MTX = pd.read_csv("../tools/pairwise_mtx_822.csv", index_col=0)
 
+class AcceptableClassifier(typing.Protocol):
+    def fit(self, X, y, *args) -> typing.Any:
+        ...
+    def predict(self, X, *args) -> typing.Any:
+        ...
+    def predict_proba(self, X, *args) -> typing.Any:
+        ...
+    def score(self, X, y, *args) -> typing.Any:
+        ...
+    def __init__(self, *args):
+        ...
 
-def ClassFactory(base_classifier):
-    BaseClass = base_classifier.type
-
-    def fit_(self, X: list[str], y: list[str]):
-        self.training_X = X
-        self.training_y = y
-
-    def predict_(self, X):
-        X_train, X_val = get_coordinates(self.training_X, X)
-        BaseClass.fit(self, X_train, self.training_y)
-        return BaseClass.predict(self, X_val)
-
-    def predict_proba_(self, X):
-        if check_is_fitted(self):
-            X_train, X_val = get_coordinates(self.training_X, X)
-            BaseClass.fit(self, X_train, self.training_y)
-        else:
-            X_val = X
-        return BaseClass.predict_proba(self, X_val)
-
-    def score_(self, X, y):
-        if check_is_fitted(self):
-            X_train, X_val = get_coordinates(self.training_X, X)
-            BaseClass.fit(self, X_train, self.training_y)
-        else:
-            X_val = X
-        return BaseClass.score(self, X_val, y)
-
-    base_classifier.fit = functools.partial(fit_, base_classifier)
-    base_classifier.predict = functools.partial(predict_, base_classifier)
-    base_classifier.predict_proba = functools.partial(predict_proba_, base_classifier)
-    base_classifier.score = functools.partial(score_, base_classifier)
-    return base_classifier
-
+def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier:
+    class NewClass(acceptable_classifier.__class__):
+        def fit(self, X, y, *args) -> typing.Any:
+            print("Yup. You're using the right method.")
+            return super().fit(X, y)
+        def predict(self, X, *args) -> typing.Any:
+            return super().predict(X)
+        def predict_proba(self, X, *args) -> typing.Any:
+            return super().predict_proba(X)
+        def score(self, X, y, *args) -> typing.Any:
+            return super().score(X, y)
+    
+    NewClass.__name__ = acceptable_classifier.__class__.__name__ + "New"
+    acceptable_classifier.__class__ = NewClass
+    
+    return acceptable_classifier
 
 def perform_hyperparameter_tuning(
     X: list,
@@ -121,7 +115,7 @@ def run_hp_tuning():
         "../data/preprocessing/kin_to_fam_to_grp_817.csv",
         kin_seqs,
     )
-    KNNMod = ClassFactory(KNeighborsClassifier)
+    
     all_kins, all_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
     scores = []
     all_kins, all_true = train_kins + val_kins + test_kins, train_true + val_true + test_true
@@ -138,12 +132,10 @@ def run_hp_tuning():
             print(f"------ Fold {i} ----------------------")
             train_kins, train_true = [all_kins[x] for x in train], [all_true[x] for x in train]
             test_kins, test_true = [all_kins[x] for x in test], [all_true[x] for x in test]
-            KNNMod = ClassFactory(KNeighborsClassifier)
-            RFMod = ClassFactory(RandomForestClassifier)
             best_est, _ = perform_hyperparameter_tuning(
                 train_kins,
                 train_true,
-                [KNNMod(), RFMod()],
+                [factory(KNeighborsClassifier()), factory(RandomForestClassifier())],
                 [
                     {
                         "n_neighbors": list(range(1, 4)),
@@ -167,11 +159,11 @@ class KNNGroupClassifier:
         self.X_train = X_train
         self.y_train = y_train
         self.model = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
-        self.model = ClassFactory(self.model)
+        self.model = factory(self.model)
         self.model.fit(X_train, y_train)
 
-    def predict(self, X_test, verbose=False):
-        return self.model.predict(X_test)
+    def predict(self, X_test) -> list[str]:
+        return self.model.predict(X_test).tolist()
 
     def make_roc(self, X_test, y_test, fig_kwargs={"figsize": (10, 10)}, filename=None):
         plt.figure(**fig_kwargs)
@@ -214,21 +206,6 @@ class KNNGroupClassifier:
                 print(f"------ Fold {i} ----------------------")
                 train_kins, train_true = [X[x] for x in train], [y[x] for x in train]
                 test_kins, test_true = [X[x] for x in test], [y[x] for x in test]
-                KNNMod = ClassFactory(KNeighborsClassifier)
-                RFMod = ClassFactory(RandomForestClassifier)
-                best_est, _ = perform_hyperparameter_tuning(
-                    train_kins,
-                    train_true,
-                    [KNNMod(), RFMod()],
-                    [
-                        {
-                            "n_neighbors": list(range(1, 4)),
-                            "metric": ["euclidean", "manhattan", "chebyshev", "minkowski", "cosine"],
-                        },
-                        {"n_estimators": [10, 50], "max_depth": [50, 10]},
-                    ],
-                )
-                model = best_est
                 model.fit(pd.Series(train_kins), pd.Series(train_true))
                 test_pred = model.predict(test_kins)
                 print(f"Test Acc: {sum(test_pred == test_true)/len(test_true):.3f}\n")

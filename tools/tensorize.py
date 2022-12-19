@@ -43,7 +43,7 @@ def encode_seq(seq, mapping_dict):
     return res
 
 def gather_data(
-    input_t,
+    input_t: Union[str, pd.DataFrame],
     input_d="",
     trf=0.7,
     vf=0.1,
@@ -71,15 +71,15 @@ def gather_data(
     assert abs(sum([trf, vf, tuf, tef, -1]) < 1e-16)
 
 
-
-    if input_d == "":
-        data = pd.read_csv(input_t)
+    if isinstance(input_t, str):
+        if input_d == "":
+            data = pd.read_csv(input_t)
+        else:
+            data_t = pd.read_csv(input_t)
+            data_d = pd.read_csv(input_d)
+            data = pd.concat([data_t, data_d], axis=0)
     else:
-        data_t = pd.read_csv(input_t)
-        data_d = pd.read_csv(input_d)
-        data = pd.concat([data_t, data_d], axis=0)
-
-    
+        data = input_t
 
     if subsample_num is not None:
         try:
@@ -212,7 +212,7 @@ def gather_data(
     }
 
 def pad(tok_list, max_len, map_dict):
-    return tok_list + [map_dict['<PADDING>'] for i in range(max_len - len(tok_list))]
+    return tok_list + [map_dict['<PADDING>'] for _ in range(max_len - len(tok_list))]
 
 def get_info(target_file, decoy_file="", n_gram=1):
     (max_length0, _, _, _), tok_dict0 = gather_data(target_file, ret_info=True, n_gram=n_gram)
