@@ -5,22 +5,18 @@ import json
 
 
 import sys
-sys.path.append("../cfg/")
-sys.path.append("../tools/")
-sys.path.append("../data/preprocessing/")
-
 import torch 
 import torch.nn as nn
-from tensorize import gather_data
-from NNInterface import NNInterface
+from ..tools.tensorize import gather_data
+from ..tools.NNInterface import NNInterface
 from matplotlib import rcParams
-from formal_layers import Concatenation, Multiply, Transpose
+from ..tools.formal_layers import Concatenation, Multiply, Transpose
 import numpy as np
 import pickle
-from SimpleTuner import SimpleTuner
-from model_utils import cNNUtils as U
-from config.cfg import get_mode
-from parse import parsing
+from ..tools.SimpleTuner import SimpleTuner
+from ..tools.model_utils import cNNUtils as U
+from ..config.cfg import get_mode
+from ..tools.parse import parsing
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -75,7 +71,7 @@ class CNN(nn.Module):
 
 # Convolutional neural network (two convolutional layers)
 class KinaseSubstrateRelationshipNN(nn.Module):
-    def __init__(self, inp_size, num_classes=1, ll1_size = 200, ll2_size = 200, emb_dim = 30, num_conv_layers = 1, site_param_dict = {"kernels": [4], "out_lengths":[12], "out_channels":[11]}, kin_param_dict = {"kernels": [10], "out_lengths":[12], "out_channels":[11]}, dropout_pr=0.3):
+    def __init__(self, inp_size=None, num_classes=1, ll1_size = 200, ll2_size = 200, emb_dim = 30, num_conv_layers = 1, site_param_dict = {"kernels": [4], "out_lengths":[12], "out_channels":[11]}, kin_param_dict = {"kernels": [10], "out_lengths":[12], "out_channels":[11]}, dropout_pr=0.3):
         super().__init__()
         site_param_vals = site_param_dict.values()
         kinase_param_vals = kin_param_dict.values()

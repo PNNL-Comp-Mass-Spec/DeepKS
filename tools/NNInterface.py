@@ -7,13 +7,13 @@ from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
 
 sys.path.append('../data/preprocessing/')
-from PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
+from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
 rcParams['font.family'] = 'serif'
 rcParams['font.size'] = 13
 rcParams['font.serif'] = ['Palatino', 'Times', 'Times New Roman', 'Gentinum', 'URW Bookman', "Roman", "Nimbus Roman"]
 class NNInterface:
-    def __init__(self, model_to_train, loss_fn, optim, inp_size=None, inp_types=None, model_summary_name: str = "model_summary.txt", device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
+    def __init__(self, model_to_train, loss_fn, optim, inp_size=None, inp_types=None, model_summary_name=None, device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')):
         self.model: torch.nn.Module = model_to_train
         self.criterion = loss_fn
         assert type(self.criterion) in [torch.nn.BCEWithLogitsLoss, torch.nn.CrossEntropyLoss], "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
@@ -22,7 +22,7 @@ class NNInterface:
         self.inp_size = inp_size
         self.inp_types = inp_types
         self.model_summary_name = model_summary_name
-        if optim is None and inp_size is None and inp_types is None and model_summary_name is None:
+        if inp_size is None and inp_types is None and model_summary_name is None:
             return
         if inp_size is None or inp_types is None:
             self.write_model_summary()

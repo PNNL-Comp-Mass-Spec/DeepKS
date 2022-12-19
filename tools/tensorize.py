@@ -4,7 +4,7 @@ import pandas as pd
 import collections
 import json
 import random
-import model_utils
+from ..tools import model_utils
 import torch.utils.data
 import sys
 
@@ -138,7 +138,7 @@ def gather_data(
         data[class_col] = data[class_col].apply(lambda x: remapping_class_label_dict[x])
 
     random.seed(99354)
-    shuffled_ids = list(range(len(data)))
+    shuffled_ids = data.index.tolist()
     random.shuffle(shuffled_ids)
     tot_len = len(shuffled_ids)
     train_ids = shuffled_ids[: int(tot_len * trf)]
@@ -148,10 +148,10 @@ def gather_data(
 
     assert train_ids + val_ids + tune_ids + test_ids == shuffled_ids
 
-    data_train = data.iloc[train_ids]
-    data_val = data.iloc[val_ids]
-    data_tune = data.iloc[tune_ids]
-    data_test = data.iloc[test_ids]
+    data_train = data.loc[train_ids]
+    data_val = data.loc[val_ids]
+    data_tune = data.loc[tune_ids]
+    data_test = data.loc[test_ids]
 
 
     X_train, X_val, X_tune, X_test = tuple(
@@ -201,7 +201,7 @@ def gather_data(
         )
     else:
         test_loader = None
-
+        
     return (train_loader, val_loader, tune_loader, test_loader), {
         "kin_orders": {'train': data.loc[train_ids]['lab_name'].to_list(), 'val': data.loc[val_ids]['lab_name'].to_list(), 'test':data.loc[test_ids]['lab_name'].to_list()},
         "classes": classes,
