@@ -1,12 +1,13 @@
+from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, sys, pandas as pd, collections
 from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 from typing import Tuple
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
 
 sys.path.append('../data/preprocessing/')
+from models.main import KinaseSubstrateRelationshipNN
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
 rcParams['font.family'] = 'serif'
@@ -195,6 +196,23 @@ class NNInterface:
             if savefile:
                 fig.savefig(savefile + "_" + set_labels[li] + ".pdf", bbox_inches='tight')
 
+    @staticmethod
+    def get_combined_rocs_from_individual_models(grp_to_interface: dict[str, NNInterface], grp_to_loader: dict[str, torch.utils.data.DataLoader], savefile = "", kin_fam_grp_file = "../data/preprocessing/kin_to_fam_to_grp_817.csv"):
+        assert grp_to_interface.keys() == grp_to_loader.keys(), f"The groups for the provided models are not equal to the groups for the provided loaders. Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
+        fig = plt.figure(figsize=(12, 12))
+        plt.plot([0, 1], [0, 1], color='r', linestyle='--', alpha = 0.5, linewidth=0.5, label = "Random Model")
+        for grp in grp_to_interface.keys():
+            interface = grp_to_interface[grp]
+            loader = grp_to_loader[grp]
+            eval_res = interface.eval(loader)
+            outputs: list[float] = eval_res[-1]
+            labels: list[int] = eval_res[3]
+            assert len(outputs) == len(labels), f"Something is wrong in NNInterface.get_all_rocs_by_group; the length of outputs, the number of labels, and the number of kinases in `kinase_order` are not equal. (Respectively, {len(outputs)}, {len(labels)}, {len(kinase_order)}.)"
+            NNInterface.roc_core(outputs, labels, 0, line_labels=[f"{grp} Test Set"], linecolor=None)
+        if savefile:
+            fig.savefig(savefile + "_" + str(len(grp_to_interface)) + ".pdf", bbox_inches='tight')
+
+
     def get_all_rocs_by_group(self, loader, kinase_order, savefile = "", kin_fam_grp_file = "../data/preprocessing/kin_to_fam_to_grp_817.csv"):
         kin_to_grp = pd.read_csv(kin_fam_grp_file).applymap(lambda c: re.sub(r"[\(\)\*]", "", c))
         kin_to_grp['Kinase'] = [f"{r['Kinase']}|{r['Uniprot']}" for _, r in kin_to_grp.iterrows()]
@@ -233,24 +251,25 @@ class NNInterface:
         if savefile:
             fig.savefig(savefile + "_" + str(ii + 1) + ".pdf", bbox_inches='tight')
 
-    def roc_core(self, outputs, labels, i, linecolor = (0.5, 0.5, 0.5), line_labels = ['Train', 'Validation', 'Test', f'Held Out Family — {HELD_OUT_FAMILY}']):
+    @staticmethod
+    def roc_core(outputs, labels, i, linecolor = (0.5, 0.5, 0.5), line_labels = ['Train Set', 'Validation Set', 'Test Set', f'Held Out Family — {HELD_OUT_FAMILY}']):
         assert len(outputs) == len(labels), f"Something is wrong in NNInterface.roc_core; the length of outputs ({len(outputs)}) does not equal the number of labels ({len(labels)})"
         if linecolor is None:
             linecolor = plt.rcParams['axes.prop_cycle'].by_key()['color'][i]
         
         roc_data = sklearn.metrics.roc_curve(labels, outputs)
         aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
-        sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(color=linecolor, linewidth=1, ax=plt.gca(), label=f"{line_labels[0 if len(line_labels) == 1 else i]} Set (AUC = {aucscore:.3f})")
+        sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(color=linecolor, linewidth=1, ax=plt.gca(), label=f"{line_labels[i]} (AUC = {aucscore:.3f})")
         if aucscore > .98:
-            self.inset_auc()
+            NNInterface.inset_auc()
 
         plt.title("ROC Curves")
         plt.xticks([x/100 for x in range(0, 110, 10)])
         plt.yticks([x/100 for x in range(0, 110, 10)])
         plt.legend(loc='lower right')
 
-
-    def inset_auc(self):
+    @staticmethod
+    def inset_auc():
         ax = plt.gca()
         ax_inset = ax.inset_axes([0.5, 0.1, 0.45, 0.65])
         x1, x2, y1, y2 = 0, 0.2, 0.8, 1

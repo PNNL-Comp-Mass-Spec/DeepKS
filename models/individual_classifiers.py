@@ -1,10 +1,15 @@
-import functools, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as np, sklearn.model_selection, matplotlib
-import json, torch, tqdm, collections
+import cProfile
+pr = cProfile.Profile()
+pr.enable()
+import pandas as pd, json, re, json, torch, tqdm
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 from ..tools.parse import parsing
-from typing import Any, Union
+from typing import Any, Callable, Union
+
+pr.disable()
+pr.print_stats(sort='time')
 
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 MAX_SIZE_DS = 4128
@@ -19,9 +24,9 @@ def printdb(*X: Any):
 class IndividualClassifiers:
     def __init__(
         self,
-        grp_to_model_args: dict[str, dict[str, Union[bool, str, int, float]]],
-        grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, type]]],
-        grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float]]],
+        grp_to_model_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
+        grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
+        grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
         device: str,
         kin_fam_grp_file: str = "../data/preprocessing/kin_to_fam_to_grp_817.csv",
     ):
@@ -42,25 +47,29 @@ class IndividualClassifiers:
         }
         self.grp_to_interface_args = grp_to_interface_args
         gia = grp_to_interface_args
+        optims: list[Callable] = []
+        loss_fns: list[Callable] = []
+        for grp in gia:
+            o = gia[grp]["optim"]
+            assert isinstance(o, Callable), "Optimizer must be a callable"
+            optims.append(o)
+            l = gia[grp]["loss_fn"]
+            assert isinstance(l, Callable), "Loss function must be a callable"
+            loss_fns.append(l)
+        
         self.interfaces = {
             grp: (
                 NNInterface(
                     model_to_train=self.individual_classifiers[grp],
-                    loss_fn=gia[grp]["loss_fn"]()
-                    if isinstance(gia[grp]["loss_fn"], type)
-                    else RAISE_ASSERTION_ERROR("Loss function must be a class, not an instance"),
-                    optim=gia[grp]["optim"](
-                        self.individual_classifiers[grp].parameters(), lr=self.grp_to_interface_args[grp]["lr"]
-                    )
-                    if isinstance(gia[grp]["optim"], type)
-                    else RAISE_ASSERTION_ERROR("Optimizer must be a class, not an instance"),
+                    loss_fn=loss_fns[i](),
+                    optim=optims[i](self.individual_classifiers[grp].parameters(), lr = self.grp_to_interface_args[grp]['lr']),
                     inp_size=None,
                     inp_types=None,
                     model_summary_name=None,
                     device=self.device,
                 )
             )
-            for grp in gia
+            for i, grp in enumerate(gia)
         }
         self.default_tok_dict = json.load(open("./json/tok_dict.json"))
         self.kin_symbol_to_grp = pd.read_csv(kin_fam_grp_file)
@@ -86,6 +95,10 @@ class IndividualClassifiers:
         gen_val = self._run_dl_core(which_groups, Xy_formatted_val_file)
         for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in zip(gen_train, gen_val):
             assert group_tr == group_vl, "Group mismatch: %s != %s" % (group_tr, group_vl)
+            b = self.grp_to_interface_args[group_tr]["batch_size"]
+            ng = self.grp_to_interface_args[group_tr]["n_gram"]
+            assert isinstance(b, int), "Batch size must be an integer"
+            assert isinstance(ng, int), "N-gram must be an integer"
             (train_loader, _, _, _), _ = gather_data(
                 partial_group_df_tr,
                 trf=1,
@@ -93,8 +106,8 @@ class IndividualClassifiers:
                 tuf=0,
                 tef=0,
                 tokdict=self.default_tok_dict,
-                train_batch_size=self.grp_to_interface_args[group_tr]['batch_size'],
-                n_gram=self.grp_to_interface_args[group_tr]['n_gram'] if isinstance(self.grp_to_interface_args[group_tr]['n_gram'], int) else RAISE_ASSERTION_ERROR('n_gram is not an integer.'),
+                train_batch_size=b,
+                n_gram=ng,
                 device=self.device,
                 maxsize=MAX_SIZE_DS
             )
@@ -105,14 +118,16 @@ class IndividualClassifiers:
                 tuf=0,
                 tef=0,
                 tokdict=self.default_tok_dict,
-                n_gram=self.grp_to_interface_args[group_tr]['n_gram'] if isinstance(self.grp_to_interface_args[group_tr]['n_gram'], int) else RAISE_ASSERTION_ERROR('n_gram is not an integer.'),
+                n_gram=ng,
                 device=self.device, 
                 maxsize=MAX_SIZE_DS
             )
             self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader)
             self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader)
+            msm = self.grp_to_interface_args[group_tr]["model_summary_name"]
+            assert isinstance(msm, str), "Model summary name must be a string"
             self.interfaces[group_tr].model_summary_name = (
-                str("../architectures/" + self.grp_to_interface_args[group_tr]["model_summary_name"]) + "-" + group_tr.upper()
+                msm + "-" + group_tr.upper()
             )
             self.interfaces[group_tr].write_model_summary()
             self.interfaces[group_tr].train(
@@ -129,7 +144,9 @@ class IndividualClassifiers:
         evaluation_kwargs={"verbose": False, "savefile": False, "metric": "acc"},
     ):
         gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file)
-        for (group_tr, partial_group_df_te) in gen_te:
+        for (group_te, partial_group_df_te) in gen_te:
+            ng = self.grp_to_interface_args[group_te]["n_gram"]
+            assert isinstance(ng, int), "N-gram must be an integer"
             (_, _, _, test_loader), _ = gather_data(
                 partial_group_df_te,
                 trf=0,
@@ -137,12 +154,12 @@ class IndividualClassifiers:
                 tuf=0,
                 tef=1,
                 tokdict=self.default_tok_dict,
-                n_gram=self.grp_to_interface_args[group_tr]['n_gram'] if isinstance(self.grp_to_interface_args[group_tr]['n_gram'], int) else RAISE_ASSERTION_ERROR('n_gram is not an integer.'),
+                n_gram=ng,
                 device=self.device, 
                 maxsize=MAX_SIZE_DS
             )
             assert 'text' not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
-            self.interfaces[group_tr].test(test_loader, text = f"Test Accuracy of the model (Group = {group_tr})", **evaluation_kwargs)
+            self.interfaces[group_te].test(test_loader, text = f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs)
 
 
 if __name__ == "__main__":
