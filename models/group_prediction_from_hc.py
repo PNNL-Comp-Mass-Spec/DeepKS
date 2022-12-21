@@ -75,7 +75,7 @@ def perform_hyperparameter_tuning(
     return gscv.best_params_["clf"], gscv.best_params_
 
 
-def get_ML_sets(dist_matrix_file, json_tr, json_vl, json_te, kin_fam_grp_file, kin_seqs, verbose=False):
+def get_ML_sets(dist_matrix_file, json_tr, json_vl, json_te, kin_fam_grp_file, kin_seqs=None, verbose=False):
     del_decor = lambda x: re.sub(r"[\(\)\*]", "", x)
     dist_matrix = pd.read_csv(dist_matrix_file, index_col=0)
     symbol_to_grp = pd.read_csv(kin_fam_grp_file)
@@ -213,7 +213,9 @@ class KNNGroupClassifier:
             if len(scores) < 1:
                 raise ValueError("No scores were calculated")
             print(f"Mean Acc: {100*np.mean(scores):.3f} +/-95%CI {(confIntMean(scores)[1] - np.mean(scores))*100:.4f}")
-
+    @staticmethod 
+    def test(true, pred):
+        return f"{100*sum(pred == true)/len(true):3.2f}\n"
 
 def confIntMean(a, conf=0.95):
     """Get the confidence interval of the mean of a list of numbers.

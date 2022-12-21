@@ -1,11 +1,13 @@
 from __future__ import annotations
+import traceback
 
 print("Progress: Loading Modules")
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, json, torch, tqdm, torch.utils
+import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback
 import torch.utils.data, datetime, pickle, pstats  # type: ignore
+from models.group_classifier import test_filename
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -41,6 +43,8 @@ class IndividualClassifiers:
         grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
         grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
         device: str,
+        args: dict[str, str],
+        groups: list[str],
         kin_fam_grp_file: str = "../data/preprocessing/kin_to_fam_to_grp_817.csv",
     ):
         for group in grp_to_model_args:
@@ -53,6 +57,8 @@ class IndividualClassifiers:
             assert group in grp_to_model_args, "No model args for group %s" % group
             assert group in grp_to_interface_args, "No interface args for group %s" % group
 
+        self.args = args
+        self.groups = groups
         self.device = torch.device(device)
         self.grp_to_training_args = grp_to_training_args
         self.individual_classifiers = {
@@ -89,16 +95,29 @@ class IndividualClassifiers:
         self.evaluations: dict[
             str, dict[str, dict[str, list[Union[int, float]]]]
         ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
-        self.default_tok_dict = json.load(open("./json/tok_dict.json"))
-        self.kin_symbol_to_grp = pd.read_csv(kin_fam_grp_file)
+
+        self.default_tok_dict, self.kin_symbol_to_grp, self.symbol_to_grp_dict = IndividualClassifiers.get_symbol_to_grp_dict(kin_fam_grp_file)
+        
+    @staticmethod
+    def get_symbol_to_grp_dict(kin_fam_grp_file: str):
+        default_tok_dict = json.load(open("./json/tok_dict.json"))
+        kin_symbol_to_grp = pd.read_csv(kin_fam_grp_file)
         symbol_to_grp = pd.read_csv(kin_fam_grp_file)
         symbol_to_grp["Symbol"] = symbol_to_grp["Kinase"].apply(DEL_DECOR) + "|" + symbol_to_grp["Uniprot"]
-        self.symbol_to_grp_dict = symbol_to_grp.set_index("Symbol").to_dict()["Group"]
+        symbol_to_grp_dict = symbol_to_grp.set_index("Symbol").to_dict()["Group"]
+        return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
 
-    def _run_dl_core(self, which_groups: list[str], Xy_formatted_input_file: str):
+    def _run_dl_core(self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None):
         which_groups.sort()
         Xy = pd.read_csv(Xy_formatted_input_file)
-        Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
+        if pred_groups is None:
+            print("@@@Warning: Using ground truth groups.")
+            print("=======================================")
+            print(traceback.print_stack())
+            print("=======================================")
+            Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
+        else:
+            Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
         for group in tqdm.tqdm(which_groups, desc="Group Progress", leave=False, position=0):
             yield group, group_df[group]
@@ -158,9 +177,9 @@ class IndividualClassifiers:
         which_groups: list[str],
         Xy_formatted_input_file: str,
         evaluation_kwargs={"verbose": False, "savefile": False, "metric": "acc"},
-        retain_evals=False,
+        pred_groups: Union[None, dict[str, str]] = None,
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
-        gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file)
+        gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file, pred_groups=pred_groups)
         count = 0
         for (group_te, partial_group_df_te) in gen_te:
             ng = self.grp_to_interface_args[group_te]["n_gram"]
@@ -198,11 +217,34 @@ class IndividualClassifiers:
         f = open(path, "rb")
         return pickle.load(f)
 
+    def roc_evaluation(self):
+        if self.args["load_include_eval"] is None:
+            test_filename = self.args['test']
+            grp_to_loaders = {
+                grp: loader for grp, loader in self.evaluate(which_groups=self.groups, Xy_formatted_input_file=test_filename)
+            }
+            print("Progress: ROC")
+            NNInterface.get_combined_rocs_from_individual_models(
+                self.interfaces,
+                grp_to_loaders,
+                "../images/Evaluation and Results/ROC_indiv_tues_night",
+                retain_evals=self.evaluations,
+            )
+        else:
+            print("Progress: ROC")
+            NNInterface.get_combined_rocs_from_individual_models(
+                savefile = "../images/Evaluation and Results/ROC_indiv_tues_night",
+                from_loaded = self.evaluations
+            )
+        if self.args["s"]:
+            print("Progress: Saving State to Disk")
+            IndividualClassifiers.save_all(
+                self, "../bin/Saved State Dicts/indivudial_classifiers_tues_night_" + datetime.datetime.now().isoformat() + ".pkl"
+            )
 
-if __name__ == "__main__":
+def main():
     print("Progress: Parsing Args")
     args = parsing()
-    test_filename = args["test"]
     if args["train"] is not None:  # AKA, not loading from pickle
         print("Progress: Preparing Training Data")
         train_filename = args["train"]
@@ -240,6 +282,8 @@ if __name__ == "__main__":
             grp_to_interface_args={group: default_grp_to_interface_args for group in groups},
             grp_to_training_args={group: default_training_args for group in groups},
             device=device,
+            args=args,
+            groups=groups,
             kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv",
         )
         print("Progress: About to Train")
@@ -248,25 +292,7 @@ if __name__ == "__main__":
         fat_model = IndividualClassifiers.load_all(args["load"] if args['load_include_eval'] is None else args['load_include_eval'])
         groups = list(fat_model.interfaces.keys())
     print("Progress: Evaluation")
-    if args["load_include_eval"] is None:
-        grp_to_loaders = {
-            grp: loader for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=test_filename)
-        }
-        print("Progress: ROC")
-        NNInterface.get_combined_rocs_from_individual_models(
-            fat_model.interfaces,
-            grp_to_loaders,
-            "../images/Evaluation and Results/ROC_indiv_tues_night",
-            retain_evals=fat_model.evaluations,
-        )
-    else:
-        print("Progress: ROC")
-        NNInterface.get_combined_rocs_from_individual_models(
-            savefile = "../images/Evaluation and Results/ROC_indiv_tues_night",
-            from_loaded = fat_model.evaluations
-        )
-    if args["s"]:
-        print("Progress: Saving State to Disk")
-        IndividualClassifiers.save_all(
-            fat_model, "../bin/Saved State Dicts/indivudial_classifiers_tues_night_" + datetime.datetime.now().isoformat() + ".pkl"
-        )
+    fat_model.roc_evaluation()
+
+if __name__ == "__main__":
+    main()
