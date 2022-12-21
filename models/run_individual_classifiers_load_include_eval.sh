@@ -1,0 +1,2 @@
+cd /people/druc594/ML/
+python3 -m DeepKS.models.individual_classifiers --load-include-eval "/people/druc594/ML/DeepKS/bin/Saved State Dicts/indivudial_classifiers_2022-12-20T17:24:06.760770.pkl" --device cuda:4 

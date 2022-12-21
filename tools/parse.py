@@ -2,7 +2,8 @@ import argparse, re, os, torch, pathlib
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(os.path.join(os.path.abspath(os.path.join(where_am_i, os.pardir)), "models"))
 
-def parsing():
+def parsing() -> dict[str, str]:
+    print("Progress: Parsing Arguments")
     global train_filename, val_filename, test_filename
     parser = argparse.ArgumentParser()
 
@@ -20,23 +21,36 @@ def parsing():
         return arg_value
         
     parser.add_argument("--device", type=device, help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
-    parser.add_argument("--train", type=str, help="Specify train file name", required=True, metavar='<train_file_name.csv>')
-    parser.add_argument("--val", type=str, help="Specify validation file name", required=True, metavar='<val_file_name.csv>')
-    parser.add_argument("--test", type=str, help="Specify test file name", required=True, metavar='<test_file_name.csv>')
+    parser.add_argument("--train", type=str, help="Specify train file name", required=False, metavar='<train_file_name.csv>')
+    parser.add_argument("--val", type=str, help="Specify validation file name", required=False, metavar='<val_file_name.csv>')
+    parser.add_argument("--test", type=str, help="Specify test file name", required=False, metavar='<test_file_name.csv>')
+    parser.add_argument("--load", type=str, help="Specify path from which to load", required=False, metavar='<load/file/name>')
+    parser.add_argument("--load-include-eval", type=str, help="Specify path from which to load", required=False, metavar='<load/file/name>')
+    parser.add_argument('-s', action='store_true', help="Include to save state", required=False)
 
     try:
         args = vars(parser.parse_args())
     except Exception as e:
         print(e)
         exit(1)
-    train_filename = args['train']
-    val_filename = args['val']
-    test_filename = args['test']
-
-    assert 'formatted' in train_filename, "'formatted' is not in the train filename. Did you select the correct file?"
-    assert 'formatted' in val_filename, "'formatted' is not in the test filename. Did you select the correct file?"
-    assert 'formatted' in test_filename, "'formatted' is not in the test filename. Did you select the correct file?"    
-    assert os.path.exists(train_filename), f"Train file '{train_filename}' does not exist."
-    assert os.path.exists(test_filename), f"Val file '{val_filename}' does not exist."
-    assert os.path.exists(test_filename), f"Test file '{test_filename}' does not exist."
+    if args['load_include_eval'] is None:
+        test_filename = args['test']
+        if args['load'] is not None:
+            load_filename = args['load']
+            assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."
+            assert all([args[x] is None for x in ['train', 'val']]), "If specifying --load argument, cannot specify --train and --val arguments."
+            for f in [test_filename]:
+                assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
+                assert os.path.exists(f), f"Test file '{f}' does not exist."
+        else:
+            train_filename = args['train']
+            val_filename = args['val']
+            assert all([args[x] is not None for x in ['train', 'val']]), "If not specifying --load argument, must` specify --train and --val arguments."
+            for f in [train_filename, val_filename, test_filename]:
+                assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
+                assert os.path.exists(f), f"Input file '{f}' does not exist."
+    else:
+        load_filename = args['load_include_eval']
+        assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."
+        assert all([args[x] is None for x in ['train', 'val', 'test', 'load']]), "If specifying --load-include_eval argument, cannot specify --train, --val, --test, nor --load arguments."
     return args
