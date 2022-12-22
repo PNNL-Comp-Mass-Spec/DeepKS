@@ -32,16 +32,39 @@ class AcceptableClassifier(typing.Protocol):
         ...
 
 def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier:
+    """
+    def fit_(self, X: list[str], y: list[str]):
+        self.training_X = X
+        self.training_y = y
+    def predict_(self, X):
+        X_train, X_val = get_coordinates(self.training_X, X)
+        KNeighborsClassifier.fit(X_train, self.training_y)
+        return KNeighborsClassifier.predict(X_val)
+    def predict_proba_(self, X):
+        X_train, X_val = get_coordinates(self.training_X, X)
+        KNeighborsClassifier.fit(X_train, self.training_y)
+        return KNeighborsClassifier.predict_proba(X_val)
+    def score_(self, X, y):
+        X_train, X_val = get_coordinates(self.training_X, X)
+        KNeighborsClassifier.fit(X_train, self.training_y)
+        return KNeighborsClassifier.score(X_val, y)
+    """
     class NewClass(acceptable_classifier.__class__):
         def fit(self, X, y, *args) -> typing.Any:
-            print("Yup. You're using the right method.")
-            return super().fit(X, y)
+            self.training_X = X
+            self.training_y = y
         def predict(self, X, *args) -> typing.Any:
-            return super().predict(X)
+            X_train, X_val = get_coordinates(self.training_X, X)
+            super().fit(X_train, self.training_y)
+            return super().predict(X_val)
         def predict_proba(self, X, *args) -> typing.Any:
-            return super().predict_proba(X)
+            X_train, X_val = get_coordinates(self.training_X, X)
+            super().fit(X_train, self.training_y)
+            return super().predict_proba(X_val)
         def score(self, X, y, *args) -> typing.Any:
-            return super().score(X, y)
+            X_train, X_val = get_coordinates(self.training_X, X)
+            super().fit(X_train, self.training_y)
+            return super().score(X_val, y)
     
     NewClass.__name__ = acceptable_classifier.__class__.__name__ + "New"
     acceptable_classifier.__class__ = NewClass
