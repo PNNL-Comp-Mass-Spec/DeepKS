@@ -1,1 +1,2 @@
-python3 group_classifier.py --train ../data/raw_data_446_group_classifier_formatted.csv --val ../data/raw_data_209_group_classifier_formatted.csv --test ../data/raw_data_162_group_classifier_formatted.csv
+cd /people/druc594/ML/
+python3 -m DeepKS.models.multi_stage_classifier --load "/people/druc594/ML/DeepKS/bin/Saved State Dicts/indivudial_classifiers_tues_night_2022-12-21T11:13:05.659107.pkl" --test "../data/raw_data_6406_formatted_95_5616.csv" --device cuda:4 

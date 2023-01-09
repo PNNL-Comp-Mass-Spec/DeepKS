@@ -1,4 +1,4 @@
-import functools, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as np, sklearn.model_selection, matplotlib
+import functools, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as np, sklearn.model_selection, matplotlib, collections
 from random import seed, shuffle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
@@ -34,19 +34,27 @@ class AcceptableClassifier(typing.Protocol):
 def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier:
     class NewClass(acceptable_classifier.__class__):
         def fit(self, X, y, *args) -> typing.Any:
-            print("Yup. You're using the right method.")
-            return super().fit(X, y)
+            self.training_X = X
+            self.training_y = y
         def predict(self, X, *args) -> typing.Any:
-            return super().predict(X)
+            X_train, X_val = get_coordinates(self.training_X, X)
+            super().fit(X_train, self.training_y)
+            return super().predict(X_val)
         def predict_proba(self, X, *args) -> typing.Any:
-            return super().predict_proba(X)
+            X_train, X_val = get_coordinates(self.training_X, X)
+            super().fit(X_train, self.training_y)
+            return super().predict_proba(X_val)
         def score(self, X, y, *args) -> typing.Any:
-            return super().score(X, y)
+            X_train, X_val = get_coordinates(self.training_X, X)
+            super().fit(X_train, self.training_y)
+            return super().score(X_val, y)
     
     NewClass.__name__ = acceptable_classifier.__class__.__name__ + "New"
     acceptable_classifier.__class__ = NewClass
     
     return acceptable_classifier
+
+# def perform_hyperparameter_tuning_no_k_fold 
 
 def perform_hyperparameter_tuning(
     X: list,
@@ -103,7 +111,35 @@ recluster = lambda train_symbols, eval_symbols: (
     MTX.loc[eval_symbols, train_symbols],
 )
 
+def custom_run():
+    kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_index(["kinase"])
 
+    train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets(
+        "../tools/pairwise_mtx_822.csv",
+        "../data/preprocessing/tr_kins.json",
+        "../data/preprocessing/vl_kins.json",
+        "../data/preprocessing/te_kins.json",
+        "../data/preprocessing/kin_to_fam_to_grp_817.csv",
+        kin_seqs,
+    )
+    cctr = collections.Counter(train_true)
+    print(sorted([(x, np.round(cctr[x]/sum([list(cctr.values())[i] for i in range(len(cctr))]), 2)) for x in cctr]))
+    ccvl = collections.Counter(val_true)
+    print(sorted([(x, np.round(ccvl[x]/sum([list(ccvl.values())[i] for i in range(len(ccvl))]), 2)) for x in ccvl]))
+    ccte = collections.Counter(test_true)
+    print(sorted([(x, np.round(ccte[x]/sum([list(ccte.values())[i] for i in range(len(ccte))]), 2)) for x in ccte]))
+
+    train_kins = train_kins + val_kins + test_kins[:100]
+    eval_kins = test_kins[100:]
+    train_true = train_true + val_true + test_true[:100]
+    eval_true = test_true[100:]
+    model = factory(KNeighborsClassifier(n_neighbors = 1, metric = "chebyshev"))
+    model.fit(train_kins, train_true)
+    predictions = model.predict(eval_kins)
+    print(KNNGroupClassifier.test(eval_true, predictions))
+    # M = KNNGroupClassifier(train_kins, train_true)
+    # M.k_fold_evaluation(model, train_kins + eval_kins, train_true + eval_true)
+ 
 def run_hp_tuning():
     kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_index(["kinase"])
 
@@ -119,7 +155,7 @@ def run_hp_tuning():
     all_kins, all_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
     scores = []
     all_kins, all_true = train_kins + val_kins + test_kins, train_true + val_true + test_true
-    splitter = sklearn.model_selection.StratifiedKFold(shuffle=True, n_splits=10, random_state=0)
+    splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=10) #, random_state=0)
     scores = []
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", "The least populated class in y has only")
@@ -128,7 +164,6 @@ def run_hp_tuning():
             shuffle(train)
             seed(i)
             shuffle(test)
-            print(test)
             print(f"------ Fold {i} ----------------------")
             train_kins, train_true = [all_kins[x] for x in train], [all_true[x] for x in train]
             test_kins, test_true = [all_kins[x] for x in test], [all_true[x] for x in test]
@@ -193,7 +228,7 @@ class KNNGroupClassifier:
 
     @staticmethod
     def k_fold_evaluation(model, X, y, k=5):
-        splitter = sklearn.model_selection.StratifiedKFold(shuffle=True, n_splits=k, random_state=0)
+        splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k) #, random_state=0)
         scores = []
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", "The least populated class in y has only")
@@ -202,7 +237,6 @@ class KNNGroupClassifier:
                 shuffle(train)
                 seed(i)
                 shuffle(test)
-                print(test)
                 print(f"------ Fold {i} ----------------------")
                 train_kins, train_true = [X[x] for x in train], [y[x] for x in train]
                 test_kins, test_true = [X[x] for x in test], [y[x] for x in test]
@@ -215,7 +249,12 @@ class KNNGroupClassifier:
             print(f"Mean Acc: {100*np.mean(scores):.3f} +/-95%CI {(confIntMean(scores)[1] - np.mean(scores))*100:.4f}")
     @staticmethod 
     def test(true, pred):
-        return f"{100*sum(pred == true)/len(true):3.2f}\n"
+        print("@@@true", true[:50], len(true))
+        print("\n---------------------------------------------------------------\n")
+        print("@@@pred", pred[:50], len(pred))
+        print()
+        print()
+        return f"{100*np.sum(np.array(pred) == np.array(true))/len(true):3.2f}%\n"
 
 def confIntMean(a, conf=0.95):
     """Get the confidence interval of the mean of a list of numbers.
@@ -235,6 +274,5 @@ def confIntMean(a, conf=0.95):
 
 
 if __name__ == "__main__":
-
-    # single_run()
-    run_hp_tuning()
+    custom_run()
+    # run_hp_tuning()

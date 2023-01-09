@@ -201,10 +201,11 @@ class NNInterface:
     @staticmethod
     def get_combined_rocs_from_individual_models(grp_to_interface: dict[str, NNInterface] = {}, grp_to_loader: dict[str, torch.utils.data.DataLoader] = {}, savefile = "", retain_evals = None, from_loaded = None):
         if from_loaded is None:
+            grp_to_interface = {k: grp_to_interface[k] for k in grp_to_loader}
             assert grp_to_interface.keys() == grp_to_loader.keys(), f"The groups for the provided models are not equal to the groups for the provided loaders. Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
         orig_order = ['CAMK', 'AGC', 'CMGC', 'CK1', 'OTHER', 'TK', 'TKL', 'STE', 'ATYPICAL', '<UNANNOTATED>']
         fig = plt.figure(figsize=(12, 12))
-        plt.plot([0, 1], [0, 1], color='r', linestyle='--', alpha = 0.5, linewidth=0.5, label = "Random Model")
+        plt.plot([0, 1], [0, 1], color='black', linestyle='dashed', alpha = 1, linewidth=1, label = "Random Model")
         groups = grp_to_interface.keys() if from_loaded is None else from_loaded.keys()
         for grp in groups:
             if from_loaded is None:
@@ -273,17 +274,18 @@ class NNInterface:
         
         roc_data = sklearn.metrics.roc_curve(labels, outputs)
         aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
-        labels, outputs, rand_outputs = NNInterface.create_random(np.array(labels), np.array(outputs))
+        labels, outputs, rand_outputs = NNInterface.create_random(np.array(labels), np.array(outputs), group=line_labels[0].split(" ")[0])
         random_auc = sklearn.metrics.roc_auc_score(labels, rand_outputs)
         assert abs(random_auc - 0.5) < 1e-16, f"Random ROC not equal to 0.5! (Was {random_auc})"
         _, se, diff = delong_roc_test(labels, rand_outputs, outputs)
         quant = -scipy.stats.norm.ppf(alpha/2)
         sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(
             color=linecolor,
+            linestyle='solid' if ((diff + quant*se + 0.5) > (diff - quant*se + 0.5) > 0.5) else 'dashed',
             linewidth=2, 
             ax=plt.gca(), 
             label=f"{line_labels[0] if len(line_labels) == 1 else line_labels[i]} "
-                  f"(AUC = {aucscore:.3f} | 95% CI = [{(diff - quant*se + 0.5):.3f}, {(diff + quant*se + 0.5):.3f}] "
+                  f"(AUC = {aucscore:.3f} | 95% CI = [{max(0, (diff - quant*se + 0.5)):.3f}, {min((diff + quant*se + 0.5), 1):.3f}] "
                   f"{'*' if ((diff + quant*se + 0.5) > (diff - quant*se + 0.5) > 0.5) else ''})"
         )
         if aucscore > .98:
@@ -291,7 +293,7 @@ class NNInterface:
         plt.title("ROC Curves (with DeLong Test 95% confidence intervals)")
         plt.xticks([x/100 for x in range(0, 110, 10)])
         plt.yticks([x/100 for x in range(0, 110, 10)])
-        plt.legend(loc='lower right', title = 'Legend — \'*\' indicates significant (ROC > 0.5) model.)', title_fontproperties={'weight': 'bold', 'size': 'medium'})
+        plt.legend(loc='lower right', title = 'Legend — \'Solid line\' indicates significant (ROC ≠ 0.5) model.)', title_fontproperties={'weight': 'bold', 'size': 'medium'}, fontsize="small")
 
     @staticmethod
     def inset_auc():
@@ -308,19 +310,19 @@ class NNInterface:
         ax_inset.plot(ax.lines[0].get_xdata(), ax.lines[0].get_ydata(), color='b', linewidth=1)
 
     @staticmethod
-    def create_random(labels: np.ndarray, outputs: np.ndarray):
+    def create_random(labels: np.ndarray, outputs: np.ndarray, group = ""):
         ast: list[int] = np.argsort(labels).astype(int).tolist()
         num_zeros = len(ast) - sum(labels)
         num_ones = sum(labels)
         if num_zeros % 2: # number of zeros is not even
-            print("Info: Trimming a correct true decoy instance for even size of sets.")
+            print(f"Info: Trimming a correct true decoy instance for even size of sets{f' — {group}' if group != '' else ''}.")
             key_: Callable[[Tuple[float, float]], Tuple[float, float]] = lambda x: (x[0], x[1])
             rm_idx = sorted(list(zip(labels, outputs)), key = key_)[0]
             rm_idx = list(zip(labels, outputs)).index(rm_idx)
             rm_idx = ast.index(rm_idx)
             ast = ast[:rm_idx] + ast[rm_idx + 1:]
         if num_ones % 2: # number of ones is not even
-            print("Info: Trimming a correct true target instance for even size of sets.")
+            print(f"Info: Trimming a correct true target instance for even size of sets{f' — {group}' if group != '' else ''}.")
             rm_idx = sorted(list(zip(labels, outputs)), key=lambda x: (-x[0], -x[1]))[0]
             rm_idx = list(zip(labels, outputs)).index(rm_idx)
             rm_idx = ast.index(rm_idx)
@@ -352,6 +354,7 @@ class NNInterface:
                 print(f"Info: Cutoff {cutoff} accuracy:", sklearn.metrics.accuracy_score(labels, torch.heaviside(torch.sigmoid(torch.FloatTensor(outputs)).cpu() - cutoff, values=torch.tensor([0.]))))
         else:
             performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, cutoff, metric)
+        print("i: # outputs =", len(outputs))
 
         print('Info: {}: {:.3f} %\n'.format(text, performance))
 

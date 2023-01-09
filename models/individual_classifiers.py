@@ -1,13 +1,14 @@
 from __future__ import annotations
-import traceback
+if __name__ == "__main__":
+    from .write_splash import write_splash
+    write_splash()
+    print("Progress: Loading Modules", flush=True)
 
-print("Progress: Loading Modules")
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
 import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback
 import torch.utils.data, datetime, pickle, pstats  # type: ignore
-from models.group_classifier import test_filename
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -116,8 +117,9 @@ class IndividualClassifiers:
             print(traceback.print_stack())
             print("=======================================")
             Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
+            raise RuntimeWarning()
         else:
-            Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
+            Xy["Group"] = [pred_groups[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
         for group in tqdm.tqdm(which_groups, desc="Group Progress", leave=False, position=0):
             yield group, group_df[group]
@@ -182,6 +184,9 @@ class IndividualClassifiers:
         gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file, pred_groups=pred_groups)
         count = 0
         for (group_te, partial_group_df_te) in gen_te:
+            if len(partial_group_df_te) == 0:
+                print("Info: No inputs to evaluate for group =", group_te)
+                continue
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
             (_, _, _, test_loader), _ = gather_data(
@@ -217,29 +222,30 @@ class IndividualClassifiers:
         f = open(path, "rb")
         return pickle.load(f)
 
-    def roc_evaluation(self):
-        if self.args["load_include_eval"] is None:
-            test_filename = self.args['test']
+    def roc_evaluation(self, new_args, pred_groups):
+        if new_args['load_include_eval'] is None:
+            print("@@@ Here")
+            test_filename = new_args['test']
             grp_to_loaders = {
-                grp: loader for grp, loader in self.evaluate(which_groups=self.groups, Xy_formatted_input_file=test_filename)
+                grp: loader for grp, loader in self.evaluate(which_groups=self.groups, Xy_formatted_input_file=test_filename, pred_groups=pred_groups)
             }
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
                 self.interfaces,
                 grp_to_loaders,
-                "../images/Evaluation and Results/ROC_indiv_tues_night",
+                f"../images/Evaluation and Results/ROC_{datetime.datetime.now().isoformat()}",
                 retain_evals=self.evaluations,
             )
         else:
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
-                savefile = "../images/Evaluation and Results/ROC_indiv_tues_night",
+                savefile = f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
                 from_loaded = self.evaluations
             )
         if self.args["s"]:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
-                self, "../bin/Saved State Dicts/indivudial_classifiers_tues_night_" + datetime.datetime.now().isoformat() + ".pkl"
+                self, f"../bin/Saved State Dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + datetime.datetime.now().isoformat() + ".pkl"
             )
 
 def main():
@@ -250,11 +256,12 @@ def main():
         train_filename = args["train"]
         val_filename = args["val"]
         device = args["device"]
-        groups: list[str] = [
-            "TK",
-            "AGC",
-            "TKL",
-        ]  # pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_817.csv")["Group"].unique().tolist()
+        # groups: list[str] = [
+        #     "TK",
+        #     "AGC",
+        #     "TKL",
+        # ]
+        groups: list[str] = pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_817.csv")["Group"].unique().tolist()
         default_grp_to_model_args = {
             "ll1_size": 50,
             "ll2_size": 25,
@@ -291,8 +298,28 @@ def main():
     else:  # AKA, loading from file
         fat_model = IndividualClassifiers.load_all(args["load"] if args['load_include_eval'] is None else args['load_include_eval'])
         groups = list(fat_model.interfaces.keys())
-    print("Progress: Evaluation")
-    fat_model.roc_evaluation()
+    if args["load_include_eval"] is None:
+        grp_to_loaders = {
+            grp: loader for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args['test_filename'])
+        }
+        print("Progress: ROC")
+        NNInterface.get_combined_rocs_from_individual_models(
+            fat_model.interfaces,
+            grp_to_loaders,
+            f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
+            retain_evals=fat_model.evaluations,
+        )
+    else:
+        print("Progress: ROC")
+        NNInterface.get_combined_rocs_from_individual_models(
+            savefile = f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
+            from_loaded = fat_model.evaluations
+        )
+    if args["s"]:
+        print("Progress: Saving State to Disk")
+        IndividualClassifiers.save_all(
+            fat_model, f"../bin/Saved State Dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + datetime.datetime.now().isoformat() + ".pkl"
+        )
 
 if __name__ == "__main__":
     main()

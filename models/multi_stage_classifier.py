@@ -1,10 +1,13 @@
-from ast import main
-import collections
+if __name__ == "__main__":
+    from .write_splash import write_splash
+    write_splash()
+    print("Progress: Loading Modules", flush=True)
+import collections, random
 import pandas as pd, numpy as np
-from models.individual_classifiers import IndividualClassifiers
+from .individual_classifiers import IndividualClassifiers
 from . import group_prediction_from_hc as grp_pred
 from . import individual_classifiers
-
+from ..tools.parse import parsing
 
 class MultiStageClassifier:
     def __init__(
@@ -23,6 +26,7 @@ class MultiStageClassifier:
 
     def evaluate(
         self,
+        newargs,
         Xy_formatted_input_file: str,
         evaluation_kwargs=None,
     ) -> None:
@@ -32,24 +36,22 @@ class MultiStageClassifier:
         _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
             "../data/preprocessing/kin_to_fam_to_grp_817.csv"
         )
-        _, _, true_groups = [true_symbol_to_grp_dict[x["Kinase"]] for _, x in input_file.iterrows()]
 
         # Get group predictions
-        group_predictions = self.group_classifier.predict(input_file["seq"])
+        unq_symbols = input_file["orig_lab_name"].unique()
+        groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
+        # groups_prediction = self.group_classifier.predict(unq_symbols)
+        sim_ac = 1
+        groups_prediction = [groups_true[i] if (sim_ac == 1 or i % int(1/(1-sim_ac)) == 0) else random.choice(groups_true) for i in range(len(groups_true))] # Simulated sim_ac accuracy classifier
+        pred_grp_dict = {symb: grp for symb, grp in zip(unq_symbols, groups_prediction)}
 
         # Report performance
-        print(f"Info: Group Classifier Accuracy — {self.group_classifier.test(true_groups, group_predictions)}")
+        print(f"Info: Group Classifier Accuracy — {self.group_classifier.test(groups_true, groups_prediction)}")
 
         # Send to individual classifiers
         print("Progress: Sending input kinases to individual classifiers (with group predictions)")
-        self.individual_classifiers.evaluate(
-            list(set(group_predictions)),
-            Xy_formatted_input_file,
-            evaluation_kwargs=({} if evaluation_kwargs is None else evaluation_kwargs),
-            pred_groups={symb: grp for symb, grp in zip(group_predictions, input_file["seq"])}
-        )
-
-        # Run test and ROC curves
+        self.individual_classifiers.evaluations = {}
+        self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict)
 
     def predict(self, X: np.ndarray, verbose=False):
         raise RuntimeError("Not implemented yet.")
@@ -67,8 +69,7 @@ class MultiStageClassifier:
         return predictions
 
 
-def main():
-
+def main(run_args):
     train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
         "../tools/pairwise_mtx_822.csv",
         "../data/preprocessing/tr_kins.json",
@@ -87,18 +88,14 @@ def main():
     group_classifier = grp_pred.KNNGroupClassifier(X_train=train_kins, y_train=train_true)
 
     individual_classifiers = IndividualClassifiers.load_all(
-        "../bin/indivudial_classifiers_2022-12-20T17:24:06.760770.pkl"
+        run_args['load_include_eval'] if run_args['load_include_eval'] is not None else run_args['load']
     )
 
     msc = MultiStageClassifier(group_classifier, individual_classifiers)
-    # tr = "../data/raw_data_31834_formatted_65_26610.csv"
-    # vl = "../data/raw_data_6500_formatted_65_5698.csv"
-    te = "../data/raw_data_6406_formatted_65_5616.csv"
-    msc.evaluate(te)
+    msc.evaluate(run_args, run_args['test'])
 
 
 if __name__ == "__main__":
-    splash_screen = open("../tools/splash_screen.txt", "r").read()
-    print(splash_screen)
-    print()
-    main()
+    run_args = parsing()
+    assert run_args['load'] is not None or run_args['load_include_eval'], 'For now, multi-stage classifier must be run with --load or --load-include-eval.'
+    main(run_args)
