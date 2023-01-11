@@ -112,12 +112,12 @@ class IndividualClassifiers:
         which_groups.sort()
         Xy = pd.read_csv(Xy_formatted_input_file)
         if pred_groups is None:
-            print("@@@Warning: Using ground truth groups.")
-            print("=======================================")
-            print(traceback.print_stack())
-            print("=======================================")
+            print("Warning: Using ground truth groups. (Normal for training)")
+            # print("=======================================")
+            # print(traceback.print_stack())
+            # print("=======================================")
             Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
-            raise RuntimeWarning()
+            # raise RuntimeWarning()
         else:
             Xy["Group"] = [pred_groups[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
@@ -239,7 +239,7 @@ class IndividualClassifiers:
         else:
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
-                savefile = f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
+                savefile = f"../bin/Saved State Dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + datetime.datetime.now().isoformat() + ".pkl",
                 from_loaded = self.evaluations
             )
         if self.args["s"]:
@@ -298,10 +298,13 @@ def main():
     else:  # AKA, loading from file
         fat_model = IndividualClassifiers.load_all(args["load"] if args['load_include_eval'] is None else args['load_include_eval'])
         groups = list(fat_model.interfaces.keys())
-    if args["load_include_eval"] is None:
+    if args["load_include_eval"] is None or args['train'] is None:
         grp_to_loaders = {
-            grp: loader for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args['test_filename'])
+            grp: loader for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args['test'])
         }
+        # Working dataloaders
+        with open(f"../bin/Saved State Dicts/test_grp_to_loaders_{datetime.datetime.now().isoformat()}.pkl", "wb") as f:
+            pickle.dump(grp_to_loaders, f)
         print("Progress: ROC")
         NNInterface.get_combined_rocs_from_individual_models(
             fat_model.interfaces,
