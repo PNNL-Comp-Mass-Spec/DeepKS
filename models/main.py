@@ -236,7 +236,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
     
-    the_nn.save_model(f"../bin/Saved State Dicts/{(now := datetime.datetime.now().isoformat())}.pkl")
+    the_nn.save_model(f"../bin/saved_state_dicts/{(now := datetime.datetime.now().isoformat())}.pkl")
     the_nn.save_eval_results(test_loader, f"../res/{now}.json", kin_order = kinase_order[2])
     the_nn.get_all_rocs(train_loader, val_loader, test_loader, test_loader, savefile = "../images/Evaluation and Results/ROC/Preliminary_ROC_Test")
     the_nn.get_all_rocs_by_group(test_loader, kinase_order[2], savefile = "../images/Evaluation and Results/ROC/ROC_by_group", kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv")

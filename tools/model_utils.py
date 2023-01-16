@@ -10,7 +10,7 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-rcParams['font.family'] = "Palatino"
+rcParams['font.family'] = "monospace"
 rcParams['font.size'] = "8"
 
 class dataUtils():

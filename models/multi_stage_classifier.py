@@ -1,5 +1,6 @@
 if __name__ == "__main__":
     from .write_splash import write_splash
+
     write_splash()
     print("Progress: Loading Modules", flush=True)
 import collections, random
@@ -8,11 +9,14 @@ from .individual_classifiers import IndividualClassifiers
 from . import group_prediction_from_hc as grp_pred
 from . import individual_classifiers
 from ..tools.parse import parsing
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
 
 class MultiStageClassifier:
     def __init__(
         self,
-        group_classifier: grp_pred.KNNGroupClassifier,
+        group_classifier: grp_pred.SKGroupClassifier,
         individual_classifiers: individual_classifiers.IndividualClassifiers,
     ):
         self.group_classifier = group_classifier
@@ -37,13 +41,24 @@ class MultiStageClassifier:
             "../data/preprocessing/kin_to_fam_to_grp_817.csv"
         )
 
-        # Get group predictions
+        ### Get group predictions
         unq_symbols = input_file["orig_lab_name"].unique()
         groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
-        # groups_prediction = self.group_classifier.predict(unq_symbols)
-        sim_ac = 1
-        groups_prediction = [groups_true[i] if (sim_ac == 1 or i % int(1/(1-sim_ac)) == 0) else random.choice(groups_true) for i in range(len(groups_true))] # Simulated sim_ac accuracy classifier
+
+        ### Perform Real Accuracy
+        groups_prediction = self.group_classifier.predict(unq_symbols)
+
+        ### Perform Simulated 100% Accuracy
+        # sim_ac = 1
+        # wrong_inds = set()
+        # if sim_ac != 1:
+        #     wrong_inds = set([round(i/(1-sim_ac), 0) for i in range(int(len(groups_true)//(1/sim_ac)))])
+        # print("Simulated accuracy:", sim_ac)
+        # random.seed(0)
+        # groups_prediction = [groups_true[i] if (sim_ac == 1 or i not in wrong_inds) else random.choice(list(set(groups_true) - set([groups_true[i]]))) for i in range(len(groups_true))]
+
         pred_grp_dict = {symb: grp for symb, grp in zip(unq_symbols, groups_prediction)}
+        true_grp_dict = {symb: grp for symb, grp in zip(unq_symbols, groups_true)}
 
         # Report performance
         print(f"Info: Group Classifier Accuracy — {self.group_classifier.test(groups_true, groups_prediction)}")
@@ -51,7 +66,7 @@ class MultiStageClassifier:
         # Send to individual classifiers
         print("Progress: Sending input kinases to individual classifiers (with group predictions)")
         self.individual_classifiers.evaluations = {}
-        self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict)
+        self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict)
 
     def predict(self, X: np.ndarray, verbose=False):
         raise RuntimeError("Not implemented yet.")
@@ -72,30 +87,52 @@ class MultiStageClassifier:
 def main(run_args):
     train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
         "../tools/pairwise_mtx_822.csv",
-        "../data/preprocessing/tr_kins.json",
-        "../data/preprocessing/vl_kins.json",
-        "../data/preprocessing/te_kins.json",
+        "json/tr.json",
+        "json/vl.json",
+        "json/te.json",
         "../data/preprocessing/kin_to_fam_to_grp_817.csv",
     )
 
-    train_kins, eval_kins, train_true, eval_true = ( # type: ignore
+    train_kins, eval_kins, train_true, eval_true = (  # type: ignore
         np.array(train_kins + val_kins),
         np.array(test_kins),
         np.array(train_true + val_true),
         np.array(test_true),
     )
 
-    group_classifier = grp_pred.KNNGroupClassifier(X_train=train_kins, y_train=train_true)
+    group_classifier = grp_pred.SKGroupClassifier(
+        X_train=train_kins,
+        y_train=train_true,
+        classifier=MLPClassifier,
+        hyperparameters={
+            "activation": "identity",
+            "max_iter": 500,
+            "learning_rate": "adaptive",
+            "hidden_layer_sizes": (1000, 500, 100, 50),
+            "random_state": 42,
+            "alpha": 1e-7,
+        },
+    )
+
+    ### Use KNN instead
+    # group_classifier = grp_pred.SKGroupClassifier(
+    #     X_train=train_kins,
+    #     y_train=train_true,
+    #     classifier=KNeighborsClassifier,
+    #     hyperparameters={"metric": "chebyshev", "n_neighbors": 1},
+    # )
 
     individual_classifiers = IndividualClassifiers.load_all(
-        run_args['load_include_eval'] if run_args['load_include_eval'] is not None else run_args['load']
+        run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"]
     )
 
     msc = MultiStageClassifier(group_classifier, individual_classifiers)
-    msc.evaluate(run_args, run_args['test'])
+    msc.evaluate(run_args, run_args["test"])
 
 
 if __name__ == "__main__":
     run_args = parsing()
-    assert run_args['load'] is not None or run_args['load_include_eval'], 'For now, multi-stage classifier must be run with --load or --load-include-eval.'
+    assert (
+        run_args["load"] is not None or run_args["load_include_eval"]
+    ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
     main(run_args)

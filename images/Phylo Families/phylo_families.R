@@ -123,9 +123,9 @@ key_family <- fam_anno_data %>%
 
 make_main <- function(fin = NULL, cex = 1) {
   if (is.null(fin)) {
-    par(cex = cex, family = "Palatino", fig = c(0, 1, 0, 1))
+    par(cex = cex, family = "P052-Roman", fig = c(0, 1, 0, 1))
   } else {
-    par(cex = cex, family = "Palatino", fin = fin)
+    par(cex = cex, family = "P052-Roman", fin = fin)
   }
   circos.par(
     cell.padding = rep(0, 4),
@@ -232,7 +232,7 @@ make_legend <- function() {
   fn <- "legend.pdf"
   cairo_pdf(
     fn,
-    family = "Palatino",
+    family = "P052-Roman",
     width = 2,
     height = 2,
     pointsize = 8
@@ -296,7 +296,7 @@ make_legend <- function() {
   write(svg_txt, file = "legend.svg")
 }
 
-cairo_pdf("proto-small.pdf", family = "Palatino", width = 10, height = 10)
+cairo_pdf("proto-small.pdf", family = "P052-Roman", width = 10, height = 10)
 make_main(c(10, 10), cex = 0.5)
 dev.off()
 # make_legend()

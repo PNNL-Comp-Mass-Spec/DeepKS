@@ -5,7 +5,7 @@ from matplotlib import rcParams
 from matplotlib import pyplot as plt
 import os
 
-rcParams['font.family'] = 'Palatino'
+rcParams['font.family'] = 'monospace'
 
 size = dict(width=2000, height=300)
 

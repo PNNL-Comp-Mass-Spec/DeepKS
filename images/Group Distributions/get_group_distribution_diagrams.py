@@ -6,7 +6,7 @@ import sys
 sys.path.append("../../data/preprocessing/")
 from PreprocessingSteps import split_into_sets_individual
 
-mpl.rcParams['font.family'] = "Palatino"
+mpl.rcParams['font.family'] = "monospace"
 
 def get_group_distribution_diagrams(split_dict):
     global labs

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd, tqdm
 
-matplotlib.rcParams["font.family"] = "Palatino"
+matplotlib.rcParams["font.family"] = "monospace"
 from multiprocessing.pool import ThreadPool
 import subprocess
 from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as mtx_utils

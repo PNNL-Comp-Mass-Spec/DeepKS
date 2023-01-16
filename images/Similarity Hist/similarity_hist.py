@@ -31,7 +31,7 @@ def main(kin, org):
         row = np.asarray(m.loc[token].apply(mult100).values)
         data = row # np.concatenate([-row, row])
         mpl.rcParams.update(mpl.rcParamsDefault)
-        plt.rcParams['font.family'] = "Palatino"
+        plt.rcParams['font.family'] = "monospace"
         bins = 50
         
         pct = np.percentile(data, 95)
