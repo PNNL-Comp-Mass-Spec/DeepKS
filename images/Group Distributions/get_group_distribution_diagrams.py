@@ -4,7 +4,7 @@ from brokenaxes import brokenaxes
 import pandas as pd
 import sys
 sys.path.append("../../data/preprocessing/")
-from PreprocessingSteps import split_into_sets_individual
+from ...data.preprocessing.PreprocessingSteps import split_into_sets_individual
 
 mpl.rcParams['font.family'] = "monospace"
 
@@ -42,7 +42,7 @@ def get_overall_plot(counts, savefig = False):
     baxes.axs[0].set_yticks(list(range(15000, 23000, 1000)))
     baxes.axs[1].set_yticks(list(range(0, 9000, 1000)))
     if savefig:
-        fig.savefig("./relative_distributions.svg", bbox_inches='tight')
+        fig.savefig("./relative_distributions_reprod.svg", bbox_inches='tight')
     else:
         plt.show()
 
@@ -83,7 +83,7 @@ def get_proportional_plot(counts, savefig = False):
     plt.legend(loc='lower right')
     plt.xlim(-0.5, 10.5)
     if savefig:
-        plt.savefig("./proportional_distribution.svg", bbox_inches='tight')
+        plt.savefig("./proportional_distribution_reprod.svg", bbox_inches='tight')
     else:
         plt.show()
 
@@ -92,8 +92,10 @@ if __name__ == "__main__":
     
     where_am_i = pathlib.Path(__file__).parent.resolve()
     os.chdir(where_am_i)
-
-    data = get_group_distribution_diagrams(split_into_sets_individual.get_assignment_info_dict("../../data/preprocessing/kin_to_fam_to_grp_817.csv", "../../data/preprocessing/raw_data_22473.csv", *[f"../../data/preprocessing/{x}_kins.json" for x in ["tr", "vl", "te"]]))
+    print(where_am_i)
+    data = get_group_distribution_diagrams(split_into_sets_individual.get_assignment_info_dict("../../data/preprocessing/kin_to_fam_to_grp_817.csv", "../../data/raw_data/raw_data_22473.csv", *[f"../../data/preprocessing/{x}_kins.json" for x in ["tr", "vl", "te"]]))
 
     get_overall_plot(data, savefig = True)
     get_proportional_plot(data, savefig = True)
+
+# /Users/druc594/Library/CloudStorage/OneDrive-PNNL/Documents/DeepKS/data/raw_data

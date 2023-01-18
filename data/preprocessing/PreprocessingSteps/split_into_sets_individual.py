@@ -209,4 +209,4 @@ if __name__ == "__main__":
     where_am_i = pathlib.Path(__file__).parent.resolve()
     os.chdir(where_am_i)
     print(os.getcwd())
-    split_into_sets("../kin_to_fam_to_grp_817.csv", "../raw_data_22473.csv", tgt=0.3, get_restart = True, num_restarts=100)
+    split_into_sets("../kin_to_fam_to_grp_817.csv", "../../../data/raw_data/raw_data_22473.csv", tgt=0.3, get_restart = True, num_restarts=100)
