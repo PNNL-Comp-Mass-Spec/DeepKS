@@ -9,9 +9,10 @@ The bulk of the DeepKS tool is run through Docker. This makes dependency managem
 1. Ensure Docker Desktop (Installed above) is running.
 2. Open a terminal (PowerShell on Windows). If needed, see [macOS Instructions](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj8_KLpx9L8AhW_D1kFHSxoCMUQFnoECA0QAQ&url=https%3A%2F%2Fsupport.apple.com%2Fguide%2Fterminal%2Fopen-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125%2Fmac&usg=AOvVaw38yunYqFSDSP2S9Bs-zTTX) or [Windows Instructions](https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell?view=powershell-7.3))
 3. Run the following command to start the docker session: `docker run -it benndrucker/deepks:0.0.1`
-4. A command prompt should appear. You are now inside the Docker Container. See the steps below to run various programs.
+4. A command prompt should appear and look like `shahash#`, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container. See the steps below to run various programs *from this prompt*.
 
 # Running The Programs
+***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
 ## General Notes Relating to Devices (Read before running any program)
 ### Does My Computer Have a CUDA-compatible GPU?
 If you're not sure, follow the instructions [here](https://askubuntu.com/a/1273434).
@@ -43,15 +44,21 @@ usage: python -m DeepKS.api.main [-h] (-k <kinase sequences> | -kf <kinase seque
 - For each instance of round parentheses, you must provide one of the options between "`|`". 
 - Curly braces show available options for a flag.
 
-With that in mind, here are some examples of how to run the program:
+With that in mind, here are some examples of how to run the program (make sure to be in the top-level `/` directory):
 
-- `python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt -p in_order_json -v True`
-- `python -m DeepKS.api.main -k "KINASESEQ1,KINASESEQ2,KINASESEQ3" -s "SITESEQ1,SITESEQ2,SITESEQ3" -p dictionary`
-- `python -m DeepKS.api.main -kf my/kinase/sequences.txt -s "SITESEQ1,SITESEQ2,SITESEQ3" -p in_order -v False`
-- `python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt`
+```bash
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt -p in_order_json -v True
+
+python -m DeepKS.api.main -k KINASESEQ1,KINASESEQ2,KINASESEQ3 -s SITESEQ1,SITESEQ2,SITESEQ3 -p dictionary
+
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITESEQ1,SITESEQ2,SITESEQ3 -p in_order -v False
+
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
+```
 
 ### As a Python Import
-TODO
+It is recommended to clone any external Git repositories to a directory inside the Docker container...TODO -- incomplete
+
 #### API Specification
 ##### Functions of DeepKS.api.main:
 ```python
