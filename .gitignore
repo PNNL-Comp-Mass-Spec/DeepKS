@@ -2,6 +2,8 @@
 !/**/
 !*.*
 logs/
+**/*.log
+**/*.html
 !bin/pickle_graph.pkl
 .gitig-*
 **/*.png
@@ -67,3 +69,7 @@ images/Group Distributions/fam_to_num_seq.csv
 images/Excel Matrix/excel_art_formatted.csv
 !tools/splash_screen.txt
 !**/*_reprod.svg
+**/*.tar.gz
+**/*.tar.bz2
+**/*.tar.xz
+**/*.tar

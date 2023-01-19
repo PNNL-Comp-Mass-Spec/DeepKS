@@ -1,4 +1,3 @@
-# %%
 import pathlib, os
 from numbers import Number
 from typing import Union
@@ -17,7 +16,6 @@ import json
 mode = cfg.get_mode()
 random.seed(0)
 
-# %%
 def my_pop(df, index):
     """
     Based on https://stackoverflow.com/a/58548326
@@ -85,7 +83,6 @@ def generate_real(input_fn, kin_seq_file, config):
     #     print(len(training_df), len(held_out_df))
     else:
         raise RuntimeError("`pre_split_or_post_split` is not one of `pre` or `post`.")
-# %%
 
 def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: str, percentile: Union[int, float], write_file=True):
     all_data = section_df.reset_index(drop=True)
@@ -117,7 +114,7 @@ def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: 
 
     print("processing derangement...")
     derangement = [x if x is not None else len(decoy) for x in get_groups_derangement4(order, sizes, kin_seq_file, re.sub("[^0-9]*([0-9]+)[^0-9]*", "../mtx_\\1.csv", kin_seq_file),percentile)]
-    decoy.loc[len(decoy)] = ['NOLAB', 'NOSITE', 'NOSEQ', 'NOID', 'NONUM', 'NOCLASS', 'NOORIG']  # type: ignore
+    decoy.loc[len(decoy)] = ['NOLAB', 'NOSITE', 'NOSEQ', 'NOID', 'NONUM', 'NOCLASS', 'NOORIG', 'NOORIGKIN']  # type: ignore
     decoy_seqs = decoy.iloc[derangement][['seq', 'original_kinase', 'num_sites']].reset_index().drop("index", axis=1).squeeze()
 
     print("done processing derangement.\n")
@@ -145,7 +142,7 @@ def generate_real_helper(section_df: pd.DataFrame, input_fn: str, kin_seq_file: 
     # orig_data = pd.read_csv(input_fn).sort_values(by=['num_sites', 'lab', 'seq'], ascending=[False, True, True]).reset_index(drop=True)
     # orig_data = orig_data[orig_data['seq'].isin(all_data_w_seqs['seq'])]
     if write_file:
-        all_data_w_seqs.to_csv(fn:="../"+re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn).replace(".csv", "") + f"_formatted{extra}.csv", index=False)
+        all_data_w_seqs.to_csv(fn:=re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn).replace(".csv", "") + f"_formatted{extra}.csv", index=False)
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
     print(f"Size: {len(all_data_w_seqs)}")
     # return all_data_w_seqs #orig_data
@@ -154,9 +151,9 @@ if __name__ == "__main__":
     if mode == "no_alin":
         kin_seq_file = "../../raw_data/kinase_seq_822.txt"
     else:
-        kin_seq_file = "../../raw_data/kinase_seq_alin_792.txt"
+        raise RuntimeError("mode not supported")
 
-    generate_real("../raw_data_22473.csv", kin_seq_file, {
+    generate_real("../../raw_data/raw_data_22473.csv", kin_seq_file, {
                                                                         "held_out_percentile": 95,
                                                                         "train_percentile": 65,
                                                                         "num_held_out_kins": 60,

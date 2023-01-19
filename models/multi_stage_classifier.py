@@ -68,8 +68,9 @@ class MultiStageClassifier:
         self.individual_classifiers.evaluations = {}
         self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict)
 
-    def predict(self, X: np.ndarray, verbose=False):
-        raise RuntimeError("Not implemented yet.")
+    def predict(self, kinase_seqs: list[str], site_seqs: list[str], predictions_output_format: str = "in_order", verbose: bool = True):
+        print("Status: Gathering alignment scores to make a group prediction...")
+        X = self.align_novel_kin_seqs(kinase_seqs)
         predicted_groups = self.group_classifier.predict(X)
         if verbose:
             print(f"Predicted groups: {predicted_groups}")
@@ -78,10 +79,13 @@ class MultiStageClassifier:
             classifier_to_list_of_inds[predicted_groups[i]].append(i)
 
         predictions = [-1 for _ in range(len(X))]
-        for indiv_classif in classifier_to_list_of_inds:
-            predictions = self.individual_classifiers.predict(X[classifier_to_list_of_inds[indiv_classif]])
+        for individual_classifier in classifier_to_list_of_inds:
+            predictions = self.individual_classifiers.predict(X[classifier_to_list_of_inds[individual_classifier]])
 
         return predictions
+    
+    def align_novel_kin_seqs(self, kin_seq) -> np.ndarray:
+        pass
 
 
 def main(run_args):

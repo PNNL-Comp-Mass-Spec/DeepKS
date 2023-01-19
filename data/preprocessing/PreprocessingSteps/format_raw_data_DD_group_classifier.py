@@ -5,12 +5,10 @@ where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
 
-sys.path.append("../../../tools")
-sys.path.append("../../../")
-sys.path.append("../../")
-import config
 
-mode = config.cfg.get_mode()
+from .... import config
+
+mode = config.cfg.get_mode() 
 random.seed(0)
 
 
@@ -106,7 +104,7 @@ def generate_real_helper(
     fn = "None"
     if write_file:
         all_df.to_csv(
-            fn := "../" + re.sub("([0-9]+)", f"{len(all_df)}", input_fn).replace(".csv", "")
+            fn := re.sub("([0-9]+)", f"{len(all_df)}", input_fn).replace(".csv", "")
             + "_group_classifier"
             + f"_formatted{extra}.csv",
             index=False,
