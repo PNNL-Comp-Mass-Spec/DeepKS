@@ -40,7 +40,7 @@ def extract_data(tf_matrix: str, tf_output: str, outfile="../mtx_@XX.csv", sort 
     return mtx
 
 
-def make_fasta(df_in: str, dir=None) -> str:
+def make_fasta(df_in: str, fasta_out: str) -> str:
     df = pd.read_csv(df_in, sep="\t").iloc[:]
     assert "kinase" in df.columns, 'Input df to `make_fasta` must have column "kinase."'
     assert "kinase_seq" in df.columns, 'Input df to `make_fasta` must have column "kinase_seq."'
@@ -54,14 +54,10 @@ def make_fasta(df_in: str, dir=None) -> str:
         rows.append("\n")
         rows.append(tw.fill(r["kinase_seq"]))
         rows.append("\n")
-    if dir is None:
-        temp_fasta = tf.NamedTemporaryFile().name
-    else:
-        temp_fasta = os.path.join(dir, "temp_fasta.fasta")
-    with open(temp_fasta, "w") as tfa:
+    with open(fasta_out, "w") as tfa:
         tfa.write("".join(rows))
 
-    return temp_fasta
+    return fasta_out
 
 
 if __name__ == "__main__":

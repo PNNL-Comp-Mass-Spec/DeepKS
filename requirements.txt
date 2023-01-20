@@ -8,6 +8,7 @@ scikit_learn~=1.1.3
 scipy~=1.9.0
 sigfig~=1.3.2
 tqdm~4.64.1
+dateutil~=2.8.2
 git+https://github.com/Ben-Drucker/torchinfo-modified@main#egg=torchinfo_modified
 git+https://github.com/Ben-Drucker/psankey-modified@master#egg=psankey_modified
 git+https://github.com/Ben-Drucker/roc_comparison-modified@main#egg=roc_comparison_modified

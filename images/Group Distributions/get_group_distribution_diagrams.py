@@ -3,7 +3,6 @@ import matplotlib as mpl, matplotlib.pyplot as plt, textwrap
 from brokenaxes import brokenaxes
 import pandas as pd
 import sys
-sys.path.append("../../data/preprocessing/")
 from ...data.preprocessing.PreprocessingSteps import split_into_sets_individual
 
 mpl.rcParams['font.family'] = "monospace"

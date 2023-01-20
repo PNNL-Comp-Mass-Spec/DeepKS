@@ -2,7 +2,3 @@
 based on input kinases and sites. Essentially, the `main` submodule is an input-validated wrapper
 for models.MultiStageClassifier.predict.
 """
-
-from . import main
-
-__all__ = ["main"]

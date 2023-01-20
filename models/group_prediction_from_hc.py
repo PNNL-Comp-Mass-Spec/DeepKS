@@ -37,15 +37,15 @@ KIN_SEQS = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_inde
 MTX = pd.read_csv("../tools/pairwise_mtx_822.csv", index_col=0)
 
 class AcceptableClassifier(typing.Protocol):
-    def fit(self, X, y, *args) -> typing.Any:
+    def fit(self, X, y) -> typing.Any:
         ...
-    def predict(self, X, *args) -> typing.Any:
+    def predict(self, X) -> typing.Any:
         ...
-    def predict_proba(self, X, *args) -> typing.Any:
+    def predict_proba(self, X) -> typing.Any:
         ...
-    def score(self, X, y, *args) -> typing.Any:
+    def score(self, X, y) -> typing.Any:
         ...
-    def __init__(self, *args):
+    def __init__(self):
         ...
 
 
@@ -146,7 +146,7 @@ def get_ML_sets(dist_matrix_file, json_tr, json_vl, json_te, kin_fam_grp_file, k
     return train_kins, val_kins, test_kins, train_true, val_true, test_true
 
 
-def get_coordinates(train_kin_list, val_kin_list):
+def get_coordinates(train_kin_list, val_kin_list) -> tuple[np.ndarray, np.ndarray]:
     train_mtx, eval_mtx = recluster(train_kin_list, val_kin_list)
     X_train = train_mtx.values
     X_val = eval_mtx.values
@@ -363,7 +363,7 @@ class KNNGroupClassifier:
 
 
 class SKGroupClassifier:
-    def __init__(self, X_train, y_train, classifier=AcceptableClassifier, hyperparameters = {}):
+    def __init__(self, X_train, y_train, classifier: type[AcceptableClassifier], hyperparameters = {}):
         self.X_train = X_train
         self.y_train = y_train
         self.model = classifier(**hyperparameters)

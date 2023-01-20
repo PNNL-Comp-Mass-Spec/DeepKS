@@ -9,7 +9,6 @@ from matplotlib import pyplot as plt, rcParams
 from roc_comparison_modified.auc_delong import delong_roc_test
 from .roc_lambda import get_avg_roc
 
-sys.path.append("../data/preprocessing/")
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
 rcParams["font.family"] = "monospace"

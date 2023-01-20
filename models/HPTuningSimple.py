@@ -1,6 +1,4 @@
 import sys
-sys.path.append("../tools/")
-sys.path.append("../data/preprocessing/")
 
 from SimpleTuner import SimpleTuner
 import sys

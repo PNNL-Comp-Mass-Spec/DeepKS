@@ -1,5 +1,4 @@
 import json, torch, torch.nn as nn, sys, os
-sys.path.append("../tools")
 from tensorize_group_classifier import gather_data
 from NNInterface import NNInterface
 from parse import parsing

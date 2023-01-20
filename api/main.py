@@ -1,11 +1,10 @@
-import os, pathlib, pickle, json, argparse, textwrap
-
-from ..models.individual_classifiers import IndividualClassifiers
-from ..models.multi_stage_classifier import MultiStageClassifier
-from ..models.group_prediction_from_hc import SKGroupClassifier
+import os, pathlib, typing, argparse, textwrap
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
+
+PRE_TRAINED_NN = "data/bin/deepks_nn_weights.0.0.1.pt"
+PRE_TRAINED_GC = "data/bin/deepks_gc_weights.0.0.1.pt"
 
 
 def make_predictions(
@@ -13,13 +12,13 @@ def make_predictions(
     site_seqs: list[str],
     predictions_output_format: str = "in_order",
     verbose: bool = True,
-    pre_trained_gc: str = "data/bin/deepks_gc_weights.0.0.1.pt",
-    pre_trained_nn: str = "data/bin/deepks_nn_weights.0.0.1.pt",
+    pre_trained_gc: str = PRE_TRAINED_GC,
+    pre_trained_nn: str = PRE_TRAINED_NN,
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
     Args:
-        kinase_seqs (list[str]): The kinase sequences. Each must be <= 4128 residues long.
+        kinase_seqs (list[str]): The kinase sequences. Each must be >= 1 and <= 4128 residues long.
         site_seqs ([str]): The site sequences. Each must be 15 residues long.
         predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
             - "in_order" returns a list of predictions in the same order as the input kinases and sites.
@@ -27,8 +26,8 @@ def make_predictions(
             - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
             - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
         verbose (bool, optional): Whether to print predictions. Defaults to True.
-        pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
-        pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
+        pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
+        pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
     """
     try:
         # Input validation
@@ -39,15 +38,17 @@ def make_predictions(
             f" {len(site_seqs)} sites.)"
         )
         for i, kinase_seq in enumerate(kinase_seqs):
-            assert len(kinase_seq) <= 4128, (
+            assert 1 <= len(kinase_seq) <= 4128, (
                 f"DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index {i} is"
                 f" {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
             )
+            assert kinase_seq.isalpha(), f"Kinase sequences must only contain letters. The input kinase at index {i} is problematic."
         for i, site_seq in enumerate(site_seqs):
             assert len(site_seq) == 15, (
                 f"DeepKS currently only accepts site sequences of length 15. The input site at index {i} is"
                 f" {len(site_seq)}. (It was trained on sequences of length 15.)"
             )
+            assert site_seq.isalpha(), f"Site sequences must only contain letters. The input site at index {i} is problematic."
 
         # Create (load) multi-stage classifier
         print("Status: Loading previously trained models...")
@@ -72,7 +73,12 @@ def make_predictions(
         raise e
 
 
-if __name__ == "__main__":
+def parse_api() -> dict[str, typing.Any]:
+    """Parse the command line arguments.
+
+    Returns:
+        dict[str, Any]: Dictionary mapping the argument name to the argument value.
+    """
     wrap = lambda s: textwrap.fill(s, width = 60, subsequent_indent="    ")
 
     class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
@@ -126,7 +132,40 @@ if __name__ == "__main__":
         choices=output_choices_helper,
         help='\n'.join(wrap("* " + f"{k}: {v}") for k, v in output_choices_helper.items())
     )
-    ap.add_argument("-v", "--verbose", help="Whether to print predictions. Defaults to True.", default=True)
+    ap.add_argument("-v", "--verbose", help="Whether to print predictions. Defaults to True.", default=True, required=False, action="store_true")
+
+    ap.add_argument("--pre_trained_nn", help=wrap("The path to the pre-trained neural network."), default=PRE_TRAINED_NN, required=False, metavar="<pre-trained neural network file>")
+    ap.add_argument("--pre_trained_gc", help=wrap("The path to the pre-trained group classifier."), default=PRE_TRAINED_GC, required=False, metavar="<pre-trained group classifier file>") #FIXME: Max width
     
     args = ap.parse_args()
-    print(args)
+    args_dict = vars(args)
+    if 'k' in args_dict:
+        args_dict['kinase_seqs'] = args_dict.pop('k').split(',')
+        del args_dict['kf']
+    elif 'kf' in args_dict:
+        args_dict['kinase_seqs'] = [line.strip() for line in open(args_dict.pop('kf'))]
+        del args_dict['k']
+    if 's' in args_dict:
+        args_dict['site_seqs'] = args_dict.pop('s').split(',')
+        del args_dict['sf']
+    elif 'sf' in args_dict:
+        args_dict['site_seqs'] = [line.strip() for line in open(args_dict.pop('sf'))]
+        del args_dict['s']
+    if 'v' in args_dict:
+        args_dict['verbose'] = args_dict.pop('v')
+
+    args_dict['predictions_output_format'] = args_dict.pop('p')
+
+    return args_dict
+
+if __name__ == "__main__":
+    args = parse_api()
+
+    print("Status: Loading Modules...")
+    import pickle, json
+    from ..models.individual_classifiers import IndividualClassifiers
+    from ..models.multi_stage_classifier import MultiStageClassifier
+    from ..models.group_prediction_from_hc import SKGroupClassifier
+
+
+    make_predictions(**args)

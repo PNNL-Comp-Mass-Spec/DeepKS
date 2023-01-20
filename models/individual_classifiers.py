@@ -2,6 +2,7 @@ from __future__ import annotations
 
 if __name__ == "__main__":
     from .write_splash import write_splash
+
     write_splash()
     print("Progress: Loading Modules", flush=True)
 
@@ -98,8 +99,12 @@ class IndividualClassifiers:
             str, dict[str, dict[str, list[Union[int, float]]]]
         ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
-        self.default_tok_dict, self.kin_symbol_to_grp, self.symbol_to_grp_dict = IndividualClassifiers.get_symbol_to_grp_dict(kin_fam_grp_file)
-        
+        (
+            self.default_tok_dict,
+            self.kin_symbol_to_grp,
+            self.symbol_to_grp_dict,
+        ) = IndividualClassifiers.get_symbol_to_grp_dict(kin_fam_grp_file)
+
     @staticmethod
     def get_symbol_to_grp_dict(kin_fam_grp_file: str):
         default_tok_dict = json.load(open("./json/tok_dict.json"))
@@ -109,14 +114,19 @@ class IndividualClassifiers:
         symbol_to_grp_dict = symbol_to_grp.set_index("Symbol").to_dict()["Group"]
         return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
 
-    def _run_dl_core(self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None):
+    def _run_dl_core(
+        self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None
+    ):
         which_groups.sort()
         Xy = pd.read_csv(Xy_formatted_input_file)
-        if pred_groups is None:
+        if pred_groups is None: # Training
             print("Warning: Using ground truth groups. (Normal for training)")
             Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
-        else:
-            Xy["Group"] = [pred_groups[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
+        else: # Evaluation CHECK
+            if 'orig_lab_name' in Xy.columns: # Test
+                Xy["Group"] = [pred_groups[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
+            else: # Prediction
+                Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
         for group in tqdm.tqdm(which_groups, desc="Group Progress", leave=False, position=0):
             yield group, group_df[group]
@@ -177,9 +187,11 @@ class IndividualClassifiers:
         Xy_formatted_input_file: str,
         evaluation_kwargs={"verbose": False, "savefile": False, "metric": "acc"},
         pred_groups: Union[None, dict[str, str]] = None,
-        info_dict_passthrough = {}
+        info_dict_passthrough={},
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
-        assert len(info_dict_passthrough) == 0 # and info_dict_passthrough is not None, "Info dict passthrough must be a list of length 1"
+        assert (
+            len(info_dict_passthrough) == 0
+        )  # and info_dict_passthrough is not None, "Info dict passthrough must be a list of length 1"
         gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file, pred_groups=pred_groups)
         count = 0
         for (group_te, partial_group_df_te) in gen_te:
@@ -222,41 +234,55 @@ class IndividualClassifiers:
         f = open(path, "rb")
         return pickle.load(f)
 
-    def roc_evaluation(self, new_args, pred_groups, true_groups):
-        if new_args['load_include_eval'] is None:
-            print("@@@ Here")
-            test_filename = new_args['test']
+    def roc_evaluation(self, new_args, pred_groups, true_groups, predict_mode):
+        if new_args["load_include_eval"] is None:
+            test_filename = new_args["test"]
             grp_to_info_pass_through_info_dict = {}
             grp_to_loaders = {
-                grp: loader for grp, loader in self.evaluate(which_groups=self.groups, Xy_formatted_input_file=test_filename, pred_groups=pred_groups, info_dict_passthrough=grp_to_info_pass_through_info_dict)
+                grp: loader
+                for grp, loader in self.evaluate(
+                    which_groups=self.groups,
+                    Xy_formatted_input_file=test_filename,
+                    pred_groups=pred_groups,
+                    info_dict_passthrough=grp_to_info_pass_through_info_dict,
+                )
             }
 
+            # if False:
+            #     pickled_version = pickle.load(open("/people/druc594/ML/DeepKS/bin/saved_state_dicts/test_grp_to_loaders_2023-01-11T17:49:21.981786.pkl", "rb"))
+            #     unfurled_pickle = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in pickled_version.items()}
 
-            if False:
-                pickled_version = pickle.load(open("/people/druc594/ML/DeepKS/bin/saved_state_dicts/test_grp_to_loaders_2023-01-11T17:49:21.981786.pkl", "rb"))
-                unfurled_pickle = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in pickled_version.items()}
-
-            unfurled_local = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in grp_to_loaders.items()} # type: ignore
+            # unfurled_local = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in grp_to_loaders.items()} # type: ignore
             
-            print("Progress: ROC")
-            NNInterface.get_combined_rocs_from_individual_models(
-                self.interfaces,
-                grp_to_loaders,
-                f"../images/Evaluation and Results/ROC_{datetime.datetime.now().isoformat()}",
-                retain_evals=self.evaluations,
-                grp_to_loader_true_groups={grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]['orig_symbols_order']['test']] for grp in grp_to_info_pass_through_info_dict},
-            )
+            if predict_mode == False:
+                print("Progress: ROC")
+                NNInterface.get_combined_rocs_from_individual_models(
+                    self.interfaces,
+                    grp_to_loaders,
+                    f"../images/Evaluation and Results/ROC_{datetime.datetime.now().isoformat()}",
+                    retain_evals=self.evaluations,
+                    grp_to_loader_true_groups={
+                        grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]]
+                        for grp in grp_to_info_pass_through_info_dict
+                    },
+                )
         else:
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
-                savefile = f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + datetime.datetime.now().isoformat() + ".pkl",
-                from_loaded = self.evaluations
+                savefile=f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}"
+                + datetime.datetime.now().isoformat()
+                + ".pkl",
+                from_loaded=self.evaluations,
             )
         if self.args["s"] is not None:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
-                self, f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + datetime.datetime.now().isoformat() + ".pkl"
+                self,
+                f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}"
+                + datetime.datetime.now().isoformat()
+                + ".pkl",
             )
+
 
 def main():
     print("Progress: Parsing Args")
@@ -306,11 +332,14 @@ def main():
         print("Progress: About to Train")
         fat_model.train(which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename)
     else:  # AKA, loading from file
-        fat_model = IndividualClassifiers.load_all(args["load"] if args['load_include_eval'] is None else args['load_include_eval'])
+        fat_model = IndividualClassifiers.load_all(
+            args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
+        )
         groups = list(fat_model.interfaces.keys())
-    if args["load_include_eval"] is None or args['train'] is None:
+    if args["load_include_eval"] is None or args["train"] is None:
         grp_to_loaders = {
-            grp: loader for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args['test'])
+            grp: loader
+            for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args["test"])
         }
         # Working dataloaders
         with open(f"../bin/saved_state_dicts/test_grp_to_loaders_{datetime.datetime.now().isoformat()}.pkl", "wb") as f:
@@ -326,14 +355,15 @@ def main():
     else:
         print("Progress: ROC")
         NNInterface.get_combined_rocs_from_individual_models(
-            savefile = f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
-            from_loaded = fat_model.evaluations
+            savefile=f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
+            from_loaded=fat_model.evaluations,
         )
     if args["s"] is not None:
         print("Progress: Saving State to Disk")
         IndividualClassifiers.save_all(
             fat_model, f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}.pkl"
         )
+
 
 if __name__ == "__main__":
     main()
