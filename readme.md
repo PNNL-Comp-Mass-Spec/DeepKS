@@ -1,15 +1,23 @@
 # Getting Started
-The bulk of the DeepKS tool is run through Docker. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
+The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
 
 ## Download Docker
 1. Go to https://www.docker.com/products/docker-desktop/ and follow the installation instructions for your operating system.
+
+## Terminology
+- Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ [Thomas Uhrig and Alex Telon's post](https://stackoverflow.com/a/23736802/16158339)
 
 ## Pull Docker Image
 <!--TODO: Credentials-->
 1. Ensure Docker Desktop (Installed above) is running.
 2. Open a terminal (PowerShell on Windows). If needed, see [macOS Instructions](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj8_KLpx9L8AhW_D1kFHSxoCMUQFnoECA0QAQ&url=https%3A%2F%2Fsupport.apple.com%2Fguide%2Fterminal%2Fopen-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125%2Fmac&usg=AOvVaw38yunYqFSDSP2S9Bs-zTTX) or [Windows Instructions](https://learn.microsoft.com/en-us/powershell/scripting/windows-powershell/starting-windows-powershell?view=powershell-7.3))
 3. Run the following command to start the docker session: `docker run -it benndrucker/deepks:0.0.1`
-4. A command prompt should appear and look like `shahash#`, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container. See the steps below to run various programs *from this prompt*.
+4. A command prompt should appear and look like `root@shahash:/#`, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
+
+## Reuse Docker Container
+1. To resuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
+2. Copy the hash id of the desired container.
+3. Run `docker run -td <copied hash>` (making sure to replace `<copied hash>` with the hexadecimal hash you actually copied). Once this is complete, run `docker exec -it <copied hash>` (again, copying in the actual hash). This will give you the command prompt inside the Docker container.
 
 # Running The Programs
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
@@ -21,7 +29,12 @@ If you have a CUDA-compatible GPU, you can run the program on your personal comp
 ### Running On Personal Computer without CUDA
 No extra setup steps are necessary, but evaluations in the deep learning model will be much slower.
 ### Running On HPC Cluster
-TODO -- if there is interest
+***Note: The following steps are not fully written. They are more of an outline.***
+
+1. Run `module load apptainer` to load Apptainer.
+2. Run `apptainer pull benndrucker/deepks:latest` to pull the Docker image.
+3. Run `apptainer shell --nv benndrucker/deepks:latest` to start the Docker container (in Apptainer).
+
 
 ## Using API
 ### From Command Line
@@ -64,14 +77,7 @@ It is recommended to clone any external Git repositories to a directory inside t
 #### API Specification
 ##### Functions of DeepKS.api.main:
 ```python
-    make_predictions(
-        kinase_seqs: list[str],
-        site_seqs: list[str],
-        predictions_output_format: str = "in_order",
-        verbose: bool = True,
-        pre_trained_gc: str = "data/bin/deepks_gc_weights.0.0.1.pt",
-        pre_trained_nn: str = "data/bin/deepks_nn_weights.0.0.1.pt",
-    ):
+    make_predictions(kinase_seqs, site_seqs, predictions_output_format, verbose, pre_trained_gc, pre_trained_nn):
         """Make a target/decoy prediction for a kinase-substrate pair.
 
         Args:
@@ -85,6 +91,16 @@ It is recommended to clone any external Git repositories to a directory inside t
             verbose (bool, optional): Whether to print predictions. Defaults to True.
             pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
             pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
+        
+        Returns:
+            None, or dictionary, or list, depending on `predictions_output_format`
+        """
+    
+    parse_api():
+        """Parse the command line arguments.
+
+        Returns:
+            dict[str, Any]: Dictionary mapping the argument name to the argument value.
         """
 ```
 

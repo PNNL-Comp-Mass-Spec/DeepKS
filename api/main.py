@@ -13,7 +13,7 @@ def make_predictions(
     predictions_output_format: str = "in_order",
     verbose: bool = True,
     pre_trained_gc: str = PRE_TRAINED_GC,
-    pre_trained_nn: str = PRE_TRAINED_NN,
+    pre_trained_nn: str = PRE_TRAINED_NN
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
