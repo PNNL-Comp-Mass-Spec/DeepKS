@@ -38,7 +38,9 @@ When you run this, it will print
 ```bash
 usage: python -m DeepKS.api.main [-h] (-k <kinase sequences> | -kf <kinase sequences file>)
                                  (-s <site sequences> | -sf <site sequences file>)
-                                 [-p {in_order,dictionary,in_order_json,dictionary_json}] [-v VERBOSE]
+                                 [-p {in_order,dictionary,in_order_json,dictionary_json}] [-v]
+                                 [--pre_trained_nn <pre-trained neural network file>]
+                                 [--pre_trained_gc <pre-trained group classifier file>]
 ```
 - Anything in square brackets is optional.
 - For each instance of round parentheses, you must provide one of the options between "`|`". 
