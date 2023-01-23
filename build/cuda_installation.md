@@ -1,3 +1,36 @@
+<style>
+    pre.bash-output.bash-output{
+        background-color: #ebe9c27f;
+    }
+    code.inline-bash-output{
+        background-color: #ebe9c27f;
+    }
+    code{
+        background-color: rgba(220, 220, 220, 0.4);
+        padding: 1px 3px;
+        border-radius: 5px;
+    }
+    pre code{
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+    }
+    h1{
+        border-bottom-width: 2px;
+    }
+    
+    h2{
+        border-bottom-width: 1px;
+        border-bottom-color: #00000040;
+        border-bottom-style: solid;
+    }
+
+    h3{
+        border-bottom-width: 1px;
+        border-bottom-color: #00000040;
+        border-bottom-style: dashed;
+    }
+</style>
 ### WSL Setup
 ***Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.***
 
@@ -24,11 +57,24 @@ cp /mnt/c/Users/<your_username>/Downloads/cuda_wsl_installer.sh ~/
 making sure to replace `<your_username>` with your actual username. Then run 
 
 ```{bash}
-sudo chmod +x ./cuda_wsl_installer.sh  && sudo ./cuda_wsl_installer.sh
+sudo cd ~ && sudo chmod +x ./cuda_wsl_installer.sh  && sudo ./cuda_wsl_installer.sh
 ```
 It will ask for your password if you haven't already used `sudo` in the current session.
 
-To check this worked, run 
+When this completes, you need to start the Docker Daemon. The Daemon is a program that runs in the background and serves Docker containers. To start the Daemon, run
+
+```{bash}
+sudo service docker start
+```
+
+To ensure this starts each time you open WSL, run
+
+```{bash}
+sudo update-rc.d docker defaults
+```
+(This only needs to be done once.)
+
+To check that all this worked, run 
 
 ```{bash}
 docker run hello-world
@@ -36,6 +82,7 @@ docker run hello-world
 
 You should get the following (possibly with a different hash and more text):
 
+<pre class = "bash-output bash-output">
 Unable to find image 'hello-world:latest' locally
 latest: Pulling from library/hello-world
 0e03bdcc26d7: Pull complete
@@ -62,5 +109,6 @@ https://hub.docker.com/
 
 For more examples and ideas, visit:
 https://docs.docker.com/get-started/
+</pre>
 
-Then, 
+Then, you may proceed back to the [main help page, §Terminolgy](https://ben-drucker.gitlab.io/deepks/#terminology)

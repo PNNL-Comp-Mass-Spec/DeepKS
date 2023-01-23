@@ -76,9 +76,42 @@
         
     </head>
     <body class="vscode-body vscode-light">
-        <h3 id="wsl-setup">WSL Setup</h3>
+        <style>
+    pre.bash-output.bash-output{
+        background-color: #ebe9c27f;
+    }
+    code.inline-bash-output{
+        background-color: #ebe9c27f;
+    }
+    code{
+        background-color: rgba(220, 220, 220, 0.4);
+        padding: 1px 3px;
+        border-radius: 5px;
+    }
+    pre code{
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+    }
+    h1{
+        border-bottom-width: 2px;
+    }
+    
+    h2{
+        border-bottom-width: 1px;
+        border-bottom-color: #00000040;
+        border-bottom-style: solid;
+    }
+
+    h3{
+        border-bottom-width: 1px;
+        border-bottom-color: #00000040;
+        border-bottom-style: dashed;
+    }
+</style>
+<h3 id="wsl-setup">WSL Setup</h3>
 <p><em><strong>Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.</strong></em></p>
-<h4 id="since-dockercuda-is-not-supported-on-windows-we-will-use-wsl-windows-subsystem-for-linux-to-run-docker-and-cuda-to-accomplish-this-you-must-download-from-the-deepks-repository-the-following-file-cuda_wsl_installersh-for-consistency-it-is-please-save-this-file-in-your-downloads-folder">Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: <a href="https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false">cuda_wsl_installer.sh</a>. For consistency, it is please save this file in your Downloads folder.</h4>
+<h3 id="since-dockercuda-is-not-supported-on-windows-we-will-use-wsl-windows-subsystem-for-linux-to-run-docker-and-cuda-to-accomplish-this-you-must-download-from-the-deepks-repository-the-following-file-cuda_wsl_installersh-for-consistency-it-is-please-save-this-file-in-your-downloads-folder">Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: <a href="https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false">cuda_wsl_installer.sh</a>. For consistency, it is please save this file in your Downloads folder.</h3>
 <p>To install WSL, open Terminal (or powershell) as an administrator and run the following commands:</p>
 <pre><code class="language-{powershell}">wsl.exe --install
 wsl.exe --update
@@ -99,34 +132,29 @@ wsl.exe --install -d Ubuntu-20.04
 <pre><code class="language-{bash}">docker run hello-world
 </code></pre>
 <p>You should get the following (possibly with a different hash and more text):</p>
-<pre class="bash-output bash-output"><code class="language-{bash}">Unable to find image 'hello-world:latest' locally
+<p>Unable to find image 'hello-world:latest' locally
 latest: Pulling from library/hello-world
 0e03bdcc26d7: Pull complete
 Digest: sha256:8b5a7d9e0e178f2f37a820e3f795c19c4c2522b3f282a2f9d2a8b626cf6d8e0a
-Status: Downloaded newer image for hello-world:latest
-
-Hello from Docker!
-This message shows that your installation appears to be working correctly.
-
-To generate this message, Docker took the following steps:
-1. The Docker client contacted the Docker daemon.
-2. The Docker daemon pulled the &quot;hello-world&quot; image from the Docker Hub.
-    (amd64)
-3. The Docker daemon created a new container from that image which runs the
-    executable that produces the output you are currently reading.
-4. The Docker daemon streamed that output to the Docker client, which sent it
-    to your terminal.
-
-To try something more ambitious, you can run an Ubuntu container with:
-$ docker run -it ubuntu bash
-
-Share images, automate workflows, and more with a free Docker ID:
-https://hub.docker.com/
-
-For more examples and ideas, visit:
-https://docs.docker.com/get-started/
-</code></pre>
-</span>
+Status: Downloaded newer image for hello-world:latest</p>
+<p>Hello from Docker!
+This message shows that your installation appears to be working correctly.</p>
+<p>To generate this message, Docker took the following steps:</p>
+<ol>
+<li>The Docker client contacted the Docker daemon.</li>
+<li>The Docker daemon pulled the &quot;hello-world&quot; image from the Docker Hub.
+(amd64)</li>
+<li>The Docker daemon created a new container from that image which runs the
+executable that produces the output you are currently reading.</li>
+<li>The Docker daemon streamed that output to the Docker client, which sent it
+to your terminal.</li>
+</ol>
+<p>To try something more ambitious, you can run an Ubuntu container with:
+$ docker run -it ubuntu bash</p>
+<p>Share images, automate workflows, and more with a free Docker ID:
+<a href="https://hub.docker.com/">https://hub.docker.com/</a></p>
+<p>For more examples and ideas, visit:
+<a href="https://docs.docker.com/get-started/">https://docs.docker.com/get-started/</a></p>
 <p>Then,</p>
 
         <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>

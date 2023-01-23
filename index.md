@@ -24,6 +24,12 @@
         border-bottom-color: #00000040;
         border-bottom-style: solid;
     }
+
+    h3{
+        border-bottom-width: 1px;
+        border-bottom-color: #00000040;
+        border-bottom-style: dashed;
+    }
 </style>
 # Getting Started
 The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
@@ -45,15 +51,17 @@ If you have a CUDA-compatible GPU, you can run the program on your personal comp
 4. Run `apptainer shell --nv benndrucker/deepks:latest` to start the Docker container (in Apptainer).
 
 
-## Terminology
-- Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ [Thomas Uhrig and Alex Telon's post](https://stackoverflow.com/a/23736802/16158339)
+<h2 id="terminology"> Terminology </h2>
+Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ <a href="https://stackoverflow.com/a/23736802/16158339">Thomas Uhrig and Alex Telon's post</a>
 
 ## Pull Docker Image
 <!--TODO: Credentials-->
-1. Ensure Docker Desktop (Installed above) is running.
-2. Open a terminal). If needed, see [macOS Instructions](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj8_KLpx9L8AhW_D1kFHSxoCMUQFnoECA0QAQ&url=https%3A%2F%2Fsupport.apple.com%2Fguide%2Fterminal%2Fopen-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125%2Fmac&usg=AOvVaw38yunYqFSDSP2S9Bs-zTTX) or [Windows Instructions](https://www.digitalcitizen.life/open-windows-terminal/))
-3. Run the following command to start the docker session: `docker run -it benndrucker/deepks:latest`
-4. A command prompt should appear and look like <code class = "inline-bash-output">root@shahash:/#</code>, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
+1. 
+   - If running on a personal computer, ensure Docker Desktop (Installed above) is running and a terminal is open.
+   - If using WSL on Windows, ensure WSL is running.
+   - If using HPC cluster, ensure you are SSH'd into the cluster and have run `module load apptainer`.
+2. Run the following command to start the docker session: `docker run -it benndrucker/deepks:latest`
+3. A command prompt should appear and look like <code class = "inline-bash-output">root@shahash:/#</code>, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
 
 ## Reuse Docker Container
 1. To resuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
@@ -64,7 +72,7 @@ If you have a CUDA-compatible GPU, you can run the program on your personal comp
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
 
 ## Using API
-### From Command Line
+## From Command Line
 The Command Line Interface is the main way to query the deep learning model. The API is a submodule of `DeepKS`. (Henceforth referred to as `DeepKS.api`.) The `DeepKS.api` module, itself contains a submodule `main`. (Henceforth referred to as `DeepKS.api.main`). This is the main "entrypoint" for running queries. Because of various Python specifications, `DeepKS.api.main` must be run as a module from _outside_ the `/DeepKS` directory. Hence, to run from the command line in the Docker container, run 
 
 ```bash
@@ -98,43 +106,47 @@ python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITESEQ1,SITESEQ2,SITES
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
 ```
 
-### As a Python Import
+## As a Python Import
 It is recommended to clone any external Git repositories to a directory inside the Docker container...TODO -- incomplete
 
-#### API Specification
-##### Functions of DeepKS.api.main:
+## API Specification
+### Functions of DeepKS.api.main:
 ```python
-    make_predictions(kinase_seqs, site_seqs, predictions_output_format, verbose, pre_trained_gc, pre_trained_nn):
-        """Make a target/decoy prediction for a kinase-substrate pair.
+make_predictions(kinase_seqs, site_seqs, predictions_output_format, verbose, pre_trained_gc, pre_trained_nn):
+    """Make a target/decoy prediction for a kinase-substrate pair.
 
-        Args:
-            kinase_seqs (list[str]): The kinase sequences. Each must be <= 4128 residues long.
-            site_seqs ([str]): The site sequences. Each must be 15 residues long.
-            predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
-                - "in_order" returns a list of predictions in the same order as the input kinases and sites.
-                - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-                - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
-                - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-            verbose (bool, optional): Whether to print predictions. Defaults to True.
-            pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
-            pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
-        
-        Returns:
-            None, or dictionary, or list, depending on `predictions_output_format`
-        """
+    Args:
+        kinase_seqs (list[str]): The kinase sequences. Each must be <= 4128 residues long.
+        site_seqs ([str]): The site sequences. Each must be 15 residues long.
+        predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
+            - "in_order" returns a list of predictions in the same order as the input kinases and sites.
+            - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+            - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
+            - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+        verbose (bool, optional): Whether to print predictions. Defaults to True.
+        pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
+        pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
     
-    parse_api():
-        """Parse the command line arguments.
+    Returns:
+        None, or dictionary, or list, depending on `predictions_output_format`
+    """
 
-        Returns:
-            dict[str, Any]: Dictionary mapping the argument name to the argument value.
-        """
+parse_api():
+    """Parse the command line arguments.
+
+    Returns:
+        dict[str, Any]: Dictionary mapping the argument name to the argument value.
+    """
 ```
 
-## Reproducing Everything From Scratch
+# Reproducing Everything From Scratch
 TODO -- still working on cleaning things up.
-### Preprocessing and Data Collection
-### Training
-### Evaluating
-### Creating Evaluation Diagrams
+
+## Preprocessing and Data Collection
+## Training
+The python training scripts contain command line interfaces. However, to make running easier, one can use the bash scripts in the `models` directory. The bash scripts are simply wrappers around the python scripts. The bash scripts are the recommended way to run the training scripts.
+1. Run `bash models/train_multi_stage_classifier.sh` to train the multi-stage classifier.
+## Evaluating
+## Creating Evaluation Diagrams
+## Creating Other Diagrams
 
