@@ -1,9 +1,7 @@
 # Getting Started
----
 The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
 
 ## General Notes Relating to Devices (Read before running any program)
----
 ### Does My Computer Have a CUDA-compatible GPU?
 If you're not sure, follow the instructions [here](https://askubuntu.com/a/1273434).
 ### Running On Personal Computer with CUDA
@@ -21,11 +19,9 @@ If you have a CUDA-compatible GPU, you can run the program on your personal comp
 
 
 ## Terminology
----
 - Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ [Thomas Uhrig and Alex Telon's post](https://stackoverflow.com/a/23736802/16158339)
 
 ## Pull Docker Image
----
 <!--TODO: Credentials-->
 1. Ensure Docker Desktop (Installed above) is running.
 2. Open a terminal). If needed, see [macOS Instructions](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj8_KLpx9L8AhW_D1kFHSxoCMUQFnoECA0QAQ&url=https%3A%2F%2Fsupport.apple.com%2Fguide%2Fterminal%2Fopen-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125%2Fmac&usg=AOvVaw38yunYqFSDSP2S9Bs-zTTX) or [Windows Instructions](https://www.digitalcitizen.life/open-windows-terminal/))
@@ -33,17 +29,14 @@ If you have a CUDA-compatible GPU, you can run the program on your personal comp
 4. A command prompt should appear and look like `root@shahash:/#`, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
 
 ## Reuse Docker Container
----
 1. To resuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
 2. Copy the hash id of the desired container.
 3. Run `docker run -td <copied hash>` (making sure to replace `<copied hash>` with the hexadecimal hash you actually copied). Once this is complete, run `docker exec -it <copied hash>` (again, copying in the actual hash). This will give you the command prompt inside the Docker container.
 
 # Running The Programs
----
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
 
 ## Using API
----
 ### From Command Line
 The Command Line Interface is the main way to query the deep learning model. The API is a submodule of `DeepKS`. (Henceforth referred to as `DeepKS.api`.) The `DeepKS.api` module, itself contains a submodule `main`. (Henceforth referred to as `DeepKS.api.main`). This is the main "entrypoint" for running queries. Because of various Python specifications, `DeepKS.api.main` must be run as a module from _outside_ the `/DeepKS` directory. Hence, to run from the command line in the Docker container, run 
 
