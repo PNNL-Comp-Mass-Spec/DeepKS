@@ -3,7 +3,7 @@ if __name__ == "__main__":
 
     write_splash()
     print("Progress: Loading Modules", flush=True)
-import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz
+import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, dill as pickle
 from typing import Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from ..models.group_prediction_from_hc import get_coordinates
@@ -15,6 +15,8 @@ from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix 
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
+PRE_TRAINED_NN = "bin/deepks_nn_weights.0.0.1.pkl"
+PRE_TRAINED_GC = "bin/deepks_gc_weights.0.0.1.pkl"
 
 class MultiStageClassifier:
     def __init__(
@@ -187,6 +189,14 @@ def main(run_args):
     individual_classifiers = IndividualClassifiers.load_all(
         run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"]
     )
+    if run_args["c"]:
+        pickle.dump(individual_classifiers, open(nnfn := f"../{PRE_TRAINED_NN}", "wb"))
+        pickle.dump(group_classifier, open(gcfn := f"../{PRE_TRAINED_GC}", "wb"))
+        print("Info: Saved pre-trained classifiers to disk with the following paths:")
+        print(f"* {nnfn}")
+        print(f"* {gcfn}")
+        print("Status: Exiting")
+        return
 
     msc = MultiStageClassifier(group_classifier, individual_classifiers)
     msc.evaluate(run_args, run_args["test"])

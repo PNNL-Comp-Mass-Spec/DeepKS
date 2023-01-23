@@ -1,9 +1,6 @@
 import functools, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as np, sklearn.model_selection, matplotlib, collections, tqdm, time
 from concurrent.futures import ProcessPoolExecutor as Pool
 from random import seed, shuffle
-from sklearn import exceptions as sk_exceptions
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 from sklearn.neural_network import MLPClassifier
 from typing import Callable, ClassVar, TypeVar, Union, Protocol
@@ -14,9 +11,9 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve
 import matplotlib.pyplot as plt
 from pprint import pprint  # type: ignore
 from sklearn.utils.validation import check_is_fitted
-from itertools import permutations, chain, combinations
+from itertools import chain, combinations
 import multiprocessing
-from ctypes import c_char_p
+import dill as pickle
 
 def powerset(iterable):
     s = list(iterable)
@@ -50,6 +47,7 @@ class AcceptableClassifier(typing.Protocol):
 
 
 def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier:
+
     """
     def fit_(self, X: list[str], y: list[str]):
         self.training_X = X
@@ -98,7 +96,8 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
     
     NewClass.__name__ = acceptable_classifier.__class__.__name__ + "Customized"
     acceptable_classifier.__class__ = NewClass
-    
+
+    export(NewClass)
     return acceptable_classifier
 
 # def perform_hyperparameter_tuning_no_k_fold 
@@ -361,6 +360,10 @@ class KNNGroupClassifier:
         pass_through[0] = round(100*np.sum(np.array(pred) == np.array(true))/len(true), 2)
         return f"{100*np.sum(np.array(pred) == np.array(true))/len(true):3.2f}%"
 
+def export(cl):
+    class_name = str(cl.__name__)
+    globals()[class_name] = cl
+    globals()[class_name].__qualname__ = str(cl.__name__)
 
 class SKGroupClassifier:
     def __init__(self, X_train, y_train, classifier: type[AcceptableClassifier], hyperparameters = {}):

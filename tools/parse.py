@@ -27,6 +27,7 @@ def parsing() -> dict[str, str]:
     parser.add_argument("--load", type=str, help="Specify path from which to load", required=False, metavar='<load/file/name>')
     parser.add_argument("--load-include-eval", type=str, help="Specify path from which to load", required=False, metavar='<load/file/name>')
     parser.add_argument('-s', action='store_true', help="Include to save state", required=False)
+    parser.add_argument('-c', action='store_true', help="Include to create model binaries", required=False)
 
     try:
         args = vars(parser.parse_args())

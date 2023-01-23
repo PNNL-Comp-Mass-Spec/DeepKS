@@ -274,7 +274,7 @@ class IndividualClassifiers:
                 + ".pkl",
                 from_loaded=self.evaluations,
             )
-        if self.args["s"] is not None:
+        if self.args["s"]:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
                 self,
@@ -358,7 +358,7 @@ def main():
             savefile=f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
             from_loaded=fat_model.evaluations,
         )
-    if args["s"] is not None:
+    if args["s"]:
         print("Progress: Saving State to Disk")
         IndividualClassifiers.save_all(
             fat_model, f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}.pkl"
