@@ -31,10 +31,11 @@
         border-bottom-style: dashed;
     }
 </style>
-### WSL Setup
-***Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.***
+# Explanation
+Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: [cuda_wsl_installer.sh](https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false). For consistency with the instructions below, please save this file in your Downloads folder.
 
-### Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: [cuda_wsl_installer.sh](https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false). For consistency, it is please save this file in your Downloads folder.
+# WSL Setup
+***Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.***
 
 To install WSL, open Terminal (or powershell) as an administrator and run the following commands:
 ```{powershell}
@@ -74,10 +75,11 @@ sudo update-rc.d docker defaults
 ```
 (This only needs to be done once.)
 
+# Finishing
 To check that all this worked, run 
 
 ```{bash}
-docker run hello-world
+sudo docker run hello-world
 ```
 
 You should get the following (possibly with a different hash and more text):
@@ -112,3 +114,28 @@ https://docs.docker.com/get-started/
 </pre>
 
 Then, you may proceed back to the [main help page, §Terminolgy](https://ben-drucker.gitlab.io/deepks/#terminology)
+
+# Troubleshooting
+### If you get a permissions error like the following:
+
+<pre class = "bash-output bash-output">
+docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
+See 'docker run --help'.
+</pre>
+
+you probably need to run `docker` with `sudo`. (I.e., `sudo docker ...`)
+
+### If you get a Docker Daemon error like the following:
+
+<pre class = "bash-output bash-output">
+docker: Error response from daemon: dial unix docker.raw.sock: connect: connection refused.
+</pre>
+
+or 
+
+<pre class = "bash-output bash-output">
+docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?.
+See 'docker run --help'.
+</pre>
+
+you probably need to start the Docker Daemon. (See above.)

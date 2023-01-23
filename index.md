@@ -37,12 +37,17 @@ The bulk of the DeepKS tool is run through Docker. It will essentially run like 
 ## General Notes Relating to Devices (Read before running any program)
 ### Does My Computer Have a CUDA-compatible GPU?
 If you're not sure, follow the instructions [here](https://askubuntu.com/a/1273434).
-### Running On Personal Computer with CUDA
-If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster). There is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:
-1. Go through the steps in the auxillary help page [cuda_installation.md](https://gitlab.com/Ben-Drucker/deepks/-/blob/main/build/cuda_installation.md).
-### Running On Personal Computer without CUDA
+### If Running On Personal Computer with CUDA
+If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster). 
+
+Most likely, your computer will be running Windows. If this is the case, there is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:
+1. Go through the steps in the [auxillary help page](https://ben-drucker.gitlab.io/deepks/build/cuda_installation.html).
+
+In the case you are running Linux, no extra setup is required and you may skip to § [Terminology](#terminology).
+
+### If Running On Personal Computer without CUDA
 1. Download Docker here https://www.docker.com/products/docker-desktop/ and follow the installation instructions for your operating system.
-### Running On HPC Cluster
+### If Running On HPC Cluster
 ***Note: These instructions are specific to the PNNL "deception" cluster (it assumes `module` and `apptainer` are preinstalled). It also assumes you have an active account.***
 
 1. Open a terminal SSH into the cluster with `ssh <username>@deception.pnnl.gov`, making sure to replace `<username>` with your actual username.
