@@ -9,6 +9,7 @@ logs/
 **/*.tsv
 **/*.error
 **/*.svg
+!doc/link_button.svg
 **/*.gif
 **/*.txt
 **/*.pdf

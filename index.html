@@ -113,16 +113,18 @@
 <h2 id="general-notes-relating-to-devices-read-before-running-any-program">General Notes Relating to Devices (Read before running any program)</h2>
 <h3 id="does-my-computer-have-a-cuda-compatible-gpu">Does My Computer Have a CUDA-compatible GPU?</h3>
 <p>If you're not sure, follow the instructions <a href="https://askubuntu.com/a/1273434">here</a>.</p>
-<h3 id="running-on-personal-computer-with-cuda">Running On Personal Computer with CUDA</h3>
-<p>If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster). There is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:</p>
+<h3 id="if-running-on-personal-computer-with-cuda">If Running On Personal Computer with CUDA</h3>
+<p>If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster).</p>
+<p>Most likely, your computer will be running Windows. If this is the case, there is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:</p>
 <ol>
-<li>Go through the steps in the auxillary help page <a href="https://gitlab.com/Ben-Drucker/deepks/-/blob/main/build/cuda_installation.html">cuda_installation.md</a>.</li>
+<li>Go through the steps in the <a href="https://ben-drucker.gitlab.io/deepks/build/cuda_installation.html">auxillary help page</a>.</li>
 </ol>
-<h3 id="running-on-personal-computer-without-cuda">Running On Personal Computer without CUDA</h3>
+<p>In the case you are running Linux, no extra setup is required and you may skip to § <a href="#terminology">Terminology</a>.</p>
+<h3 id="if-running-on-personal-computer-without-cuda">If Running On Personal Computer without CUDA</h3>
 <ol>
 <li>Download Docker here <a href="https://www.docker.com/products/docker-desktop/">https://www.docker.com/products/docker-desktop/</a> and follow the installation instructions for your operating system.</li>
 </ol>
-<h3 id="running-on-hpc-cluster">Running On HPC Cluster</h3>
+<h3 id="if-running-on-hpc-cluster">If Running On HPC Cluster</h3>
 <p><em><strong>Note: These instructions are specific to the PNNL &quot;deception&quot; cluster (it assumes <code>module</code> and <code>apptainer</code> are preinstalled). It also assumes you have an active account.</strong></em></p>
 <ol>
 <li>Open a terminal SSH into the cluster with <code>ssh &lt;username&gt;@deception.pnnl.gov</code>, making sure to replace <code>&lt;username&gt;</code> with your actual username.</li>
