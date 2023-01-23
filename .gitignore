@@ -3,7 +3,6 @@
 !*.*
 logs/
 **/*.log
-**/*.html
 !bin/pickle_graph.pkl
 .gitig-*
 **/*.png

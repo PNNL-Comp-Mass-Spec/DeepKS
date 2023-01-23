@@ -1,3 +1,30 @@
+<style>
+    pre.bash-output.bash-output{
+        background-color: #ebe9c27f;
+    }
+    code.inline-bash-output{
+        background-color: #ebe9c27f;
+    }
+    code{
+        background-color: rgba(220, 220, 220, 0.4);
+        padding: 1px 3px;
+        border-radius: 5px;
+    }
+    pre code{
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0;
+    }
+    h1{
+        border-bottom-width: 2px;
+    }
+    
+    h2{
+        border-bottom-width: 1px;
+        border-bottom-color: #00000040;
+        border-bottom-style: solid;
+    }
+</style>
 # Getting Started
 The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
 
@@ -25,8 +52,8 @@ If you have a CUDA-compatible GPU, you can run the program on your personal comp
 <!--TODO: Credentials-->
 1. Ensure Docker Desktop (Installed above) is running.
 2. Open a terminal). If needed, see [macOS Instructions](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwj8_KLpx9L8AhW_D1kFHSxoCMUQFnoECA0QAQ&url=https%3A%2F%2Fsupport.apple.com%2Fguide%2Fterminal%2Fopen-or-quit-terminal-apd5265185d-f365-44cb-8b09-71a064a42125%2Fmac&usg=AOvVaw38yunYqFSDSP2S9Bs-zTTX) or [Windows Instructions](https://www.digitalcitizen.life/open-windows-terminal/))
-3. Run the following command to start the docker session: `docker run -it benndrucker/deepks:0.0.1`
-4. A command prompt should appear and look like `root@shahash:/#`, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
+3. Run the following command to start the docker session: `docker run -it benndrucker/deepks:latest`
+4. A command prompt should appear and look like <code class = "inline-bash-output">root@shahash:/#</code>, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
 
 ## Reuse Docker Container
 1. To resuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
