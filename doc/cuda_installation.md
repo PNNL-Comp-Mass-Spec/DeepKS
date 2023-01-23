@@ -71,7 +71,7 @@ sudo service docker start
 To ensure this starts each time you open WSL, run
 
 ```{bash}
-sudo update-rc.d docker defaults
+sudo update-rc.d docker defaults # FIXME: This doesn't work
 ```
 (This only needs to be done once.)
 

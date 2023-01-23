@@ -31,8 +31,14 @@
         border-bottom-style: dashed;
     }
 </style>
+<h1 style='font-size:36pt'>DeepKS Manual</h1>
+
 # Getting Started
 The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
+
+## Colors in this manual
+- `This style is used for code the user should run.`
+- <code class = "inline-bash-output">This style is used to represent the potential output of a command.</code>
 
 ## General Notes Relating to Devices (Read before running any program)
 ### Does My Computer Have a CUDA-compatible GPU?
@@ -60,7 +66,6 @@ In the case you are running Linux, no extra setup is required and you may skip t
 Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ <a href="https://stackoverflow.com/a/23736802/16158339">Thomas Uhrig and Alex Telon's post</a>
 
 ## Pull Docker Image
-<!--TODO: Credentials-->
 1. 
    - If running on a personal computer, ensure Docker Desktop (Installed above) is running and a terminal is open.
    - If using WSL on Windows, ensure WSL is running.
@@ -71,7 +76,7 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 ## Reuse Docker Container
 1. To resuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
 2. Copy the hash id of the desired container.
-3. Run `docker run -td <copied hash>` (making sure to replace `<copied hash>` with the hexadecimal hash you actually copied). Once this is complete, run `docker exec -it <copied hash>` (again, copying in the actual hash). This will give you the command prompt inside the Docker container.
+3. Run `docker container start <copied hash> -i` (making sure to replace `<copied hash>` with the hexadecimal hash you actually copied). This will give you the command prompt inside the Docker container.
 
 # Running The Programs
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
@@ -111,9 +116,33 @@ python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITESEQ1,SITESEQ2,SITES
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
 ```
 
-## As a Python Import
-It is recommended to clone any external Git repositories to a directory inside the Docker container...TODO -- incomplete
+## As a Python Import and VS Code integration
+### VS Code Integration
+To make adding DeepKS to an external codebase, we recommend using VS Code. To do this, follow these steps:
+1. Open VS Code.
+2. Install the following extensions by searching for them:
+   - Dev Containers
+   - Remote - Tunnels
+   - Remote Explorer
+   - Remote - Tunnels
+   - WSL (if using WSL)
+3. Go back to your terminal, and make sure you're inside the `benndrucker/deepks:latest` Docker container. Then run `/usr/share/code/bin/code-tunnel tunnel` and follow the instructions.
 
+### Importing
+It is recommended to clone any external Git repositories to a directory inside the Docker container. Then, you can use VS Code to edit the files. Before importing the modules, you need to tell python where it lives. To do this, run 
+
+```{bash}
+printf "\nexport PYTHONPATH=/parent/directory/of/cloned/git/repo/:$PYTHONPATH\n\n" >> ~/.bashrc && source ~/.bashrc
+```
+making sure to replace `/parent/directory/of/cloned/git/repo/` with the path to the directory containing the cloned Git repository.
+
+
+To import DeepKS, you can use the following examples (depending on which module(s) you need):
+```python
+from DeepKS.api.main import make_predictions
+import DeepKS.models.multi_stage_classifier as msc
+import DeepKS
+```
 ## API Specification
 ### Functions of DeepKS.api.main:
 ```python
@@ -145,7 +174,7 @@ parse_api():
 ```
 
 # Reproducing Everything From Scratch
-TODO -- still working on cleaning things up.
+TODO — still working on cleaning things up.
 
 ## Preprocessing and Data Collection
 ## Training
