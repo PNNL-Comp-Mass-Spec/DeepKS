@@ -51,7 +51,8 @@
 }
 
 </style>
-        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
 <style>
@@ -108,8 +109,14 @@
         border-bottom-style: dashed;
     }
 </style>
+<h1 style='font-size:36pt'>DeepKS Manual</h1>
 <h1 id="getting-started">Getting Started</h1>
 <p>The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.</p>
+<h2 id="colors-in-this-manual">Colors in this manual</h2>
+<ul>
+<li><code>This style is used for code the user should run.</code></li>
+<li><code class = "inline-bash-output">This style is used to represent the potential output of a command.</code></li>
+</ul>
 <h2 id="general-notes-relating-to-devices-read-before-running-any-program">General Notes Relating to Devices (Read before running any program)</h2>
 <h3 id="does-my-computer-have-a-cuda-compatible-gpu">Does My Computer Have a CUDA-compatible GPU?</h3>
 <p>If you're not sure, follow the instructions <a href="https://askubuntu.com/a/1273434">here</a>.</p>
@@ -135,7 +142,6 @@
 <h2 id="terminology"> Terminology </h2>
 Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ <a href="https://stackoverflow.com/a/23736802/16158339">Thomas Uhrig and Alex Telon's post</a>
 <h2 id="pull-docker-image">Pull Docker Image</h2>
-<!--TODO: Credentials-->
 <ol>
 <li>
 <ul>
@@ -151,7 +157,7 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 <ol>
 <li>To resuse the created container (so that any saved state is available), run <code>docker ps -a</code>. This will show a list of all running and previously-created containers.</li>
 <li>Copy the hash id of the desired container.</li>
-<li>Run <code>docker run -td &lt;copied hash&gt;</code> (making sure to replace <code>&lt;copied hash&gt;</code> with the hexadecimal hash you actually copied). Once this is complete, run <code>docker exec -it &lt;copied hash&gt;</code> (again, copying in the actual hash). This will give you the command prompt inside the Docker container.</li>
+<li>Run <code>docker container start &lt;copied hash&gt; -i</code> (making sure to replace <code>&lt;copied hash&gt;</code> with the hexadecimal hash you actually copied). This will give you the command prompt inside the Docker container.</li>
 </ol>
 <h1 id="running-the-programs">Running The Programs</h1>
 <p><em><strong>Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.</strong></em></p>
@@ -183,8 +189,32 @@ python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITESEQ1,SITESEQ2,SITES
 
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
 </code></pre>
-<h2 id="as-a-python-import">As a Python Import</h2>
-<p>It is recommended to clone any external Git repositories to a directory inside the Docker container...TODO -- incomplete</p>
+<h2 id="as-a-python-import-and-vs-code-integration">As a Python Import and VS Code integration</h2>
+<h3 id="vs-code-integration">VS Code Integration</h3>
+<p>To make adding DeepKS to an external codebase, we recommend using VS Code. To do this, follow these steps:</p>
+<ol>
+<li>Open VS Code.</li>
+<li>Install the following extensions by searching for them:
+<ul>
+<li>Dev Containers</li>
+<li>Remote - Tunnels</li>
+<li>Remote Explorer</li>
+<li>Remote - Tunnels</li>
+<li>WSL (if using WSL)</li>
+</ul>
+</li>
+<li>Go back to your terminal, and make sure you're inside the <code>benndrucker/deepks:latest</code> Docker container. Then run <code>/usr/share/code/bin/code-tunnel tunnel</code> and follow the instructions.</li>
+</ol>
+<h3 id="importing">Importing</h3>
+<p>It is recommended to clone any external Git repositories to a directory inside the Docker container. Then, you can use VS Code to edit the files. Before importing the modules, you need to tell python where it lives. To do this, run</p>
+<pre><code class="language-{bash}">printf &quot;\nexport PYTHONPATH=/parent/directory/of/cloned/git/repo/:$PYTHONPATH\n\n&quot; &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc
+</code></pre>
+<p>making sure to replace <code>/parent/directory/of/cloned/git/repo/</code> with the path to the directory containing the cloned Git repository.</p>
+<p>To import DeepKS, you can use the following examples (depending on which module(s) you need):</p>
+<pre><code class="language-python"><span class="hljs-keyword">from</span> DeepKS.api.main <span class="hljs-keyword">import</span> make_predictions
+<span class="hljs-keyword">import</span> DeepKS.models.multi_stage_classifier <span class="hljs-keyword">as</span> msc
+<span class="hljs-keyword">import</span> DeepKS
+</code></pre>
 <h2 id="api-specification">API Specification</h2>
 <h3 id="functions-of-deepksapimain">Functions of DeepKS.api.main:</h3>
 <pre><code class="language-python">make_predictions(kinase_seqs, site_seqs, predictions_output_format, verbose, pre_trained_gc, pre_trained_nn):
@@ -214,7 +244,7 @@ parse_api():
     &quot;&quot;&quot;</span>
 </code></pre>
 <h1 id="reproducing-everything-from-scratch">Reproducing Everything From Scratch</h1>
-<p>TODO -- still working on cleaning things up.</p>
+<p>TODO — still working on cleaning things up.</p>
 <h2 id="preprocessing-and-data-collection">Preprocessing and Data Collection</h2>
 <h2 id="training">Training</h2>
 <p>The python training scripts contain command line interfaces. However, to make running easier, one can use the bash scripts in the <code>models</code> directory. The bash scripts are simply wrappers around the python scripts. The bash scripts are the recommended way to run the training scripts.</p>
@@ -225,7 +255,7 @@ parse_api():
 <h2 id="creating-evaluation-diagrams">Creating Evaluation Diagrams</h2>
 <h2 id="creating-other-diagrams">Creating Other Diagrams</h2>
 
-        
+        <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
         
     </body>
     </html>

@@ -132,10 +132,8 @@ wsl.exe --install -d Ubuntu-20.04
 <p>When this completes, you need to start the Docker Daemon. The Daemon is a program that runs in the background and serves Docker containers. To start the Daemon, run</p>
 <pre><code class="language-{bash}">sudo service docker start
 </code></pre>
-<p>To ensure this starts each time you open WSL, run</p>
-<pre><code class="language-{bash}">sudo update-rc.d docker defaults
-</code></pre>
-<p>(This only needs to be done once.)</p>
+<p><strong>You need to start this each time you open WSL.</strong>
+—  There is a more complicated way to ensure this happens automatically: TODO</p>
 <h1 id="finishing">Finishing</h1>
 <p>To check that all this worked, run</p>
 <pre><code class="language-{bash}">sudo docker run hello-world

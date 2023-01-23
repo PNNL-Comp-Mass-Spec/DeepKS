@@ -68,12 +68,8 @@ When this completes, you need to start the Docker Daemon. The Daemon is a progra
 sudo service docker start
 ```
 
-To ensure this starts each time you open WSL, run
-
-```{bash}
-sudo update-rc.d docker defaults
-```
-(This only needs to be done once.)
+**You need to start this each time you open WSL.**
+—  There is a more complicated way to ensure this happens automatically: TODO
 
 # Finishing
 To check that all this worked, run 
