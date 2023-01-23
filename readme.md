@@ -1,3 +1,3 @@
 <p align="center">
-  <img src="build/link_svg.svg.svg" />
+  <img src="doc/link_button.svg" />
 </p>
