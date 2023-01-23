@@ -1,9 +1,4 @@
-<style>
-pre.bash-output.bash-output{
-    background-color: #ebe9c27f;
-}
-</style>
-## WSL Setup
+### WSL Setup
 ***Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.***
 
 ### Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: [cuda_wsl_installer.sh](https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false). For consistency, it is please save this file in your Downloads folder.
@@ -41,7 +36,6 @@ docker run hello-world
 
 You should get the following (possibly with a different hash and more text):
 
-<pre class = "bash-output bash-output">
 Unable to find image 'hello-world:latest' locally
 latest: Pulling from library/hello-world
 0e03bdcc26d7: Pull complete
@@ -68,6 +62,5 @@ https://hub.docker.com/
 
 For more examples and ideas, visit:
 https://docs.docker.com/get-started/
-</pre>
 
 Then, 
