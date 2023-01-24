@@ -3,8 +3,7 @@ import os, pathlib, typing, argparse, textwrap
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
-PRE_TRAINED_NN = "data/bin/deepks_nn_weights.0.0.1.pkl"
-PRE_TRAINED_GC = "data/bin/deepks_gc_weights.0.0.1.pkl"
+from cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
 
 def make_predictions(
@@ -162,9 +161,9 @@ if __name__ == "__main__":
     args = parse_api()
 
     print("Status: Loading Modules...")
-    import pickle, json
+    import cloudpickle as pickle, json
     from ..models.individual_classifiers import IndividualClassifiers
-    from ..models.multi_stage_classifier import MultiStageClassifier, PRE_TRAINED_NN, PRE_TRAINED_GC
+    from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_prediction_from_hc import SKGroupClassifier
 
 

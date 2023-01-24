@@ -1,0 +1,4 @@
+{
+    "PRE_TRAINED_NN": "../bin/deepks_nn_weights.0.0.1.gherkin",
+    "PRE_TRAINED_GC": "../bin/deepks_gc_weights.0.0.1.gherkin"
+}

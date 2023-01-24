@@ -3,20 +3,19 @@ if __name__ == "__main__":
 
     write_splash()
     print("Progress: Loading Modules", flush=True)
-import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, dill as pickle
+import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os
 from typing import Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
-from ..models.group_prediction_from_hc import get_coordinates
 from .individual_classifiers import IndividualClassifiers
 from . import group_prediction_from_hc as grp_pred
 from . import individual_classifiers
 from ..tools.parse import parsing
 from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
+from ..api.cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
-PRE_TRAINED_NN = "bin/deepks_nn_weights.0.0.1.pkl"
-PRE_TRAINED_GC = "bin/deepks_gc_weights.0.0.1.pkl"
+where_am_i = pathlib.Path(__file__).parent.resolve()
+os.chdir(where_am_i)
 
 class MultiStageClassifier:
     def __init__(
@@ -37,9 +36,12 @@ class MultiStageClassifier:
         print("Progress: Sending input kinases to group classifier")
         # Open XY_formatted_input_file
         input_file = pd.read_csv(Xy_formatted_input_file)
-        _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
-            "../data/preprocessing/kin_to_fam_to_grp_817.csv"
-        )
+        if predict_mode is False:
+            _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
+                "../data/preprocessing/kin_to_fam_to_grp_817.csv"
+            )
+        else:
+            true_symbol_to_grp_dict = None
 
         ### Get group predictions
         unq_symbols = input_file["orig_lab_name"].unique()
@@ -95,8 +97,8 @@ class MultiStageClassifier:
 
         df_post_predict = pd.DataFrame(
             {
-                "orig_lab_name": "N/A -- Predict Mode",
-                "lab_name": [seq_to_id[k] for k in kinase_seqs],
+                "lab_name": "N/A -- Predict Mode",
+                "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
                 "lab": kinase_seqs,
                 "seq": site_seqs,
                 "class": "N/A -- Predict Mode",
@@ -106,6 +108,7 @@ class MultiStageClassifier:
 
         with tf.NamedTemporaryFile("w") as f:
             df_post_predict.to_csv(f.name, index=False)
+            self.align_novel_kin_seqs(df_post_predict.set_index("orig_lab_name").to_dict()["lab"])
             self.evaluate({"test": f.name}, f.name, predict_mode=True)
 
         res: list[bool] = []  # TODO!
@@ -134,11 +137,15 @@ class MultiStageClassifier:
                 {"kinase": val_kin_list, "kinase_seq": list(kin_id_to_seq.values()), "gene_name": val_kin_list}
             )
             df_in.to_csv(temp_df_in_file.name, index=False)
-            with tf.NamedTemporaryFile() as temp_fasta_file:
-                dist_mtx_maker.make_fasta(temp_df_in_file.name, temp_fasta_file.name)
+            with tf.NamedTemporaryFile() as temp_fasta_known, tf.NamedTemporaryFile() as temp_fasta_novel, tf.NamedTemporaryFile() as combined_temp_fasta:
+                dist_mtx_maker.make_fasta("../data/raw_data/kinase_seq_822.txt", temp_fasta_known.name)
+                dist_mtx_maker.make_fasta(temp_df_in_file.name, temp_fasta_novel.name)
+                with open(combined_temp_fasta.name, "w") as combined_fasta:
+                    combined_fasta.write(open(temp_fasta_known.name, "r").read() + open(temp_fasta_novel.name, "r").read())
+                
                 with tf.NamedTemporaryFile() as temp_mtx_out:
                     novel_df = get_needle_pairwise_mtx(
-                        temp_fasta_file.name,
+                        combined_fasta.name,
                         temp_mtx_out.name,
                         num_procs=1,
                         restricted_combinations=[train_kin_list, val_kin_list],
@@ -190,12 +197,12 @@ def main(run_args):
         run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"]
     )
     if run_args["c"]:
-        pickle.dump(individual_classifiers, open(nnfn := f"../{PRE_TRAINED_NN}", "wb"))
-        pickle.dump(group_classifier, open(gcfn := f"../{PRE_TRAINED_GC}", "wb"))
+        pickle.dump(individual_classifiers, open(f"{PRE_TRAINED_NN}", "wb"))
+        open(f"{PRE_TRAINED_GC}", "wb").write(pickle.dumps(group_classifier))
         print("Info: Saved pre-trained classifiers to disk with the following paths:")
-        print(f"* {nnfn}")
-        print(f"* {gcfn}")
-        print("Status: Exiting")
+        print(f"* {PRE_TRAINED_NN}")
+        print(f"* {PRE_TRAINED_GC}")
+        print("Status: Exiting Successfully.")
         return
 
     msc = MultiStageClassifier(group_classifier, individual_classifiers)

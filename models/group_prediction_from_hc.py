@@ -97,7 +97,6 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
     NewClass.__name__ = acceptable_classifier.__class__.__name__ + "Customized"
     acceptable_classifier.__class__ = NewClass
 
-    export(NewClass)
     return acceptable_classifier
 
 # def perform_hyperparameter_tuning_no_k_fold 
@@ -360,17 +359,13 @@ class KNNGroupClassifier:
         pass_through[0] = round(100*np.sum(np.array(pred) == np.array(true))/len(true), 2)
         return f"{100*np.sum(np.array(pred) == np.array(true))/len(true):3.2f}%"
 
-def export(cl):
-    class_name = str(cl.__name__)
-    globals()[class_name] = cl
-    globals()[class_name].__qualname__ = str(cl.__name__)
-
 class SKGroupClassifier:
     def __init__(self, X_train, y_train, classifier: type[AcceptableClassifier], hyperparameters = {}):
         self.X_train = X_train
         self.y_train = y_train
         self.model = classifier(**hyperparameters)
         self.model = factory(self.model)
+        print("Status: Fitting Group Classifier Model")
         self.model.fit(X_train, y_train)
 
     def predict(self, X_test) -> list[str]:

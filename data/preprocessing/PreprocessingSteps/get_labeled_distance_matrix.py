@@ -41,10 +41,11 @@ def extract_data(tf_matrix: str, tf_output: str, outfile="../mtx_@XX.csv", sort 
 
 
 def make_fasta(df_in: str, fasta_out: str) -> str:
-    df = pd.read_csv(df_in, sep="\t").iloc[:]
-    assert "kinase" in df.columns, 'Input df to `make_fasta` must have column "kinase."'
-    assert "kinase_seq" in df.columns, 'Input df to `make_fasta` must have column "kinase_seq."'
-    assert "gene_name" in df.columns, 'Input df to `make_fasta` must have column "gene_name."'
+    df = pd.read_csv(df_in, sep="," if "," in open(df_in, "r").read() else "\t").iloc[:]
+    cols = set(df.columns)
+    assert "kinase" in cols, 'Input df to `make_fasta` must have column "kinase."'
+    assert "kinase_seq" in cols, 'Input df to `make_fasta` must have column "kinase_seq."'
+    assert "gene_name" in cols, 'Input df to `make_fasta` must have column "gene_name."'
     rows = []
     for _ in df[df["gene_name"].isna()].index:
         raise RuntimeError("NA for gene_name!")
