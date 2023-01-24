@@ -9,7 +9,7 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback
+import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io
 import torch.utils.data, datetime, pickle, pstats  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
@@ -230,9 +230,19 @@ class IndividualClassifiers:
         pickle.dump(individualClassifiers, f)
 
     @staticmethod
-    def load_all(path) -> IndividualClassifiers:
-        f = open(path, "rb")
-        return pickle.load(f)
+    def load_all(path, device=None) -> IndividualClassifiers:
+        with open(path, "rb") as f:
+            if device is None or "cuda" in device:
+                return torch.load(f)
+            else: # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
+                assert device == 'cpu'
+                class CPU_Unpickler(pickle.Unpickler):
+                    def find_class(self, module, name):
+                        if module == 'torch.storage' and name == '_load_from_bytes':
+                            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+                        else: return super().find_class(module, name)
+                return CPU_Unpickler(f).load()
+
 
     def roc_evaluation(self, new_args, pred_groups, true_groups, predict_mode):
         if new_args["load_include_eval"] is None:

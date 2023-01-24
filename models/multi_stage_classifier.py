@@ -4,15 +4,17 @@ if __name__ == "__main__":
     write_splash()
     print("Progress: Loading Modules", flush=True)
 import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os
+import sklearn.utils.validation
 from typing import Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
-from . import group_prediction_from_hc as grp_pred
+from . import group_classifier_definitions as grp_pred
 from . import individual_classifiers
 from ..tools.parse import parsing
 from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
 from ..api.cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
+from sklearn.utils.validation import check_is_fitted
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -32,7 +34,7 @@ class MultiStageClassifier:
             self.individual_classifiers,
         )
 
-    def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False) -> None:
+    def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False):
         print("Progress: Sending input kinases to group classifier")
         # Open XY_formatted_input_file
         input_file = pd.read_csv(Xy_formatted_input_file)
@@ -46,6 +48,7 @@ class MultiStageClassifier:
         ### Get group predictions
         unq_symbols = input_file["orig_lab_name"].unique()
         if predict_mode is False:
+            assert true_symbol_to_grp_dict is not None
             groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
         else:
             groups_true = [None for u in unq_symbols]
@@ -77,10 +80,13 @@ class MultiStageClassifier:
         if predict_mode is False:
             print(f"Info: Group Classifier Accuracy — {self.group_classifier.test(groups_true, groups_prediction)}")
 
-        # Send to individual classifiers
-        print("Progress: Sending input kinases to individual classifiers (with group predictions)")
-        self.individual_classifiers.evaluations = {}
-        self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
+            # Send to individual classifiers
+            print("Progress: Sending input kinases to individual classifiers (with group predictions)")
+            self.individual_classifiers.evaluations = {}
+            self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
+            return {}
+        else:
+            return pred_grp_dict
 
     def predict(
         self,
@@ -91,7 +97,7 @@ class MultiStageClassifier:
     ) -> Union[None, list[bool], list[dict[str, Union[str, bool]]]]:
 
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first")
-        seq_to_id = {seq: "KinID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
+        seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
         id_to_seq = {v: k for k, v in seq_to_id.items()}
         assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
 
@@ -109,12 +115,11 @@ class MultiStageClassifier:
         with tf.NamedTemporaryFile("w") as f:
             df_post_predict.to_csv(f.name, index=False)
             self.align_novel_kin_seqs(df_post_predict.set_index("orig_lab_name").to_dict()["lab"])
-            self.evaluate({"test": f.name}, f.name, predict_mode=True)
+            res = self.evaluate({"test": f.name}, f.name, predict_mode=True)
 
-        res: list[bool] = []  # TODO!
 
         if "dict" in predictions_output_format:
-            ret = [{"kinase": k, "site": s, "prediction": p} for k, s, p in zip(kinase_seqs, site_seqs, res)]
+            ret = [{"kinase": k, "site": s, "prediction": p} for k, s, p in zip(kinase_seqs, site_seqs, res.values())]
         else:
             ret = res
         if verbose:
@@ -128,7 +133,7 @@ class MultiStageClassifier:
         else:
             return ret
 
-    def align_novel_kin_seqs(self, kin_id_to_seq: dict[str, str]) -> np.ndarray:
+    def align_novel_kin_seqs(self, kin_id_to_seq: dict[str, str]) -> None:
         train_kin_list = self.group_classifier.X_train
         val_kin_list = list(kin_id_to_seq.keys())
         novel_df = None
@@ -150,17 +155,16 @@ class MultiStageClassifier:
                         num_procs=1,
                         restricted_combinations=[train_kin_list, val_kin_list],
                     )
-
-        grp_pred.MTX = pd.concat([grp_pred.MTX, novel_df])
-        return grp_pred.get_coordinates(train_kin_list, val_kin_list)[0]
+        novel_df.rename(columns={"RET|PTC2|Q15300": "RET/PTC2|Q15300"}, inplace=True)
+        grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
 def main(run_args):
     train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
         "../tools/pairwise_mtx_822.csv",
-        "json/tr.json",
-        "json/vl.json",
-        "json/te.json",
+        "../data/preprocessing/tr_kins.json",
+        "../data/preprocessing/vl_kins.json",
+        "../data/preprocessing/te_kins.json",
         "../data/preprocessing/kin_to_fam_to_grp_817.csv",
     )
 
@@ -170,7 +174,7 @@ def main(run_args):
         np.array(train_true + val_true),
         np.array(test_true),
     )
-
+    # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
     group_classifier = grp_pred.SKGroupClassifier(
         X_train=train_kins,
         y_train=train_true,
@@ -194,9 +198,11 @@ def main(run_args):
     # )
 
     individual_classifiers = IndividualClassifiers.load_all(
-        run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"]
+        run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
+        run_args['device']
     )
     if run_args["c"]:
+        check_is_fitted(group_classifier.model)
         pickle.dump(individual_classifiers, open(f"{PRE_TRAINED_NN}", "wb"))
         open(f"{PRE_TRAINED_GC}", "wb").write(pickle.dumps(group_classifier))
         print("Info: Saved pre-trained classifiers to disk with the following paths:")

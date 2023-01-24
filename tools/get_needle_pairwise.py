@@ -16,7 +16,9 @@ from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix 
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
-if __name__ == "__main__":
+tq: tqdm.tqdm
+def instantiate_tq():
+    global tq
     tq = tqdm.tqdm(
         total=100,
         desc="Approximate Progress",
@@ -29,6 +31,7 @@ if __name__ == "__main__":
 
 def prog_bar_worker(num_seqs, done, num_workers):
     global tq
+    instantiate_tq()
     estimator = lambda x: ((0.0003799 * x**2 + 0.007835 * x) * 8 / num_workers) ** 1.08
     estimated_total_secs = estimator(num_seqs)
     tq.reset()
@@ -94,11 +97,11 @@ def get_needle_pairwise_mtx(
             strs_a.append("".join(list(set(fastas_a[i : i + group_size]))).replace("|", "_"))
             strs_b.append("".join(list(set(fastas_b[i : i + group_size]))).replace("|", "_"))
     else:
-        name_to_seq = {x.split("\n")[0].replace(">", ""): x.split("\n")[1].strip() for x in fastas}
+        name_to_seq = {x.split("\n")[0].replace(">", "").upper(): x.split("\n")[1].strip() for x in fastas}
         fastas_a = restricted_combinations[0]
         fastas_b = restricted_combinations[1]
         fastas_a = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_a]
-        fastas_b = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_b]
+        fastas_b = [f">{x}\n{name_to_seq[f'{x}|{x}'.upper()]}\n" for x in fastas_b]
         group_size_a = len(restricted_combinations[0]) // num_procs
         group_size_b = len(restricted_combinations[1]) // num_procs
         for i in range(0, len(fastas_a), group_size_a):
@@ -107,7 +110,7 @@ def get_needle_pairwise_mtx(
             strs_b.append("".join(fastas_b[i : i + group_size_b]).replace("|", "_"))
     
     assert len(strs_a) == len(strs_b) > 0, "Unequal number of strings/len of strings is zero"
-    args = [[strs_a[i], strs_b[i], f"{i}-" + outfile] for i in range(len(strs_a))]
+    args = [[strs_a[i], strs_b[i], outfile] for i in range(len(strs_a))]
     done = [False]
     progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_procs))
     progress_thread.start()
@@ -138,14 +141,20 @@ def get_needle_pairwise_mtx(
     prepare = lambda x: x.replace("_", "|").upper()
     df_results.columns = [prepare(x) for x in df_results.columns.to_list()]
     df_results.index = pd.Index([prepare(x) for x in df_results.index.tolist()])
-    assert df_results.columns.tolist() == df_results.index.tolist() or len(restricted_combinations) > 0 , "df_results.columns != df_results.index"
+    assert np.asarray(df_results.columns).tolist() == df_results.index.tolist() or len(restricted_combinations) > 0 , "df_results.columns != df_results.index"
     assert df_results.shape[0] == df_results.shape[1] == subset or len(restricted_combinations) > 0, "Matrix is not square/the right size"
     if pd.isna(df_results.values).any():
         with warnings.catch_warnings():
+            pd.set_option('display.max_rows', 1000)
+            pd.set_option('display.max_columns', 1000)
+            pd.set_option('display.width', 140)
             warnings.simplefilter('always', RuntimeWarning)
             warnings.formatwarning = warning_on_one_line
             warnings.warn(f"There are NA values in the results matrix. This may simply mean that some sequences had zero overlap. Replacing these instances with 0.0. To enable checking, printing a subset of the matrix with NAs:\n{df_results[df_results.isna().any(axis=1)][df_results.isna().any(axis=0).index[df_results.isna().any(axis=0)]]}\n", RuntimeWarning)
             df_results = df_results.fillna(0.0)
+            pd.set_option('display.max_rows', 50)
+            pd.set_option('display.max_columns', 15)
+            pd.set_option('display.width', 120)
 
     return df_results
 

@@ -66,34 +66,31 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
         return KNeighborsClassifier.score(X_val, y)
     """
     class NewClass(acceptable_classifier.__class__):
-        def __init__(self, *args, **kwargs):
-            self.predict_called = False
-            super().__init__(*args, **kwargs)
-
-        def fit(self, X, y, *args) -> typing.Any:
-            self.training_X = X
+        def fit(self, X, y) -> typing.Any:
+            self.training_X = [x.replace("RET|PTC2|Q15300", "RET/PTC2|Q15300") for x in X]
             self.training_y = y
-            self.fitargs = args
-        def predict(self, X, *args) -> typing.Any:
+            print("@@@ Doing True (`super`) fitting.")
+            coords = get_coordinates(self.training_X, self.training_X)[0]
+            super().fit(coords, self.training_y)
+        def predict(self, X) -> typing.Any:
             self.predict_called = True
-            X_train, X_val = get_coordinates(self.training_X, X)
-            super().fit(X_train, self.training_y, *self.fitargs)
-            return super().predict(X_val, *args)
-        def predict_proba(self, X, *args) -> typing.Any:
+            _, X_val = get_coordinates(self.training_X, X)
+            return super().predict(X_val)
+        def predict_proba(self, X) -> typing.Any:
             if not self.predict_called:
                 _, X_val = get_coordinates(self.training_X, X)
             else:
                 X_val = X
             check_is_fitted(self)
-            return super().predict_proba(X_val, *args)
-        def score(self, X, y, *args) -> typing.Any:
+            return super().predict_proba(X_val)
+        def score(self, X, y) -> typing.Any:
             if not self.predict_called:
-                X_train, X_val = get_coordinates(self.training_X, X)
+                _, X_val = get_coordinates(self.training_X, X)
             else:
                 X_val = X
             check_is_fitted(self)
-            return super().score(X_val, y, *args)
-    
+            return super().score(X_val, y)
+
     NewClass.__name__ = acceptable_classifier.__class__.__name__ + "Customized"
     acceptable_classifier.__class__ = NewClass
 
@@ -367,6 +364,7 @@ class SKGroupClassifier:
         self.model = factory(self.model)
         print("Status: Fitting Group Classifier Model")
         self.model.fit(X_train, y_train)
+        check_is_fitted(self.model)
 
     def predict(self, X_test) -> list[str]:
         return self.model.predict(X_test).tolist()

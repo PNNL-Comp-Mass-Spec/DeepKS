@@ -28,8 +28,9 @@ def make_predictions(
         pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
         pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
     """
-    try:
+    # try:
         # Input validation
+    if True:
         assert predictions_output_format in ["in_order", "dictionary", "in_order_json", "dictionary_json"]
 
         assert len(kinase_seqs) == len(site_seqs), (
@@ -67,9 +68,9 @@ def make_predictions(
         print("Status: Done!")
         return res
 
-    except Exception as e:
-        print("Status: Something went wrong!\n\n")
-        raise e
+    # except Exception as e:
+    #     print("Status: Something went wrong!\n\n")
+    #     raise e
 
 
 def parse_api() -> dict[str, typing.Any]:
@@ -164,7 +165,7 @@ if __name__ == "__main__":
     import cloudpickle as pickle, json
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
-    from ..models.group_prediction_from_hc import SKGroupClassifier
+    from ..models.group_classifier_definitions import SKGroupClassifier
 
 
     make_predictions(**args)

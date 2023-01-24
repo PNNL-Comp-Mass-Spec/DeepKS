@@ -135,6 +135,8 @@
 <p><em><strong>Note: These instructions are specific to the PNNL &quot;deception&quot; cluster (it assumes <code>module</code> and <code>apptainer</code> are preinstalled). It also assumes you have an active account.</strong></em></p>
 <ol>
 <li>Open a terminal SSH into the cluster with <code>ssh &lt;username&gt;@deception.pnnl.gov</code>, making sure to replace <code>&lt;username&gt;</code> with your actual username.</li>
+<li>Download the interactive Slurm script by running <code>cd ~ &amp;&amp; wget https://gitlab.com/Ben-Drucker/deepks/-/raw/main/hpc/.interactive_slurm_script.py?inline=false</code></li>
+<li>Run <code>python .interactive_slurm_script.py</code></li>
 <li>Run <code>module load apptainer</code> to load Apptainer.</li>
 <li>Run <code>apptainer pull benndrucker/deepks:latest</code> to pull the Docker image.</li>
 <li>Run <code>apptainer shell --nv benndrucker/deepks:latest</code> to start the Docker container (in Apptainer).</li>
