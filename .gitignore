@@ -73,3 +73,4 @@ images/Excel Matrix/excel_art_formatted.csv
 **/*.tar.bz2
 **/*.tar.xz
 **/*.tar
+!tests/sample_inputs/*.txt

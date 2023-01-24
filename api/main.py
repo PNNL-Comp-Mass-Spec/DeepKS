@@ -3,7 +3,7 @@ import os, pathlib, typing, argparse, textwrap
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
-from cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
+from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
 
 def make_predictions(
@@ -30,7 +30,7 @@ def make_predictions(
     """
     # try:
         # Input validation
-    if True:
+    if True: # FIXME: Use real exception handling
         assert predictions_output_format in ["in_order", "dictionary", "in_order_json", "dictionary_json"]
 
         assert len(kinase_seqs) == len(site_seqs), (
@@ -58,14 +58,16 @@ def make_predictions(
 
         print("Status: Making predictions...")
         try:
-            res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format, verbose=True)
+            res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format)
         except Exception as e:
             print("Status: Predicting Failed!\n\n")
             raise e
 
         if verbose:
-            print(res)
-        print("Status: Done!")
+            print(first_msg := "<"*16 + " REQUESTED RESULTS " + ">"*16 + "\n")
+            pprint.pprint(res)
+            print("\n" + "<"* int(np.floor(len(first_msg)/2)) + ">"*int(np.ceil(len(first_msg)/2))+"\n")
+        print("Status: Done!\n")
         return res
 
     # except Exception as e:
@@ -94,7 +96,7 @@ def parse_api() -> dict[str, typing.Any]:
         "-k", help=wrap("Comma-delimited kinase sequences (no spaces). Each must be <= 4128 residues long."),
         metavar="<kinase sequences>"
     )
-    k_group.add_argument(
+    k_group.add_argument( # TODO: Add FASTA support
         "-kf", help=wrap("The file containing line-delimited kinase sequences. Each must be <= 4128 residues long."),
         metavar="<kinase sequences file>"
     )
@@ -132,29 +134,32 @@ def parse_api() -> dict[str, typing.Any]:
         choices=output_choices_helper,
         help='\n'.join(wrap("* " + f"{k}: {v}") for k, v in output_choices_helper.items())
     )
-    ap.add_argument("-v", "--verbose", help="Whether to print predictions. Defaults to True.", default=True, required=False, action="store_true")
+    ap.add_argument("-v", "--verbose", help="Whether to print predictions. Defaults to True.", default=False, required=False, action="store_true")
 
     ap.add_argument("--pre_trained_nn", help=wrap("The path to the pre-trained neural network."), default=PRE_TRAINED_NN, required=False, metavar="<pre-trained neural network file>")
     ap.add_argument("--pre_trained_gc", help=wrap("The path to the pre-trained group classifier."), default=PRE_TRAINED_GC, required=False, metavar="<pre-trained group classifier file>") #FIXME: Max width
     
     args = ap.parse_args()
     args_dict = vars(args)
-    if 'k' in args_dict:
+    if args_dict['k'] is not None:
         args_dict['kinase_seqs'] = args_dict.pop('k').split(',')
         del args_dict['kf']
     elif 'kf' in args_dict:
-        args_dict['kinase_seqs'] = [line.strip() for line in open(args_dict.pop('kf'))]
+        args_dict['kinase_seqs'] = [line.strip() for line in open("../" + args_dict.pop('kf'))]
         del args_dict['k']
-    if 's' in args_dict:
+    if args_dict['s'] is not None:
         args_dict['site_seqs'] = args_dict.pop('s').split(',')
         del args_dict['sf']
     elif 'sf' in args_dict:
-        args_dict['site_seqs'] = [line.strip() for line in open(args_dict.pop('sf'))]
+        args_dict['site_seqs'] = [line.strip() for line in open("../" +args_dict.pop('sf'))]
         del args_dict['s']
     if 'v' in args_dict:
         args_dict['verbose'] = args_dict.pop('v')
 
     args_dict['predictions_output_format'] = args_dict.pop('p')
+
+    args_dict['kinase_seqs'] = [x.strip() for x in args_dict['kinase_seqs'] if x != '']
+    args_dict['site_seqs'] = [x.strip() for x in args_dict['site_seqs'] if x != '']
 
     return args_dict
 
@@ -162,10 +167,9 @@ if __name__ == "__main__":
     args = parse_api()
 
     print("Status: Loading Modules...")
-    import cloudpickle as pickle, json
+    import cloudpickle as pickle, pprint, numpy as np
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
-
 
     make_predictions(**args)

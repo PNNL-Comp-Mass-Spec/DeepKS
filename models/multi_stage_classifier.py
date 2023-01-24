@@ -93,7 +93,6 @@ class MultiStageClassifier:
         kinase_seqs: list[str],
         site_seqs: list[str],
         predictions_output_format: str = "in_order",
-        verbose: bool = True,
     ) -> Union[None, list[bool], list[dict[str, Union[str, bool]]]]:
 
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first")
@@ -122,8 +121,6 @@ class MultiStageClassifier:
             ret = [{"kinase": k, "site": s, "prediction": p} for k, s, p in zip(kinase_seqs, site_seqs, res.values())]
         else:
             ret = res
-        if verbose:
-            print(ret)
         if "json" in predictions_output_format:
             now = datetime.datetime.now(tz=dateutil.tz.tzlocal())
             file_name = (

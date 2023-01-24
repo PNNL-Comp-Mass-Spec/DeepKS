@@ -113,11 +113,11 @@ def get_needle_pairwise_mtx(
     args = [[strs_a[i], strs_b[i], outfile] for i in range(len(strs_a))]
     done = [False]
     progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_procs))
-    progress_thread.start()
+    # progress_thread.start() TODO: Only have progress bar if verbose
     with ThreadPool(num_procs) as p:
         results = p.map(worker, args)
     done[0] = True
-    progress_thread.join()
+    # progress_thread.join()
     final_results = {}
     for chunk_dict in results:
         for k1 in chunk_dict:
@@ -144,11 +144,11 @@ def get_needle_pairwise_mtx(
     assert np.asarray(df_results.columns).tolist() == df_results.index.tolist() or len(restricted_combinations) > 0 , "df_results.columns != df_results.index"
     assert df_results.shape[0] == df_results.shape[1] == subset or len(restricted_combinations) > 0, "Matrix is not square/the right size"
     if pd.isna(df_results.values).any():
-        with warnings.catch_warnings():
+        with warnings.catch_warnings(): # TODO: Show warnings if Verbose
             pd.set_option('display.max_rows', 1000)
             pd.set_option('display.max_columns', 1000)
             pd.set_option('display.width', 140)
-            warnings.simplefilter('always', RuntimeWarning)
+            # warnings.simplefilter('always', RuntimeWarning)
             warnings.formatwarning = warning_on_one_line
             warnings.warn(f"There are NA values in the results matrix. This may simply mean that some sequences had zero overlap. Replacing these instances with 0.0. To enable checking, printing a subset of the matrix with NAs:\n{df_results[df_results.isna().any(axis=1)][df_results.isna().any(axis=0).index[df_results.isna().any(axis=0)]]}\n", RuntimeWarning)
             df_results = df_results.fillna(0.0)
