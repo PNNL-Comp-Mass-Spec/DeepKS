@@ -126,7 +126,7 @@ class MultiStageClassifier:
             boolean_predictions = [x[1][0] for x in res]
 
         if "dict" in predictions_output_format:
-            ret = [{"kinase": k, "site": s, "prediction": p} | ({} if not scores else {"score": sc}) for k, s, p, sc in zip(kinase_seqs, site_seqs, boolean_predictions, numerical_scores)]
+            ret = [{"kinase": k, "site": s, "prediction": "Target" if p else "Decoy"} | ({} if not scores else {"score": sc}) for k, s, p, sc in zip(kinase_seqs, site_seqs, boolean_predictions, numerical_scores)]
         else:
             ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
         if "json" in predictions_output_format:
