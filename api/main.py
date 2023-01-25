@@ -1,4 +1,4 @@
-import os, pathlib, typing, argparse, textwrap
+import os, pathlib, typing, argparse, textwrap, re
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -12,7 +12,9 @@ def make_predictions(
     predictions_output_format: str = "in_order",
     verbose: bool = True,
     pre_trained_gc: str = PRE_TRAINED_GC,
-    pre_trained_nn: str = PRE_TRAINED_NN
+    pre_trained_nn: str = PRE_TRAINED_NN,
+    device: str = "cpu",
+    scores: bool = False
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
@@ -27,6 +29,8 @@ def make_predictions(
         verbose (bool, optional): Whether to print predictions. Defaults to True.
         pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
         pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
+        device (str, optional): Device to use for predictions. Defaults to "cpu".
+        scores (bool, optional): Whether to return scores. Defaults to False.
     """
     # try:
         # Input validation
@@ -58,7 +62,7 @@ def make_predictions(
 
         print("Status: Making predictions...")
         try:
-            res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format)
+            res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format, device=device, scores=scores)
         except Exception as e:
             print("Status: Predicting Failed!\n\n")
             raise e
@@ -138,6 +142,24 @@ def parse_api() -> dict[str, typing.Any]:
 
     ap.add_argument("--pre_trained_nn", help=wrap("The path to the pre-trained neural network."), default=PRE_TRAINED_NN, required=False, metavar="<pre-trained neural network file>")
     ap.add_argument("--pre_trained_gc", help=wrap("The path to the pre-trained group classifier."), default=PRE_TRAINED_GC, required=False, metavar="<pre-trained group classifier file>") #FIXME: Max width
+
+    import torch
+    def device(arg_value):
+        try:
+            assert(bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value)))
+            if "cuda" in arg_value:
+                if arg_value == "cuda":
+                    return arg_value
+                cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
+                assert(0 <= cuda_num <= torch.cuda.device_count())
+        except Exception:
+            raise argparse.ArgumentTypeError(f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:<gpu #>]'}.")
+        
+        return arg_value
+        
+    ap.add_argument("--device", type=device, help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
+
+    ap.add_argument("--scores", help=wrap("Whether to print the scores of the predictions."), default=False, required=False, action="store_true")
     
     args = ap.parse_args()
     args_dict = vars(args)
@@ -157,6 +179,9 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict['verbose'] = args_dict.pop('v')
 
     args_dict['predictions_output_format'] = args_dict.pop('p')
+    if 'json' not in args_dict['predictions_output_format']:
+        args_dict['verbose'] = True
+        print("Info: Verbose mode is being set to \"True\" because the predictions output format is not JSON.")
 
     args_dict['kinase_seqs'] = [x.strip() for x in args_dict['kinase_seqs'] if x != '']
     args_dict['site_seqs'] = [x.strip() for x in args_dict['site_seqs'] if x != '']

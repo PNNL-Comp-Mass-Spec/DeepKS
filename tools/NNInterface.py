@@ -173,8 +173,31 @@ class NNInterface:
 
             epoch += 1
 
+    def predict(self, dataloader, cutoff=0.5, device="") -> Tuple[list, list]:
+        assert(device != ""), "Device must be specified."
+        for *X, labels in (ld := list(dataloader)):
+            assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
+            assert torch.equal(labels, torch.Tensor([-1])), "Labels must be -1 for prediction."
+            X = [x.to(device) for x in X]
+            outputs = self.model(*X)
+            torch.cuda.empty_cache()
+            if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
+                predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
+
+            elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+                predictions = torch.heaviside(
+                    torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
+                )
+                outputs = torch.sigmoid(outputs.data.cpu())
+            else:
+                raise ValueError("Criterion must be either BCEWithLogitsLoss or CrossEntropyLoss. In the future, this may be changed.")
+
+            return [bool(x) for x in predictions.data.cpu().numpy().tolist()], outputs.data.cpu().numpy().tolist() if outputs.dim() > 0 else [outputs.data.cpu().numpy().tolist()]
+        raise AssertionError("No data was passed to the model for prediction.")
+
+
     def eval(
-        self, dataloader, cutoff=0.5, metric="roc"
+        self, dataloader, cutoff=0.5, metric="roc", predict_mode=False
     ) -> Tuple[float, float, list[float], list[int], list[float], list[float]]:
         assert metric.lower().strip() in ["roc", "acc"], "Scoring `metric` needs to be one of `roc` or `acc`."
 

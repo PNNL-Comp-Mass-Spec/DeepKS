@@ -5,7 +5,7 @@ if __name__ == "__main__":
     print("Progress: Loading Modules", flush=True)
 import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os
 import sklearn.utils.validation
-from typing import Union
+from typing import Union, Tuple
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
@@ -86,14 +86,20 @@ class MultiStageClassifier:
             self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
             return {}
         else:
-            return pred_grp_dict
+            print("Progress: Sending input kinases to individual classifiers (with group predictions)")
+            self.individual_classifiers.evaluations = {}
+            newargs['test'] = Xy_formatted_input_file
+            res = self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_groups = None, predict_mode = True)
+            return res
 
     def predict(
         self,
         kinase_seqs: list[str],
         site_seqs: list[str],
         predictions_output_format: str = "in_order",
-    ) -> Union[None, list[bool], list[dict[str, Union[str, bool]]]]:
+        device: str = "cpu",
+        scores: bool = False
+    ):
 
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first")
         seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
@@ -106,7 +112,8 @@ class MultiStageClassifier:
                 "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
                 "lab": kinase_seqs,
                 "seq": site_seqs,
-                "class": "N/A -- Predict Mode",
+                "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs))],
+                "class": -1,
                 "num_seqs": "N/A -- Predict Mode",
             }
         )
@@ -114,13 +121,14 @@ class MultiStageClassifier:
         with tf.NamedTemporaryFile("w") as f:
             df_post_predict.to_csv(f.name, index=False)
             self.align_novel_kin_seqs(df_post_predict.set_index("orig_lab_name").to_dict()["lab"])
-            res = self.evaluate({"test": f.name}, f.name, predict_mode=True)
-
+            res: list[Tuple[str, Tuple[bool, str]]] = self.evaluate({"test": f.name, "device": device}, f.name, predict_mode=True)
+            numerical_scores = [x[1][1] for x in res]
+            boolean_predictions = [x[1][0] for x in res]
 
         if "dict" in predictions_output_format:
-            ret = [{"kinase": k, "site": s, "prediction": p} for k, s, p in zip(kinase_seqs, site_seqs, res.values())]
+            ret = [{"kinase": k, "site": s, "prediction": p} | ({} if not scores else {"score": sc}) for k, s, p, sc in zip(kinase_seqs, site_seqs, boolean_predictions, numerical_scores)]
         else:
-            ret = res
+            ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
         if "json" in predictions_output_format:
             now = datetime.datetime.now(tz=dateutil.tz.tzlocal())
             file_name = (

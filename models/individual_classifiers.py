@@ -208,14 +208,15 @@ class IndividualClassifiers:
                 tef=1,
                 tokdict=self.default_tok_dict,
                 n_gram=ng,
-                device=self.device,
+                device= self.device if 'predict_mode' not in evaluation_kwargs or not evaluation_kwargs['predict_mode'] else evaluation_kwargs['device'],
                 maxsize=MAX_SIZE_DS,
             )
             info_dict_passthrough[group_te] = info_dict
             assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
-            self.interfaces[group_te].test(
-                test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
-            )
+            if 'predict_mode' not in evaluation_kwargs or not evaluation_kwargs['predict_mode']: 
+                self.interfaces[group_te].test(
+                    test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
+                )
             assert test_loader is not None
             count += 1
             yield group_te, test_loader
@@ -245,8 +246,11 @@ class IndividualClassifiers:
 
 
     def roc_evaluation(self, new_args, pred_groups, true_groups, predict_mode):
-        if new_args["load_include_eval"] is None:
+        if "test" in new_args:
             test_filename = new_args["test"]
+        else: 
+            test_filename = ''
+        if "load_include_eval" in new_args and new_args["load_include_eval"] is None and not predict_mode:
             grp_to_info_pass_through_info_dict = {}
             grp_to_loaders = {
                 grp: loader
@@ -264,19 +268,19 @@ class IndividualClassifiers:
 
             # unfurled_local = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in grp_to_loaders.items()} # type: ignore
             
-            if predict_mode == False:
-                print("Progress: ROC")
-                NNInterface.get_combined_rocs_from_individual_models(
-                    self.interfaces,
-                    grp_to_loaders,
-                    f"../images/Evaluation and Results/ROC_{datetime.datetime.now().isoformat()}",
-                    retain_evals=self.evaluations,
-                    grp_to_loader_true_groups={
-                        grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]]
-                        for grp in grp_to_info_pass_through_info_dict
-                    },
-                )
-        else:
+            print("Progress: ROC")
+            NNInterface.get_combined_rocs_from_individual_models(
+                self.interfaces,
+                grp_to_loaders,
+                f"../images/Evaluation and Results/ROC_{datetime.datetime.now().isoformat()}",
+                retain_evals=self.evaluations,
+                grp_to_loader_true_groups={
+                    grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]]
+                    for grp in grp_to_info_pass_through_info_dict
+                },
+            )
+
+        elif not predict_mode:
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
                 savefile=f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}"
@@ -284,14 +288,31 @@ class IndividualClassifiers:
                 + ".pkl",
                 from_loaded=self.evaluations,
             )
+        else:
+            all_predictions_outputs = {}
+            info_dict_passthrough = {}
+            for grp, loader in self.evaluate(
+                which_groups=list(pred_groups.values()),
+                Xy_formatted_input_file=test_filename,
+                pred_groups=pred_groups,
+                evaluation_kwargs={"predict_mode": True, "device": new_args['device']},
+                info_dict_passthrough=info_dict_passthrough
+            ):
+                print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
+                jumbled_predictions = self.interfaces[grp].predict(loader, cutoff = 0.5, device=new_args['device']) # TODO: Make adjustable cutoff
+                new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
+                all_predictions_outputs.update({pair_id: (jumbled_predictions[0][i], jumbled_predictions[1][i])  for pair_id, i in zip(new_info, range(len(new_info)))}) 
+            
+            pred_items = sorted(all_predictions_outputs.items(), key=lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))) # Pair # {i}
+            return pred_items # TODO: Enable saving
+
         if self.args["s"]:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
                 self,
-                f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}"
-                + datetime.datetime.now().isoformat()
-                + ".pkl",
+                f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + ".pkl"
             )
+        
 
 
 def main():

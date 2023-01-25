@@ -139,11 +139,14 @@ def gather_data(
         remapping_class_label_dict_inv = {0: "Decoy", 1: "Real"}
         remapping_class_label_dict_inv = remapping_class_label_dict_inv
         data[class_col] = data[class_col].apply(lambda x: remapping_class_label_dict[x])
-    else:
+    elif set(class_labels) != {-1}: # I.e., not predict mode
         remapping_class_label_dict = {class_labels[i]: i for i in range(len(class_labels))}
         remapping_class_label_dict_inv = {i: list(class_labels)[i] for i in range(len(class_labels))}
         remapping_class_label_dict_inv = remapping_class_label_dict_inv
         data[class_col] = data[class_col].apply(lambda x: remapping_class_label_dict[x])
+    else:
+        remapping_class_label_dict = None
+        remapping_class_label_dict_inv = None
 
     random.seed(99354)
     shuffled_ids = data.index.tolist()
@@ -216,6 +219,11 @@ def gather_data(
             "train": data.loc[train_ids]["orig_lab_name"].to_list(),
             "val": data.loc[val_ids]["orig_lab_name"].to_list(),
             "test": data.loc[test_ids]["orig_lab_name"].to_list(),
+        },
+        "PairIDs": {
+            "train": data.loc[train_ids]["pair_id"].to_list(),
+            "val": data.loc[val_ids]["pair_id"].to_list(),
+            "test": data.loc[test_ids]["pair_id"].to_list()
         },
         "classes": classes,
         "class_labels": class_labels,
