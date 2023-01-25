@@ -1,3 +1,4 @@
+import collections
 import os, pathlib, typing, argparse, textwrap, re
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -60,16 +61,24 @@ def make_predictions(
         individual_classifiers: IndividualClassifiers = pickle.load(open(pre_trained_nn, "rb"))
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
 
-        print("Status: Making predictions...")
+        print("Status: Beginning Prediction Process...")
         try:
             res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format, device=device, scores=scores)
         except Exception as e:
             print("Status: Predicting Failed!\n\n")
             raise e
 
+        assert res is not None
+
         if verbose:
+            print()
             print(first_msg := "<"*16 + " REQUESTED RESULTS " + ">"*16 + "\n")
-            pprint.pprint(res)
+            if all(isinstance(r, dict) for r in res):
+                order = {'kinase': 0, 'site': 1, 'prediction': 2, 'score': 3}
+                sortkey = lambda x: order[x[0]]
+                pprint.pprint([dict(collections.OrderedDict(sorted(r.items(), key=sortkey))) for r in res], sort_dicts=False) # type: ignore
+            else:
+                pprint.pprint(res)
             print("\n" + "<"* int(np.floor(len(first_msg)/2)) + ">"*int(np.ceil(len(first_msg)/2))+"\n")
         print("Status: Done!\n")
         return res

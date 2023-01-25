@@ -128,7 +128,7 @@ class IndividualClassifiers:
             else: # Prediction
                 Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
-        for group in tqdm.tqdm(which_groups, desc="Group Progress", leave=False, position=0):
+        for group in tqdm.tqdm(which_groups, desc="Group Nerual Network Evaluation Progress", leave=True, position=0): # Do only if Verbose
             yield group, group_df[group]
 
     def train(
@@ -298,7 +298,7 @@ class IndividualClassifiers:
                 evaluation_kwargs={"predict_mode": True, "device": new_args['device']},
                 info_dict_passthrough=info_dict_passthrough
             ):
-                print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
+                # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
                 jumbled_predictions = self.interfaces[grp].predict(loader, cutoff = 0.5, device=new_args['device']) # TODO: Make adjustable cutoff
                 new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
                 all_predictions_outputs.update({pair_id: (jumbled_predictions[0][i], jumbled_predictions[1][i])  for pair_id, i in zip(new_info, range(len(new_info)))}) 

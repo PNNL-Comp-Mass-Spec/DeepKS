@@ -35,7 +35,7 @@ class MultiStageClassifier:
         )
 
     def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False):
-        print("Progress: Sending input kinases to group classifier")
+        print("Prediction Step [1/2]: Sending input kinases to group classifier")
         # Open XY_formatted_input_file
         input_file = pd.read_csv(Xy_formatted_input_file)
         if predict_mode is False:
@@ -86,7 +86,7 @@ class MultiStageClassifier:
             self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
             return {}
         else:
-            print("Progress: Sending input kinases to individual classifiers (with group predictions)")
+            print("Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]")
             self.individual_classifiers.evaluations = {}
             newargs['test'] = Xy_formatted_input_file
             res = self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_groups = None, predict_mode = True)
