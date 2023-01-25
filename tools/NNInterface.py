@@ -177,7 +177,7 @@ class NNInterface:
         assert(device != ""), "Device must be specified."
         for *X, labels in (ld := list(dataloader)):
             assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
-            assert torch.equal(labels, torch.Tensor([-1])), "Labels must be -1 for prediction."
+            assert torch.equal(labels, torch.Tensor([-1]*len(labels))), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
             outputs = self.model(*X)
             torch.cuda.empty_cache()

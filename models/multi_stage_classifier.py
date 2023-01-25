@@ -134,7 +134,7 @@ class MultiStageClassifier:
             file_name = (
                 f"../out/{now.isoformat(timespec='milliseconds', sep='@')}.json"
             )
-            json.dump(ret, open(file_name, "w"))
+            json.dump(ret, open(file_name, "w"), indent=2)
         else:
             return ret
 

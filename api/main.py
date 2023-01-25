@@ -1,11 +1,11 @@
 import collections
 import os, pathlib, typing, argparse, textwrap, re
+import sys
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
-
 
 def make_predictions(
     kinase_seqs: list[str],
@@ -44,16 +44,16 @@ def make_predictions(
         )
         for i, kinase_seq in enumerate(kinase_seqs):
             assert 1 <= len(kinase_seq) <= 4128, (
-                f"DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index {i} is"
+                f"DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index {i} --- {kinase_seq[i][:10]} is"
                 f" {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
             )
-            assert kinase_seq.isalpha(), f"Kinase sequences must only contain letters. The input kinase at index {i} is problematic."
+            assert kinase_seq.isalpha(), f"Kinase sequences must only contain letters. The input kinase at index {i} --- {kinase_seq[i][:10]}... is problematic."
         for i, site_seq in enumerate(site_seqs):
             assert len(site_seq) == 15, (
-                f"DeepKS currently only accepts site sequences of length 15. The input site at index {i} is"
+                f"DeepKS currently only accepts site sequences of length 15. The input site at index {i} --- {site_seq[i][:10]}... is"
                 f" {len(site_seq)}. (It was trained on sequences of length 15.)"
             )
-            assert site_seq.isalpha(), f"Site sequences must only contain letters. The input site at index {i} is problematic."
+            assert site_seq.isalpha(), f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is problematic."
 
         # Create (load) multi-stage classifier
         print("Status: Loading previously trained models...")
@@ -68,7 +68,7 @@ def make_predictions(
             print("Status: Predicting Failed!\n\n")
             raise e
 
-        assert res is not None
+        assert res is not None or "json" in predictions_output_format
 
         if verbose:
             print()
@@ -169,7 +169,6 @@ def parse_api() -> dict[str, typing.Any]:
     ap.add_argument("--device", type=device, help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
 
     ap.add_argument("--scores", help=wrap("Whether to print the scores of the predictions."), default=False, required=False, action="store_true")
-    
     args = ap.parse_args()
     args_dict = vars(args)
     if args_dict['k'] is not None:
@@ -188,16 +187,31 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict['verbose'] = args_dict.pop('v')
 
     args_dict['predictions_output_format'] = args_dict.pop('p')
-    if 'json' not in args_dict['predictions_output_format']:
+    if 'json' not in args_dict['predictions_output_format'] and not args_dict['verbose']:
         args_dict['verbose'] = True
         print("Info: Verbose mode is being set to \"True\" because the predictions output format is not JSON.")
+    if 'json' in args_dict['predictions_output_format'] and args_dict['verbose']:
+        args_dict['verbose'] = False
+        print("Info: Verbose mode is being set to \"False\" because the predictions output format is JSON.")
 
     args_dict['kinase_seqs'] = [x.strip() for x in args_dict['kinase_seqs'] if x != '']
     args_dict['site_seqs'] = [x.strip() for x in args_dict['site_seqs'] if x != '']
 
     return args_dict
 
-if __name__ == "__main__":
+def _cmd_testing_simulator():
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier
+    args = parse_api()
+
+    print("Status: Loading Modules...")
+    import cloudpickle as pickle, pprint, numpy as np
+    from ..models.individual_classifiers import IndividualClassifiers
+    from ..models.multi_stage_classifier import MultiStageClassifier
+    from ..models.group_classifier_definitions import SKGroupClassifier
+
+    make_predictions(**args)
+
+if __name__ in ["__main__"]:
     args = parse_api()
 
     print("Status: Loading Modules...")
