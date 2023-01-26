@@ -34,7 +34,7 @@
 <h1 style='font-size:36pt'>DeepKS Manual</h1>
 
 # Getting Started
-The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.
+The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool.
 
 ## Colors in this manual
 - `This style is used for code the user should run.`
@@ -73,10 +73,10 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
    - If using WSL on Windows, ensure WSL is running.
    - If using HPC cluster, ensure you are SSH'd into the cluster and have run `module load apptainer`.
 2. Run the following command to start the docker session: `docker run -it benndrucker/deepks:latest`
-3. A command prompt should appear and look like <code class = "inline-bash-output">root@shahash:/#</code>, where `shahash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
+3. A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>, where `hash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
 
 ## Reuse Docker Container
-1. To resuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
+1. To reuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
 2. Copy the hash id of the desired container.
 3. Run `docker container start <copied hash> -i` (making sure to replace `<copied hash>` with the hexadecimal hash you actually copied). This will give you the command prompt inside the Docker container.
 
@@ -111,9 +111,9 @@ With that in mind, here are some examples of how to run the program (make sure t
 ```bash
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt -p in_order_json -v True
 
-python -m DeepKS.api.main -k KINASESEQ1,KINASESEQ2,KINASESEQ3 -s SITESEQ1,SITESEQ2,SITESEQ3 -p dictionary
+python -m DeepKS.api.main -k KINASE_SEQ_1,KINASE_SEQ_2,KINASE_SEQ_3 -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p dictionary
 
-python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITESEQ1,SITESEQ2,SITESEQ3 -p in_order -v False
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p in_order -v False
 
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
 ```

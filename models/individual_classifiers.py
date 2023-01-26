@@ -128,7 +128,7 @@ class IndividualClassifiers:
             else: # Prediction
                 Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
-        for group in tqdm.tqdm(which_groups, desc="Group Nerual Network Evaluation Progress", leave=True, position=0): # Do only if Verbose
+        for group in tqdm.tqdm(which_groups, desc="Group Neural Network Evaluation Progress", leave=True, position=0): # Do only if Verbose
             yield group, group_df[group]
 
     def train(

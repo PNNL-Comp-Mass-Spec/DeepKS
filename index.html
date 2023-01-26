@@ -111,7 +111,7 @@
 </style>
 <h1 style='font-size:36pt'>DeepKS Manual</h1>
 <h1 id="getting-started">Getting Started</h1>
-<p>The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One neednot clone the DeepKS Git repository to use the tool.</p>
+<p>The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool.</p>
 <h2 id="colors-in-this-manual">Colors in this manual</h2>
 <ul>
 <li><code>This style is used for code the user should run.</code></li>
@@ -153,11 +153,11 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 </ul>
 </li>
 <li>Run the following command to start the docker session: <code>docker run -it benndrucker/deepks:latest</code></li>
-<li>A command prompt should appear and look like <code class = "inline-bash-output">root@shahash:/#</code>, where <code>shahash</code> is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level <code>/</code> directory. See the steps below to run various programs <em>from this prompt</em>.</li>
+<li>A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>, where <code>hash</code> is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level <code>/</code> directory. See the steps below to run various programs <em>from this prompt</em>.</li>
 </ol>
 <h2 id="reuse-docker-container">Reuse Docker Container</h2>
 <ol>
-<li>To resuse the created container (so that any saved state is available), run <code>docker ps -a</code>. This will show a list of all running and previously-created containers.</li>
+<li>To reuse the created container (so that any saved state is available), run <code>docker ps -a</code>. This will show a list of all running and previously-created containers.</li>
 <li>Copy the hash id of the desired container.</li>
 <li>Run <code>docker container start &lt;copied hash&gt; -i</code> (making sure to replace <code>&lt;copied hash&gt;</code> with the hexadecimal hash you actually copied). This will give you the command prompt inside the Docker container.</li>
 </ol>
@@ -185,9 +185,9 @@ python -m DeepKS.api.main [options]
 <p>With that in mind, here are some examples of how to run the program (make sure to be in the top-level <code>/</code> directory):</p>
 <pre><code class="language-bash">python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt -p in_order_json -v True
 
-python -m DeepKS.api.main -k KINASESEQ1,KINASESEQ2,KINASESEQ3 -s SITESEQ1,SITESEQ2,SITESEQ3 -p dictionary
+python -m DeepKS.api.main -k KINASE_SEQ_1,KINASE_SEQ_2,KINASE_SEQ_3 -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p dictionary
 
-python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITESEQ1,SITESEQ2,SITESEQ3 -p in_order -v False
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p in_order -v False
 
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
 </code></pre>

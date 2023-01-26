@@ -109,7 +109,7 @@ For more examples and ideas, visit:
 https://docs.docker.com/get-started/
 </pre>
 
-Then, you may proceed back to the [main help page, §Terminolgy](https://ben-drucker.gitlab.io/deepks/#terminology)
+Then, you may proceed back to the [main help page, §Terminology](https://ben-drucker.gitlab.io/deepks/#terminology)
 
 # Troubleshooting
 ### If you get a permissions error like the following:
