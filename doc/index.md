@@ -17,6 +17,7 @@
     }
     h1{
         border-bottom-width: 2px;
+        margin: 10px 0px 10px;
     }
     
     h2{
@@ -32,9 +33,10 @@
     }
 </style>
 <h1 style='font-size:36pt'>DeepKS Manual</h1>
+<span style='font-size:15pt'> The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze and ensures the program will run exactly the same way on every computer. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool. </span>
 
-# Getting Started
-The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool.
+# Quickstart (Gets things up and running, but does not explain the theory behind the tool — the rest of the manual goes in depth)
+1. See the [Quickstart guide](https://ben-drucker.gitlab.io/deepks/doc/quickstart.html).
 
 ## Colors in this manual
 - `This style is used for code the user should run.`
