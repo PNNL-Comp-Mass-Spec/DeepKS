@@ -50,6 +50,45 @@
     color: var(--theme-error-foreground);
 }
 
+/* From extension ms-toolsai.jupyter-renderers */
+/*
+Found that the colors of the alert boxes do not change with different themes in jlab.
+Hence hardcoded them here.
+*/
+
+.alert {
+    width: auto;
+    padding: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+	border-style: solid;
+	border-width: 1px;
+}
+.alert > *:last-child {
+    margin-bottom: 0;
+}
+#preview > .alert:last-child {
+    /* Prevent this being set to zero by the default notebook stylesheet */
+    padding-bottom: 1em;
+}
+
+.alert-success {
+    background-color: rgb(200,230,201);
+    color: rgb(27,94,32);
+}
+.alert-info {
+    background-color: rgb(178,235,242);
+    color: rgb(0,96,100);
+}
+.alert-warning {
+    background-color: rgb(255,224,178);
+    color: rgb(230,81,0);
+}
+.alert-danger {
+    background-color: rgb(255,205,210);
+    color: rgb(183,28,28);
+}
+
 </style>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
 <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
@@ -114,7 +153,7 @@
 <span style='font-size:15pt'> The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze and ensures the program will run exactly the same way on every computer. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool. </span>
 <h1 id="quickstart-gets-things-up-and-running-but-does-not-explain-the-theory-behind-the-tool--the-rest-of-the-manual-goes-in-depth">Quickstart (Gets things up and running, but does not explain the theory behind the tool — the rest of the manual goes in depth)</h1>
 <ol>
-<li>See the <a href="https://ben-drucker.gitlab.io/deepks/doc/quickstart.html">Quickstart guide</a>.</li>
+<li>See the <a href="https://ben-drucker.gitlab.io/deepks-rename-trial/doc/quickstart.html">Quickstart guide</a>.</li>
 </ol>
 <h2 id="colors-in-this-manual">Colors in this manual</h2>
 <ul>
@@ -158,6 +197,7 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 </li>
 <li>Run the following command to start the docker session: <code>docker run -it benndrucker/deepks:latest</code></li>
 <li>A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>, where <code>hash</code> is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level <code>/</code> directory. See the steps below to run various programs <em>from this prompt</em>.</li>
+<li>To update the DeepKS repository (always a good idea), run <code>cd DeepKS &amp;&amp; git pull &amp;&amp; cd ..</code>.</li>
 </ol>
 <h2 id="reuse-docker-container">Reuse Docker Container</h2>
 <ol>

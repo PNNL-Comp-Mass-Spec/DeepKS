@@ -63,7 +63,8 @@ This guide does not go into all the possible options and methods of DeepKS. For 
     docker run -it benndrucker/deepks
     ```
 5. You should see this prompt: <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>. You are now in the DeepKS container. You must run DeepKS commands from here.
-6. Run the following command:
+6. To update the DeepKS repository (always a good idea), run `cd DeepKS && git pull && cd ..`.
+7. Run the following command:
 ```bash
 python3 -m DeepKS.examples
 ```
