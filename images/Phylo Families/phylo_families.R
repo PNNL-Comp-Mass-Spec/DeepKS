@@ -77,7 +77,7 @@ hc <- hc %>%
 par(cex = 0.25)
 
 num_fam_levels <- 10
-cmap_groups <- circlize::colorRamp2(c(1, (num_groups + 1) / 2, num_groups), c("#000082", "#366fff", "#bddfff"))
+cmap_groups <- circlize::colorRamp2(c(1, (num_groups + 1) / 2, num_groups), c("#00001c", "#1b5bff", "#e4f2ff"))
 cmap_families <- circlize::colorRamp2(c(0, (num_fam_levels - 1) / 2, num_fam_levels - 1), c("#b00000", "#ffff00", "#00bba5"))
 
 vals <- c()
@@ -123,9 +123,9 @@ key_family <- fam_anno_data %>%
 
 make_main <- function(fin = NULL, cex = 1) {
   if (is.null(fin)) {
-    par(cex = cex, family = "P052-Roman", fig = c(0, 1, 0, 1))
+    par(cex = cex, family = "FPL Neu", fig = c(0, 1, 0, 1))
   } else {
-    par(cex = cex, family = "P052-Roman", fin = fin)
+    par(cex = cex, family = "FPL Neu", fin = fin)
   }
   circos.par(
     cell.padding = rep(0, 4),
@@ -232,7 +232,7 @@ make_legend <- function() {
   fn <- "legend.pdf"
   cairo_pdf(
     fn,
-    family = "P052-Roman",
+    family = "FPL Neu",
     width = 2,
     height = 2,
     pointsize = 8
@@ -296,8 +296,8 @@ make_legend <- function() {
   write(svg_txt, file = "legend.svg")
 }
 
-cairo_pdf("proto-small.pdf", family = "P052-Roman", width = 10, height = 10)
-make_main(c(10, 10), cex = 0.5)
+CairoPDF(file = "phylo_families_Cairo.pdf", family = "FPL Neu", width = 10, height = 10)
+main <- make_main(c(10, 10), cex = 0.5)
 dev.off()
 # make_legend()
 # rsvg_svg("legend.svg", "legend-B.svg")

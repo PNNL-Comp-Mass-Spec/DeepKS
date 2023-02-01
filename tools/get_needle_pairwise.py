@@ -9,14 +9,34 @@ import numpy as np
 import pandas as pd, tqdm
 import sys
 import contextlib
+
 matplotlib.rcParams["font.family"] = "monospace"
 from multiprocessing.pool import ThreadPool
 import subprocess
 from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as mtx_utils
 
+format_for_needle = (
+    lambda x: x.replace("|", "_")
+    .replace("(", "")
+    .replace(")", "")
+    .replace("/", "--")
+    .replace(" ", "---")
+    .replace(":", "----")
+)
+eldeen_rof_tamrof = (
+    lambda x: x.replace("_", "|")
+    .replace("----", ":")
+    .replace("---", " ")
+    .replace("--", "/")
+    
+    
+)
+
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 tq: tqdm.tqdm
+
+
 def instantiate_tq():
     global tq
     tq = tqdm.tqdm(
@@ -25,7 +45,7 @@ def instantiate_tq():
         unit="%",
         leave=False,
         position=0,
-        bar_format="{desc}: {percentage:.3f}%|{bar}| {n:.3f}/{total_fmt} [{elapsed}<{remaining}"
+        bar_format="{desc}: {percentage:.3f}%|{bar}| {n:.3f}/{total_fmt} [{elapsed}<{remaining}",
     )
 
 
@@ -46,10 +66,10 @@ def prog_bar_worker(num_seqs, done, num_workers):
 
 
 def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
-    assert len(fasta_chunks) == 3
+    assert len(fasta_chunks) == 4
     fasta_chunks_a = fasta_chunks[0]
     fasta_chunks_b = fasta_chunks[1]
-    outfile = fasta_chunks[2]
+    outfile = fasta_chunks[2] + f"-TID-{fasta_chunks[3]}"
     with tempfile.NamedTemporaryFile(mode="w", suffix=".fasta", delete=False) as tmp_a, tempfile.NamedTemporaryFile(
         mode="w", suffix=".fasta"
     ) as tmp_b:
@@ -71,6 +91,7 @@ def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
             if not match[0] in results:
                 results[match[0]] = {}
             results[match[0]][match[1]] = float(match[3])
+    os.unlink(outfile)
     return results
 
 
@@ -81,7 +102,8 @@ def get_needle_pairwise_mtx(
     fasta_all = re.findall(r">.*\n[^>]+", open(fasta, "r").read())
     if subset == -1:
         subset = len(fasta_all)
-    fastas = fasta_all[:subset]
+    fastas = [format_for_needle(x) for x in fasta_all[:subset]]
+    assert len(fastas) >= 2, "Need at least two sequences to compute pairwise distances."
 
     strs_a = []
     strs_b = []
@@ -92,25 +114,27 @@ def get_needle_pairwise_mtx(
         fastas_a = [i[0] for i in combos]
         fastas_b = [i[1] for i in combos]
         assert len(fastas_a) == len(fastas_b), "Unequal number of strings"
-        group_size = len(combos) // num_procs
+        group_size = int(np.ceil(len(combos) / num_procs))
         for i in range(0, len(combos), group_size):
-            strs_a.append("".join(list(set(fastas_a[i : i + group_size]))).replace("|", "_"))
-            strs_b.append("".join(list(set(fastas_b[i : i + group_size]))).replace("|", "_"))
+            strs_a.append(format_for_needle("".join(list(set(fastas_a[i : i + group_size])))))
+            strs_b.append(format_for_needle("".join(list(set(fastas_b[i : i + group_size])))))
     else:
-        name_to_seq = {x.split("\n")[0].replace(">", "").upper(): x.split("\n")[1].strip() for x in fastas}
-        fastas_a = restricted_combinations[0]
-        fastas_b = restricted_combinations[1]
+        name_to_seq = {format_for_needle(x.split("\n")[0].split(">")[1].upper()): "\n".join(x.split("\n")[1:]).strip() for x in fastas}
+        fastas_a = [format_for_needle(x) for x in restricted_combinations[0]]
+        fastas_b = [format_for_needle(x) for x in restricted_combinations[1]]
         fastas_a = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_a]
-        fastas_b = [f">{x}\n{name_to_seq[f'{x}|{x}'.upper()]}\n" for x in fastas_b]
-        group_size_a = len(restricted_combinations[0]) // num_procs
-        group_size_b = len(restricted_combinations[1]) // num_procs
+        fastas_b = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_b]
+        # assert len(fastas_a) >= num_procs, "Number of sequences must be >= the number of processes (for now)" # TODO: can improve splitting
+        # assert len(fastas_b) >= num_procs, "Number of sequences must be >= the number of processes (for now)"
+        smaller = fastas_a if len(fastas_a) < len(fastas_b) else fastas_b
+        larger = fastas_a if len(fastas_a) >= len(fastas_b) else fastas_b
+        group_size_a = int(np.ceil(len(larger) / num_procs))
         for i in range(0, len(fastas_a), group_size_a):
-            strs_a.append("".join(fastas_a[i : i + group_size_a]).replace("|", "_"))
-        for i in range(0, len(fastas_b), group_size_b):
-            strs_b.append("".join(fastas_b[i : i + group_size_b]).replace("|", "_"))
-    
+            strs_a.append("".join(larger[i : i + group_size_a]))
+        strs_b = ["".join(smaller) for i in range(len(strs_a))]
+
     assert len(strs_a) == len(strs_b) > 0, "Unequal number of strings/len of strings is zero"
-    args = [[strs_a[i], strs_b[i], outfile] for i in range(len(strs_a))]
+    args = [[strs_a[i], strs_b[i], outfile, i] for i in range(len(strs_a))]
     done = [False]
     progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_procs))
     # progress_thread.start() TODO: Only have progress bar if verbose
@@ -134,32 +158,44 @@ def get_needle_pairwise_mtx(
             for k2 in final_results[k1]:
                 df_results.at[k1, k2] = final_results[k1][k2]
                 df_results.at[k2, k1] = final_results[k1][k2]
-        np.fill_diagonal(df_results.values, 100.0)
+        np.fill_diagonal(df_results.values, 100)
     else:
         df_results = pd.DataFrame(final_results)
     df_results = df_results.astype(float)
-    prepare = lambda x: x.replace("_", "|").upper()
-    df_results.columns = [prepare(x) for x in df_results.columns.to_list()]
-    df_results.index = pd.Index([prepare(x) for x in df_results.index.tolist()])
-    assert np.asarray(df_results.columns).tolist() == df_results.index.tolist() or len(restricted_combinations) > 0 , "df_results.columns != df_results.index"
-    assert df_results.shape[0] == df_results.shape[1] == subset or len(restricted_combinations) > 0, "Matrix is not square/the right size"
+    df_results.columns = [eldeen_rof_tamrof(x) for x in df_results.columns.to_list()]
+    df_results.index = pd.Index([eldeen_rof_tamrof(x) for x in df_results.index.tolist()])
+    assert (
+        np.asarray(df_results.columns).tolist() == df_results.index.tolist() or len(restricted_combinations) > 0
+    ), "df_results.columns != df_results.index"
+    assert (
+        df_results.shape[0] == df_results.shape[1] == subset or len(restricted_combinations) > 0
+    ), "Matrix is not square/the right size"
     if pd.isna(df_results.values).any():
-        with warnings.catch_warnings(): # TODO: Show warnings if Verbose
-            pd.set_option('display.max_rows', 1000)
-            pd.set_option('display.max_columns', 1000)
-            pd.set_option('display.width', 140)
-            # warnings.simplefilter('always', RuntimeWarning)
+        with warnings.catch_warnings():  # TODO: Show warnings if Verbose
+            pd.set_option("display.max_rows", 1000)
+            pd.set_option("display.max_columns", 1000)
+            pd.set_option("display.width", 140)
+            warnings.simplefilter("always", RuntimeWarning)
             warnings.formatwarning = warning_on_one_line
-            warnings.warn(f"There are NA values in the results matrix. This may simply mean that some sequences had zero overlap. Replacing these instances with 0.0. To enable checking, printing a subset of the matrix with NAs:\n{df_results[df_results.isna().any(axis=1)][df_results.isna().any(axis=0).index[df_results.isna().any(axis=0)]]}\n", RuntimeWarning)
+            warnings.warn(
+                (
+                    "There are NA values in the results matrix. This may simply mean that some sequences had zero"
+                    " overlap. Replacing these instances with 0.0. To enable checking, printing a subset of the matrix"
+                    " with"
+                    f" NAs:\n{df_results[df_results.isna().any(axis=1)][df_results.isna().any(axis=0).index[df_results.isna().any(axis=0)]]}\n"
+                ),
+                RuntimeWarning,
+            )
             df_results = df_results.fillna(0.0)
-            pd.set_option('display.max_rows', 50)
-            pd.set_option('display.max_columns', 15)
-            pd.set_option('display.width', 120)
+            pd.set_option("display.max_rows", 50)
+            pd.set_option("display.max_columns", 15)
+            pd.set_option("display.width", 120)
 
     return df_results
 
+
 def warning_on_one_line(message, category, filename, lineno, file=None, line=None):
-    return f'{filename}:{lineno}: {category.__name__}: {message}'
+    return f"{filename}:{lineno}: {category.__name__}: {message}"
 
 
 def benchmark_performance(fasta_a_file, test_subsets):
@@ -198,6 +234,6 @@ if __name__ == "__main__":
             restricted_combinations=[
                 # itertools.product(, )
                 ["S" + str(i) for i in range(1, 26)],
-                ["S" + str(i) for i in range(26, 41)]
-            ]
+                ["S" + str(i) for i in range(26, 41)],
+            ],
         )

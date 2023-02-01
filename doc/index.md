@@ -74,14 +74,15 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
    - If running on a personal computer, ensure Docker Desktop (Installed above) is running and a terminal is open.
    - If using WSL on Windows, ensure WSL is running.
    - If using HPC cluster, ensure you are SSH'd into the cluster and have run `module load apptainer`.
-2. Run the following command to start the docker session: `docker run -it benndrucker/deepks`
+2. Run the following command to start the docker session: `docker run -it --name deepks-container --network host --hostname deepks-container benndrucker/deepks`.
+   1. The name `deepks-container` is arbitrary. You can name it whatever you want. In fact, if you need to run multiple instances of the Docker container, you must name them differently.
 3. The interface — in an attempt to update the git repository, will ask for your username and password. Fill that in.
-4. A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>, where `hash` is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
+4. A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@deepks-container// [/] ▷ </code>. You are now inside the Docker Container at the top-level `/` directory. See the steps below to run various programs *from this prompt*.
 
 ## Reuse Docker Container
 1. To reuse the created container (so that any saved state is available), run `docker ps -a`. This will show a list of all running and previously-created containers.
-2. Copy the hash id of the desired container.
-3. Run `docker container start <copied hash> -i` (making sure to replace `<copied hash>` with the hexadecimal hash you actually copied). This will give you the command prompt inside the Docker container.
+2. Note the name of the container you want to start.
+3. Run `docker container start <noted name> -i` (making sure to replace `<noted name>` with the container name you noted). This will give you the command prompt inside the Docker container.
 
 # Running The Programs
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***

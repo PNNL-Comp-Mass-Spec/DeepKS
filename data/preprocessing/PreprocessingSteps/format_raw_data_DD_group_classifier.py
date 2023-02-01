@@ -25,8 +25,6 @@ def generate_real(input_fn, kin_seq_file, grp_fam_kin_file, config):
     try:
         assert "held_out_percentile" in config
         assert "train_percentile" in config
-        assert "num_held_out_kins" in config
-        assert "pre_split_or_post_split" in config
         held_out_percentile = config["held_out_percentile"]
         train_percentile = config["train_percentile"]
         pre_split_or_post_split = config["pre_split_or_post_split"]

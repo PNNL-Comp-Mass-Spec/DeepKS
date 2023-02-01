@@ -75,3 +75,4 @@ images/Excel Matrix/excel_art_formatted.csv
 **/*.tar
 !**/kins.txt
 !**/sites.txt
+**/*.gz

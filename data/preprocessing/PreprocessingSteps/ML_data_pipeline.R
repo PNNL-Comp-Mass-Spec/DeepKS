@@ -108,13 +108,14 @@ mode <- colnames(read.delim("../../../config/mode.cfg"))
 
 n <- 1000000 # How many kinases to pull from PhosphositePlusDB (max number of kinases is  so use `1000000` to get all)
 
-dat <- read_data(n, data_path = "../../raw_data/Kinase_Substrate_Dataset_(Downloaded).xlsx", disct = F)
+dat <- read_data(n, data_path = "../../raw_data/PSP_script_download.xlsx", disct = F)
 top_n_x0 <- dat[[2]]
 
 at_least_n_sites <- 1
 
 top_n_x0 <- top_n_x0 %>%
   dplyr::rename(lab = kinase, seq = flank_seq) %>%
+  mutate(lab = toupper(lab)) %>% 
   filter(num_sites >= at_least_n_sites) %>% #  & !grepl("/", lab)
   na.omit() %>%
   arrange(desc(num_sites), lab) %>%
@@ -188,15 +189,15 @@ if (mode == "alin") {
   cat("[R] Computing alignments...\n")
   alignments <- AlignSeqs(aass_values, iterations = 3, refinements = 2)
   input_aligned_df <- data.frame(kinase = as.character(aass_accid), kinase_seq = as.vector(alignments), gene_name = aass_gn)
-  fi_name <- sprintf("../../raw_data/kinase_seq_alin_%d.txt", nrow(input_aligned_df))
-  write.table(input_aligned_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = "\t")
+  fi_name <- sprintf("../../raw_data/kinase_seq_alin_%d.csv", nrow(input_aligned_df))
+  write.table(input_aligned_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = ",")
 } else {
-  input_df <- data.frame(kinase = as.character(aass_accid), kinase_seq = as.vector(aass_values), gene_name = aass_gn)
-  fi_name <- sprintf("../../raw_data/kinase_seq_%d.txt", nrow(input_df))
-  write.table(input_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = "\t")
+  input_df <- data.frame(kinase = toupper(as.character(aass_accid)), kinase_seq = toupper(as.vector(aass_values)), gene_name = toupper(aass_gn))
+  fi_name <- sprintf("../../raw_data/kinase_seq_%d.csv", nrow(input_df))
+  write.table(input_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = ",")
 }
 cat("[R] Completed.\n")
-cat("[@output_results]")
-cat(sprintf("%s\n", fi_name))
-cat("[@output_results]")
-cat(sprintf("%s", large_fn))
+cat("[@python_capture_output]")
+cat(sprintf("%s\n", normalizePath(fi_name)))
+cat("[@python_capture_output]")
+cat(sprintf("%s", normalizePath(large_fn)))

@@ -1,8 +1,24 @@
 import os, pandas as pd, tempfile as tf, textwrap as tw, re, io
+from pandas import _typing as pd_typing
 from typing import Tuple
 
+format_for_needle = (
+    lambda x: x.replace("|", "_")
+    .replace("(", "")
+    .replace(")", "")
+    .replace("/", "--")
+    .replace(" ", "---")
+    .replace(":", "----")
+)
+eldeen_rof_tamrof = (
+    lambda x: x.replace("_", "|")
+    .replace("--", "/")
+    .replace("---", " ")
+    .replace("----", ":")
+)
 
 def get_labeled_distance_matrix(input_fasta: str, dir=None) -> Tuple[str, str]:
+    raise DeprecationWarning("Don't use this.")
     if dir is None:
         tf_output = tf.NamedTemporaryFile().name
         tf_matrix = tf.NamedTemporaryFile().name
@@ -21,6 +37,7 @@ def get_labeled_distance_matrix(input_fasta: str, dir=None) -> Tuple[str, str]:
 
 
 def extract_data(tf_matrix: str, tf_output: str, outfile="../mtx_@XX.csv", sort = True):
+    raise DeprecationWarning("Don't use this.")
     with open(tf_matrix, "r") as mat_file:
         unformatted_mtx = mat_file.read().split("\n")[1:-1]
         print(f"[Distance matrix stored at {tf_matrix}")
@@ -32,7 +49,7 @@ def extract_data(tf_matrix: str, tf_output: str, outfile="../mtx_@XX.csv", sort 
     mtx.index = pd.Index([x.upper().replace("---", " ") for x in mtx.index.tolist()])
     mtx.columns = mtx.index.tolist()
     if sort:
-        mtx = mtx.sort_index(0).sort_index(1)
+        mtx = mtx.sort_index(axis=0).sort_index(axis=1)
     if outfile:
         if "@XX" in outfile:
             outfile = outfile.replace("@XX", str(mtx.shape[0]))
@@ -51,7 +68,7 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
         raise RuntimeError("NA for gene_name!")
 
     for _, r in df.iterrows():
-        rows.append(">" + r["gene_name"].replace(" ", "---") + "|" + r["kinase"])
+        rows.append(format_for_needle(">" + r["gene_name"] + "|" + r["kinase"]))
         rows.append("\n")
         rows.append(tw.fill(r["kinase_seq"]))
         rows.append("\n")
@@ -61,7 +78,7 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
     return fasta_out
 
 
-if __name__ == "__main__":
-    f = make_fasta("../../raw_data/kinase_seq_822.txt")
-    matrix, out = get_labeled_distance_matrix(f)
-    extract_data(matrix, out)
+# if __name__ == "__main__":
+#     f = make_fasta("../../raw_data/kinase_seq_822.txt", "tmp.txt")
+#     matrix, out = get_labeled_distance_matrix(f)
+#     extract_data(matrix, out)

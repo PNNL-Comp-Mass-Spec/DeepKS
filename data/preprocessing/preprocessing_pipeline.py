@@ -19,9 +19,9 @@ def os_system_and_get_stdout(cmd):
     """
     cmd: command to run
 
-    NOTE: output line must contain `[@output_results]` to be presented in output
+    NOTE: output line must contain `[@python_capture_output]` to be presented in output
     """
-    TAG = "[@output_results]"
+    TAG = "[@python_capture_output]"
 
     tf = tempfile.TemporaryFile()
     p = subprocess.Popen(cmd, shell=True, stdout=tf)
@@ -65,8 +65,7 @@ def main():
     data_gen_conf = {
         "held_out_percentile": 95,
         "train_percentile": 50,
-        "num_held_out_kins": 60,
-        "pre_split_or_post_split": 'pre' 
+        "num_held_out_kins": 60
     }
 
     print(f"The default preprocessing settings are:\n{pprint.pformat(data_gen_conf)}")

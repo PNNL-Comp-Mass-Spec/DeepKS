@@ -136,10 +136,10 @@
 <li>Run Docker Desktop</li>
 <li>Open up Terminal (Mac, Linux, Windows — preferred) or Powershell (Windows) or Command Prompt (Windows)</li>
 <li>The interface — in an attempt to update the git repository, will ask for your username and password. Fill that in.</li>
-<li>Run the following command:<pre><code class="language-bash">docker run -it benndrucker/deepks
+<li>Run the following command:<pre><code class="language-bash">docker run -it --name deepks-container --network host --hostname deepks-container benndrucker/deepks
 </code></pre>
 </li>
-<li>You should see this prompt: <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>. You are now in the DeepKS container. You must run DeepKS commands from here.</li>
+<li>You should see this prompt: <code class = "inline-bash-output">(base) //deepks-container// [/] ▷ </code>. You are now in the DeepKS container. You must run DeepKS commands from here.</li>
 <li>Run the following command:</li>
 </ol>
 <pre><code class="language-bash">python3 -m DeepKS.examples

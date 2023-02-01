@@ -156,9 +156,10 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 <li>If using HPC cluster, ensure you are SSH'd into the cluster and have run <code>module load apptainer</code>.</li>
 </ul>
 </li>
-<li>Run the following command to start the docker session: <code>docker run -it benndrucker/deepks</code></li>
+<li>For readability and convenience, create an environment variable representing the name of the Docker container. For example, suppose we choose to name the container <code>deepks-container</code>. If your OS is Unix-like, run <code>export HOSTNAME=&quot;deepks-container&quot;</code>. If your shell is Powershell (Windows only), run <code>$HOSTNAME='deepks-container'</code>.</li>
+<li>Run the following command to start the docker session: <code>docker run -it --name $HOSTNAME --network $HOSTNAME benndrucker/deepks</code></li>
 <li>The interface — in an attempt to update the git repository, will ask for your username and password. Fill that in.</li>
-<li>A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@hash// [/] ▷ </code>, where <code>hash</code> is a hexadecimal of the Docker Container. You are now inside the Docker Container at the top-level <code>/</code> directory. See the steps below to run various programs <em>from this prompt</em>.</li>
+<li>A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@deepks-container// [/] ▷ </code>. You are now inside the Docker Container at the top-level <code>/</code> directory. See the steps below to run various programs <em>from this prompt</em>.</li>
 </ol>
 <h2 id="reuse-docker-container">Reuse Docker Container</h2>
 <ol>
