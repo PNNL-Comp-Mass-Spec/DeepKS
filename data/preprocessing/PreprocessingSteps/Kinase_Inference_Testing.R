@@ -37,7 +37,7 @@ read_data <-
       if (include_uniprot_id) {
         x0 <- read_xlsx(data_path) %>%
           transmute(
-            kinase = GENE,
+            kinase = toupper(GENE),
             site = paste0(SUB_GENE, "-", SUB_MOD_RSD),
             flank_seq = gsub("_", "X", toupper(`SITE_+/-7_AA`)),
             uniprot_id = KIN_ACC_ID,
@@ -57,6 +57,7 @@ read_data <-
       }
     }
     
+    x0[] <- lapply(x0, function(x) {return(toupper(x))})
     
     ## Group x0 by kinase; only choose distinct site, flank_seq ----
     if (disct) {
@@ -65,7 +66,7 @@ read_data <-
         group_by(kinase, uniprot_id)
     } else {
       x0 <- x0 %>%
-        group_by(kinase, uniprot_id)
+        group_by(kinase, uniprot_id) # CHECK: Check if this is the correct approach
     }
     
     ## Get top n kinases and sequences ----
