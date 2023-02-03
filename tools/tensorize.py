@@ -220,11 +220,11 @@ def gather_data(
             "val": data.loc[val_ids]["orig_lab_name"].to_list(),
             "test": data.loc[test_ids]["orig_lab_name"].to_list(),
         },
-        "PairIDs": {
-            "train": data.loc[train_ids]["pair_id"].to_list(),
-            "val": data.loc[val_ids]["pair_id"].to_list(),
-            "test": data.loc[test_ids]["pair_id"].to_list()
-        },
+        # "PairIDs": { # FIXME!
+        #     "train": data.loc[train_ids]["pair_id"].to_list(),
+        #     "val": data.loc[val_ids]["pair_id"].to_list(),
+        #     "test": data.loc[test_ids]["pair_id"].to_list()
+        # },
         "classes": classes,
         "class_labels": class_labels,
         "remapping_class_label_dict_inv": remapping_class_label_dict_inv,

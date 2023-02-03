@@ -48,7 +48,7 @@ class IndividualClassifiers:
         device: str,
         args: dict[str, str],
         groups: list[str],
-        kin_fam_grp_file: str = "../data/preprocessing/kin_to_fam_to_grp_817.csv",
+        kin_fam_grp_file: str = "../data/preprocessing/kin_to_fam_to_grp_826.csv",
     ):
         for group in grp_to_model_args:
             assert group in grp_to_interface_args, "No interface args for group %s" % group
@@ -328,7 +328,7 @@ def main():
         #     "AGC",
         #     "TKL",
         # ]
-        groups: list[str] = pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_817.csv")["Group"].unique().tolist()
+        groups: list[str] = pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_826.csv")["Group"].unique().tolist() # FIXME - all - make them configurable
         default_grp_to_model_args = {
             "ll1_size": 50,
             "ll2_size": 25,
@@ -358,7 +358,7 @@ def main():
             device=device,
             args=args,
             groups=groups,
-            kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv",
+            kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
         )
         print("Progress: About to Train")
         fat_model.train(which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename)
@@ -367,7 +367,7 @@ def main():
             args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
         )
         groups = list(fat_model.interfaces.keys())
-    if args["load_include_eval"] is None or args["train"] is None:
+    if args["load_include_eval"] is None and args["train"] is None:
         grp_to_loaders = {
             grp: loader
             for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args["test"])
@@ -390,6 +390,7 @@ def main():
             from_loaded=fat_model.evaluations,
         )
     if args["s"]:
+        print("Progress: Saving State to Disk")
         print("Progress: Saving State to Disk")
         IndividualClassifiers.save_all(
             fat_model, f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}.pkl"

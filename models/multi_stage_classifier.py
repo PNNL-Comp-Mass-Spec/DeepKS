@@ -40,7 +40,7 @@ class MultiStageClassifier:
         input_file = pd.read_csv(Xy_formatted_input_file)
         if predict_mode is False:
             _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
-                "../data/preprocessing/kin_to_fam_to_grp_817.csv"
+                "../data/preprocessing/kin_to_fam_to_grp_826.csv"
             )
         else:
             true_symbol_to_grp_dict = None
@@ -170,7 +170,7 @@ def main(run_args):
         "../data/preprocessing/tr_kins.json",
         "../data/preprocessing/vl_kins.json",
         "../data/preprocessing/te_kins.json",
-        "../data/preprocessing/kin_to_fam_to_grp_817.csv",
+        "../data/preprocessing/kin_to_fam_to_grp_826.csv",
     )
 
     train_kins, eval_kins, train_true, eval_true = (  # type: ignore
