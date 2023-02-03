@@ -1,5 +1,5 @@
 import collections
-import os, pathlib, typing, argparse, textwrap, re
+import os, pathlib, typing, argparse, textwrap, re, itertools
 import sys
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -15,7 +15,9 @@ def make_predictions(
     pre_trained_gc: str = PRE_TRAINED_GC,
     pre_trained_nn: str = PRE_TRAINED_NN,
     device: str = "cpu",
-    scores: bool = False
+    scores: bool = False,
+    dry_run: bool = False,
+    cartesian_product: bool = False
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
@@ -32,13 +34,15 @@ def make_predictions(
         pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
         device (str, optional): Device to use for predictions. Defaults to "cpu".
         scores (bool, optional): Whether to return scores. Defaults to False.
+        dry_run (bool, optional): Whether to run a dry run (make sure input parameters work). Defaults to False.
+        cartesian_product (bool, optional): Whether to make predictions for all combinations of kinases and sites. Defaults to False.
     """
     # try:
         # Input validation
     if True: # FIXME: Use real exception handling
         assert predictions_output_format in ["in_order", "dictionary", "in_order_json", "dictionary_json"]
 
-        assert len(kinase_seqs) == len(site_seqs), (
+        assert len(kinase_seqs) == len(site_seqs) or cartesian_product, (
             f"The number of kinases and sites must be equal. (There are {len(kinase_seqs)} kinases and"
             f" {len(site_seqs)} sites.)"
         )
@@ -54,6 +58,16 @@ def make_predictions(
                 f" {len(site_seq)}. (It was trained on sequences of length 15.)"
             )
             assert site_seq.isalpha(), f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is problematic."
+
+        if cartesian_product:
+            cart_prod = list(itertools.product(kinase_seqs, site_seqs))
+            kinase_seqs = [x[0] for x in cart_prod]
+            site_seqs = [x[1] for x in cart_prod]
+
+
+        if dry_run:
+            print("Status: Dry run successful!")
+            return
 
         # Create (load) multi-stage classifier
         print("Status: Loading previously trained models...")
@@ -71,6 +85,7 @@ def make_predictions(
         assert res is not None or "json" in predictions_output_format
 
         if verbose:
+            assert res is not None
             print()
             print(first_msg := "<"*16 + " REQUESTED RESULTS " + ">"*16 + "\n")
             if all(isinstance(r, dict) for r in res):
@@ -141,6 +156,8 @@ def parse_api() -> dict[str, typing.Any]:
         ),
     }
 
+    ap.add_argument("--cartesian-product", default=False, action="store_true", help=wrap("Whether to perform a cartesian product of the input kinases and sites. Defaults to False."))
+
     ap.add_argument(
         "-p",
         default="in_order",
@@ -169,6 +186,9 @@ def parse_api() -> dict[str, typing.Any]:
     ap.add_argument("--device", type=device, help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
 
     ap.add_argument("--scores", help=wrap("Whether to print the scores of the predictions."), default=False, required=False, action="store_true")
+
+    ap.add_argument("--dry-run", help=wrap("Only validates command line parameters; does not do any computations"), default=False, required=False, action="store_true")
+
     args = ap.parse_args()
     args_dict = vars(args)
     if args_dict['k'] is not None:

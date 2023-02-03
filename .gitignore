@@ -11,7 +11,6 @@ logs/
 **/*.svg
 !doc/link_button.svg
 **/*.gif
-**/*.txt
 **/*.pdf
 **/__pycache__/
 **/*.bin
@@ -73,6 +72,5 @@ images/Excel Matrix/excel_art_formatted.csv
 **/*.tar.bz2
 **/*.tar.xz
 **/*.tar
-!**/kins.txt
-!**/sites.txt
 **/*.gz
+discovery/phosphosites_base.txt
