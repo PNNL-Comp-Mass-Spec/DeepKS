@@ -170,7 +170,7 @@ def get_input_dataframe_helper(
 
     all_data_w_seqs = pd.DataFrame(
         {
-            "orig_lab_name": all_data["original_kinase"],
+            "orig_lab_name": all_data["original_kinase"] + "|" + all_data["uniprot_id"],
             "lab": all_data["lab"],
             "kin_seq": [kin_seqs_dict[k][:] for k in all_data["original_kinase"] + "|" + all_data["uniprot_id"]],
             "seq": all_data["seq"],

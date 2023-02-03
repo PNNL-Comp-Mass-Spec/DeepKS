@@ -100,7 +100,8 @@ set_wd <- function() {
   setwd(path)
 }
 
-set_wd()
+# FIXME
+# set_wd() # DEBUG ONLY
 
 source("Kinase_Inference_Testing.R")
 cat("[R] Reading in data...\n")
