@@ -2,6 +2,7 @@ import os, sys, re, pathlib, pprint, tempfile as tf, pandas as pd
 from . import PreprocessingSteps as PS
 from ...tools import system_tools, get_needle_pairwise as get_pairwise
 from .PreprocessingSteps import get_labeled_distance_matrix as mtx_utils
+from termcolor import colored
 
 # Change working directory to the directory of this file
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -100,7 +101,7 @@ while not input_good:
     elif eval_or_train_on_all.lower() == "t": # type: ignore
         input_good = True
         data_gen_conf = {"train_percentile": 65, "dataframe_generation_mode": "tr-all"}
-        print("Info: Generating dataframe with the following configuration dictionary:")
+        print(colored("Info: Generating dataframe with the following configuration dictionary:", "blue"))
         pprint.pprint(data_gen_conf)
         PS.format_raw_data_DD.get_input_dataframe(
             input_fn=data_filename,

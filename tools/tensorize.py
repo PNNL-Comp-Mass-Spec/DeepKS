@@ -62,6 +62,7 @@ def gather_data(
     ret_info=False,
     n_gram=3,
     device=torch.device("cpu"),
+    eval_batch_size = None
 ) -> Union[
     Tuple[Tuple[int, None, None, None], dict],
     Tuple[
@@ -192,19 +193,21 @@ def gather_data(
         )
     else:
         train_loader = None
+
+    eval_batch_size = len(X_val) if vf > 0 and eval_batch_size is None else len(X_tune) if tuf > 0 and eval_batch_size is None else len(X_test) if tef > 0 and eval_batch_size is None else eval_batch_size
     if vf > 0:
-        val_loader = torch.utils.data.DataLoader(model_utils.KSDataset(X_val, X_val_kin, y_val), batch_size=len(X_val))
+        val_loader = torch.utils.data.DataLoader(model_utils.KSDataset(X_val, X_val_kin, y_val), batch_size=eval_batch_size)
     else:
         val_loader = None
     if tuf > 0:
         tune_loader = torch.utils.data.DataLoader(
-            model_utils.KSDataset(X_tune, X_tune_kin, y_tune), batch_size=len(X_tune)
+            model_utils.KSDataset(X_tune, X_tune_kin, y_tune), batch_size=eval_batch_size
         )
     else:
         tune_loader = None
     if tef > 0:
         test_loader = torch.utils.data.DataLoader(
-            model_utils.KSDataset(X_test, X_test_kin, y_test), batch_size=len(X_test)
+            model_utils.KSDataset(X_test, X_test_kin, y_test), batch_size=eval_batch_size
         )
     else:
         test_loader = None
@@ -220,11 +223,11 @@ def gather_data(
             "val": data.loc[val_ids]["orig_lab_name"].to_list(),
             "test": data.loc[test_ids]["orig_lab_name"].to_list(),
         },
-        # "PairIDs": { # FIXME!
-        #     "train": data.loc[train_ids]["pair_id"].to_list(),
-        #     "val": data.loc[val_ids]["pair_id"].to_list(),
-        #     "test": data.loc[test_ids]["pair_id"].to_list()
-        # },
+        "PairIDs": { # FIXME!
+            "train": data.loc[train_ids]["pair_id"].to_list(),
+            "val": data.loc[val_ids]["pair_id"].to_list(),
+            "test": data.loc[test_ids]["pair_id"].to_list()
+        },
         "classes": classes,
         "class_labels": class_labels,
         "remapping_class_label_dict_inv": remapping_class_label_dict_inv,

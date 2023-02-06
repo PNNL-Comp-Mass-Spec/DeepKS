@@ -101,6 +101,8 @@ def get_needle_pairwise_mtx(
     fasta: str, outfile: str, subset: int = -1, num_procs: int = 4, restricted_combinations: list = []
 ):
     assert len(restricted_combinations) in [0, 2], "Restricted combinations must be a list of two iterables or empty."
+    if len(restricted_combinations) == 2 and (len(restricted_combinations[0]) == 0 or len(restricted_combinations[1]) == 0):
+        return pd.DataFrame()
     fasta_all = re.findall(r">.*\n[^>]+", open(fasta, "r").read())
     if subset == -1:
         subset = len(fasta_all)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import collections
 
 if __name__ == "__main__":
     from .write_splash import write_splash
@@ -9,7 +10,7 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io
+import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io, psutil, numpy as np
 import torch.utils.data, datetime, pickle, pstats  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
@@ -30,6 +31,8 @@ torch.manual_seed(42)
 
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 MAX_SIZE_DS = 4128
+memory_multiplier = 2 ** 6
+EVAL_BATCH_SIZE = int(2**np.floor(np.log2(psutil.virtual_memory().total /(1024**2*memory_multiplier))))
 
 
 def RAISE_ASSERTION_ERROR(x):
@@ -117,7 +120,7 @@ class IndividualClassifiers:
     def _run_dl_core(
         self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None
     ):
-        which_groups.sort()
+        which_groups_ordered = collections.OrderedDict(sorted({x: -1 for x in which_groups}.items()))
         Xy = pd.read_csv(Xy_formatted_input_file)
         if pred_groups is None: # Training
             print("Warning: Using ground truth groups. (Normal for training)")
@@ -128,7 +131,7 @@ class IndividualClassifiers:
             else: # Prediction
                 Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
-        for group in tqdm.tqdm(which_groups, desc="Group Neural Network Evaluation Progress", leave=True, position=0): # Do only if Verbose
+        for group in (pb := tqdm.tqdm(which_groups_ordered.keys(), leave=False, position=1, desc = f"Overall Group Evaluation Progress")): # Do only if Verbose
             yield group, group_df[group]
 
     def train(
@@ -210,6 +213,7 @@ class IndividualClassifiers:
                 n_gram=ng,
                 device= self.device if 'predict_mode' not in evaluation_kwargs or not evaluation_kwargs['predict_mode'] else evaluation_kwargs['device'],
                 maxsize=MAX_SIZE_DS,
+                eval_batch_size = EVAL_BATCH_SIZE
             )
             info_dict_passthrough[group_te] = info_dict
             assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
@@ -299,9 +303,9 @@ class IndividualClassifiers:
                 info_dict_passthrough=info_dict_passthrough
             ):
                 # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
-                jumbled_predictions = self.interfaces[grp].predict(loader, cutoff = 0.5, device=new_args['device']) # TODO: Make adjustable cutoff
+                jumbled_predictions = self.interfaces[grp].predict(loader, cutoff = 0.5, device=new_args['device'], group=grp) # TODO: Make adjustable cutoff
                 new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
-                all_predictions_outputs.update({pair_id: (jumbled_predictions[0][i], jumbled_predictions[1][i])  for pair_id, i in zip(new_info, range(len(new_info)))}) 
+                all_predictions_outputs.update({pair_id: (jumbled_predictions[0][i], jumbled_predictions[1][i], jumbled_predictions[2][i])  for pair_id, i in zip(new_info, range(len(new_info)))}) 
             
             pred_items = sorted(all_predictions_outputs.items(), key=lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))) # Pair # {i}
             return pred_items # TODO: Enable saving

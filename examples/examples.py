@@ -1,9 +1,10 @@
 from ..api import main
 import sys, termcolor
+from termcolor import colored
 
-print("Info: This is an example script for DeepKS. To inspect the sample input files, check the 'examples/sample_inputs' directory.")
+print(colored("Info: This is an example script for DeepKS. To inspect the sample input files, check the 'examples/sample_inputs' directory.", "blue"))
 print()
-print("Info: [Example 1/3] Simulating the following command line from `DeepKS/`:")
+print(colored("Info: [Example 1/3] Simulating the following command line from `DeepKS/`:", "blue"))
 print()
 print(termcolor.colored(" ".join(example_1 := ["python3 -m DeepKS.api.main", "-kf", "../tests/sample_inputs/kins.txt", "-sf", "../tests/sample_inputs/sites.txt", "-p", "dictionary", "-v"]) + "\n", "blue"))
 example_1 = [x.replace("../tests/sample_inputs/", "examples/sample_inputs/") for x in example_1]

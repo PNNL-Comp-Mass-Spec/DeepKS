@@ -1,7 +1,7 @@
 import pathlib, os, traceback
 from numbers import Number
 from typing import Union
-
+from termcolor import colored
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
@@ -110,7 +110,7 @@ def get_input_dataframe_helper(
     order = []
     to_pop_inds = []
 
-    print("Status: Assigning target and decoy with bipartite graph algorithm.")
+    print(colored("Status: Assigning target and decoy with bipartite graph algorithm.", "green"))
     max_seen_end = 0
     max_seen_start = 0
     for kin in start_dict:
