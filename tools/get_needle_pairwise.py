@@ -79,7 +79,9 @@ def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
         tmp_b.flush()
         cmd = f"needleall -asequence {tmp_a.name} -bsequence {tmp_b.name} -auto -aformat3 markx3 -outfile {outfile}"
         # tq.write("Running command")
-        subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+        retcode = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+    if retcode != 0:
+        raise RuntimeError(f"Error: The `needleall` command for running pairwise alignments did not exit with success. For reference, the failed command was:\n\n{cmd}")
     with open(outfile, "r") as f:
         results = {}
         output_lines = f.read()

@@ -208,6 +208,9 @@ class NNInterface:
         avg_loss = []
         self.model.eval()
         outputs = torch.Tensor([-1])
+        if self.device == torch.device('cpu'):
+            input("!!! Warning: About to evaluate using CPU. This may be lengthy and/or crash your computer (due to high RAM use). Press any key to continue anyway (ctrl+c to abort): ")
+
         with torch.no_grad():
             for *X, labels in list(dataloader):
                 X = [x.to(self.device) for x in X]
@@ -548,7 +551,7 @@ class NNInterface:
             for i in range(num_rows):
                 tab.add_row([i, labels[i], predictions[i]])
             print(tab, flush=True)
-        if verbose == 2:
+        if verbose == 2: # FIXME
             json.dump(probabilities, open("../bin/probs.pkl", "w"))
             json.dump(labels, open("../bin/labels.pkl", "w"))
 

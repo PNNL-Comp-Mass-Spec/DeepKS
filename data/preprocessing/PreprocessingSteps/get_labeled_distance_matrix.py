@@ -66,9 +66,10 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
     rows = []
     for _ in df[df["gene_name"].isna()].index:
         raise RuntimeError("NA for gene_name!")
+    df['kinase'] = df['kinase'].replace(float('NaN'), "")
 
     for _, r in df.iterrows():
-        rows.append(format_for_needle(">" + r["gene_name"] + "|" + r["kinase"]))
+        rows.append(format_for_needle(">" + r["gene_name"] + ("|" if r['kinase'] != "" else "") + r["kinase"]))
         rows.append("\n")
         rows.append(tw.fill(r["kinase_seq"]))
         rows.append("\n")

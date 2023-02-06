@@ -40,9 +40,9 @@ def parsing() -> dict[str, str]:
             load_filename = args['load']
             assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."
             assert all([args[x] is None for x in ['train', 'val']]), "If specifying --load argument, cannot specify --train and --val arguments."
-            for f in [test_filename]:
-                assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
-                assert os.path.exists(f), f"Test file '{f}' does not exist."
+            # for f in [test_filename]: # FIXME
+            #     assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
+            #     assert os.path.exists(f), f"Test file '{f}' does not exist."
         else:
             train_filename = args['train']
             val_filename = args['val']

@@ -40,6 +40,7 @@ def make_predictions(
     # try:
         # Input validation
     if True: # FIXME: Use real exception handling
+        print("Status: Validating inputs.")
         assert predictions_output_format in ["in_order", "dictionary", "in_order_json", "dictionary_json"]
 
         assert len(kinase_seqs) == len(site_seqs) or cartesian_product, (
@@ -60,15 +61,15 @@ def make_predictions(
             assert site_seq.isalpha(), f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is problematic."
 
         if cartesian_product:
-            cart_prod = list(itertools.product(kinase_seqs, site_seqs))
-            kinase_seqs = [x[0] for x in cart_prod]
-            site_seqs = [x[1] for x in cart_prod]
+            orig_kin_seq_len = len(kinase_seqs)
+            kinase_seqs = list(itertools.chain(*[[kinase_seqs[i]]*len(site_seqs) for i in range(len(kinase_seqs))]))
+            site_seqs = site_seqs*orig_kin_seq_len
 
 
         if dry_run:
             print("Status: Dry run successful!")
             return
-
+        print("Info: Inputs are valid!")
         # Create (load) multi-stage classifier
         print("Status: Loading previously trained models...")
         group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
@@ -77,7 +78,7 @@ def make_predictions(
 
         print("Status: Beginning Prediction Process...")
         try:
-            res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format, device=device, scores=scores)
+            res = msc.predict(kinase_seqs, site_seqs, predictions_output_format=predictions_output_format, device=device, scores=scores, cartesian_product=cartesian_product)
         except Exception as e:
             print("Status: Predicting Failed!\n\n")
             raise e

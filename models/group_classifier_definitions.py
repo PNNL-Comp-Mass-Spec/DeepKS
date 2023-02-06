@@ -3,7 +3,7 @@ from concurrent.futures import ProcessPoolExecutor as Pool
 from random import seed, shuffle
 from sklearn.pipeline import Pipeline
 from sklearn.neural_network import MLPClassifier
-from typing import Callable, ClassVar, TypeVar, Union, Protocol
+from typing import Union
 import typing
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
@@ -13,7 +13,6 @@ from pprint import pprint  # type: ignore
 from sklearn.utils.validation import check_is_fitted
 from itertools import chain, combinations
 import multiprocessing
-import dill as pickle
 
 def powerset(iterable):
     s = list(iterable)
@@ -30,7 +29,7 @@ os.chdir(where_am_i)
 
 matplotlib.rcParams["font.family"] = "monospace"
 
-KIN_SEQS = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_index("kinase")
+KIN_SEQS = pd.read_csv("../data/raw_data/kinase_seq_826.csv").set_index("kinase")
 MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_826.csv", index_col=0)
 
 class AcceptableClassifier(typing.Protocol):
@@ -196,10 +195,10 @@ def grid_search_no_cv(train_kins, train_true, val_kins, val_true, classifier_typ
 
 
 def custom_run():
-    kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_index(["kinase"])
+    kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_826.csv", sep="\t").set_index(["kinase"])
 
     train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets(
-        "../tools/pairwise_mtx_822.csv",
+        "../tools/pairwise_mtx_826.csv",
         "json/tr.json",
         "json/vl.json",
         "json/te.json",
@@ -238,10 +237,10 @@ def custom_run():
     # M.k_fold_evaluation(model, train_kins + eval_kins, train_true + eval_true)
  
 def run_hp_tuning():
-    kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_822.txt", sep="\t").set_index(["kinase"])
+    kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_826.csv", sep="\t").set_index(["kinase"])
 
     train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets(
-        "../tools/pairwise_mtx_822.csv",
+        "../tools/pairwise_mtx_826.csv",
         "json/tr.json",
         "json/vl.json",
         "json/te.json",
