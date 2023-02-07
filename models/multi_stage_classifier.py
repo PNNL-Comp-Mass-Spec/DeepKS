@@ -151,7 +151,7 @@ class MultiStageClassifier:
             if normalize_scores:
                 max_ = max(numerical_scores)
                 min_ = min(numerical_scores)
-                numerical_scores = [(x - min_) / max_ for x in numerical_scores]
+                numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
             boolean_predictions = [x[1][0] for x in res]
 
         if "dict" in predictions_output_format:
