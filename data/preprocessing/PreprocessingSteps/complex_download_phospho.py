@@ -12,7 +12,7 @@ async def complex_download_phospho():
 	available_organisms_raw = [re.sub("\s+", "", x) for x in available_organisms_raw.split("<li>")][1:]
 	available_organisms_to_url = {re.findall("<em>(.+)<\/em>", re.sub("\s+", "", x))[0]: f"http://kinase.com/web/current/kinbase/genes/speciesID/{re.findall('/SpeciesID/([0-9]+)/', x)[0]}/" for x in available_organisms_raw}
 	print(f"Found {len(available_organisms_to_url)} organisms: {', '.join(available_organisms_to_url.keys())}")
-	pb = tqdm.tqdm(total = len(available_organisms_to_url))
+	pb = tqdm.tqdm(total = len(available_organisms_to_url), colour = 'cyan')
 	lock = asyncio.Lock()
 	async with aiohttp.ClientSession() as session:
 		ret = await asyncio.gather(*[async_get(url, session) for url in available_organisms_to_url.values()])

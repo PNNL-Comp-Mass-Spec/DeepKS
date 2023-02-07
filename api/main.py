@@ -1,7 +1,5 @@
-import collections
-import os, pathlib, typing, argparse, textwrap, re, itertools
+import os, pathlib, typing, argparse, textwrap, re
 from termcolor import colored
-import sys
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -11,13 +9,20 @@ from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
 def make_predictions(
     kinase_seqs: list[str],
+    kinase_gene_names: list[str],
+    kinase_uniprot_accessions: list[str],
     site_seqs: list[str],
+    site_gene_names: list[str],
+    site_uniprot_accessions: list[str],
+    site_locations: list[str],
     predictions_output_format: str = "in_order",
+    suppress_seqs_in_output: bool = False,
     verbose: bool = True,
     pre_trained_gc: str = PRE_TRAINED_GC,
     pre_trained_nn: str = PRE_TRAINED_NN,
     device: str = "cpu",
     scores: bool = False,
+    normalize_scores: bool = False,
     dry_run: bool = False,
     cartesian_product: bool = False,
     group_output: bool = False,
@@ -26,17 +31,24 @@ def make_predictions(
 
     Args:
         kinase_seqs (list[str]): The kinase sequences. Each must be >= 1 and <= 4128 residues long.
+        kinase_gene_names (list[str]): The kinase gene names.
+        kinase_uniprot_accessions (list[str]): The kinase UniProt accessions.
         site_seqs ([str]): The site sequences. Each must be 15 residues long.
+        site_gene_names (list[str]): The site gene names.
+        site_uniprot_accessions (list[str]): The site UniProt accessions.
+        site_locations (list[str]): The phosphorylation site locations.
         predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
             - "in_order" returns a list of predictions in the same order as the input kinases and sites.
             - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
             - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
             - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+        suppress_seqs_in_output (bool, optional): Whether to include the input sequences in the output. Defaults to False.
         verbose (bool, optional): Whether to print predictions. Defaults to True.
         pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
         pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
         device (str, optional): Device to use for predictions. Defaults to "cpu".
         scores (bool, optional): Whether to return scores. Defaults to False.
+        normalize_scores (bool, optional): Whether to normalize scores. Defaults to False.
         dry_run (bool, optional): Whether to run a dry run (make sure input parameters work). Defaults to False.
         cartesian_product (bool, optional): Whether to make predictions for all combinations of kinases and sites. Defaults to False.
         group_output (bool, optional): Whether to return group predictions. Defaults to False.
@@ -87,12 +99,19 @@ def make_predictions(
 
         print(colored("Status: Beginning Prediction Process...", "green"))
         try:
-            res = msc.predict(
+            res = msc.predict(  #### This is the meat of the prediction process!
                 kinase_seqs,
+                kinase_gene_names,
+                kinase_uniprot_accessions,
                 site_seqs,
+                site_gene_names,
+                site_uniprot_accessions,
+                site_locations,
                 predictions_output_format=predictions_output_format,
+                suppress_seqs_in_output=suppress_seqs_in_output,
                 device=device,
                 scores=scores,
+                normalize_scores=normalize_scores,
                 cartesian_product=cartesian_product,
                 group_output=group_output,
             )
@@ -194,6 +213,12 @@ def parse_api() -> dict[str, typing.Any]:
         help="\n".join(wrap("* " + f"{k}: {v}") for k, v in output_choices_helper.items()),
     )
     ap.add_argument(
+        "--suppress-seqs-in-output",
+        default=True,
+        action="store_true",
+        help=wrap("Whether to include the input sequences in the output. Defaults to True."),
+    )
+    ap.add_argument(
         "-v",
         "--verbose",
         help="Whether to print predictions. Defaults to True.",
@@ -250,6 +275,13 @@ def parse_api() -> dict[str, typing.Any]:
         action="store_true",
     )
     ap.add_argument(
+        "--normalize-scores",
+        help=wrap("Whether to normalize the scores in the predictions between 0 and 1"),
+        default=False,
+        required=False,
+        action="store_true",
+    )
+    ap.add_argument(
         "--groups",
         help=wrap("Whether to obtain the groups of the predictions."),
         default=False,
@@ -264,7 +296,10 @@ def parse_api() -> dict[str, typing.Any]:
         action="store_true",
     )
 
-    args = ap.parse_args()
+    ap.add_argument("--kin-info", required=False, help=wrap("Kinase information file"), metavar="<kinase info file>")
+    ap.add_argument("--site-info", required=False, help=wrap("Site information file"), metavar="<site info file>")
+
+    args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
     args_dict = vars(args)
     if args_dict["k"] is not None:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
@@ -284,24 +319,85 @@ def parse_api() -> dict[str, typing.Any]:
     args_dict["predictions_output_format"] = args_dict.pop("p")
     if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
         args_dict["verbose"] = True
-        print(colored('Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"))
+        print(
+            colored(
+                'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
+            )
+        )
     if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
         args_dict["verbose"] = False
-        print(colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue"))
+        print(
+            colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
+        )
+    if args_dict["suppress_seqs_in_output"] and "json" not in args_dict["predictions_output_format"]:
+        print(
+            colored(
+                "Info: `--include-seqs-in-output` is being ignored because the predictions output format is not JSON.",
+                "blue",
+            )
+        )
 
     args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
     args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
-    args_dict['group_output'] = args_dict.pop('groups')
+    args_dict["group_output"] = args_dict.pop("groups")
+    if not args_dict["scores"] and args_dict["normalize_scores"]:
+        print("Info: Ignoring `--normalize-scores` since `--scores` was not set.")
+
+    import pandas as pd
+
+    if args_dict["kin_info"] is None:
+        kinase_info_df = pd.DataFrame(
+            {
+                "gene_name": ["<UNK>"] * len(args_dict["site_seqs"]),
+                "gene_uniprot_id": ["<UNK>"] * len(args_dict["site_seqs"]),
+                "gene_site": ["<UNK>"] * len(args_dict["site_seqs"]),
+            }
+        )
+    else:
+        kinase_info_df = pd.read_csv("../" + args_dict["kin_info"])
+
+    if args_dict["site_info"] is None:
+        site_info_df = pd.DataFrame(
+            {
+                "gene_name": ["<UNK>"] * len(args_dict["kinase_seqs"]),
+                "gene_uniprot_id": ["<UNK>"] * len(args_dict["kinase_seqs"]),
+            }
+        )
+    else:
+        site_info_df = pd.read_csv("../" + args_dict["site_info"])
+
+    assert "gene_name" in kinase_info_df.columns and "gene_uniprot_id" in kinase_info_df.columns, (
+        "Kinase and site information files must have the columns 'gene_name', 'gene_uniprot_id', and 'gene_site'"
+        " respectively."
+    )
+
+    assert (
+        "gene_name" in site_info_df.columns
+        and "gene_uniprot_id" in site_info_df.columns
+        and "gene_site" in site_info_df.columns
+    ), (
+        "Kinase and site information files must have the columns 'gene_name', 'gene_uniprot_id', and 'gene_site'"
+        " respectively."
+    )
+
+    args_dict["kinase_gene_names"] = kinase_info_df["gene_name"].tolist()
+    args_dict["kinase_uniprot_accessions"] = kinase_info_df["gene_uniprot_id"].tolist()
+    args_dict["site_gene_names"] = site_info_df["gene_name"].tolist()
+    args_dict["site_uniprot_accessions"] = site_info_df["gene_uniprot_id"].tolist()
+    args_dict["site_locations"] = site_info_df["gene_site"].tolist()
+
+    del args_dict["kin_info"]
+    del args_dict["site_info"]
 
     return args_dict
 
 
 def _cmd_testing_simulator():
-    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
-    import cloudpickle as pickle, pprint, numpy as np, tqdm
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
@@ -313,7 +409,7 @@ if __name__ in ["__main__"]:
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
-    import cloudpickle as pickle, pprint, numpy as np
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier

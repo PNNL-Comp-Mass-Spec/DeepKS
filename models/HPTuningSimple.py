@@ -1,12 +1,11 @@
 import sys
 
-from SimpleTuner import SimpleTuner
+from ..tools.SimpleTuner import SimpleTuner
 import sys
 import torch
-from NNInterface import *
+from ..tools.NNInterface import *
 import multiprocessing
-from attention_one_layer_k_fold import perform_k_fold
-import json
+from main import perform_k_fold
 
 num_classes = 1
 

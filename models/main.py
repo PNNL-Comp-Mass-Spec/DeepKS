@@ -232,7 +232,7 @@ def perform_k_fold(config, display_within_train = False, process_device = "cpu")
     if process_device == 'cpu':
         input("WARNING: Running without CUDA. Are you sure you want to proceed? Press any key to proceed. (ctrl + c to quit)\n")
 
-    results.append(the_nn.train(train_loader, lr_decay_amount=config['lr_decay_amt'], lr_decay_freq=config['lr_decay_freq'], num_epochs=config['num_epochs'], include_val = True, val_dl = val_loader, fold = 0, maxfold=0, cutoff = cutoff, metric = metric)) 
+    results.append(the_nn.train(train_loader, lr_decay_amount=config['lr_decay_amt'], lr_decay_freq=config['lr_decay_freq'], num_epochs=config['num_epochs'], val_dl = val_loader, cutoff = cutoff, metric = metric)) 
 
     the_nn.test(test_loader, verbose = False, cutoff = cutoff, text=f"Test {metric} on fully held out for model.", metric = metric)
     

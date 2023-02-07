@@ -18,6 +18,7 @@ from ..tools.tensorize import gather_data
 from ..tools.parse import parsing
 from typing import Callable, Generator, Union, Tuple
 from pprint import pprint  # type: ignore
+from termcolor import colored
 
 # s = io.StringIO()
 # load_stats = pstats.Stats(pr, stream=s).sort_stats('tottime')
@@ -131,7 +132,7 @@ class IndividualClassifiers:
             else: # Prediction
                 Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
-        for group in (pb := tqdm.tqdm(which_groups_ordered.keys(), leave=False, position=1, desc = f"Overall Group Evaluation Progress")): # Do only if Verbose
+        for group in (pb := tqdm.tqdm(which_groups_ordered.keys(), leave=False, position=1, desc=colored(f"Overall Group Evaluation Progress", 'cyan'), colour = 'cyan')): # Do only if Verbose
             yield group, group_df[group]
 
     def train(

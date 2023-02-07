@@ -16,6 +16,7 @@ logs/
 **/*.bin
 **/*.fasta
 **/*.RData
+**/*.zip
 *.so
 .gitig-*
 **/.gitig-*

@@ -37,7 +37,7 @@ class MultiStageClassifier:
         )
 
     def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False):
-        print("Prediction Step [1/2]: Sending input kinases to group classifier")
+        print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
         input_file = pd.read_csv(Xy_formatted_input_file)
         if predict_mode is False:
@@ -88,7 +88,15 @@ class MultiStageClassifier:
             self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
             return {}
         else:
-            print("Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]")
+            print(
+                colored(
+                    (
+                        "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
+                        " step [1/2]"
+                    ),
+                    "green",
+                )
+            )
             self.individual_classifiers.evaluations = {}
             newargs["test"] = Xy_formatted_input_file
             res = self.individual_classifiers.roc_evaluation(
@@ -99,11 +107,18 @@ class MultiStageClassifier:
     def predict(
         self,
         kinase_seqs: list[str],
+        kinase_gene_names: list[str],
+        kinase_uniprot_accessions: list[str],
         site_seqs: list[str],
+        site_gene_names: list[str],
+        site_uniprot_accessions: list[str],
+        site_locations: list[str],
         predictions_output_format: str = "in_order",
+        suppress_seqs_in_output: bool = False,
         device: str = "cpu",
         scores: bool = False,
-        cartesian_product: bool = False,
+        normalize_scores: bool = False,
+        cartesian_product: bool = False,  # TODO - Use this if there's a better way of handing cartesian products
         group_output: bool = False,
     ):
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first").reset_index()
@@ -123,7 +138,9 @@ class MultiStageClassifier:
 
         with tf.NamedTemporaryFile("w") as f:
             efficient_to_csv(data_dict, f.name)
-            print(colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green"))
+            print(
+                colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green")
+            )
             self.align_novel_kin_seqs(id_to_seq)
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
             res: Union[list[Tuple[str, Tuple[bool, str]]], None, dict] = self.evaluate(
@@ -131,14 +148,40 @@ class MultiStageClassifier:
             )
             group_predictions = [x[1][2] for x in res]
             numerical_scores = [x[1][1] for x in res]
+            if normalize_scores:
+                max_ = max(numerical_scores)
+                min_ = min(numerical_scores)
+                numerical_scores = [(x - min_) / max_ for x in numerical_scores]
             boolean_predictions = [x[1][0] for x in res]
 
         if "dict" in predictions_output_format:
             ret = [
-                {"Kinase": k, "Site": s, "Prediction": "Target" if p else "Decoy"}
-                | (({} if not scores else {"Score": sc}) | ({} if not group_output else {"Kinase Group Prediction": gp}))
-                for k, s, p, sc, gp in zip(
-                    kinase_seqs, site_seqs, boolean_predictions, numerical_scores, group_predictions
+                {
+                    "Kinase Uniprot Accession": kua,
+                    "Site Uniprot Accession": sua,
+                    "Site Location": sl,
+                    "Kinase Gene Name": kgn,
+                    "Site Gene Name": sgn,
+                    "Prediction": "Target" if p else "Decoy",
+                }
+                | (
+                    (
+                        (({} if not scores else {"Score": sc})
+                        | ({} if not group_output else {"Kinase Group Prediction": gp}))
+                        | ({} if suppress_seqs_in_output else {"Kinase Sequence": k, "Site Sequence": s})
+                    )
+                )
+                for k, s, p, sc, gp, kgn, sgn, kua, sua, sl in zip(
+                    kinase_seqs,
+                    site_seqs,
+                    boolean_predictions,
+                    numerical_scores,
+                    group_predictions,
+                    kinase_gene_names,
+                    site_gene_names,
+                    kinase_uniprot_accessions,
+                    site_uniprot_accessions,
+                    site_locations,
                 )
             ]
         else:
@@ -265,7 +308,10 @@ def efficient_to_csv(data_dict, outfile):
         f.write(headers + "\n")
         lines_written = 1
         for i, row_tuple in tqdm.tqdm(
-            enumerate(zip(*data_dict.values())), total=max_len, desc="Status: Writing prediction queries to tempfile."
+            enumerate(zip(*data_dict.values())),
+            total=max_len,
+            desc=colored("Status: Writing prediction queries to tempfile.", "cyan"),
+            colour="cyan",
         ):
             f.write(",".join([str(x) for x in row_tuple]) + "\n")
             lines_written += 1

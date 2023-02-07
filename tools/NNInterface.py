@@ -8,7 +8,7 @@ from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
 from roc_comparison_modified.auc_delong import delong_roc_test
 from .roc_lambda import get_avg_roc
-
+from termcolor import colored
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
 rcParams["font.family"] = "monospace"
@@ -177,7 +177,7 @@ class NNInterface:
         assert(device != ""), "Device must be specified."
         all_outputs = []
         all_predictions = []
-        for *X, labels in tqdm.tqdm(ld := list(dataloader), desc= f"Status: Eval Progress of {group}", position=0, leave=False):
+        for *X, labels in tqdm.tqdm(ld := list(dataloader), desc=colored(f"Status: Eval Progress of {group}", 'cyan'), position=0, leave=False, colour = 'cyan'):
             # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
             assert torch.equal(labels, torch.Tensor([-1]*len(labels))), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
