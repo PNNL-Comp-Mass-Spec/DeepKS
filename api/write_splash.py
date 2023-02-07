@@ -1,0 +1,1 @@
+/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/models/write_splash.py

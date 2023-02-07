@@ -1,3 +1,5 @@
+import write_splash
+write_splash.write_splash()
 import os, pathlib, typing, argparse, textwrap, re
 from termcolor import colored
 
