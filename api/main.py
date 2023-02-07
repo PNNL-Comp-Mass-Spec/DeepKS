@@ -1,5 +1,6 @@
-import write_splash
-write_splash.write_splash()
+if __name__ == "__main__":
+    from ..splash import write_splash
+    write_splash.write_splash("main_api")
 import os, pathlib, typing, argparse, textwrap, re
 from termcolor import colored
 

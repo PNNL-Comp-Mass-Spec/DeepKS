@@ -2,9 +2,9 @@ from __future__ import annotations
 import collections
 
 if __name__ == "__main__":
-    from .write_splash import write_splash
+    from ..splash.write_splash import write_splash
 
-    write_splash()
+    write_splash("nn_trainer")
     print("Progress: Loading Modules", flush=True)
 
 # import cProfile

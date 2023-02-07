@@ -1,7 +1,7 @@
 if __name__ == "__main__":
-    from .write_splash import write_splash
+    from ..splash.write_splash import write_splash
 
-    write_splash()
+    write_splash('gc_trainer')
     print("Progress: Loading Modules", flush=True)
 import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm
 import sklearn.utils.validation

@@ -67,11 +67,9 @@ data/preprocessing/PreprocessingSteps/complex_organism_phospho.json
 data/preprocessing/PreprocessingSteps/fam_to_num_seq.csv
 images/Group Distributions/fam_to_num_seq.csv
 images/Excel Matrix/excel_art_formatted.csv
-!tools/splash_screen.txt
 !**/*_reprod.svg
 **/*.tar.gz
 **/*.tar.bz2
 **/*.tar.xz
 **/*.tar
 **/*.gz
-discovery/phosphosites_base.txt
