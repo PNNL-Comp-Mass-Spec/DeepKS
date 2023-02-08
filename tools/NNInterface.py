@@ -179,7 +179,7 @@ class NNInterface:
         all_predictions = []
         for *X, labels in tqdm.tqdm(ld := list(dataloader), desc=colored(f"Status: Eval Progress of {group}", 'cyan'), position=0, leave=False, colour = 'cyan'):
             # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
-            assert torch.equal(labels, torch.Tensor([-1]*len(labels))), "Labels must be -1 for prediction."
+            assert torch.equal(labels, torch.Tensor([-1]*len(labels)).to(device)), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
             outputs = self.model(*X)
             

@@ -1,5 +1,6 @@
 if __name__ == "__main__":
     from ..splash import write_splash
+
     write_splash.write_splash("main_api")
 import os, pathlib, typing, argparse, textwrap, re
 from termcolor import colored
@@ -353,7 +354,6 @@ def parse_api() -> dict[str, typing.Any]:
             {
                 "gene_name": ["<UNK>"] * len(args_dict["site_seqs"]),
                 "gene_uniprot_id": ["<UNK>"] * len(args_dict["site_seqs"]),
-                "gene_site": ["<UNK>"] * len(args_dict["site_seqs"]),
             }
         )
     else:
@@ -364,6 +364,7 @@ def parse_api() -> dict[str, typing.Any]:
             {
                 "gene_name": ["<UNK>"] * len(args_dict["kinase_seqs"]),
                 "gene_uniprot_id": ["<UNK>"] * len(args_dict["kinase_seqs"]),
+                "gene_site": ["<UNK>"] * len(args_dict["site_seqs"]),
             }
         )
     else:
@@ -388,6 +389,32 @@ def parse_api() -> dict[str, typing.Any]:
     args_dict["site_gene_names"] = site_info_df["gene_name"].tolist()
     args_dict["site_uniprot_accessions"] = site_info_df["gene_uniprot_id"].tolist()
     args_dict["site_locations"] = site_info_df["gene_site"].tolist()
+
+    if args_dict["cartesian_product"]:
+        a, b, c = (
+            len(args_dict["kinase_seqs"]) * len(args_dict["site_seqs"]),
+            len(args_dict["site_gene_names"]),
+            len(args_dict["kinase_gene_names"]),
+        )
+        msg = (
+            "The following are not all equal: # kinase-seqs--site-seq pairs, len site info, len kinase info (resp."
+            f" {a, b, c})"
+        )
+        assert a == b == c, msg
+
+
+    else:
+        a, b, c, d = (
+            len(args_dict["kinase_seqs"]),
+            len(args_dict["site_seqs"]),
+            len(args_dict["kinase_gene_names"]),
+            len(args_dict["site_gene_names"]),
+        )
+        msg = (
+            "The following are not all equal: # kinase seqs, # site seqs, len of kinase info, len of site info (resp."
+            f" {a, b, c, d})"
+        )
+        assert a == b == c == d, msg
 
     del args_dict["kin_info"]
     del args_dict["site_info"]

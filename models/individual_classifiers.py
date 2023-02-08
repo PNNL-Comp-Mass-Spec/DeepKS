@@ -10,8 +10,8 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io, psutil, numpy as np
-import torch.utils.data, datetime, pickle, pstats  # type: ignore
+import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io, psutil, numpy as np, os
+import torch.utils.data, datetime, cloudpickle as pickle, pickle as orig_pickle, pstats  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -119,7 +119,7 @@ class IndividualClassifiers:
         return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
 
     def _run_dl_core(
-        self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None
+        self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None, tqdm_passthrough: list[Union[None, tqdm.tqdm]] = []
     ):
         which_groups_ordered = collections.OrderedDict(sorted({x: -1 for x in which_groups}.items()))
         Xy = pd.read_csv(Xy_formatted_input_file)
@@ -132,8 +132,11 @@ class IndividualClassifiers:
             else: # Prediction
                 Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
         group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
-        for group in (pb := tqdm.tqdm(which_groups_ordered.keys(), leave=False, position=1, desc=colored(f"Overall Group Evaluation Progress", 'cyan'), colour = 'cyan')): # Do only if Verbose
+        for group in (pb := tqdm.tqdm(which_groups_ordered.keys(), leave=True, position=1, desc=colored(f"Overall Group Evaluation Progress", 'cyan'), colour = 'cyan')): # Do only if Verbose
+            if len(tqdm_passthrough) == 1:
+                tqdm_passthrough[0] = pb
             yield group, group_df[group]
+        print("\r" + " "*os.get_terminal_size()[0], end='\r')
 
     def train(
         self,
@@ -196,7 +199,8 @@ class IndividualClassifiers:
         assert (
             len(info_dict_passthrough) == 0
         )  # and info_dict_passthrough is not None, "Info dict passthrough must be a list of length 1"
-        gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file, pred_groups=pred_groups)
+        tqdm_passthrough = [None]
+        gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file, pred_groups=pred_groups, tqdm_passthrough=tqdm_passthrough)
         count = 0
         for (group_te, partial_group_df_te) in gen_te:
             if len(partial_group_df_te) == 0:
@@ -204,6 +208,9 @@ class IndividualClassifiers:
                 continue
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
+            if len(tqdm_passthrough) == 1:
+                assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+                tqdm_passthrough[0].write(colored("...(Re)loading Memory For Next Group...", 'blue'), end = "\r")
             (_, _, _, test_loader), info_dict = gather_data(
                 partial_group_df_te,
                 trf=0,
@@ -216,6 +223,9 @@ class IndividualClassifiers:
                 maxsize=MAX_SIZE_DS,
                 eval_batch_size = EVAL_BATCH_SIZE
             )
+            if len(tqdm_passthrough) == 1:
+                assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+                tqdm_passthrough[0].write("\r" + " "*os.get_terminal_size()[0], end='\r')
             info_dict_passthrough[group_te] = info_dict
             assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
             if 'predict_mode' not in evaluation_kwargs or not evaluation_kwargs['predict_mode']: 
@@ -239,10 +249,12 @@ class IndividualClassifiers:
     def load_all(path, device=None) -> IndividualClassifiers:
         with open(path, "rb") as f:
             if device is None or "cuda" in device:
-                return torch.load(f)
+                ic: IndividualClassifiers = pickle.load(f)
+                ic.individual_classifiers = {k: v.to(device) for k, v in ic.individual_classifiers.items()}
+                return ic
             else: # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
                 assert device == 'cpu'
-                class CPU_Unpickler(pickle.Unpickler):
+                class CPU_Unpickler(orig_pickle.Unpickler):
                     def find_class(self, module, name):
                         if module == 'torch.storage' and name == '_load_from_bytes':
                             return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
