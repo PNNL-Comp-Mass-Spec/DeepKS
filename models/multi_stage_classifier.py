@@ -39,7 +39,10 @@ class MultiStageClassifier:
     def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
-        input_file = pd.read_csv(Xy_formatted_input_file)
+        if 'test_json' in newargs:
+            input_file = json.load(open(Xy_formatted_input_file))
+        else:
+            input_file = pd.read_csv(Xy_formatted_input_file)
         if predict_mode is False:
             _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
                 "../data/preprocessing/kin_to_fam_to_grp_826.csv"
@@ -48,7 +51,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["orig_lab_name"].unique()
+        unq_symbols = set(input_file["orig_lab_name"])
         if predict_mode is False:
             assert true_symbol_to_grp_dict is not None
             groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
@@ -98,7 +101,7 @@ class MultiStageClassifier:
                 )
             )
             self.individual_classifiers.evaluations = {}
-            newargs["test"] = Xy_formatted_input_file
+            newargs["test" if 'test_json' not in newargs else 'test_json'] = Xy_formatted_input_file
             res = self.individual_classifiers.roc_evaluation(
                 newargs, pred_grp_dict, true_groups=None, predict_mode=True
             )
@@ -107,12 +110,9 @@ class MultiStageClassifier:
     def predict(
         self,
         kinase_seqs: list[str],
-        kinase_gene_names: list[str],
-        kinase_uniprot_accessions: list[str],
+        kin_info: dict,
         site_seqs: list[str],
-        site_gene_names: list[str],
-        site_uniprot_accessions: list[str],
-        site_locations: list[str],
+        site_info:dict,
         predictions_output_format: str = "in_order",
         suppress_seqs_in_output: bool = False,
         device: str = "cpu",
@@ -131,21 +131,28 @@ class MultiStageClassifier:
             "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
             "lab": kinase_seqs,
             "seq": site_seqs,
-            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs))],
+            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs)*len(site_seqs))],
             "class": [-1],
             "num_seqs": ["N/A"],
         }
 
         with tf.NamedTemporaryFile("w") as f:
-            efficient_to_csv(data_dict, f.name)
             print(
                 colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green")
             )
             self.align_novel_kin_seqs(id_to_seq)
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
-            res: Union[list[Tuple[str, Tuple[bool, str]]], None, dict] = self.evaluate(
-                {"test": f.name, "device": device}, f.name, predict_mode=True
-            )
+            if cartesian_product:
+                f.write(json.dumps(data_dict, indent=3))
+                res = self.evaluate(
+                    {"test_json": f.name, "device": device}, f.name, predict_mode=True
+                )
+            else:
+                efficient_to_csv(data_dict, f.name)
+                res = self.evaluate(
+                    {"test": f.name, "device": device}, f.name, predict_mode=True
+                )
+            assert res is not None, "Error: res is None"
             group_predictions = [x[1][2] for x in res]
             numerical_scores = [x[1][1] for x in res]
             if normalize_scores:
@@ -177,11 +184,11 @@ class MultiStageClassifier:
                     boolean_predictions,
                     numerical_scores,
                     group_predictions,
-                    kinase_gene_names,
-                    site_gene_names,
-                    kinase_uniprot_accessions,
-                    site_uniprot_accessions,
-                    site_locations,
+                    [kin_info[k]["Gene Name"] for k in kinase_seqs],
+                    [site_info[s]["Gene Name"] for s in site_seqs],
+                    [kin_info[k]["Uniprot Accession ID"] for k in kinase_seqs],
+                    [site_info[s]["Uniprot Accession ID"] for s in site_seqs],
+                    [site_info[s]["Location"] for s in site_seqs]
                 )
             ]
         else:

@@ -1,7 +1,7 @@
 # %%
 # Imports and formatting
 
-import pandas as pd, numpy as np, re, os, sys, collections, requests, asyncio, aiohttp, itertools, tqdm, time, pathlib
+import pandas as pd, numpy as np, re, os, sys, collections, requests, asyncio, aiohttp, itertools, tqdm, time, pathlib, json
 from typing import List, Coroutine
 from pprint import pprint
 
@@ -201,15 +201,15 @@ kinase_symbol_to_kinase_sequence = collections.OrderedDict(
 kinase_list = [kinase_symbol_to_kinase_sequence[x] for x in relevant_kinase_symbols]
 site_list = list(site_to_site_id.keys())
 
-SMALL_KIN = len(kinase_list)
-SMALL_SITE = len(site_list)
-kinase_symbol_list: list[str] = relevant_kinase_symbols[:SMALL_KIN]
-site_symbol_list: list[str] = list(
-    itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())])
-)[:SMALL_SITE]
+SMALL_KIN = 20  # len(kinase_list)
+SMALL_SITE = 50  # len(site_list)
+kinase_symbol_list = relevant_kinase_symbols[:SMALL_KIN]
+site_symbol_list = list(itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())]))[
+    :SMALL_SITE
+]
 
 kinase_list = kinase_list[:SMALL_KIN]
-site_list = site_list   [:SMALL_SITE]
+site_list = site_list[:SMALL_SITE]
 
 with open(f"site_list_{len(site_list)}.txt", "w") as f, open(f"kinase_list_{len(kinase_list)}.txt", "w") as g:
     f.write("\n".join(site_list))
@@ -221,40 +221,102 @@ with open(f"site_list_{len(site_list)}.txt", "w") as f, open(f"kinase_list_{len(
 # kinase_list = [x[1] for x in site_X_kinase]
 
 # %%
-kinase_gene_names = [x.split("|")[0] for x in kinase_symbol_list]
-kinase_uniprot_ids = [x.split("|")[1] for x in kinase_symbol_list]
-kinase_gene_names = list(
-    itertools.chain(*[[x.split("|")[0]] * SMALL_SITE for x in list(kinase_symbol_to_kinase_sequence.keys())[:SMALL_KIN]])
-)
-kinase_uniprot_ids = list(
-    itertools.chain(*[[x.split("|")[1]] * SMALL_SITE for x in list(kinase_symbol_to_kinase_sequence.keys())[:SMALL_KIN]])
-)
+
+# kinase_gene_names = set([x.split("|")[0] for x in kinase_symbol_list])
+# kinase_uniprot_ids = set([x.split("|")[1] for x in kinase_symbol_list])
+# site_gene_names = set([x.split("|")[0] for x in site_symbol_list])
+# site_uniprot_ids = set([x.split("|")[1] for x in site_symbol_list])
+
+kinase_symbol_list = set(kinase_symbol_list)
+site_symbol_list = set(site_symbol_list)
+
+site_to_info = {}
+
+for site_symbol in site_symbol_list:
+    for i, flank_seq in enumerate(symbol_to_flanking_sites[site_symbol]):
+        site_to_info[flank_seq] = {
+            "Uniprot Accession ID": site_symbol.split("|")[1],
+            "Gene Name": site_symbol.split("|")[0],
+            "Location": symbol_to_location[site_symbol][i],
+        }
+
+kinase_to_info = {
+    kinase_symbol_to_kinase_sequence[kinase_symbol]: {
+        "Uniprot Accession ID": kinase_symbol.split("|")[1],
+        "Gene Name": kinase_symbol.split("|")[0],
+    }
+    for kinase_symbol in kinase_symbol_list
+}
+
+with open(f"compact_kinase_info_{len(kinase_to_info)}.json", "w") as kf, open(
+    f"compact_site_info_{len(site_to_info)}.json", "w"
+) as sf:
+    json.dump(kinase_to_info, kf, indent=3)
+    json.dump(site_to_info, sf, indent=3)
 
 
-site_gene_names = [x.split("|")[0] for x in site_symbol_list]
-site_uniprot_ids = [x.split("|")[1] for x in site_symbol_list]
-site_locations = list(
-    itertools.chain(*[symbol_to_location[x] for x in sorted(list(set(["|".join(x) for x in zip(site_gene_names, site_uniprot_ids)])))])
-)[:SMALL_SITE]*SMALL_KIN
-site_gene_names = list(
-    itertools.chain(*[[x.split("|")[0]] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())])
-)[:SMALL_SITE]*SMALL_KIN
-site_uniprot_ids = list(
-    itertools.chain(*[[x.split("|")[1]] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())])
-)[:SMALL_SITE]*SMALL_KIN
+# kinase_gene_names = list(
+#     itertools.chain(
+#         *[[x.split("|")[0]] * SMALL_SITE for x in list(kinase_symbol_to_kinase_sequence.keys())[:SMALL_KIN]]
+#     )
+# )
+# kinase_uniprot_ids = list(
+#     itertools.chain(
+#         *[[x.split("|")[1]] * SMALL_SITE for x in list(kinase_symbol_to_kinase_sequence.keys())[:SMALL_KIN]]
+#     )
+# )
 
-# %%
-assert len(site_gene_names) == len(site_uniprot_ids) == SMALL_KIN*SMALL_SITE, (len(site_gene_names), len(site_uniprot_ids), SMALL_KIN*SMALL_SITE)
-assert len(site_uniprot_ids) == len(site_locations) == SMALL_KIN*SMALL_SITE, (len(site_uniprot_ids), len(site_locations), SMALL_KIN*SMALL_SITE)
-assert len(site_locations) == len(kinase_gene_names) == SMALL_KIN*SMALL_SITE, (len(site_locations), len(kinase_gene_names))
-assert len(kinase_gene_names) == len(kinase_uniprot_ids) == SMALL_KIN*SMALL_SITE, (len(kinase_gene_names), len(kinase_uniprot_ids), SMALL_KIN*SMALL_SITE)
+# site_locations = (
+#     list(
+#         itertools.chain(
+#             *[
+#                 symbol_to_location[x]
+#                 for x in sorted(list(set(["|".join(x) for x in zip(site_gene_names, site_uniprot_ids)])))
+#             ]
+#         )
+#     )[:SMALL_SITE]
+#     * SMALL_KIN
+# )
+# site_gene_names = (
+#     list(itertools.chain(*[[x.split("|")[0]] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())]))[
+#         :SMALL_SITE
+#     ]
+#     * SMALL_KIN
+# )
+# site_uniprot_ids = (
+#     list(itertools.chain(*[[x.split("|")[1]] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())]))[
+#         :SMALL_SITE
+#     ]
+#     * SMALL_KIN
+# )
 
-# %%
-kin_info_df = pd.DataFrame({"gene_name": kinase_gene_names, "gene_uniprot_id": kinase_uniprot_ids})
-site_info_df = pd.DataFrame(
-    {"gene_name": site_gene_names, "gene_uniprot_id": site_uniprot_ids, "gene_site": site_locations}
-)
+# # %%
+# assert len(site_gene_names) == len(site_uniprot_ids) == SMALL_KIN * SMALL_SITE, (
+#     len(site_gene_names),
+#     len(site_uniprot_ids),
+#     SMALL_KIN * SMALL_SITE,
+# )
+# assert len(site_uniprot_ids) == len(site_locations) == SMALL_KIN * SMALL_SITE, (
+#     len(site_uniprot_ids),
+#     len(site_locations),
+#     SMALL_KIN * SMALL_SITE,
+# )
+# assert len(site_locations) == len(kinase_gene_names) == SMALL_KIN * SMALL_SITE, (
+#     len(site_locations),
+#     len(kinase_gene_names),
+# )
+# assert len(kinase_gene_names) == len(kinase_uniprot_ids) == SMALL_KIN * SMALL_SITE, (
+#     len(kinase_gene_names),
+#     len(kinase_uniprot_ids),
+#     SMALL_KIN * SMALL_SITE,
+# )
 
-# %%
-kin_info_df.to_csv(f"kinase_info_{len(kinase_list)*len(site_list)}.csv", index=False)
-site_info_df.to_csv(f"site_info_{len(kinase_list)*len(site_list)}.csv", index=False)
+# # %%
+# kin_info_df = pd.DataFrame({"gene_name": kinase_gene_names, "gene_uniprot_id": kinase_uniprot_ids})
+# site_info_df = pd.DataFrame(
+#     {"gene_name": site_gene_names, "gene_uniprot_id": site_uniprot_ids, "gene_site": site_locations}
+# )
+
+# # %%
+# kin_info_df.to_csv(f"kinase_info_{len(kinase_list)*len(site_list)}.csv", index=False)
+# site_info_df.to_csv(f"site_info_{len(kinase_list)*len(site_list)}.csv", index=False)

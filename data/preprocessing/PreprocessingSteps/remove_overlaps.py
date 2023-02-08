@@ -31,8 +31,8 @@ def remove_legitimate_duplicates(input_files, rel_sizes):
     for fn in to_drop:
         df = pd.read_csv(fn)
         df.drop(to_drop[fn], axis=0, inplace=True)
-        print("Outputted files:", re.sub("\.csv$", f"_{len(df)}.csv", fn))
-        df.to_csv(tv := re.sub("\.csv$", f"_{len(df)}.csv", fn), index=False)
+        print("Outputted files:", re.sub(r"\.csv$", f"_{len(df)}.csv", fn))
+        df.to_csv(tv := re.sub(r"\.csv$", f"_{len(df)}.csv", fn), index=False)
         to_validate.append(tv)
         os.unlink(fn)
     
@@ -62,6 +62,6 @@ if __name__ == "__main__":
     os.chdir(where_am_i)
 
     inp_list = ["../raw_data_31834_formatted_65.csv", "../raw_data_6500_formatted_95.csv", "../raw_data_6406_formatted_95.csv"]
-    rel_sizes = {y: int(x) for y, x in [(z, re.sub("\.\.\/raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in inp_list]}
+    rel_sizes = {y: int(x) for y, x in [(z, re.sub(r"\.\.\/raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in inp_list]}
     rld = remove_legitimate_duplicates(inp_list, rel_sizes)
     validate_data(rld)

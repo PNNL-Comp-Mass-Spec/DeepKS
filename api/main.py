@@ -2,7 +2,8 @@ if __name__ == "__main__":
     from ..splash import write_splash
 
     write_splash.write_splash("main_api")
-import os, pathlib, typing, argparse, textwrap, re
+import os, pathlib, typing, argparse, textwrap, re, json
+from numpy import require
 from termcolor import colored
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -13,12 +14,9 @@ from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
 def make_predictions(
     kinase_seqs: list[str],
-    kinase_gene_names: list[str],
-    kinase_uniprot_accessions: list[str],
+    kin_info: dict,
     site_seqs: list[str],
-    site_gene_names: list[str],
-    site_uniprot_accessions: list[str],
-    site_locations: list[str],
+    site_info: dict,
     predictions_output_format: str = "in_order",
     suppress_seqs_in_output: bool = False,
     verbose: bool = True,
@@ -35,12 +33,9 @@ def make_predictions(
 
     Args:
         kinase_seqs (list[str]): The kinase sequences. Each must be >= 1 and <= 4128 residues long.
-        kinase_gene_names (list[str]): The kinase gene names.
-        kinase_uniprot_accessions (list[str]): The kinase UniProt accessions.
+        kin_info (dict): The kinase (meta-) information.
         site_seqs ([str]): The site sequences. Each must be 15 residues long.
-        site_gene_names (list[str]): The site gene names.
-        site_uniprot_accessions (list[str]): The site UniProt accessions.
-        site_locations (list[str]): The phosphorylation site locations.
+        site_info (dict): The site (meta-) information.
         predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
             - "in_order" returns a list of predictions in the same order as the input kinases and sites.
             - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
@@ -86,10 +81,10 @@ def make_predictions(
                 " problematic."
             )
 
-        if cartesian_product:
-            orig_kin_seq_len = len(kinase_seqs)
-            kinase_seqs = list(itertools.chain(*[[kinase_seqs[i]] * len(site_seqs) for i in range(len(kinase_seqs))]))
-            site_seqs = site_seqs * orig_kin_seq_len
+        # if cartesian_product:
+        #     orig_kin_seq_len = len(kinase_seqs)
+        #     kinase_seqs = list(itertools.chain(*[[kinase_seqs[i]] * len(site_seqs) for i in range(len(kinase_seqs))]))
+        #     site_seqs = site_seqs * orig_kin_seq_len
 
         if dry_run:
             print(colored("Status: Dry run successful!", "green"))
@@ -105,12 +100,9 @@ def make_predictions(
         try:
             res = msc.predict(  #### This is the meat of the prediction process!
                 kinase_seqs,
-                kinase_gene_names,
-                kinase_uniprot_accessions,
+                kin_info,
                 site_seqs,
-                site_gene_names,
-                site_uniprot_accessions,
-                site_locations,
+                site_info,
                 predictions_output_format=predictions_output_format,
                 suppress_seqs_in_output=suppress_seqs_in_output,
                 device=device,
@@ -120,7 +112,7 @@ def make_predictions(
                 group_output=group_output,
             )
         except Exception as e:
-            print(colored("Status: Predicting Failed!\n\n", "green"))
+            print(colored("\n\nError: Predicting Failed!\n", "red"))
             raise e
 
         assert res is not None or "json" in predictions_output_format
@@ -218,9 +210,10 @@ def parse_api() -> dict[str, typing.Any]:
     )
     ap.add_argument(
         "--suppress-seqs-in-output",
-        default=True,
+        default=False,
+        required = False,
         action="store_true",
-        help=wrap("Whether to include the input sequences in the output. Defaults to True."),
+        help=wrap("Whether to include the input sequences in the output. Defaults to False."),
     )
     ap.add_argument(
         "-v",
@@ -350,84 +343,52 @@ def parse_api() -> dict[str, typing.Any]:
     import pandas as pd
 
     if args_dict["kin_info"] is None:
-        kinase_info_df = pd.DataFrame(
-            {
-                "gene_name": ["<UNK>"] * len(args_dict["site_seqs"]),
-                "gene_uniprot_id": ["<UNK>"] * len(args_dict["site_seqs"]),
-            }
-        )
+        kinase_info_dict = {
+            kinase_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>"}
+            for kinase_seq in args_dict["kinase_seqs"]
+        }
     else:
-        kinase_info_df = pd.read_csv("../" + args_dict["kin_info"])
+        kinase_info_dict = json.load(open("../" + args_dict["kin_info"]))
+        args_dict['kin_info'] = kinase_info_dict
 
     if args_dict["site_info"] is None:
-        site_info_df = pd.DataFrame(
-            {
-                "gene_name": ["<UNK>"] * len(args_dict["kinase_seqs"]),
-                "gene_uniprot_id": ["<UNK>"] * len(args_dict["kinase_seqs"]),
-                "gene_site": ["<UNK>"] * len(args_dict["site_seqs"]),
-            }
-        )
+        site_info_dict = {
+            site_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>", "Location": "<UNK>"}
+            for site_seq in args_dict["site_seqs"]
+        }
     else:
-        site_info_df = pd.read_csv("../" + args_dict["site_info"])
+        site_info_dict = json.load(open("../" + args_dict["site_info"]))
+        args_dict['site_info'] = site_info_dict
 
-    assert "gene_name" in kinase_info_df.columns and "gene_uniprot_id" in kinase_info_df.columns, (
-        "Kinase and site information files must have the columns 'gene_name', 'gene_uniprot_id', and 'gene_site'"
-        " respectively."
+    assert all({"Uniprot Accession ID", "Gene Name"}.issubset(set(kinase_info_dict[kinase_seq].keys())) for kinase_seq in args_dict["kinase_seqs"]), (
+        "Kinase information file must have the columns 'Gene Name' and 'Uniprot Accession ID'"
     )
 
-    assert (
-        "gene_name" in site_info_df.columns
-        and "gene_uniprot_id" in site_info_df.columns
-        and "gene_site" in site_info_df.columns
-    ), (
-        "Kinase and site information files must have the columns 'gene_name', 'gene_uniprot_id', and 'gene_site'"
-        " respectively."
+    assert all({"Uniprot Accession ID", "Gene Name", "Location"}.issubset(set(site_info_dict[site_seq].keys())) for site_seq in args_dict["site_seqs"]), (
+        "Site information file must have the columns 'Gene Name', 'Uniprot Accession ID', and 'Location'"
     )
 
-    args_dict["kinase_gene_names"] = kinase_info_df["gene_name"].tolist()
-    args_dict["kinase_uniprot_accessions"] = kinase_info_df["gene_uniprot_id"].tolist()
-    args_dict["site_gene_names"] = site_info_df["gene_name"].tolist()
-    args_dict["site_uniprot_accessions"] = site_info_df["gene_uniprot_id"].tolist()
-    args_dict["site_locations"] = site_info_df["gene_site"].tolist()
+    assert(all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"]))
+    assert(all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"]))
 
-    if args_dict["cartesian_product"]:
-        a, b, c = (
-            len(args_dict["kinase_seqs"]) * len(args_dict["site_seqs"]),
-            len(args_dict["site_gene_names"]),
-            len(args_dict["kinase_gene_names"]),
-        )
-        msg = (
-            "The following are not all equal: # kinase-seqs--site-seq pairs, len site info, len kinase info (resp."
-            f" {a, b, c})"
-        )
-        assert a == b == c, msg
+    # args_dict["kinase_gene_names"] = list(kinase_info_dict.keys())
+    # args_dict["kinase_uniprot_accessions"] = [kinase_info_dict[kinase_seq]["Uniprot Accession ID"] for kinase_seq in args_dict["kinase_seqs"]]
+    # args_dict["site_gene_names"] = list(site_info_dict.keys())
+    # args_dict["site_uniprot_accessions"] = [site_info_dict[site_seq]["Uniprot Accession ID"] for site_seq in args_dict["site_seqs"]]
+    # args_dict["site_locations"] = [site_info_dict[site_seq]["Location"] for site_seq in args_dict["site_seqs"]]
 
-
-    else:
-        a, b, c, d = (
-            len(args_dict["kinase_seqs"]),
-            len(args_dict["site_seqs"]),
-            len(args_dict["kinase_gene_names"]),
-            len(args_dict["site_gene_names"]),
-        )
-        msg = (
-            "The following are not all equal: # kinase seqs, # site seqs, len of kinase info, len of site info (resp."
-            f" {a, b, c, d})"
-        )
-        assert a == b == c == d, msg
-
-    del args_dict["kin_info"]
-    del args_dict["site_info"]
+    # del args_dict["kin_info"]
+    # del args_dict["site_info"]
 
     return args_dict
 
 
 def _cmd_testing_simulator():
-    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections, json
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
-    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
@@ -439,7 +400,7 @@ if __name__ in ["__main__"]:
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
-    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier

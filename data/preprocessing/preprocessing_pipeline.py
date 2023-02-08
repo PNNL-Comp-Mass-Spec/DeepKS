@@ -39,7 +39,7 @@ def os_system_and_get_stdout(cmd):
             if line != "" and TAG not in line:
                 print(line)
             elif TAG in line:
-                res_out.append(re.sub(f"({TAG})".replace("[", "\[").replace("]", "\]"), "", line))
+                res_out.append(re.sub(f"({TAG})".replace("[", r"\[").replace("]", r"\]"), "", line))
     
     return res_out
 

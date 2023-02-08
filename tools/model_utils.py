@@ -186,7 +186,7 @@ class KSDatasetSiamese(Dataset):
         self.target = target
         self.siamese = siamese
         self.class_ = class_
-        len(self.data) == len(self.target) == len(self.class_) == len(siamese)
+        assert len(self.data) == len(self.target) == len(self.class_) == len(siamese)
 
     def __getitem__(self, index):
         return (self.data[index], self.target[index], self.siamese[index], self.class_[index])

@@ -9,8 +9,8 @@ async def complex_download_phospho():
 	
 	pattern = open("./complex_organism_phospho_regex.txt", "r").read()
 	available_organisms_raw = re.findall(pattern, r.text)[0]
-	available_organisms_raw = [re.sub("\s+", "", x) for x in available_organisms_raw.split("<li>")][1:]
-	available_organisms_to_url = {re.findall("<em>(.+)<\/em>", re.sub("\s+", "", x))[0]: f"http://kinase.com/web/current/kinbase/genes/speciesID/{re.findall('/SpeciesID/([0-9]+)/', x)[0]}/" for x in available_organisms_raw}
+	available_organisms_raw = [re.sub(r"\s+", "", x) for x in available_organisms_raw.split("<li>")][1:]
+	available_organisms_to_url = {re.findall(r"<em>(.+)<\/em>", re.sub(r"\s+", "", x))[0]: f"http://kinase.com/web/current/kinbase/genes/speciesID/{re.findall('/SpeciesID/([0-9]+)/', x)[0]}/" for x in available_organisms_raw}
 	print(f"Found {len(available_organisms_to_url)} organisms: {', '.join(available_organisms_to_url.keys())}")
 	pb = tqdm.tqdm(total = len(available_organisms_to_url), colour = 'cyan')
 	lock = asyncio.Lock()
