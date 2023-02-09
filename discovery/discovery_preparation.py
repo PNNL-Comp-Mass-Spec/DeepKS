@@ -1,6 +1,9 @@
 # %%
 # Imports and formatting
 
+SMALL_KIN = 300
+SMALL_SITE = 1000
+
 import pandas as pd, numpy as np, re, os, sys, collections, requests, asyncio, aiohttp, itertools, tqdm, time, pathlib, json
 from typing import List, Coroutine, Union
 from pprint import pprint
@@ -152,17 +155,6 @@ def main():
         f.write("\n".join(site_list))
         g.write("\n".join(kinase_list))
 
-
-    # site_X_kinase = [(x[0], kinase_symbol_to_kinase_sequence[x[1]]) for x in site_X_kinase_symbol]
-    # site_list = [x[0] for x in site_X_kinase]
-    # kinase_list = [x[1] for x in site_X_kinase]
-
-    # %%
-
-    # kinase_gene_names = set([x.split("|")[0] for x in kinase_symbol_list])
-    # kinase_uniprot_ids = set([x.split("|")[1] for x in kinase_symbol_list])
-    # site_gene_names = set([x.split("|")[0] for x in site_symbol_list])
-    # site_uniprot_ids = set([x.split("|")[1] for x in site_symbol_list])
 
     kinase_symbol_list = set(kinase_symbol_list)
     site_symbol_list = set(site_symbol_list)
