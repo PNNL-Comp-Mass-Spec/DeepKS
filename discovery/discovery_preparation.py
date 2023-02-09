@@ -127,22 +127,21 @@ def main():
     os.chdir(where_am_i)
 
     # %%
-    kinase_symbols = pd.read_csv("../data/raw_data/raw_data_22588.csv")
-    kinase_symbols = kinase_symbols[kinase_symbols["organism"] == "HUMAN"]
+    kinase_symbols = pd.read_csv("../data/raw_data/kinase_seq_494.csv")
     relevant_kinase_symbols: list[str] = sorted(
-        (kinase_symbols["lab"] + "|" + kinase_symbols["uniprot_id"]).unique().tolist()
+        (kinase_symbols["gene_name"] + "|" + kinase_symbols["kinase"]).unique().tolist()
     )
 
     # %%
-    ks = pd.read_csv("../data/raw_data/kinase_seq_826.csv")
+    ks = kinase_symbols
     kinase_symbol_to_kinase_sequence = collections.OrderedDict(
         sorted({ksymb: kseq for ksymb, kseq in zip(ks["gene_name"] + "|" + ks["kinase"], ks["kinase_seq"])}.items())
     )
     kinase_list = [kinase_symbol_to_kinase_sequence[x] for x in relevant_kinase_symbols]
     site_list = list(site_to_site_id.keys())
 
-    SMALL_KIN = 20  # len(kinase_list)
-    SMALL_SITE = 50  # len(site_list)
+    SMALL_KIN = len(kinase_list)
+    SMALL_SITE = len(site_list)
     kinase_symbol_list = relevant_kinase_symbols[:SMALL_KIN]
     site_symbol_list = list(itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())]))[
         :SMALL_SITE
