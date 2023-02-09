@@ -1,9 +1,10 @@
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
-    write_splash('gc_trainer')
+    write_splash("gc_trainer")
     print("Progress: Loading Modules", flush=True)
-import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm
+import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm, itertools
+from torch import NoneType, binary_cross_entropy_with_logits
 import sklearn.utils.validation
 from typing import Union, Tuple
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
@@ -39,7 +40,7 @@ class MultiStageClassifier:
     def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
-        if 'test_json' in newargs:
+        if "test_json" in newargs:
             input_file = json.load(open(Xy_formatted_input_file))
         else:
             input_file = pd.read_csv(Xy_formatted_input_file)
@@ -101,7 +102,7 @@ class MultiStageClassifier:
                 )
             )
             self.individual_classifiers.evaluations = {}
-            newargs["test" if 'test_json' not in newargs else 'test_json'] = Xy_formatted_input_file
+            newargs["test" if "test_json" not in newargs else "test_json"] = Xy_formatted_input_file
             res = self.individual_classifiers.roc_evaluation(
                 newargs, pred_grp_dict, true_groups=None, predict_mode=True
             )
@@ -112,7 +113,7 @@ class MultiStageClassifier:
         kinase_seqs: list[str],
         kin_info: dict,
         site_seqs: list[str],
-        site_info:dict,
+        site_info: dict,
         predictions_output_format: str = "in_order",
         suppress_seqs_in_output: bool = False,
         device: str = "cpu",
@@ -131,7 +132,7 @@ class MultiStageClassifier:
             "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
             "lab": kinase_seqs,
             "seq": site_seqs,
-            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs)*len(site_seqs))],
+            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs))],
             "class": [-1],
             "num_seqs": ["N/A"],
         }
@@ -144,14 +145,10 @@ class MultiStageClassifier:
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
             if cartesian_product:
                 f.write(json.dumps(data_dict, indent=3))
-                res = self.evaluate(
-                    {"test_json": f.name, "device": device}, f.name, predict_mode=True
-                )
+                res = self.evaluate({"test_json": f.name, "device": device}, f.name, predict_mode=True)
             else:
                 efficient_to_csv(data_dict, f.name)
-                res = self.evaluate(
-                    {"test": f.name, "device": device}, f.name, predict_mode=True
-                )
+                res = self.evaluate({"test": f.name, "device": device}, f.name, predict_mode=True)
             assert res is not None, "Error: res is None"
             group_predictions = [x[1][2] for x in res]
             numerical_scores = [x[1][1] for x in res]
@@ -160,8 +157,73 @@ class MultiStageClassifier:
                 min_ = min(numerical_scores)
                 numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
             boolean_predictions = [x[1][0] for x in res]
-
+        print(colored("Status: Predictions Complete!", "green"))
         if "dict" in predictions_output_format:
+            print(colored("Status: Copying Results to Dictionary.", "green"))
+
+            # if cartesian_product:
+            #     kinase_seqs = list(itertools.chain(*[[x]*len(site_seqs) for x in kinase_seqs]))
+            #     site_seqs = list(itertools.chain(*[site_seqs]*len(kinase_seqs)))
+
+            base_kinase_gene_names = [kin_info[k]["Gene Name"] for k in kinase_seqs]
+            base_kinase_uniprot_accession = [kin_info[k]["Uniprot Accession ID"] for k in kinase_seqs]
+            base_site_gene_names = [site_info[s]["Gene Name"] for s in site_seqs]
+            base_site_uniprot_accession = [site_info[s]["Uniprot Accession ID"] for s in site_seqs]
+            base_site_location = [site_info[s]["Location"] for s in site_seqs]
+
+            kinase_gene_names = (
+                base_kinase_gene_names
+                if not cartesian_product
+                else [x for _ in range(len(site_seqs)) for x in base_kinase_gene_names]
+            )
+            site_gene_names = (
+                base_site_gene_names
+                if not cartesian_product
+                else [x for x in base_site_gene_names for _ in range(len(kinase_seqs))]
+            )
+            kinase_uniprot_accession = (
+                base_kinase_uniprot_accession
+                if not cartesian_product
+                else [x for _ in range(len(site_seqs)) for x in base_kinase_uniprot_accession]
+            )
+            site_uniprot_accession = (
+                base_site_uniprot_accession
+                if not cartesian_product
+                else [x for x in base_site_uniprot_accession for _ in range(len(kinase_seqs))]
+            )
+            site_location = (
+                base_site_location
+                if not cartesian_product
+                else [x for x in base_site_location for _ in range(len(kinase_seqs))]
+            )
+            orig_kin_seq_len = len(kinase_seqs)
+            kinase_seqs = (
+                kinase_seqs if not cartesian_product else [x for _ in range(len(site_seqs)) for x in kinase_seqs]
+            )
+            site_seqs = site_seqs if not cartesian_product else [x for x in site_seqs for _ in range(orig_kin_seq_len)]
+            assert all(
+                [
+                    len(x) == len(kinase_seqs)
+                    for x in [
+                        kinase_seqs,
+                        site_seqs,
+                        boolean_predictions,
+                        numerical_scores,
+                        group_predictions,
+                        kinase_gene_names,
+                        site_gene_names,
+                        kinase_uniprot_accession,
+                        site_uniprot_accession,
+                        site_location,
+                    ]
+                ]
+            ), (
+                f"Error: Results lists are not all the same length (Debug: {len(kinase_seqs)} vs {len(kinase_seqs)} vs {len(site_seqs)} vs"
+                f" {len(boolean_predictions)} vs {len(numerical_scores)} vs {len(group_predictions)} vs"
+                f" {len(kinase_gene_names)} vs {len(site_gene_names)} vs {len(kinase_uniprot_accession)} vs"
+                f" {len(site_uniprot_accession)} vs {len(site_location)})"
+            )
+
             ret = [
                 {
                     "Kinase Uniprot Accession": kua,
@@ -173,8 +235,10 @@ class MultiStageClassifier:
                 }
                 | (
                     (
-                        (({} if not scores else {"Score": sc})
-                        | ({} if not group_output else {"Kinase Group Prediction": gp}))
+                        (
+                            ({} if not scores else {"Score": sc})
+                            | ({} if not group_output else {"Kinase Group Prediction": gp})
+                        )
                         | ({} if suppress_seqs_in_output else {"Kinase Sequence": k, "Site Sequence": s})
                     )
                 )
@@ -184,11 +248,11 @@ class MultiStageClassifier:
                     boolean_predictions,
                     numerical_scores,
                     group_predictions,
-                    [kin_info[k]["Gene Name"] for k in kinase_seqs],
-                    [site_info[s]["Gene Name"] for s in site_seqs],
-                    [kin_info[k]["Uniprot Accession ID"] for k in kinase_seqs],
-                    [site_info[s]["Uniprot Accession ID"] for s in site_seqs],
-                    [site_info[s]["Location"] for s in site_seqs]
+                    kinase_gene_names,
+                    site_gene_names,
+                    kinase_uniprot_accession,
+                    site_uniprot_accession,
+                    site_location,
                 )
             ]
         else:
@@ -196,6 +260,7 @@ class MultiStageClassifier:
         if "json" in predictions_output_format:
             now = datetime.datetime.now(tz=dateutil.tz.tzlocal())
             file_name = f"../out/{now.isoformat(timespec='milliseconds', sep='@')}.json"
+            print(colored(f"Info: Writing results to {file_name}.", "blue"))
             json.dump(ret, open(file_name, "w"), indent=2)
         else:
             return ret

@@ -143,10 +143,10 @@ class IndividualClassifiers:
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
             assert isinstance(Xy, pd.DataFrame)
-            group_df = {group: Xy[Xy["Group"] == group] for group in which_groups}
+            group_df = {group: Xy[Xy["Group"] == group] for group in which_groups_ordered}
         else:
             group_df = {}
-            for group in which_groups:
+            for group in tqdm.tqdm(which_groups_ordered, colour='cyan', leave=False, desc=colored("Info: Formatting data for each group", "cyan")):
                 group_df_inner = {}
                 put_in_indices = [i for i, x in enumerate(Xy["Group"]) if x == group]
 
@@ -156,8 +156,7 @@ class IndividualClassifiers:
                 group_df_inner['seq'] = Xy['seq']
                 group_df_inner['pair_id'] = [] # [Xy['pair_id'][j] for j in range(i, i + len(Xy['seq'])) for i in put_in_indices]
                 for i in put_in_indices:
-                    for j in range(i, i + len(Xy['seq'])):
-                        group_df_inner['pair_id'].append(Xy['pair_id'][j])
+                    group_df_inner['pair_id'] += Xy['pair_id'][i*len(Xy['seq']):(i+1)*len(Xy['seq'])]
                 group_df_inner['class'] = Xy['class']
                 group_df_inner['num_seqs'] = ['N/A']
                 
@@ -255,10 +254,7 @@ class IndividualClassifiers:
                 continue
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
-            if len(tqdm_passthrough) == 1:
-                assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
-                tqdm_passthrough[0].write(colored("...(Re)loading Memory For Next Group...", "blue"), end="\r")
-            (_, _, _, test_loader), info_dict = gather_data(
+            for (_, _, _, test_loader), info_dict in gather_data(
                 partial_group_df_te,
                 trf=0,
                 vf=0,
@@ -274,19 +270,26 @@ class IndividualClassifiers:
                 cartesian_product=evaluation_kwargs["cartesian_product"]
                 if "cartesian_product" in evaluation_kwargs
                 else False,
-            )
-            if len(tqdm_passthrough) == 1:
-                assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
-                tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
-            info_dict_passthrough[group_te] = info_dict
-            assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
-            if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
-                self.interfaces[group_te].test(
-                    test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
-                )
-            assert test_loader is not None
-            count += 1
-            yield group_te, test_loader
+                tqdm_passthrough=tqdm_passthrough
+            ):
+                if len(tqdm_passthrough) == 1:
+                    assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+                    # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
+                    tqdm_passthrough[0].write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
+                info_dict_passthrough[group_te] = info_dict
+                info_dict_passthrough['on_chunk'] = info_dict['on_chunk']
+                info_dict_passthrough['total_chunks'] = info_dict['total_chunks']
+                assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
+                if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
+                    self.interfaces[group_te].test(
+                        test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
+                    )
+                assert test_loader is not None
+                count += 1
+                yield group_te, test_loader
+                # if len(tqdm_passthrough) == 1:
+                #     assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+                #     tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
         if count > 0:
             pass
         else:
@@ -377,8 +380,11 @@ class IndividualClassifiers:
             ):
                 # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
                 jumbled_predictions = self.interfaces[grp].predict(
-                    loader, cutoff=0.5, device=new_args["device"], group=grp
+                    loader,int(info_dict_passthrough['on_chunk'] + 1), int(info_dict_passthrough['total_chunks']),cutoff=0.5, device=new_args["device"], group=grp
                 )  # TODO: Make adjustable cutoff
+                del loader
+                if "cuda" in str(self.device):
+                    torch.cuda.empty_cache()
                 new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
                 all_predictions_outputs.update(
                     {

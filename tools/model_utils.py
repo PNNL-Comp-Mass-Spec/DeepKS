@@ -200,12 +200,14 @@ class KSDataset(Dataset):
         self.data = data
         self.target = target
         self.class_ = class_
-        assert len(self.data) == len(self.target) == len(self.class_)
+        assert (data is None and target is None and class_ is None) or (len(self.data) == len(self.target) == len(self.class_))
 
     def __getitem__(self, index):
         return (self.data[index], self.target[index], self.class_[index])
 
     def __len__(self):
+        if self.data is None:
+            return 0
         return len(self.data)
 
 

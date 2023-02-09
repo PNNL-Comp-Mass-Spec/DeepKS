@@ -173,11 +173,11 @@ class NNInterface:
 
             epoch += 1
 
-    def predict(self, dataloader, cutoff=0.5, device="", group="UNKNOWN GROUP") -> Tuple[list, list, list]:
+    def predict(self, dataloader, on_chunk, total_chunks, cutoff=0.5, device="", group="UNKNOWN GROUP") -> Tuple[list, list, list]:
         assert(device != ""), "Device must be specified."
         all_outputs = []
         all_predictions = []
-        for *X, labels in tqdm.tqdm(ld := list(dataloader), desc=colored(f"Status: Eval Progress of {group}", 'cyan'), position=0, leave=False, colour = 'cyan'):
+        for *X, labels in tqdm.tqdm(ld := list(dataloader), desc=colored(f"Status: Eval Progress of {group} [Chunk {on_chunk}/{total_chunks}]", 'cyan'), position=0, leave=False, colour = 'cyan'):
             # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
             assert torch.equal(labels, torch.Tensor([-1]*len(labels)).to(device)), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
