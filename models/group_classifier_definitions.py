@@ -30,8 +30,7 @@ os.chdir(where_am_i)
 
 matplotlib.rcParams["font.family"] = "monospace"
 
-KIN_SEQS = pd.read_csv("../data/raw_data/kinase_seq_826.csv").set_index("kinase")
-MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_826.csv", index_col=0)
+MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_494.csv", index_col=0)
 
 class AcceptableClassifier(typing.Protocol):
     def fit(self, X, y) -> typing.Any:

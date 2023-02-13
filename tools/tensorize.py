@@ -313,7 +313,7 @@ def gather_data(
         MAX_KINASE_PARTITION = 6
         free_ram_and_swap_GB = 0
         DATA_SIZE_MULTIPLIER = 1.7e5 # The approximate size of one kinase-site pair in bytes
-        DATA_SIZE_MULTIPLIER_MULTIPLIER = 3 # Pretend data is 3x larger than the original data
+        DATA_SIZE_MULTIPLIER_MULTIPLIER = 2 # Pretend data is 2x larger than the original data
         DATA_SIZE_MULTIPLIER *= DATA_SIZE_MULTIPLIER_MULTIPLIER
         if str(device) == str(torch.device('cpu')):
             free_ram_and_swap_GB = psutil.virtual_memory().available + psutil.swap_memory().free
@@ -323,7 +323,7 @@ def gather_data(
         MAX_KINASE_PARTITION = int(free_ram_and_swap_GB/(len(data['seq'])*DATA_SIZE_MULTIPLIER))
 
         if device != torch.device('cpu') and 'cuda' not in str(device):
-            print(colored(f"Warning: using {MAX_KINASE_PARTITION} chunks.", "orange"))
+            print(colored(f"Warning: using {MAX_KINASE_PARTITION} chunks.", "red"))
 
         assert MAX_KINASE_PARTITION != 0, "MAX_KINASE_PARTITION is 0. Something went wrong."
         max_num_kins_for_cur_mem = int(free_ram_and_swap_GB / (DATA_SIZE_MULTIPLIER*len(data['seq'])))

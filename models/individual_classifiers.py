@@ -46,11 +46,11 @@ def RAISE_ASSERTION_ERROR(x):
 class IndividualClassifiers:
     def __init__(
         self,
-        grp_to_model_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
-        grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
-        grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable]]],
+        grp_to_model_args: dict[str, dict[str, Union[bool, str, int, float, Callable, type]]],
+        grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, type]]],
+        grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable, type]]],
         device: str,
-        args: dict[str, str],
+        args: dict[str, Union[str, None]],
         groups: list[str],
         kin_fam_grp_file: str = "../data/preprocessing/kin_to_fam_to_grp_826.csv",
     ):
@@ -123,7 +123,7 @@ class IndividualClassifiers:
         which_groups: list[str],
         Xy_formatted_input_file: str,
         pred_groups: Union[None, dict[str, str]] = None,
-        tqdm_passthrough: Union[list[None], list[tqdm.tqdm]] = [],
+        tqdm_passthrough: list[tqdm.tqdm] = [],
         cartesian_product: bool = False,
     ):
         which_groups_ordered = collections.OrderedDict(sorted({x: -1 for x in which_groups}.items()))
@@ -234,10 +234,8 @@ class IndividualClassifiers:
         pred_groups: Union[None, dict[str, str]] = None,
         info_dict_passthrough={},
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
-        assert (
-            len(info_dict_passthrough) == 0
-        )  # and info_dict_passthrough is not None, "Info dict passthrough must be a list of length 1"
-        tqdm_passthrough = [None]
+        assert len(info_dict_passthrough) == 0, "Info dict passthrough must be empty for passing in"
+        tqdm_passthrough = [tqdm.tqdm.__new__(tqdm.tqdm)]
         gen_te = self._run_dl_core(
             which_groups,
             Xy_formatted_input_file,
@@ -414,6 +412,7 @@ def main():
             train_filename = args["train"]
             val_filename = args["val"]
             device = args["device"]
+            assert device is not None
             # groups: list[str] = [
             #     "TK",
             #     "AGC",
@@ -432,7 +431,7 @@ def main():
                 "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
             }
 
-            default_grp_to_interface_args = {
+            default_grp_to_interface_args: dict[str, Union[type, str, float, int]] = {
                 "loss_fn": torch.nn.BCEWithLogitsLoss,
                 "optim": torch.optim.Adam,
                 "model_summary_name": "../architectures/architecture (IC-XX).txt",
@@ -440,13 +439,13 @@ def main():
                 "batch_size": 64,
                 device: device,
                 "n_gram": 1,
-            }
+            } 
 
             default_training_args = {"lr_decay_amount": 0.7, "lr_decay_freq": 3, "num_epochs": 5, "metric": "roc"}
-
+            assert device is not None
             fat_model = IndividualClassifiers(
                 grp_to_model_args={group: default_grp_to_model_args for group in groups},
-                grp_to_interface_args={group: default_grp_to_interface_args for group in groups},
+                grp_to_interface_args={group: default_grp_to_interface_args for group in groups}, # type: ignore # FIXME
                 grp_to_training_args={group: default_training_args for group in groups},
                 device=device,
                 args=args,
@@ -454,6 +453,7 @@ def main():
                 kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
             )
             print("Progress: About to Train")
+            assert val_filename is not None
             fat_model.train(
                 which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename
             )
@@ -463,6 +463,7 @@ def main():
             )
             groups = list(fat_model.interfaces.keys())
         if args["load_include_eval"] is None and args["train"] is None:
+            assert fat_model.args["test"] is not None
             grp_to_loaders = {
                 grp: loader
                 for grp, loader in fat_model.evaluate(

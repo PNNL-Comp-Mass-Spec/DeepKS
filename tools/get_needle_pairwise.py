@@ -123,9 +123,12 @@ def get_needle_pairwise_mtx(
             strs_a.append(format_for_needle("".join(list(set(fastas_a[i : i + group_size])))))
             strs_b.append(format_for_needle("".join(list(set(fastas_b[i : i + group_size])))))
     else:
+        # print(fastas[:10])
         name_to_seq = {format_for_needle(x.split("\n")[0].split(">")[1].upper()): "\n".join(x.split("\n")[1:]).strip() for x in fastas}
         fastas_a = [format_for_needle(x) for x in restricted_combinations[0]]
         fastas_b = [format_for_needle(x) for x in restricted_combinations[1]]
+        # print(fastas_a, fastas_b)
+        # print({(k, v[:10]) for k, v in name_to_seq.items()})
         fastas_a = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_a]
         fastas_b = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_b]
         # assert len(fastas_a) >= num_procs, "Number of sequences must be >= the number of processes (for now)" # TODO: can improve splitting

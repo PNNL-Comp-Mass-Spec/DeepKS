@@ -345,7 +345,7 @@ def perform_k_fold(config, display_within_train=False, process_device="cpu"):
 
     tokdict = json.load(open("json/tok_dict.json", "rb"))
     tokdict["-"] = tokdict["<PADDING>"]
-
+    assert train_filename is not None
     (train_loader, _, _, _), info_dict_tr = gather_data(
         train_filename,
         trf=1,
@@ -358,6 +358,7 @@ def perform_k_fold(config, display_within_train=False, process_device="cpu"):
         device=torch.device(process_device),
         maxsize=KIN_LEN,
     )
+    assert val_filename is not None
     (_, val_loader, _, _), info_dict_vl = gather_data(
         val_filename,
         trf=0,
@@ -373,6 +374,7 @@ def perform_k_fold(config, display_within_train=False, process_device="cpu"):
     NUM_EMBS = 22
 
     results = []
+    assert test_filename is not None
     (_, _, _, test_loader), info_dict_te = gather_data(
         test_filename,
         trf=0,
@@ -526,5 +528,5 @@ if __name__ == "__main__":
         "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
         "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
     }
-
+    assert args['device'] is not None
     perform_k_fold(cf, display_within_train=True, process_device=args["device"])

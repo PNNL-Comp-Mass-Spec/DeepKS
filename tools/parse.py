@@ -1,8 +1,9 @@
 import argparse, re, os, torch, pathlib
+from typing import Union
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(os.path.join(os.path.abspath(os.path.join(where_am_i, os.pardir)), "models"))
 
-def parsing() -> dict[str, str]:
+def parsing() -> dict[str, Union[str, None]]:
     print("Progress: Parsing Arguments")
     global train_filename, val_filename, test_filename
     parser = argparse.ArgumentParser()

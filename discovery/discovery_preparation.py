@@ -3,6 +3,7 @@
 
 SMALL_KIN = 300
 SMALL_SITE = 1000
+KIN_LEN_MAX = 4128
 
 import pandas as pd, numpy as np, re, os, sys, collections, requests, asyncio, aiohttp, itertools, tqdm, time, pathlib, json
 from typing import List, Coroutine, Union
@@ -128,6 +129,7 @@ def main():
 
     # %%
     kinase_symbols = pd.read_csv("../data/raw_data/kinase_seq_494.csv")
+    kinase_symbols = kinase_symbols[kinase_symbols["kinase_seq"].apply(lambda x: len(x)) <= KIN_LEN_MAX]
     relevant_kinase_symbols: list[str] = sorted(
         (kinase_symbols["gene_name"] + "|" + kinase_symbols["kinase"]).unique().tolist()
     )

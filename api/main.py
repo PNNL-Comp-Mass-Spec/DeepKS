@@ -64,13 +64,11 @@ def make_predictions(
         )
         for i, kinase_seq in enumerate(kinase_seqs):
             assert 1 <= len(kinase_seq) <= 4128, (
-                f"DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index {i} ---"
-                f" {kinase_seq[i][:10]} is {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
+                f"Warning: DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index {i} ---"
+                f" {kinase_seq[0:10]}... is {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
             )
-            assert kinase_seq.isalpha(), (
-                f"Kinase sequences must only contain letters. The input kinase at index {i} --- {kinase_seq[i][:10]}..."
-                " is problematic."
-            )
+            f"Kinase sequences must only contain letters. The input kinase at index {i} --- {kinase_seq[:10]}..."
+            " is problematic."
         for i, site_seq in enumerate(site_seqs):
             assert len(site_seq) == 15, (
                 f"DeepKS currently only accepts site sequences of length 15. The input site at index {i} ---"

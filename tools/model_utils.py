@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from termcolor import colored
+from typing import Union
 
 
 rcParams["font.family"] = "monospace"
@@ -98,23 +99,25 @@ class cNNUtils:
         desired_height,
         kernel_size=None,
         stride=None,
-        dilation=1,
-        pad=0,
+        dilation: Union[int, None]=1,
+        pad: Union[int, tuple[int, int]]=0,
         err_message="",
     ):
         if not isinstance(kernel_size, tuple):
             kernel_size = (kernel_size, kernel_size)
         if not isinstance(stride, tuple):
             stride = (stride, stride)
-        if not isinstance(pad, tuple):
-            pad = (pad, pad)
+        if isinstance(pad, int):
+            pad_tuple: tuple[int, int] = (pad, pad)
+        else:
+            pad_tuple = pad
         # if kernel_size not in [None, (None, None)] and stride not in [None, (None, None)]:
         #     raise RuntimeError("Cannot specify both kernel size and stride.")
         # if kernel_size in [None, (None, None)] and stride in [None, (None, None)]:
         #     raise RuntimeError("Must specify one of kernel size or stride.")
         if dilation is None:
             raise RuntimeError("Must specify dilation.")
-        if pad is None:
+        if pad_tuple == (None, None):
             raise RuntimeError("Must specify pad.")
         input_height_flag = True
         if input_height is None:
@@ -155,8 +158,8 @@ class cNNUtils:
         if stride in [None, (None, None)]:  # specified kernel size, need to obtain stride size
             stride_range = []
             for desired_w, desired_h in zip(values_to_check_w, values_to_check_h):
-                s_w = (input_width + 2 * pad[0] - 1 + dilation) / (desired_w - 1 + dilation)
-                s_h = (input_height + 2 * pad[1] - 1 + dilation) / (desired_h - 1 + dilation)
+                s_w = (input_width + 2 * pad_tuple[0] - 1 + dilation) / (desired_w - 1 + dilation)
+                s_h = (input_height + 2 * pad_tuple[1] - 1 + dilation) / (desired_h - 1 + dilation)
                 stride_range.append((s_w, s_h))
 
             stride_res = [0, 0]

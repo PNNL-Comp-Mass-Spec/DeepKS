@@ -527,7 +527,7 @@ class NNInterface:
         return labels2, outputs2, rand_outputs
 
     def test(
-        self, test_loader, verbose: Union[bool, int] = True, savefile=True, cutoff=0.5, text="Test Accuracy of the model", metric="acc"
+        self, test_loader, verbose: Union[bool, int] = True, savefile=True, cutoff: Union[float, None]=0.5, text="Test Accuracy of the model", metric="acc"
     ) -> None:
         "Verbosity: False = No table of first n predictions, True = Show first n predictions, 2 = `pickle` probabilities and labels"
 

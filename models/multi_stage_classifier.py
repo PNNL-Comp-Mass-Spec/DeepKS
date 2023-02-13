@@ -17,6 +17,7 @@ from sklearn.neural_network import MLPClassifier
 from ..api.cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from sklearn.utils.validation import check_is_fitted
 from termcolor import colored
+from io import StringIO 
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -141,7 +142,7 @@ class MultiStageClassifier:
             print(
                 colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green")
             )
-            self.align_novel_kin_seqs(id_to_seq)
+            self.align_novel_kin_seqs(id_to_seq) # existing_seqs = pd.read_csv("../data/raw_data/kinase_seqs_494.csv").index.tolist()
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
             if cartesian_product:
                 f.write(json.dumps(data_dict, indent=3))
@@ -266,15 +267,21 @@ class MultiStageClassifier:
             return ret
 
     def align_novel_kin_seqs(
-        self, kin_id_to_seq: dict[str, str], existing_seqs="../data/raw_data/kinase_seq_826.csv"
+        self, kin_id_to_seq: dict[str, str], existing_seqs=["../data/raw_data/kinase_seq_826.csv", "../data/raw_data/kinase_seq_494.csv"]
     ) -> None:
         train_kin_list = self.group_classifier.X_train
-        existing_seqs_to_known_ids = pd.read_csv(existing_seqs)
+        existing_seqs_to_known_ids = pd.concat([pd.read_csv(existing_seq) for existing_seq in existing_seqs], ignore_index=True) # TODO - fix variable names
+        existing_seqs_to_known_ids.drop(columns=['symbol'], inplace=True)
+        existing_seqs_to_known_ids.drop_duplicates(inplace=True, keep = 'first')
         existing_seqs_to_known_ids["Symbol"] = (
             existing_seqs_to_known_ids["gene_name"] + "|" + existing_seqs_to_known_ids["kinase"]
         )
+        new_filename = existing_seqs = f"../data/raw_data/kinase_seq_{len(existing_seqs_to_known_ids)}.csv"
+        existing_seqs_to_known_ids.to_csv(new_filename, index=False)
         existing_seqs_to_known_ids = existing_seqs_to_known_ids.set_index("kinase_seq").to_dict()["Symbol"]
         val_kin_list = [x for x in kin_id_to_seq if kin_id_to_seq[x] not in existing_seqs_to_known_ids]
+        if len(val_kin_list) == 0:
+            print(colored("Info: Leveraging pre-computed pairwise alignment scores!", "blue"))
         additional_name_dict = {
             x: existing_seqs_to_known_ids[kin_id_to_seq[x]]
             for x in kin_id_to_seq
@@ -298,7 +305,7 @@ class MultiStageClassifier:
                     novel_df = get_needle_pairwise_mtx(
                         combined_fasta.name,
                         temp_mtx_out.name,
-                        num_procs=1,
+                        num_procs=6,
                         restricted_combinations=[train_kin_list, val_kin_list],
                     )
         novel_df.rename(
@@ -310,7 +317,6 @@ class MultiStageClassifier:
             grp_pred.MTX.loc[additional_name] = grp_pred.MTX.loc[additional_name_dict[additional_name]]
 
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
-
 
 def main(run_args):
     train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
