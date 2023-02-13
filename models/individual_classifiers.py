@@ -16,6 +16,7 @@ from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 from ..tools.parse import parsing
+from ..tools import file_names
 from typing import Callable, Generator, Union, Tuple
 from pprint import pprint  # type: ignore
 from termcolor import colored
@@ -346,7 +347,7 @@ class IndividualClassifiers:
             NNInterface.get_combined_rocs_from_individual_models(
                 self.interfaces,
                 grp_to_loaders,
-                f"../images/Evaluation and Results/ROC_{datetime.datetime.now().isoformat()}",
+                f"../images/Evaluation and Results/ROC_{file_names.get()}",
                 retain_evals=self.evaluations,
                 grp_to_loader_true_groups={
                     grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]]
@@ -357,8 +358,8 @@ class IndividualClassifiers:
         elif not predict_mode:
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
-                savefile=f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}"
-                + datetime.datetime.now().isoformat()
+                savefile=f"../bin/saved_state_dicts/indivudial_classifiers_{file_names.get()}"
+                + file_names.get()
                 + ".pkl",
                 from_loaded=self.evaluations,
             )
@@ -399,7 +400,7 @@ class IndividualClassifiers:
         if self.args["s"]:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
-                self, f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + ".pkl"
+                self, f"../bin/saved_state_dicts/indivudial_classifiers_{file_names.get()}" + ".pkl"
             )
 
 
@@ -472,7 +473,7 @@ def main():
             }
             # Working dataloaders
             with open(
-                f"../bin/saved_state_dicts/test_grp_to_loaders_{datetime.datetime.now().isoformat()}.pkl", "wb"
+                f"../bin/saved_state_dicts/test_grp_to_loaders_{file_names.get()}.pkl", "wb"
             ) as f:
                 pickle.dump(grp_to_loaders, f)
             # raise RuntimeError("Done")
@@ -480,19 +481,19 @@ def main():
             NNInterface.get_combined_rocs_from_individual_models(
                 fat_model.interfaces,
                 grp_to_loaders,
-                f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
+                f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
                 retain_evals=fat_model.evaluations,
             )
         elif args["train"] is None:
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
-                savefile=f"../images/Evaluation and Results/ROC_indiv_{datetime.datetime.now().isoformat()}",
+                savefile=f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
                 from_loaded=fat_model.evaluations,
             )
         if args["s"]:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
-                fat_model, f"../bin/indivudial_classifiers_{datetime.datetime.now().isoformat()}.pkl"
+                fat_model, f"../bin/indivudial_classifiers_{file_names.get()}.pkl"
             )
     except Exception as e:
         print("Exception Occured.")

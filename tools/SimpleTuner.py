@@ -10,7 +10,7 @@ import warnings
 import re
 import json
 import pathlib
-import datetime
+from . import file_names
 
 
 class SimpleTuner:
@@ -45,7 +45,7 @@ class SimpleTuner:
         self.sampled_config_dicts = [{k:v for k, v in zip(self.config_dict.keys(), samples[i])} for i in range(len(samples))]
         not_chosen = [x for x in cart_prod if x not in samples]
         not_chosen_config_dicts = [{k:v for k, v in zip(self.config_dict.keys(), not_chosen[i])} for i in range(len(not_chosen))]
-        print(f"{len(samples)} out of {len(samples) + len(not_chosen)} were picked. See {(fn := f'../logs/leftover-configs-{datetime.datetime.now().isoformat()}.log')} for leftover configurations.")
+        print(f"{len(samples)} out of {len(samples) + len(not_chosen)} were picked. See {(fn := f'../logs/leftover-configs-{file_names.get()}.log')} for leftover configurations.")
         with open(fn, "w") as f:
             f.write("\n".join([str(x) for x in not_chosen_config_dicts]) + "\n")
         k_outer = -1

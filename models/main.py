@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 from ..tools.tensorize import gather_data
 from ..tools.NNInterface import NNInterface
+from ..tools import file_names
 from matplotlib import rcParams
 from ..tools.formal_layers import Concatenation, Multiply, Transpose
 import numpy as np
@@ -453,8 +454,8 @@ def perform_k_fold(config, display_within_train=False, process_device="cpu"):
         test_loader, verbose=False, cutoff=cutoff, text=f"Test {metric} on fully held out for model.", metric=metric
     )
 
-    the_nn.save_model(f"../bin/saved_state_dicts/{(now := datetime.datetime.now().isoformat())}.pkl")
-    the_nn.save_eval_results(test_loader, f"../res/{now}.json", kin_order=kinase_order[2])
+    the_nn.save_model(f"../bin/saved_state_dicts/{(fn := file_names.get())}.pkl")
+    the_nn.save_eval_results(test_loader, f"../res/{fn}.json", kin_order=kinase_order[2])
     the_nn.get_all_rocs(
         train_loader,
         val_loader,
