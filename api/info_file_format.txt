@@ -1,0 +1,19 @@
+Kinase information file. Must be able to be read as JSON. Structure must be
+
+    [
+        {
+        "<sequence>":
+            {"Uniprot Accession ID": "<uniprot acc id>",
+            {"Gene Name": "<gene name>"}
+        },
+        {
+        "<sequence>":
+            {"Uniprot Accession ID": "<uniprot acc id>",
+            {"Gene Name": "<gene name>"}
+        },
+        .
+        .
+        .
+    ]
+
+    

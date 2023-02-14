@@ -15,41 +15,6 @@
 	display: none;
 }
 
-/* From extension ms-toolsai.jupyter */
-/* These classnames are inherited from bootstrap, but are present in most notebook renderers */
-
-.alert {
-    width: auto;
-    padding: 1em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-.alert > *:last-child {
-    margin-bottom: 0;
-}
-#preview > .alert:last-child {
-    /* Prevent this being set to zero by the default notebook stylesheet */
-    padding-bottom: 1em;
-}
-
-.alert-success {
-    /* Note there is no suitable color available, so we just copy "info" */
-    background-color: var(--theme-info-background);
-    color: var(--theme-info-foreground);
-}
-.alert-info {
-    background-color: var(--theme-info-background);
-    color: var(--theme-info-foreground);
-}
-.alert-warning {
-    background-color: var(--theme-warning-background);
-    color: var(--theme-warning-foreground);
-}
-.alert-danger {
-    background-color: var(--theme-error-background);
-    color: var(--theme-error-foreground);
-}
-
 </style>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
 <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
@@ -116,57 +81,80 @@
 <ol>
 <li>See the <a href="https://ben-drucker.gitlab.io/deepks-rename-trial/doc/quickstart.html">Quickstart guide</a>.</li>
 </ol>
-<h2 id="colors-in-this-manual">Colors in this manual</h2>
+<h1 id="colors-in-this-manual">Colors in this manual</h1>
 <ul>
 <li><code>This style is used for code the user should run.</code></li>
-<li><code class = "inline-bash-output">This style is used to represent the potential output of a command.</code></li>
+<li><code class = "inline-bash-output">This style is used to represent the desired output of a command.</code></li>
 </ul>
-<h2 id="general-notes-relating-to-devices-read-before-running-any-program">General Notes Relating to Devices (Read before running any program)</h2>
-<h3 id="does-my-computer-have-a-cuda-compatible-gpu">Does My Computer Have a CUDA-compatible GPU?</h3>
+<h1 id="general-notes-relating-to-devices-read-before-running-any-program">General Notes Relating to Devices (Read before running any program)</h1>
+<h2 id="does-my-computer-have-a-cuda-compatible-gpu">Does My Computer Have a CUDA-compatible GPU?</h2>
 <p>If you're not sure, follow the instructions <a href="https://askubuntu.com/a/1273434">here</a>.</p>
-<h3 id="if-running-on-personal-computer-with-cuda">If Running On Personal Computer with CUDA</h3>
+<h2 id="follow-one-of-the-cases-below">Follow <strong>one</strong> of the cases below.</h2>
+<h3 id="case-a-running-on-personal-computer-with-cuda">Case A: Running On Personal Computer with CUDA</h3>
 <p>If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster).</p>
 <p>Most likely, your computer will be running Windows. If this is the case, there is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:</p>
 <ol>
 <li>Go through the steps in the <a href="https://ben-drucker.gitlab.io/deepks/doc/cuda_installation.html">auxillary help page</a>.</li>
 </ol>
-<p>In the case you are running Linux, no extra setup is required and you may skip to § <a href="#terminology">Terminology</a>.</p>
-<h3 id="if-running-on-personal-computer-without-cuda">If Running On Personal Computer without CUDA</h3>
+<h3 id="case-b-running-on-personal-computer-without-cuda">Case B: Running On Personal Computer without CUDA</h3>
 <ol>
 <li>Download Docker here <a href="https://www.docker.com/products/docker-desktop/">https://www.docker.com/products/docker-desktop/</a> and follow the installation instructions for your operating system.</li>
 </ol>
-<h3 id="if-running-on-hpc-cluster">If Running On HPC Cluster</h3>
-<p><em><strong>Note: These instructions are specific to the PNNL &quot;deception&quot; cluster (it assumes <code>module</code> and <code>apptainer</code> are preinstalled). It also assumes you have an active account.</strong></em></p>
-<ol>
-<li>Open a terminal SSH into the cluster with <code>ssh &lt;username&gt;@deception.pnnl.gov</code>, making sure to replace <code>&lt;username&gt;</code> with your actual username.</li>
+<h3 id="case-c-running-on-hpc-cluster">Case C: Running On HPC Cluster</h3>
+<p><em><strong>Note: These instructions are specific to the PNNL &quot;deception&quot; cluster (it assumes <code>module</code> and <code>apptainer</code> are preinstalled and configured appropriately). It also assumes you have an active account.</strong></em></p>
+<ol start="0">
+<li>Make sure you are connected to the cluster's VPN. (In the case of PNNL, make sure you are on campus or connected to the Onekey VPN.)</li>
+<li>Open a terminal SSH into the cluster with <code>ssh &lt;username&gt;@deception</code>, making sure to replace <code>&lt;username&gt;</code> with your actual username.</li>
 <li>Download the interactive Slurm script by running <code>cd ~ &amp;&amp; wget https://gitlab.com/Ben-Drucker/deepks/-/raw/main/hpc/.interactive_slurm_script.py?inline=false</code></li>
-<li>Run <code>python .interactive_slurm_script.py</code></li>
+<li>Run <code>python .interactive_slurm_script.py</code>. This will request an interactive session on a compute node.</li>
+<li>Ensure your session is loaded (i.e., that you are now in a terminal on the HPC. You can check this by running <code>hostname</code>. It should no longer be <code>deception0X</code>.)</li>
 <li>Run <code>module load apptainer</code> to load Apptainer.</li>
-<li>Run <code>apptainer pull benndrucker/deepks:latest</code> to pull the Docker image.</li>
-<li>Run <code>apptainer shell --nv benndrucker/deepks:latest</code> to start the Docker container (in Apptainer).</li>
 </ol>
+<h1 id="getting-started-with-docker">Getting Started with Docker</h1>
 <h2 id="terminology"> Terminology </h2>
 Please read this explanation: "[An image is a blueprint for a snapshot of a 'system-in-a-system' (similar to a virtual machine).] An instance of an image is called a container...If you start this image, you have a running container of this image. You can have many running containers of the same image." ~ <a href="https://stackoverflow.com/a/23736802/16158339">Thomas Uhrig and Alex Telon's post</a>
-<h2 id="pull-docker-image">Pull Docker Image</h2>
+<h2 id="follow-one-of-the-cases-below">Follow <strong>one</strong> of the cases below.</h2>
+<h3 id="case-ab-running-on-personal-computer">Case A/B: Running On Personal Computer</h3>
 <ol>
-<li>
-<ul>
-<li>If running on a personal computer, ensure Docker Desktop (Installed above) is running and a terminal is open.</li>
-<li>If using WSL on Windows, ensure WSL is running.</li>
-<li>If using HPC cluster, ensure you are SSH'd into the cluster and have run <code>module load apptainer</code>.</li>
-</ul>
+<li>If using WSL, make sure it is running. Otherwise, ensure Docker Desktop (Installed above) is running and a terminal is open.</li>
+<li>Run the following command to start the docker session: <code>docker run -it --name deepks-container --network host --hostname deepks-container benndrucker/deepks</code>.
+<ol>
+<li>The name <code>deepks-container</code> is arbitrary. You can name it whatever you want. In fact, if you need to run multiple instances of the Docker container, you must name them differently.</li>
+</ol>
 </li>
-<li>For readability and convenience, create an environment variable representing the name of the Docker container. For example, suppose we choose to name the container <code>deepks-container</code>. If your OS is Unix-like, run <code>export HOSTNAME=&quot;deepks-container&quot;</code>. If your shell is Powershell (Windows only), run <code>$HOSTNAME='deepks-container'</code>.</li>
-<li>Run the following command to start the docker session: <code>docker run -it --name $HOSTNAME --network $HOSTNAME benndrucker/deepks</code></li>
 <li>The interface — in an attempt to update the git repository, will ask for your username and password. Fill that in.</li>
 <li>A command prompt should appear and look like <code class = "inline-bash-output">(base) //root@deepks-container// [/] ▷ </code>. You are now inside the Docker Container at the top-level <code>/</code> directory. See the steps below to run various programs <em>from this prompt</em>.</li>
-</ol>
-<h2 id="reuse-docker-container">Reuse Docker Container</h2>
-<ol>
 <li>To reuse the created container (so that any saved state is available), run <code>docker ps -a</code>. This will show a list of all running and previously-created containers.</li>
-<li>Copy the hash id of the desired container.</li>
-<li>Run <code>docker container start &lt;copied hash&gt; -i</code> (making sure to replace <code>&lt;copied hash&gt;</code> with the hexadecimal hash you actually copied). This will give you the command prompt inside the Docker container.</li>
+<li>Note the name of the container you want to start.</li>
+<li>Run <code>docker container start &lt;noted name&gt; -i</code> (making sure to replace <code>&lt;noted name&gt;</code> with the container name you noted). This will give you the command prompt inside the Docker container.</li>
 </ol>
+<h3 id="case-c-running-on-hpc-cluster">Case C: Running on HPC cluster</h3>
+<p>Because we will use Apptainer to run the docker container, the commands are different from cases A/B.</p>
+<ol>
+<li>Ensure Apptainer is loaded (<code>module load apptainer</code>).</li>
+<li>Run <code>apptainer build --sandbox deepks-latest.sif docker://benndrucker/deepks:latest</code> to build the Apptainer-compatible <code>.sif</code> directory. This will take a while (~30-60+ mins) depending on your internet connection and processor speed. You may get <code>xattr</code>-related warnings, but these are fine.</li>
+<li>Copy necessary Nvidia files using the following script (ensuring you are in the same directory as <code>deepks-latest.sif</code>):</li>
+</ol>
+<pre><code class="language-{bash}">cp /usr/bin/nvidia-smi deepks-latest.sif/usr/bin/
+cp /usr/bin/nvidia-debugdump deepks-latest.sif/usr/bin/
+cp /usr/bin/nvidia-persistenced deepks-latest.sif/usr/bin/
+cp /usr/bin/nvidia-cuda-mps-server deepks-latest.sif/usr/bin/
+cp /usr/bin/nvidia-cuda-mps-control deepks-latest.sif/usr/bin/
+</code></pre>
+<ol start="4">
+<li>The top-level directory structure of <code>deepks-latest.sif</code> must mirror the native root directory. Thus, when running the next command, you may receive binding or mounting errors. The solution is creating &quot;fake,&quot; empty directories at the top level of <code>deepks-latest.sif</code>. [PNNL SPECIFIC] You need to make the &quot;fake&quot; directory <code>/people</code> in <code>deepks-latest.sif</code> by running <code>mkdir deepks-latest.sif/people</code>.</li>
+<li>Run <code>apptainer shell --nv --writable --fakeroot deepks-latest.sif</code> to start the Docker container (in Apptainer). This may give three warnings about Nvidia and mounts:</li>
+</ol>
+<pre class = "bash-output bash-output">
+<span style="color:#AAA956">WARNING:</span> nv files may not be bound with --writable
+<span style="color:#AAA956">WARNING:</span> Skipping mount /etc/localtime [binds]: /etc/localtime doesn't exist in container
+<span style="color:#AAA956">WARNING:</span> Skipping mount /var/run/nvidia-persistenced/socket [files]: /var/run/nvidia-persistenced/socket doesn't exist in container
+</pre>
+<p>These don't seem to cause any issues.</p>
+<ol start="6">
+<li>Change directory to <code>/</code> (i.e., the top-level directory) by running <code>cd /</code>.</li>
+</ol>
+<p><em><strong>Note: You will have <code>sudo</code> priviledges inside the Docker container (!) by virtue of passing <code>--fakeroot</code>. If you ever need to install programs, for example, this means you can do so inside the container.</strong></em></p>
 <h1 id="running-the-programs">Running The Programs</h1>
 <p><em><strong>Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.</strong></em></p>
 <h2 id="using-api">Using API</h2>
@@ -179,23 +167,31 @@ python -m DeepKS.api.main [options]
 <p>When you run this, it will print</p>
 <pre><code class="language-bash">usage: python -m DeepKS.api.main [-h] (-k &lt;kinase sequences&gt; | -kf &lt;kinase sequences file&gt;)
                                  (-s &lt;site sequences&gt; | -sf &lt;site sequences file&gt;)
-                                 [-p {in_order,dictionary,in_order_json,dictionary_json}] [-v]
+                                 [--kin-info &lt;kinase info file&gt;] [--site-info &lt;site info file&gt;]
+                                 [--cartesian-product]
+                                 [-p {in_order,dictionary,in_order_json,dictionary_json}]
+                                 [--suppress-seqs-in-output] [-v]
                                  [--pre_trained_nn &lt;pre-trained neural network file&gt;]
                                  [--pre_trained_gc &lt;pre-trained group classifier file&gt;]
+                                 [--device &lt;device&gt;] [--scores] [--normalize-scores] [--<span class="hljs-built_in">groups</span>]
+                                 [--dry-run]
 </code></pre>
 <ul>
-<li>Anything in square brackets is optional.</li>
+<li>Anything in square brackets is optional and has default values. To view what these flags refer to (and their default values), run <code>python -m DeepKS.api.main --help</code>.</li>
 <li>For each instance of round parentheses, you must provide one of the options between &quot;<code>|</code>&quot;.</li>
 <li>Curly braces show available options for a flag.</li>
+<li>That is, as a minimal example, you may run <code>python -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt</code>. (Note that <code>my_kinase_sequences.txt</code> and <code>my_site_sequences.txt</code> are not real files, and are just examples.)</li>
+<li>Maximally, you might run <code>python3 -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt --kin-info my_kinase_info.txt --site-info my_site_info.txt --cartesian-product -p in_order_json -v --pre_trained_nn my_pre_trained_nn.pt --pre_trained_gc my_pre_trained_gc.pt --device cuda:0 --scores --normalize-scores --groups --dry-run</code>. (Again, referenced files don't exist, and are just examples.)</li>
 </ul>
-<p>With that in mind, here are some examples of how to run the program (make sure to be in the top-level <code>/</code> directory):</p>
-<pre><code class="language-bash">python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt -p in_order_json -v True
+<p><em><strong>Note: If using CUDA, it may be helpful to run <code>nvidia-smi</code> to see which GPUs is being used extensively. DeepKS can automatically scale for the available hardware, but it will run much faster if it is run on a GPU with no other processes running.</strong></em></p>
+<p>Here are some more examples of how to run the program (make sure to be in the top-level <code>/</code> directory):</p>
+<pre><code class="language-bash">python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt -p in_order_json -v True --device cuda:4
 
 python -m DeepKS.api.main -k KINASE_SEQ_1,KINASE_SEQ_2,KINASE_SEQ_3 -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p dictionary
 
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p in_order -v False
 
-python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt --dry-run
 </code></pre>
 <h2 id="as-a-python-import-and-vs-code-integration">As a Python Import and VS Code integration</h2>
 <h3 id="vs-code-integration">VS Code Integration</h3>

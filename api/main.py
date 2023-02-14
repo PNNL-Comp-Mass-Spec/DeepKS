@@ -1,4 +1,5 @@
-if __name__ == "__main__":
+import sys
+if __name__ == "__main__" and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]:
     from ..splash import write_splash
 
     write_splash.write_splash("main_api")
@@ -141,39 +142,57 @@ def parse_api() -> dict[str, typing.Any]:
     Returns:
         dict[str, Any]: Dictionary mapping the argument name to the argument value.
     """
-    wrap = lambda s: textwrap.fill(s, width=60, subsequent_indent="    ")
+    def wrap(s) -> str:
+        if "\n" in s:
+            wrapped = []
+            for line in s.split("\n"):
+                num_leading_indents = len(re.findall("^\t+", line))
+                new_lines = wrap(line).split("\n")
+                for i in range(1, len(new_lines)):
+                    new_lines[i] = "\t"*num_leading_indents + new_lines[i]
+                wrapped.append("\n".join(new_lines))
+            return "\n".join(wrapped)
+        else:
+            return textwrap.fill(s, width=60, subsequent_indent="    ", expand_tabs=True, tabsize=4, replace_whitespace=False)
 
     class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
         def __init__(self, prog):
-            super().__init__(prog, max_help_position=60, width=120)
+            super().__init__(prog, max_help_position=60, width=100)
 
         def _split_lines(self, text, width):
-            return super()._split_lines(text, width) + [""]
+            return super()._split_lines(wrap(text), width) + [""]
+        
+        def _get_help_string(self, action):
+            return str(action.help) + "\n\t" + f"{f'(Default: {action.default}'})"
 
     ap = argparse.ArgumentParser(prog="python -m DeepKS.api.main", formatter_class=CustomFormatter)
     k_group = ap.add_mutually_exclusive_group(required=True)
     k_group.add_argument(
         "-k",
-        help=wrap("Comma-delimited kinase sequences (no spaces). Each must be <= 4128 residues long."),
+        help="Comma-delimited kinase sequences (no spaces). Each must be <= 4128 residues long.",
         metavar="<kinase sequences>",
     )
     k_group.add_argument(  # TODO: Add FASTA support
         "-kf",
-        help=wrap("The file containing line-delimited kinase sequences. Each must be <= 4128 residues long."),
+        help="The file containing line-delimited kinase sequences. Each must be <= 4128 residues long.",
         metavar="<kinase sequences file>",
     )
 
     s_group = ap.add_mutually_exclusive_group(required=True)
     s_group.add_argument(
         "-s",
-        help=wrap("Comma-delimited site sequences (no spaces). Each must be 15 residues long."),
+        help="Comma-delimited site sequences (no spaces). Each must be 15 residues long.",
         metavar="<site sequences>",
     )
     s_group.add_argument(
         "-sf",
-        help=wrap("The file containing line-delimited site sequences. Each must be 15 residues long."),
+        help="The file containing line-delimited site sequences. Each must be 15 residues long.",
         metavar="<site sequences file>",
     )
+
+    info_format_str = open("./info_file_format.txt").read()
+    ap.add_argument("--kin-info", required=False, help=info_format_str, metavar="<kinase info file>")
+    ap.add_argument("--site-info", required=False, help="Site information file. Must be able to be read as JSON. Same structure as `info_format_str`.", metavar="<site info file>")
 
     output_choices_helper = {
         "in_order": (
@@ -197,7 +216,7 @@ def parse_api() -> dict[str, typing.Any]:
         "--cartesian-product",
         default=False,
         action="store_true",
-        help=wrap("Whether to perform a cartesian product of the input kinases and sites. Defaults to False."),
+        help="Whether to perform a cartesian product of the input kinases and sites.",
     )
 
     ap.add_argument(
@@ -211,12 +230,12 @@ def parse_api() -> dict[str, typing.Any]:
         default=False,
         required = False,
         action="store_true",
-        help=wrap("Whether to include the input sequences in the output. Defaults to False."),
+        help="Whether to include the input sequences in the output.",
     )
     ap.add_argument(
         "-v",
         "--verbose",
-        help="Whether to print predictions. Defaults to True.",
+        help="Whether to print predictions.",
         default=False,
         required=False,
         action="store_true",
@@ -224,14 +243,14 @@ def parse_api() -> dict[str, typing.Any]:
 
     ap.add_argument(
         "--pre_trained_nn",
-        help=wrap("The path to the pre-trained neural network."),
+        help="The path to the pre-trained neural network.",
         default=PRE_TRAINED_NN,
         required=False,
         metavar="<pre-trained neural network file>",
     )
     ap.add_argument(
         "--pre_trained_gc",
-        help=wrap("The path to the pre-trained group classifier."),
+        help="The path to the pre-trained group classifier.",
         default=PRE_TRAINED_GC,
         required=False,
         metavar="<pre-trained group classifier file>",
@@ -264,35 +283,32 @@ def parse_api() -> dict[str, typing.Any]:
 
     ap.add_argument(
         "--scores",
-        help=wrap("Whether to obtain the scores of the predictions."),
+        help="Whether to obtain the scores of the predictions.",
         default=False,
         required=False,
         action="store_true",
     )
     ap.add_argument(
         "--normalize-scores",
-        help=wrap("Whether to normalize the scores in the predictions between 0 and 1"),
+        help="Whether to normalize the scores in the predictions between 0 and 1",
         default=False,
         required=False,
         action="store_true",
     )
     ap.add_argument(
         "--groups",
-        help=wrap("Whether to obtain the groups of the predictions."),
+        help="Whether to obtain the groups of the predictions.",
         default=False,
         required=False,
         action="store_true",
     )
     ap.add_argument(
         "--dry-run",
-        help=wrap("Only validates command line parameters; does not do any computations"),
+        help="Only validates command line parameters; does not do any computations",
         default=False,
         required=False,
         action="store_true",
     )
-
-    ap.add_argument("--kin-info", required=False, help=wrap("Kinase information file"), metavar="<kinase info file>")
-    ap.add_argument("--site-info", required=False, help=wrap("Site information file"), metavar="<site info file>")
 
     args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
     args_dict = vars(args)
