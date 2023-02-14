@@ -15,41 +15,6 @@
 	display: none;
 }
 
-/* From extension ms-toolsai.jupyter */
-/* These classnames are inherited from bootstrap, but are present in most notebook renderers */
-
-.alert {
-    width: auto;
-    padding: 1em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-.alert > *:last-child {
-    margin-bottom: 0;
-}
-#preview > .alert:last-child {
-    /* Prevent this being set to zero by the default notebook stylesheet */
-    padding-bottom: 1em;
-}
-
-.alert-success {
-    /* Note there is no suitable color available, so we just copy "info" */
-    background-color: var(--theme-info-background);
-    color: var(--theme-info-foreground);
-}
-.alert-info {
-    background-color: var(--theme-info-background);
-    color: var(--theme-info-foreground);
-}
-.alert-warning {
-    background-color: var(--theme-warning-background);
-    color: var(--theme-warning-foreground);
-}
-.alert-danger {
-    background-color: var(--theme-error-background);
-    color: var(--theme-error-foreground);
-}
-
 </style>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
 <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
@@ -108,84 +73,129 @@
         border-bottom-color: #00000040;
         border-bottom-style: dashed;
     }
+
+    div{
+        padding-top: 10px;
+    }
+
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    ol > li:before {
+        counter-increment: step-counter;
+        content: counter(step-counter) ". ";
+        margin-right: 3px;
+        font-size: 18px;
+        font-weight: bold;
+        /* padding: 3px 3px; */
+    }
+
+    ol:first-of-type {
+        counter-reset: step-counter;
+    }
 </style>
 <h1 id="explanation">Explanation</h1>
 <p>Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: <a href="https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false">cuda_wsl_installer.sh</a>. For consistency with the instructions below, please save this file in your Downloads folder.</p>
 <h1 id="wsl-setup">WSL Setup</h1>
 <p><em><strong>Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.</strong></em></p>
-<p>To install WSL, open Terminal (or powershell) as an administrator and run the following commands:</p>
+<ol>
+<li>To install WSL, open Terminal (or powershell) as an administrator and run the following commands (the final command may open a new window):</li>
+</ol>
 <pre><code class="language-{powershell}">wsl.exe --install
 wsl.exe --update
 wsl.exe --install -d Ubuntu-20.04
 </code></pre>
-<p>Then follow instructions to create a username and password. (Recommended username: pnnl) To use WSL in the future, simply run</p>
+<ol start="2">
+<li>Follow instructions to create a username and password. (Recommended username: <code>pnnl</code> for consistency with the following instructions) To use WSL in the future, simply run</li>
+</ol>
 <pre><code class="language-{powershell}">wsl
 </code></pre>
 <p>From now on, use the WSL terminal to run the following commands.</p>
-<p>To install the necessary CUDA Toolkit and docker, first copy the installation scripts to your WSL home directory. To do this, run the following commands in the WSL terminal:</p>
-<pre><code class="language-{bash}">cp /mnt/c/Users/&lt;your_username&gt;/Downloads/cuda_wsl_installer.sh ~/
+<ol start="3">
+<li>To install the necessary CUDA Toolkit and docker, first copy the installation scripts to your WSL home directory. To do this, run the following commands in the WSL terminal:</li>
+</ol>
+<pre><code class="language-{bash}">cp /mnt/c/Users/&lt;your_native_Windows_username&gt;/Downloads/cuda_wsl_installer.sh ~/
 </code></pre>
-<p>making sure to replace <code>&lt;your_username&gt;</code> with your actual username. Then run</p>
-<pre><code class="language-{bash}">sudo cd ~ &amp;&amp; sudo chmod +x ./cuda_wsl_installer.sh  &amp;&amp; sudo ./cuda_wsl_installer.sh
+<p>making sure to replace <code>&lt;your_native_Windows_username&gt;</code> with your actual native Windows username. Then run</p>
+<pre><code class="language-{bash}">sudo bash -c &quot;cd /home/pnnl &amp;&amp; chmod +x ./cuda_wsl_installer.sh &amp;&amp; ./cuda_wsl_installer.sh&quot;
 </code></pre>
-<p>It will ask for your password if you haven't already used <code>sudo</code> in the current session.</p>
-<p>When this completes, you need to start the Docker Daemon. The Daemon is a program that runs in the background and serves Docker containers. To start the Daemon, run</p>
+<p>It will ask for your password if you haven't already used <code>sudo</code> in the current session. This will take a while (~10 minutes, depending on your internet speed) and will output many log statements.</p>
+<p>When this completes, you need to start the Docker Daemon.</p>
+<ol start="4">
+<li>The Daemon is a program that runs in the background and serves Docker containers. To start the Daemon, run</li>
+</ol>
 <pre><code class="language-{bash}">sudo service docker start
 </code></pre>
 <p><strong>You need to start this each time you open WSL.</strong>
-—  There is a more complicated way to ensure this happens automatically: TODO</p>
+—  There is a more complicated way to ensure this happens automatically:<code>&lt;TODO FOR FUTURE&gt;</code></p>
 <h1 id="finishing">Finishing</h1>
-<p>To check that all this worked, run</p>
-<pre><code class="language-{bash}">sudo docker run hello-world
-</code></pre>
-<p>You should get the following (possibly with a different hash and more text):</p>
-<pre class = "bash-output bash-output">
-Unable to find image 'hello-world:latest' locally
+<h2 id="to-check-that-all-this-worked-we-will-run-some-checks">To check that all this worked, we will run some checks.</h2>
+<div>
+<ol>
+<li>Run <code>nvidia-smi</code>. You should get the following (probably with different details such as usage, memory, driver versions, number of GPUs, etc.):</li>
+</ol>
+   <pre class = "bash-output bash-output">Tue Feb 14 12:54:41 2023
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.60.02    Driver Version: 526.98       CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA GeForce ...  On   | 00000000:03:00.0  On |                  N/A |
+| 57%   31C    P8    14W / 175W |   2261MiB /  8192MiB |     16%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+</pre>
+<ol start="2">
+<li>Run <code>docker run hello-world</code>. You should get the following (possibly with a different hash and more text):</li>
+</ol>
+   <pre class = "bash-output bash-output">Unable to find image 'hello-world:latest' locally
 latest: Pulling from library/hello-world
 0e03bdcc26d7: Pull complete
 Digest: sha256:8b5a7d9e0e178f2f37a820e3f795c19c4c2522b3f282a2f9d2a8b626cf6d8e0a
-Status: Downloaded newer image for hello-world:latest
-
+Status: Downloaded newer image for hello-world:latest   
 Hello from Docker!
-This message shows that your installation appears to be working correctly.
-
+This message shows that your installation appears to be working correctly.   
 To generate this message, Docker took the following steps:
-1. The Docker client contacted the Docker daemon.
-2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+3. The Docker client contacted the Docker daemon.
+4. The Docker daemon pulled the "hello-world" image from the Docker Hub.
     (amd64)
-3. The Docker daemon created a new container from that image which runs the
+5. The Docker daemon created a new container from that image which runs the
     executable that produces the output you are currently reading.
-4. The Docker daemon streamed that output to the Docker client, which sent it
-    to your terminal.
-
+6. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.   
 To try something more ambitious, you can run an Ubuntu container with:
-$ docker run -it ubuntu bash
-
+$ docker run -it ubuntu bash   
 Share images, automate workflows, and more with a free Docker ID:
-https://hub.docker.com/
-
+https://hub.docker.com/   
 For more examples and ideas, visit:
-https://docs.docker.com/get-started/
-</pre>
-<p>Then, you may proceed back to the <a href="https://ben-drucker.gitlab.io/deepks/#terminology">main help page, §Terminology</a></p>
+https://docs.docker.com/get-started/</pre>   
+<p>Then, you may proceed back to the main help page, <a href="https://ben-drucker.gitlab.io/deepks-rename-trial/#terminology">§ Terminology</a> and subsequently follow instructions to start the actual DeepKS container.</p>
 <h1 id="troubleshooting">Troubleshooting</h1>
 <h3 id="if-you-get-a-permissions-error-like-the-following">If you get a permissions error like the following:</h3>
-<pre class = "bash-output bash-output">
-docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
-See 'docker run --help'.
-</pre>
+   <pre class = "bash-output bash-output">docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
+See 'docker run --help'.</pre>
 <p>you probably need to run <code>docker</code> with <code>sudo</code>. (I.e., <code>sudo docker ...</code>)</p>
 <h3 id="if-you-get-a-docker-daemon-error-like-the-following">If you get a Docker Daemon error like the following:</h3>
-<pre class = "bash-output bash-output">
-docker: Error response from daemon: dial unix docker.raw.sock: connect: connection refused.
-</pre>
+   <pre class = "bash-output bash-output">docker: Error response from daemon: dial unix docker.raw.sock: connect: connection refused.</pre>
 <p>or</p>
-<pre class = "bash-output bash-output">
-docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?.
-See 'docker run --help'.
-</pre>
+   <pre class = "bash-output bash-output">docker: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?.
+See 'docker run --help'.</pre>
 <p>you probably need to start the Docker Daemon. (See above.)</p>
-
+<h3 id="if-you-get-an-nvidia-smi-error">If you get an <code>nvidia-smi</code> error:</h3>
+<p>Make sure you have Nvidia drivers installed on the base Windows system. You can find instructions for this <a href="https://www.nvidia.com/download/index.aspx">here</a>.</p>
+</div>
         <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
         
     </body>
