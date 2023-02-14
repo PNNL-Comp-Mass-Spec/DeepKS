@@ -50,7 +50,7 @@ If you're not sure, follow the instructions [here](https://askubuntu.com/a/12734
 If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster). 
 
 Most likely, your computer will be running Windows. If this is the case, there is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:
-1. Go through the steps in the [auxillary help page](https://ben-drucker.gitlab.io/deepks/doc/cuda_installation.html).
+1. Go through the steps in the [auxillary help page](https://ben-drucker.gitlab.io/deepks-rename-trial/doc/cuda_installation.html).
 
 ### Case B: Running On Personal Computer without CUDA
 1. Download Docker here https://www.docker.com/products/docker-desktop/ and follow the installation instructions for your operating system.
