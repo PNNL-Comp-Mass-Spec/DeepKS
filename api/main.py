@@ -55,6 +55,7 @@ def make_predictions(
     """
     # try:
     # Input validation
+    config.cfg.set_mode('no_alin')
     if True:  # FIXME: Use real exception handling
         print(colored("Status: Validating inputs.", "green"))
         assert predictions_output_format in ["in_order", "dictionary", "in_order_json", "dictionary_json"]
@@ -121,9 +122,7 @@ def make_predictions(
             print()
             print(first_msg := "<" * 16 + " REQUESTED RESULTS " + ">" * 16 + "\n")
             if all(isinstance(r, dict) for r in res):
-                order = {"kinase": 0, "site": 1, "prediction": 2, "score": 3}
-                sortkey = lambda x: order[x[0]]
-                pprint.pprint([dict(collections.OrderedDict(sorted(r.items(), key=sortkey))) for r in res], sort_dicts=False)  # type: ignore
+                pprint.pprint([dict(collections.OrderedDict(sorted(r.items()))) for r in res], sort_dicts=False)  # type: ignore
             else:
                 pprint.pprint(res)
             print("\n" + "<" * int(np.floor(len(first_msg) / 2)) + ">" * int(np.ceil(len(first_msg) / 2)) + "\n")
@@ -190,7 +189,8 @@ def parse_api() -> dict[str, typing.Any]:
         metavar="<site sequences file>",
     )
 
-    info_format_str = open("./info_file_format.txt").read()
+    with open(f"{pathlib.Path(__file__).parent.resolve()}/info_file_format.txt") as info_format_f:
+        info_format_str = info_format_f.read()
     ap.add_argument("--kin-info", required=False, help=info_format_str, metavar="<kinase info file>")
     ap.add_argument("--site-info", required=False, help="Site information file. Must be able to be read as JSON. Same structure as `info_format_str`.", metavar="<site info file>")
 
@@ -266,9 +266,9 @@ def parse_api() -> dict[str, typing.Any]:
                     return arg_value
                 cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
                 assert 0 <= cuda_num <= torch.cuda.device_count()
-        except Exception:
+        except AssertionError:
             raise argparse.ArgumentTypeError(
-                f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:<gpu #>]'}."
+                f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:[0-9]+]'}."
             )
 
         return arg_value
@@ -324,8 +324,6 @@ def parse_api() -> dict[str, typing.Any]:
     elif "sf" in args_dict:
         args_dict["site_seqs"] = [line.strip() for line in open("../" + args_dict.pop("sf"))]
         del args_dict["s"]
-    if "v" in args_dict:
-        args_dict["verbose"] = args_dict.pop("v")
 
     args_dict["predictions_output_format"] = args_dict.pop("p")
     if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
@@ -343,7 +341,7 @@ def parse_api() -> dict[str, typing.Any]:
     if args_dict["suppress_seqs_in_output"] and "json" not in args_dict["predictions_output_format"]:
         print(
             colored(
-                "Info: `--include-seqs-in-output` is being ignored because the predictions output format is not JSON.",
+                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not JSON.",
                 "blue",
             )
         )
@@ -363,7 +361,12 @@ def parse_api() -> dict[str, typing.Any]:
         }
     else:
         kinase_info_dict = json.load(open("../" + args_dict["kin_info"]))
-        args_dict['kin_info'] = kinase_info_dict
+        assert isinstance(kinase_info_dict, dict), f"Kinase information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(kinase_seq, str) for kinase_seq in kinase_info_dict.keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(kinase_info_dict[kinase_seq], dict) for kinase_seq in kinase_info_dict.keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(info_key, str) for kinase_seq in kinase_info_dict.keys() for info_key in kinase_info_dict[kinase_seq].keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(kinase_info_dict[kinase_seq][info_key], str) for kinase_seq in kinase_info_dict.keys() for info_key in kinase_info_dict[kinase_seq].keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
+    args_dict['kin_info'] = kinase_info_dict
 
     if args_dict["site_info"] is None:
         site_info_dict = {
@@ -372,7 +375,12 @@ def parse_api() -> dict[str, typing.Any]:
         }
     else:
         site_info_dict = json.load(open("../" + args_dict["site_info"]))
-        args_dict['site_info'] = site_info_dict
+        assert isinstance(site_info_dict, dict), f"Site information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(site_seq, str) for site_seq in site_info_dict.keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(site_info_dict[site_seq], dict) for site_seq in site_info_dict.keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(info_key, str) for site_seq in site_info_dict.keys() for info_key in site_info_dict[site_seq].keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
+        assert all([isinstance(site_info_dict[site_seq][info_key], str) for site_seq in site_info_dict.keys() for info_key in site_info_dict[site_seq].keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
+    args_dict['site_info'] = site_info_dict
 
     assert all({"Uniprot Accession ID", "Gene Name"}.issubset(set(kinase_info_dict[kinase_seq].keys())) for kinase_seq in args_dict["kinase_seqs"]), (
         "Kinase information file must have the columns 'Gene Name' and 'Uniprot Accession ID'"
@@ -397,8 +405,8 @@ def parse_api() -> dict[str, typing.Any]:
     return args_dict
 
 
-def _cmd_testing_simulator():
-    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections, json
+def pre_main():
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections, json, config
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
@@ -406,17 +414,10 @@ def _cmd_testing_simulator():
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
+    from .. import config
 
     make_predictions(**args)
 
 
 if __name__ in ["__main__"]:
-    args = parse_api()
-
-    print(colored("Status: Loading Modules...", "green"))
-    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json
-    from ..models.individual_classifiers import IndividualClassifiers
-    from ..models.multi_stage_classifier import MultiStageClassifier
-    from ..models.group_classifier_definitions import SKGroupClassifier
-
-    make_predictions(**args)
+    pre_main()

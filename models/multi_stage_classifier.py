@@ -133,7 +133,7 @@ class MultiStageClassifier:
             "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
             "lab": kinase_seqs,
             "seq": site_seqs,
-            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs))],
+            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))],
             "class": [-1],
             "num_seqs": ["N/A"],
         }
@@ -145,7 +145,9 @@ class MultiStageClassifier:
             self.align_novel_kin_seqs(id_to_seq) # existing_seqs = pd.read_csv("../data/raw_data/kinase_seqs_494.csv").index.tolist()
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
             if cartesian_product:
-                f.write(json.dumps(data_dict, indent=3))
+                print(f"{data_dict=}")
+                with open(f.name, "w") as f2:
+                    f2.write(json.dumps(data_dict, indent=3))
                 res = self.evaluate({"test_json": f.name, "device": device}, f.name, predict_mode=True)
             else:
                 efficient_to_csv(data_dict, f.name)
@@ -378,7 +380,8 @@ def efficient_to_csv(data_dict, outfile):
     assert all([isinstance(x, list) for x in data_dict.values()])
     headers = ",".join(data_dict.keys())
     max_len = max(len(x) for x in data_dict.values())
-    assert all([x == 1 or x == max_len for x in [len(x) for x in data_dict.values()]])
+    dl = {k: len(v) for k, v in data_dict.items()}
+    assert all([x == 1 or x == max_len for x in [len(x) for x in data_dict.values()]]), f"Tried to write uneven length lists to csv. Data Dict lengths: {dl}"
     for k in data_dict:
         if len(data_dict[k]) == 1:
             data_dict[k] = data_dict[k] * max_len

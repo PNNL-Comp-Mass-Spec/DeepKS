@@ -195,7 +195,8 @@ class NNInterface:
                 )
                 outputs = torch.sigmoid(outputs.data.cpu())
                 all_predictions += predictions.data.cpu().numpy().tolist()
-                all_outputs += outputs.data.cpu().numpy().tolist()
+                tl = outputs.data.cpu().numpy().tolist()
+                all_outputs += [tl] if isinstance(tl, float) else tl
             else:
                 raise ValueError("Criterion must be either BCEWithLogitsLoss or CrossEntropyLoss. In the future, this may be changed.")
         if len(all_predictions) == 0:

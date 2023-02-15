@@ -37,32 +37,32 @@ os.chdir(where_am_i)
 tq: tqdm.tqdm
 
 
-def instantiate_tq():
-    global tq
-    tq = tqdm.tqdm(
-        total=100,
-        desc="Approximate Progress",
-        unit="%",
-        leave=False,
-        position=0,
-        bar_format="{desc}: {percentage:.3f}%|{bar}| {n:.3f}/{total_fmt} [{elapsed}<{remaining}",
-    )
+# def instantiate_tq():
+#     global tq
+#     tq = tqdm.tqdm(
+#         total=100,
+#         desc="Approximate Progress",
+#         unit="%",
+#         leave=False,
+#         position=0,
+#         bar_format="{desc}: {percentage:.3f}%|{bar}| {n:.3f}/{total_fmt} [{elapsed}<{remaining}",
+#     )
 
 
-def prog_bar_worker(num_seqs, done, num_workers):
-    global tq
-    instantiate_tq()
-    estimator = lambda x: ((0.0003799 * x**2 + 0.007835 * x) * 8 / num_workers) ** 1.08
-    estimated_total_secs = estimator(num_seqs)
-    tq.reset()
-    tq.write("Estimated total time: " + f"{estimated_total_secs:.2f} seconds")
-    while not done[0]:
-        time.sleep(0.25)
-        current = tq.n
-        if current + 0.25 * 100 / estimated_total_secs >= 100:
-            # tq.write("~Taking a little longer~" + str(time.time()))
-            break
-        tq.update(0.25 * 100 / estimated_total_secs)  # type: ignore
+# def prog_bar_worker(num_seqs, done, num_workers):
+#     global tq
+#     instantiate_tq()
+#     estimator = lambda x: ((0.0003799 * x**2 + 0.007835 * x) * 8 / num_workers) ** 1.08
+#     estimated_total_secs = estimator(num_seqs)
+#     tq.reset()
+#     tq.write("Estimated total time: " + f"{estimated_total_secs:.2f} seconds")
+#     while not done[0]:
+#         time.sleep(0.25)
+#         current = tq.n
+#         if current + 0.25 * 100 / estimated_total_secs >= 100:
+#             # tq.write("~Taking a little longer~" + str(time.time()))
+#             break
+#         tq.update(0.25 * 100 / estimated_total_secs)  # type: ignore
 
 
 def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
@@ -143,7 +143,7 @@ def get_needle_pairwise_mtx(
     assert len(strs_a) == len(strs_b) > 0, "Unequal number of strings/len of strings is zero"
     args = [[strs_a[i], strs_b[i], outfile, i] for i in range(len(strs_a))]
     done = [False]
-    progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_procs))
+    # progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_procs))
     # progress_thread.start() TODO: Only have progress bar if verbose
     with ThreadPool(num_procs) as p:
         results = p.map(worker, args)

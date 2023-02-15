@@ -236,12 +236,13 @@ class IndividualClassifiers:
         info_dict_passthrough={},
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
         assert len(info_dict_passthrough) == 0, "Info dict passthrough must be empty for passing in"
-        tqdm_passthrough = [tqdm.tqdm.__new__(tqdm.tqdm)]
+        dummy_tqdm = None
+        tqdm_passthrough = [None]
         gen_te = self._run_dl_core(
             which_groups,
             Xy_formatted_input_file,
             pred_groups=pred_groups,
-            tqdm_passthrough=tqdm_passthrough,
+            tqdm_passthrough=tqdm_passthrough, # type: ignore
             cartesian_product=evaluation_kwargs["cartesian_product"]
             if "cartesian_product" in evaluation_kwargs
             else False,
@@ -321,10 +322,10 @@ class IndividualClassifiers:
     def roc_evaluation(self, new_args, pred_groups, true_groups, predict_mode):
         if "test" in new_args:
             test_filename = new_args["test"]
-        if "test_json" in new_args:
+        elif "test_json" in new_args:
             test_filename = new_args["test_json"]
         else:
-            test_filename = ""
+            raise AssertionError("Must specify either `test` or `test_json` in `new_args`.")
         if "load_include_eval" in new_args and new_args["load_include_eval"] is None and not predict_mode:
             grp_to_info_pass_through_info_dict = {}
             grp_to_loaders = {
