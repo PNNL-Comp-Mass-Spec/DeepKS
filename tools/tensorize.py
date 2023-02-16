@@ -80,9 +80,9 @@ def gather_data(
     clusterfile: filename of json defining kinase clusters
     """
     if len(tqdm_passthrough) == 1:
-        assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+        tq: tqdm.tqdm = tqdm_passthrough[0]
         # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
-        tqdm_passthrough[0].write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
+        tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r", file=open('/dev/fd/2', "w"))
     assert abs(sum([trf, vf, tuf, tef, -1]) < 1e-16)
     
     # ===== #

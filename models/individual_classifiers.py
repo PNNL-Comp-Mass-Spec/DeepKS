@@ -169,13 +169,13 @@ class IndividualClassifiers:
                 leave=True,
                 position=1,
                 desc=colored(f"Overall Group Evaluation Progress", "cyan"),
-                colour="cyan",
+                colour="cyan"
             )
         ):  # Do only if Verbose
             if len(tqdm_passthrough) == 1:
                 tqdm_passthrough[0] = pb
             yield group, group_df[group]
-        print("\r" + " " * os.get_terminal_size()[0], end="\r")
+        print("\r", end="\r")
 
     def train(
         self,
@@ -272,10 +272,6 @@ class IndividualClassifiers:
                 else False,
                 tqdm_passthrough=tqdm_passthrough
             ):
-                if len(tqdm_passthrough) == 1:
-                    assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
-                    # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
-                    tqdm_passthrough[0].write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
                 info_dict_passthrough[group_te] = info_dict
                 info_dict_passthrough['on_chunk'] = info_dict['on_chunk']
                 info_dict_passthrough['total_chunks'] = info_dict['total_chunks']

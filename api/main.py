@@ -126,7 +126,6 @@ def make_predictions(
             else:
                 pprint.pprint(res)
             print("\n" + "<" * int(np.floor(len(first_msg) / 2)) + ">" * int(np.ceil(len(first_msg) / 2)) + "\n")
-        print()
         print(colored("Status: Done!\n", "green"))
         return res
 
@@ -351,7 +350,7 @@ def parse_api() -> dict[str, typing.Any]:
     args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
     args_dict["group_output"] = args_dict.pop("groups")
     if not args_dict["scores"] and args_dict["normalize_scores"]:
-        print("Info: Ignoring `--normalize-scores` since `--scores` was not set.")
+        print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
 
     import pandas as pd
 

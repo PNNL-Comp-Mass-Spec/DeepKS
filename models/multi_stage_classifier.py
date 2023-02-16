@@ -142,7 +142,6 @@ class MultiStageClassifier:
             self.align_novel_kin_seqs(id_to_seq) # existing_seqs = pd.read_csv("../data/raw_data/kinase_seqs_494.csv").index.tolist()
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
             if cartesian_product:
-                print(f"{data_dict=}")
                 with open(f.name, "w") as f2:
                     f2.write(json.dumps(data_dict, indent=3))
                 res = self.evaluate({"test_json": f.name, "device": device}, f.name, predict_mode=True)
@@ -156,7 +155,7 @@ class MultiStageClassifier:
                 max_ = max(numerical_scores)
                 min_ = min(numerical_scores)
                 numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
-            boolean_predictions = [x[1][0] for x in res]
+            boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
         print(colored("Status: Predictions Complete!", "green"))
         if "dict" in predictions_output_format:
             print(colored("Status: Copying Results to Dictionary.", "green"))
@@ -231,7 +230,7 @@ class MultiStageClassifier:
                     "Site Location": sl,
                     "Kinase Gene Name": kgn,
                     "Site Gene Name": sgn,
-                    "Prediction": "Target" if p else "Decoy",
+                    "Prediction": p,
                 }
                 | (
                     (
@@ -389,7 +388,7 @@ def efficient_to_csv(data_dict, outfile):
             enumerate(zip(*data_dict.values())),
             total=max_len,
             desc=colored("Status: Writing prediction queries to tempfile.", "cyan"),
-            colour="cyan",
+            colour="cyan"
         ):
             f.write(",".join([str(x) for x in row_tuple]) + "\n")
             lines_written += 1

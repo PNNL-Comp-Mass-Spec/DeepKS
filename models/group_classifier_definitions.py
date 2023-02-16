@@ -141,7 +141,7 @@ def get_ML_sets(dist_matrix_file, json_tr, json_vl, json_te, kin_fam_grp_file, k
 
 
 def get_coordinates(train_kin_list, val_kin_list) -> tuple[np.ndarray, np.ndarray]:
-    train_mtx, eval_mtx = recluster(train_kin_list, val_kin_list)
+    train_mtx, eval_mtx = recluster(list(train_kin_list), list(val_kin_list))
     X_train = train_mtx.values
     X_val = eval_mtx.values
     return X_train, X_val
