@@ -47,7 +47,7 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
         print(
             f"An assertion error occurred in file {file}, on line {line}, in function {func}, in assertion « {text} »"
         )
-        exit(1)
+        raise AssertionError()
 
     all_data = (
         pd.read_csv(input_fn)
@@ -130,11 +130,15 @@ def get_input_dataframe_helper(
     target["original_kinase"] = target["lab"]
     decoy["original_kinase"] = decoy["lab"]
 
-    derangement = json.load(open("/home/ubuntu/DeepKS/data/preprocessing/.gitig-derangement.json"))
-    # derangement = [
-    #     x if x is not None else len(decoy)
-    #     for x in get_groups_derangement4(order, sizes, kin_seq_file, distance_matrix_file, percentile)
-    # ]
+    if os.path.exists(f"{sum(sizes)}.derangement"):
+        derangement = json.load(open(f"{sum(sizes)}.derangement"))
+        print(colored("Info: Using derangement found in cache.", "blue"))
+    else:
+        derangement = [
+            x if x is not None else len(decoy)
+            for x in get_groups_derangement4(order, sizes, kin_seq_file, distance_matrix_file, percentile, cache_derangement=True)
+        ]
+        print(colored("Warning: Computing derangement instead of using cache.", "yellow"))
     decoy.loc[len(decoy)] = ["NOLAB", "NOSITE", "NOSEQ", "NOID", "NONUM", "NOCLASS", "NOORIG", "NOORIGKIN"]  # type: ignore
     decoy_seqs = (
         decoy.iloc[derangement].reset_index().drop("index", axis=1).squeeze()
@@ -186,17 +190,15 @@ def get_input_dataframe_helper(
     all_data_w_seqs = all_data_w_seqs.sort_values(
         by=["class", "lab_name", "orig_lab_name", "seq"], ascending=[False, True, True, True]
     )
-    # orig_data = pd.read_csv(input_fn).sort_values(by=['num_sites', 'lab', 'seq'], ascending=[False, True, True]).reset_index(drop=True)
-    # orig_data = orig_data[orig_data['seq'].isin(all_data_w_seqs['seq'])]
+
     if write_file:
         all_data_w_seqs.to_csv(
-            fn := re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn).replace(".csv", "")
+            "/".join(input_fn.split("/")[:-1] + [re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn.split("/")[-1]).replace(".csv", "")])
             + f"_formatted{extra}.csv",
             index=False,
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
     print(f"Size: {len(all_data_w_seqs)}")
-    # return all_data_w_seqs #orig_data
 
 
 if __name__ == "__main__":

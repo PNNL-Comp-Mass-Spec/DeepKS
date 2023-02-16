@@ -15,6 +15,12 @@ seaborn
 sigfig
 termcolor
 tqdm
+lxml
+openpyxl
+coverage
+plotly
+nbformat
+kaleido
 git+https://github.com/Ben-Drucker/torchinfo-modified@main#egg=torchinfo_modified
 git+https://github.com/Ben-Drucker/psankey-modified@master#egg=psankey_modified
 git+https://github.com/Ben-Drucker/roc_comparison-modified@main#egg=roc_comparison_modified

@@ -1,0 +1,15 @@
+{
+    "Accession Removals": [
+        "Q8UWG6",
+        "Q7M0H9",
+        "AAA58698",
+        "Q8WZ42"
+    ],
+    "Accession Replacements": {
+        "NP_001100256": "D4A7D3",
+        "NP_001178933": "D3Z8E0",
+        "YP_068414": "Q05608",
+        "NP_001178650": "F1LYL8",
+        "NP_001100045": "B1WBT4"
+    }
+}

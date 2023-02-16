@@ -11,7 +11,6 @@ logs/
 **/*.svg
 !doc/link_button.svg
 **/*.gif
-**/*.pdf
 **/__pycache__/
 **/*.bin
 **/*.fasta
@@ -73,3 +72,5 @@ images/Excel Matrix/excel_art_formatted.csv
 **/*.tar.xz
 **/*.tar
 **/*.gz
+**/*.csv-TID*
+**/*.derangement

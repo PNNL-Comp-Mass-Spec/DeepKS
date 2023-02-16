@@ -100,11 +100,12 @@ set_wd <- function() {
   setwd(path)
 }
 
-# FIXME
-# set_wd() # DEBUG ONLY
+if (!"DEBUGGING" %in% names(Sys.getenv())) {
+  set_wd()
+}
 
 source("Kinase_Inference_Testing.R")
-cat("[R] Reading in data...\n")
+cat("Reading in data...\n")
 mode <- colnames(read.delim("../../../config/mode.cfg"))
 
 n <- 1000000 # How many kinases to pull from PhosphositePlusDB (max number of kinases is  so use `1000000` to get all)
@@ -142,7 +143,7 @@ obtain_associated_fastas <- function(df, outfile) {
     partial_url <- paste("(accession:", lab_list[front_idx:back_idx], ")", sep = "", collapse = "+OR+")
     first_part <- "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query="
     url <- paste(first_part, partial_url, sep = "")
-    cat(sprintf("[R] Downloading proteins %d to %d...\n", front_idx, back_idx))
+    cat(sprintf("Downloading proteins %d to %d...\n", front_idx, back_idx))
     if (curl::curl_fetch_memory(url)$status != 200) {
       tf <- tempfile()
       curl::curl_fetch_disk(url, tf)
@@ -173,7 +174,7 @@ if (!file.exists(tempfile_)) {
   obtain_associated_fastas(top_n_x0, tempfile_)
 }
 
-cat("[R] Assembing sequences...\n")
+cat("Assembing sequences...\n")
 rf <- read.fasta(tempfile_, whole.header = T)
 aass_accid <- lapply(names(rf) %>% as.list(), function(x) {
   return(str_split(x, "\\|")[[1]][2])
@@ -187,7 +188,7 @@ aass_values <- AAStringSet(unlist(unname(lapply(rf, function(x) {
 
 fi_name <- NULL
 if (mode == "alin") {
-  cat("[R] Computing alignments...\n")
+  cat("Computing alignments...\n")
   alignments <- AlignSeqs(aass_values, iterations = 3, refinements = 2)
   input_aligned_df <- data.frame(kinase = as.character(aass_accid), kinase_seq = as.vector(alignments), gene_name = aass_gn)
   fi_name <- sprintf("../../raw_data/kinase_seq_alin_%d.csv", nrow(input_aligned_df))
@@ -197,7 +198,7 @@ if (mode == "alin") {
   fi_name <- sprintf("../../raw_data/kinase_seq_%d.csv", nrow(input_df))
   write.table(input_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = ",")
 }
-cat("[R] Completed.\n")
+cat("Completed.\n")
 cat("[@python_capture_output]")
 cat(sprintf("%s\n", normalizePath(fi_name)))
 cat("[@python_capture_output]")

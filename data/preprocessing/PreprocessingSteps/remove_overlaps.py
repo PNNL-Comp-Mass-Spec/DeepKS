@@ -48,13 +48,10 @@ def validate_data(input_files):
             val_dict[(seq, original_kinase)].append(inpf)
     
     bad_entry = None
-    try:
-        for entry in val_dict.values():
-            bad_entry = entry
-            assert len(set(entry)) == 1
-            bad_entry = None
-    except AssertionError:
-        print(bad_entry)
+    for entry in val_dict.values():
+        bad_entry = entry
+        assert len(set(entry)) == 1
+        bad_entry = None
 
 if __name__ == "__main__":
     import os, pathlib

@@ -262,6 +262,7 @@ def parse_api() -> dict[str, typing.Any]:
         try:
             assert bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value))
             if "cuda" in arg_value:
+                assert torch.cuda.is_available()
                 if arg_value == "cuda":
                     return arg_value
                 cuda_num = int(re.findall("([0-9]+)", arg_value)[0])

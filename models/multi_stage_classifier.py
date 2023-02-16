@@ -3,21 +3,18 @@ if __name__ == "__main__":
 
     write_splash("gc_trainer")
     print("Progress: Loading Modules", flush=True)
-import pandas as pd, numpy as np, tempfile as tf, random, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm, itertools
-from torch import NoneType, binary_cross_entropy_with_logits
-import sklearn.utils.validation
-from typing import Union, Tuple
+import pandas as pd, numpy as np, tempfile as tf, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
 from . import individual_classifiers
 from ..tools.parse import parsing
+from ..tools.file_names import get as get_file_name
 from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
 from ..api.cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from sklearn.utils.validation import check_is_fitted
 from termcolor import colored
-from io import StringIO 
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -262,7 +259,7 @@ class MultiStageClassifier:
             ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
         if "json" in predictions_output_format:
             now = datetime.datetime.now(tz=dateutil.tz.tzlocal())
-            file_name = f"../out/{now.isoformat(timespec='milliseconds', sep='@')}.json"
+            file_name = f"../out/{get_file_name()}.json"
             print(colored(f"Info: Writing results to {file_name}.", "blue"))
             json.dump(ret, open(file_name, "w"), indent=2)
         else:

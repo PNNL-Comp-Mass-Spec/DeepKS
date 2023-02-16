@@ -1,6 +1,6 @@
 import tempfile, subprocess, time, re
 
-def os_system_and_get_stdout(cmd):
+def os_system_and_get_stdout(cmd, prepend='', shell = 'zsh'):
     """
     cmd: command to run
 
@@ -9,11 +9,12 @@ def os_system_and_get_stdout(cmd):
     TAG = "[@python_capture_output]"
 
     tf = tempfile.TemporaryFile()
-    p = subprocess.Popen(cmd, shell=True, stdout=tf, stderr=tf)
+    shell_cmd = f"{shell} -c 'source ~/.zshrc && {cmd}'"
+    p = subprocess.Popen(shell_cmd, shell=True, stdout=tf, stderr=tf)
 
     where = 0
     res_out = []
-    while p.poll() is None:
+    while (status := p.poll()) is None:
         time.sleep(0.01)
         tf.seek(where)
         o = tf.read()
@@ -21,8 +22,11 @@ def os_system_and_get_stdout(cmd):
         ol = o.decode("UTF-8").split("\n")
         for line in ol:
             if line != "" and TAG not in line:
-                print(line)
+                print(prepend+line, flush=True)
             elif TAG in line:
                 res_out.append(re.sub(f"({TAG})".replace("[", r"\[").replace("]", r"\]"), "", line))
     
+    if status:
+        print("Status:", status)
+        raise Exception(f"Error running system command: {shell_cmd}")
     return res_out

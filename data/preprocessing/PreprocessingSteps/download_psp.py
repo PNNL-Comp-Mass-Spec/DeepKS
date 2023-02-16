@@ -1,10 +1,25 @@
-import requests, pandas as pd, gzip, io, re, os
+import requests, pandas as pd, gzip, io, re, os, json, pathlib
 from termcolor import colored
-def get_phospho(redownload = False, outfile = "PSP_script_download.xlsx"):
+
+
+def get_phospho(redownload=False, outfile="PSP_script_download.xlsx"):
     url = "https://www.phosphosite.org/downloads/Kinase_Substrate_Dataset.gz"
     if not os.path.exists("Kinase_Substrate_Dataset.gz") and not redownload:
         try:
-            r = requests.request("GET", url, headers={'Accept-Encoding': 'gzip, deflate, br', 'Accept': '*/*', 'Connection': 'keep-alive', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'})
+            r = requests.request(
+                "GET",
+                url,
+                headers={
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Accept": "*/*",
+                    "Connection": "keep-alive",
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
+                        " Chrome/91.0.4472.124 Safari/537.36"
+                    ),
+                },
+                timeout=10
+            )
             if r.status_code == 200:
                 with open("Kinase_Substrate_Dataset.gz", "wb") as f:
                     f.write(r.content)
@@ -14,37 +29,61 @@ def get_phospho(redownload = False, outfile = "PSP_script_download.xlsx"):
             print(e.__class__.__name__, e)
             exit(1)
 
-    str_table = "\n".join(str(gzip.open("Kinase_Substrate_Dataset.gz", 'rb').read()).split("\\n")[3:]).replace("\\t", ",")
+    str_table = "\n".join(str(gzip.open("Kinase_Substrate_Dataset.gz", "rb").read()).split("\\n")[3:]).replace(
+        "\\t", ","
+    )
     table = pd.read_csv(io.StringIO(str_table))
-    table = table[~table['GENE'].isnull() & ~table['KIN_ACC_ID'].isnull() & ~table['SITE_+/-7_AA'].isnull()] # Remove rows with crucial missing values
-    table = table[~table['KIN_ACC_ID'].isin(['Q8UWG6', 'Q7M0H9', 'AAA58698', 'Q8WZ42'])] # Remove incorrect gene names/too long of sequences
-    # EXCEPTIONS
-    table = table.replace("NP_001100256", "D4A7D3").replace("NP_001178933", "D3Z8E0").replace("YP_068414", "Q05608").replace("NP_001178650", "F1LYL8").replace("NP_001100045", "B1WBT4") # Replace incorrect uniprot IDs
+    table = table[
+        ~table["GENE"].isnull() & ~table["KIN_ACC_ID"].isnull() & ~table["SITE_+/-7_AA"].isnull()
+    ]  # Remove rows with crucial missing values
+    with open(f"{pathlib.Path(__file__).parent.resolve()}/psp_exceptions.json", "r") as f:
+        excs = json.load(f)
+        table = table[
+            ~table["KIN_ACC_ID"].isin(excs["Accession Removals"])
+        ]  # Remove incorrect gene names/too long of sequences # TODO - do this programatically
+
+        reps = excs["Accession Replacements"]
+        for rep in reps:
+            table = table.replace(rep, reps[rep])  # Replace incorrect uniprot IDs
+
     get_official_names_for = table["KIN_ACC_ID"].unique()
     query = "+OR+".join([f"(accession:{upid.split('-')[0]})" for upid in get_official_names_for])
     new_url = f"https://rest.uniprot.org/uniprotkb/stream?format=json&query=({query})&fields=gene_primary"
-    r = requests.get(new_url)
-    if r.status_code == 200:
-        gene_names = {x["primaryAccession"]: x["genes"][0]["geneName"]["value"] for x in r.json()['results']}
-        for i, r in table.iterrows():
-            if bool(re.match(".*-[0-9]+$", r['KIN_ACC_ID'])):
-                gn = gene_names["-".join(r['KIN_ACC_ID'].split("-")[:-1])]
+    MAX_TRIES = 5
+    tries = 0
+    done = False
+    while not done and tries <= MAX_TRIES:
+        tries += 1
+        try:
+            r = requests.get(new_url, timeout=10)
+            if r.status_code == 200:
+                done = True
+                gene_names = {x["primaryAccession"]: x["genes"][0]["geneName"]["value"] for x in r.json()["results"]}
+                for i, r in table.iterrows():
+                    if bool(re.match(".*-[0-9]+$", r["KIN_ACC_ID"])):
+                        gn = gene_names["-".join(r["KIN_ACC_ID"].split("-")[:-1])]
+                    else:
+                        gn = gene_names[r["KIN_ACC_ID"]]
+                    table.at[i, "GENE"] = gn
             else:
-                gn = gene_names[r['KIN_ACC_ID']]
-            table.at[i, "GENE"] = gn
-    else:
-        print(f"Error: {r.status_code}")
-        if r.status_code == 400:
-            print(r.json()['messages'])
-            print("^^^The message above is likely due to an accession number not being found in the Uniprot database.")
-            print("Please manually look up this invalid accession on Uniprot.org and add to `download_psp.py` under \"EXCEPTIONS\"")
-        print("Exiting unsuccessfully.")
-        exit(1)
-    
-    table = table.sort_values(by=['GENE', 'KIN_ORGANISM'])
+                print(f"Error: {r.status_code}")
+                if r.status_code == 400:
+                    print(r.json()["messages"])
+                    print(
+                        "^^^The message above is likely due to a PSP entry not being compatible with the Uniprot"
+                        " Database.\nPlease determine which entry is causing the problem and add it appropriately to"
+                        f" {pathlib.Path(__file__).parent.resolve()}/psp_exceptions.json."
+                    )
+                print("Exiting unsuccessfully.")
+                exit(1)
+        except Exception as e:
+            print(f"Error: {e.__class__.__name__}{'' if e.__str__() == '' else f' ({e.__str__()})'}. Retrying after 5 seconds...")
+
+    table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
     print("Info: Number of unique uniprot IDs in PSP: ", len(table["KIN_ACC_ID"].unique()))
     print(colored("Status: Saving PSP to Excel file...", "green"))
-    table.to_excel(outfile, index = False)
+    table.to_excel(outfile, index=False)
+
 
 if __name__ == "__main__":
     get_phospho()

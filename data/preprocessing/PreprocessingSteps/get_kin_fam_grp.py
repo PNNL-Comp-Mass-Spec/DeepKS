@@ -21,7 +21,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
 
     table_pd = table_pd.applymap(up)
     relevant_kinases = (
-        pd.read_csv(relevant_kinases, sep="\t")[["kinase", "gene_name"]]
+        pd.read_csv(relevant_kinases)[["kinase", "gene_name"]]
         .rename({"kinase": "Uniprot", "gene_name": "Kinase"}, axis=1)
         .applymap(up)
     )

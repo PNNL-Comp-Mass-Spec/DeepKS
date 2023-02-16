@@ -30,7 +30,7 @@ os.chdir(where_am_i)
 
 matplotlib.rcParams["font.family"] = "monospace"
 
-MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_494.csv", index_col=0)
+MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_918.csv", index_col=0)
 
 class AcceptableClassifier(typing.Protocol):
     def fit(self, X, y) -> typing.Any:

@@ -1,11 +1,6 @@
+import numpy as np, json, pandas as pd, itertools
+from scipy.sparse import csr_matrix, csgraph, vstack
 from typing import Union
-import warnings
-import numpy as np
-import pandas as pd
-from scipy.sparse import csr_matrix, csgraph
-import scipy.sparse
-import itertools
-from numbers import Number
 from .get_array_percentile import get_array_percentile
 
 
@@ -75,7 +70,7 @@ def get_groups_derangement3(group_lengths):
 
 
 def get_groups_derangement4(
-    order, sizes, kin_seq_fn, distance_matrix_file, percentile: Union[int, float] = 90
+    order, sizes, kin_seq_fn, distance_matrix_file, percentile: Union[int, float] = 90, cache_derangement=False
 ):
     graph = None
     np.random.seed(0)
@@ -111,22 +106,21 @@ def get_groups_derangement4(
     for i in range(graph.shape[0]):
         assert unscrambled[i] is None or graph[i][unscrambled[i]] == 1
 
-
+    if cache_derangement:
+        with open(f"{len(unscrambled)}.derangement", "w") as f:
+            json.dump(unscrambled, f)
     return unscrambled
 
 def memory_efficient_np_to_sparse(base: np.ndarray, chunk_multiplier: int = 10):
     assert base.shape[0] == base.shape[1], "The matrix must be square."
-    try:
-        assert base.shape[0] % chunk_multiplier == 0, "The matrix side length must be divisible by the chunk multiplier."
-    except AssertionError as ae:
-        print(f"Chaning chunk multiplier to 1.")
+    if base.shape[0] % chunk_multiplier != 0:
         chunk_multiplier = 1
     s = base.shape[0]
     base = base.reshape((s * chunk_multiplier, -1))
     increment = s
     chunks = [base[i] for i in range(increment*chunk_multiplier)]
     sparse_tiles = [csr_matrix(x) for x in chunks]
-    sparse_concatted = scipy.sparse.vstack(sparse_tiles)
+    sparse_concatted = vstack(sparse_tiles)
     reshaped = sparse_concatted.reshape((s, s))
     del chunks
     del sparse_tiles

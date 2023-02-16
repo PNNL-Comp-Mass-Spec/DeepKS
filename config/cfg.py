@@ -2,7 +2,8 @@ import os
 
 def get_mode():
     wd = _prerun()
-    r = open("mode.cfg", "r").read().strip()
+    with open("mode.cfg", "r") as r:
+        r = r.read().strip()
     assert r in ["no_alin", "alin"], f"Invalid mode: Mode must be either 'no_alin' or 'alin'. What I see is {r}"
     _postrun(wd)
     return r
@@ -10,7 +11,8 @@ def get_mode():
 def set_mode(mode):
     wd = _prerun()
     assert mode in ["no_alin", "alin"], f"Invalid mode: Mode must be either 'no_alin' or 'alin'. What I see is {mode}"
-    open("mode.cfg", "w").write(mode+"\n")
+    with open("mode.cfg", "w") as f:
+        f.write(mode+"\n")
     _postrun(wd)
 
 def _prerun():

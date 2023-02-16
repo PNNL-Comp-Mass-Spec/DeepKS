@@ -403,22 +403,17 @@ def perform_k_fold(config, display_within_train=False, process_device="cpu"):
         raise RuntimeError("Don't know how many classes to output.")
 
     torch.manual_seed(3)
-    try:
-        model = KinaseSubstrateRelationshipNN(
-            num_classes=num_classes,
-            inp_size=NNInterface.get_input_size(train_loader),
-            ll1_size=config["ll1_size"],
-            ll2_size=config["ll2_size"],
-            emb_dim=config["emb_dim"],
-            num_conv_layers=config["num_conv_layers"],
-            site_param_dict=config["site_param_dict"],
-            kin_param_dict=config["kin_param_dict"],
-            dropout_pr=config["dropout_pr"],
-        ).to(process_device)
-    except AssertionError as ae:
-        print("WARNING: AssertionError for the parameter set: ")
-        print(ae)
-        return tuple(["N/A"] * 5)
+    model = KinaseSubstrateRelationshipNN(
+        num_classes=num_classes,
+        inp_size=NNInterface.get_input_size(train_loader),
+        ll1_size=config["ll1_size"],
+        ll2_size=config["ll2_size"],
+        emb_dim=config["emb_dim"],
+        num_conv_layers=config["num_conv_layers"],
+        site_param_dict=config["site_param_dict"],
+        kin_param_dict=config["kin_param_dict"],
+        dropout_pr=config["dropout_pr"],
+    ).to(process_device)
     the_nn = NNInterface(
         model,
         crit,
