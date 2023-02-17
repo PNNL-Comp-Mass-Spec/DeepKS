@@ -1,11 +1,8 @@
 # %%
 # Imports and formatting
-
-SMALL_KIN = 300
-SMALL_SITE = 1000
 KIN_LEN_MAX = 4128
 
-import pandas as pd, numpy as np, re, os, sys, collections, requests, asyncio, aiohttp, itertools, tqdm, time, pathlib, json
+import pandas as pd, numpy as np, re, os, collections, requests, asyncio, aiohttp, itertools, tqdm, time, json, pathlib
 from typing import List, Coroutine, Union
 from pprint import pprint
 
@@ -16,10 +13,10 @@ pd.set_option("display.width", 180)
 pd.set_option("display.min_rows", 50)
 UNIPROT_REQUEST_SIZE = 300
 ORGANISM = "9606"
-
+os.chdir(pathlib.Path(__file__).parent.resolve())
 DO_REQUEST = not os.path.exists("sequences_table.csv")
 
-def main():
+def main(small_kin=None, small_site=None):
     # %%
     # Get the phosphosite data into appropriate format
     all_phos_sites_to_loc = collections.defaultdict(list[str])
@@ -141,20 +138,15 @@ def main():
     )
     kinase_list = [kinase_symbol_to_kinase_sequence[x] for x in relevant_kinase_symbols]
     site_list = list(site_to_site_id.keys())
-
-    SMALL_KIN = len(kinase_list)
-    SMALL_SITE = len(site_list)
-    kinase_symbol_list = relevant_kinase_symbols[:SMALL_KIN]
+    small_kin = len(kinase_list) if small_kin is None else small_kin
+    small_site = len(site_list) if small_site is None else small_site
+    kinase_symbol_list = relevant_kinase_symbols[:small_kin]
     site_symbol_list = list(itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())]))[
-        :SMALL_SITE
+        :small_site
     ]
 
-    kinase_list = kinase_list[:SMALL_KIN]
-    site_list = site_list[:SMALL_SITE]
-
-    with open(f"site_list_{len(site_list)}.txt", "w") as f, open(f"kinase_list_{len(kinase_list)}.txt", "w") as g:
-        f.write("\n".join(site_list))
-        g.write("\n".join(kinase_list))
+    kinase_list = sorted(list(set(kinase_list[:small_kin])))
+    site_list = sorted(list(set(site_list[:small_site])))
 
 
     kinase_symbol_list = set(kinase_symbol_list)
@@ -177,6 +169,29 @@ def main():
         }
         for kinase_symbol in kinase_symbol_list
     }
+
+    common_kins = set(kinase_to_info.keys()).intersection(set(kinase_list))
+    common_sites = set(site_to_info.keys()).intersection(set(site_list))
+
+    kinase_list = [k for k in kinase_list if k in common_kins]
+    site_list = [s for s in site_list if s in common_sites]
+    kinase_to_info = {k: kinase_to_info[k] for k in kinase_list}
+    site_to_info = {s: site_to_info[s] for s in site_list}
+
+    check_kin_to_info = set(kinase_to_info)
+    check_site_to_info = set(site_to_info)
+    check_kin_list = set(kinase_list)
+    check_site_list = set(site_list)
+    assert all([k in check_kin_to_info for k in kinase_list])
+    assert all([s in check_site_to_info for s in site_list])
+    assert all([k in check_kin_to_info for k in kinase_to_info])
+    assert all([s in check_site_to_info for s in site_to_info])
+    assert len(kinase_list) == len(kinase_to_info) == len(common_kins)
+    assert len(site_list) == len(site_to_info) == len(common_sites)
+
+    with open(f"site_list_{len(site_list)}.txt", "w") as f, open(f"kinase_list_{len(kinase_list)}.txt", "w") as g:
+        f.write("\n".join(site_list))
+        g.write("\n".join(kinase_list))
 
     with open(f"compact_kinase_info_{len(kinase_to_info)}.json", "w") as kf, open(
         f"compact_site_info_{len(site_to_info)}.json", "w"
