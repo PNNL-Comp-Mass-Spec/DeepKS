@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, sys, pandas as pd, collections
+import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, sys, pandas as pd, collections, tqdm
 import scipy, itertools
 from matplotlib.axes import Axes
 from typing import Tuple, Union, Callable, Any  # type: ignore
@@ -8,7 +8,7 @@ from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
 from roc_comparison_modified.auc_delong import delong_roc_test
 from .roc_lambda import get_avg_roc
-
+from termcolor import colored
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 
 rcParams["font.family"] = "monospace"
@@ -173,27 +173,34 @@ class NNInterface:
 
             epoch += 1
 
-    def predict(self, dataloader, cutoff=0.5, device="") -> Tuple[list, list]:
+    def predict(self, dataloader, on_chunk, total_chunks, cutoff=0.5, device="", group="UNKNOWN GROUP") -> Tuple[list, list, list]:
         assert(device != ""), "Device must be specified."
-        for *X, labels in (ld := list(dataloader)):
-            assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
-            assert torch.equal(labels, torch.Tensor([-1]*len(labels))), "Labels must be -1 for prediction."
+        all_outputs = []
+        all_predictions = []
+        for *X, labels in tqdm.tqdm(ld := list(dataloader), desc=colored(f"Status: Eval Progress of {group} [Chunk {on_chunk}/{total_chunks}]", 'cyan'), position=0, leave=False, colour = 'cyan'):
+            # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
+            assert torch.equal(labels, torch.Tensor([-1]*len(labels)).to(device)), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
             outputs = self.model(*X)
-            torch.cuda.empty_cache()
+            
+            if "cuda" in device:
+                torch.cuda.empty_cache()
             if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
                 predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
+                all_predictions += predictions.data.cpu().numpy().tolist()
 
             elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
                 predictions = torch.heaviside(
                     torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
                 )
                 outputs = torch.sigmoid(outputs.data.cpu())
+                all_predictions += predictions.data.cpu().numpy().tolist()
+                all_outputs += outputs.data.cpu().numpy().tolist()
             else:
                 raise ValueError("Criterion must be either BCEWithLogitsLoss or CrossEntropyLoss. In the future, this may be changed.")
-
-            return [bool(x) for x in predictions.data.cpu().numpy().tolist()], outputs.data.cpu().numpy().tolist() if outputs.dim() > 0 else [outputs.data.cpu().numpy().tolist()]
-        raise AssertionError("No data was passed to the model for prediction.")
+        if len(all_predictions) == 0:
+            raise AssertionError("No data was passed to the model for prediction.")
+        return [bool(x) for x in all_predictions], all_outputs, [group]*len(all_outputs)
 
 
     def eval(
@@ -520,7 +527,7 @@ class NNInterface:
         return labels2, outputs2, rand_outputs
 
     def test(
-        self, test_loader, verbose=True, savefile=True, cutoff=0.5, text="Test Accuracy of the model", metric="acc"
+        self, test_loader, verbose: Union[bool, int] = True, savefile=True, cutoff=0.5, text="Test Accuracy of the model", metric="acc"
     ) -> None:
         "Verbosity: False = No table of first n predictions, True = Show first n predictions, 2 = `pickle` probabilities and labels"
 

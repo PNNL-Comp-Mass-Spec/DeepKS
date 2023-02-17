@@ -8,6 +8,7 @@ import pprint
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
+raise DeprecationWarning("Use data.preprocessing.main instead.")
 from PreprocessingSteps import remove_overlaps, format_raw_data_DD, get_kin_fam_grp, get_labeled_distance_matrix, remove_overlaps, split_into_sets, format_raw_data
 from config import get_mode, set_mode
 
@@ -38,12 +39,11 @@ def os_system_and_get_stdout(cmd):
             if line != "" and TAG not in line:
                 print(line)
             elif TAG in line:
-                res_out.append(re.sub(f"({TAG})".replace("[", "\[").replace("]", "\]"), "", line))
+                res_out.append(re.sub(f"({TAG})".replace("[", r"\[").replace("]", r"\]"), "", line))
     
     return res_out
 
 def main():
-
     mode = input("Process [a]ligned or [u]naligned sequences? [a|u]: ")
     if mode.lower() == "a":
         set_mode("alin")

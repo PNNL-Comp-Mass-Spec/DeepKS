@@ -13,6 +13,7 @@ from pprint import pprint  # type: ignore
 from sklearn.utils.validation import check_is_fitted
 from itertools import chain, combinations
 import multiprocessing
+from termcolor import colored
 
 def powerset(iterable):
     s = list(iterable)
@@ -361,7 +362,7 @@ class SKGroupClassifier:
         self.y_train = y_train
         self.model = classifier(**hyperparameters)
         self.model = factory(self.model)
-        print("Status: Fitting Group Classifier Model")
+        print(colored("Status: Fitting Group Classifier Model", "green"))
         self.model.fit(X_train, y_train)
         check_is_fitted(self.model)
 

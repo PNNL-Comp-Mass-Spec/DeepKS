@@ -1,5 +1,5 @@
 import requests, pandas as pd, gzip, io, re, os
-
+from termcolor import colored
 def get_phospho(redownload = False, outfile = "PSP_script_download.xlsx"):
     url = "https://www.phosphosite.org/downloads/Kinase_Substrate_Dataset.gz"
     if not os.path.exists("Kinase_Substrate_Dataset.gz") and not redownload:
@@ -43,7 +43,7 @@ def get_phospho(redownload = False, outfile = "PSP_script_download.xlsx"):
     
     table = table.sort_values(by=['GENE', 'KIN_ORGANISM'])
     print("Info: Number of unique uniprot IDs in PSP: ", len(table["KIN_ACC_ID"].unique()))
-    print("Status: Saving PSP to Excel file...")
+    print(colored("Status: Saving PSP to Excel file...", "green"))
     table.to_excel(outfile, index = False)
 
 if __name__ == "__main__":

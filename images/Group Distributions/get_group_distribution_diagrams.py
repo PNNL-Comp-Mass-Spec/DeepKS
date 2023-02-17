@@ -3,7 +3,7 @@ import matplotlib as mpl, matplotlib.pyplot as plt, textwrap
 from brokenaxes import brokenaxes
 import pandas as pd
 import sys
-from ...data.preprocessing.PreprocessingSteps import split_into_sets_individual
+from ...data.preprocessing.PreprocessingSteps import split_into_sets_individual_deterministic_top_k
 
 mpl.rcParams['font.family'] = "monospace"
 
@@ -73,9 +73,8 @@ def get_proportional_plot(counts, savefig = False):
     plt.bar(r, orangeBars, bottom=greenBars, color=(117/255, 251/255, 253/255), width=barWidth, label = "val")
     # Create blue Bars
     plt.bar(r, blueBars, bottom=[i+j for i,j in zip(greenBars, orangeBars)], color=(0, 0, 245/255), width=barWidth, label = "test")
-
-    plt.hlines(70, -100, 100, ['black']*2, ['dashed']*2, linewidth = 1, label = textwrap.fill("Train set proportion goal", 15))
-    plt.hlines(85, -100, 100, ['black']*2, ['dotted']*2, linewidth = 1, label = textwrap.fill("Dev set proportion goal", 15))
+    plt.hlines(70, -100, 100, ['black']*2, 'dashed', linewidth = 1, label = textwrap.fill("Train set proportion goal", 15))
+    plt.hlines(85, -100, 100, ['black']*2, 'dotted', linewidth = 1, label = textwrap.fill("Dev set proportion goal", 15))
     plt.xlabel("Kinase Group")
     plt.ylabel("% Proportion of sites")
     plt.title("Result of Repeated Simulated Annealing")
@@ -92,7 +91,7 @@ if __name__ == "__main__":
     where_am_i = pathlib.Path(__file__).parent.resolve()
     os.chdir(where_am_i)
     print(where_am_i)
-    data = get_group_distribution_diagrams(split_into_sets_individual.get_assignment_info_dict("../../data/preprocessing/kin_to_fam_to_grp_817.csv", "../../data/raw_data/raw_data_22473.csv", *[f"../../data/preprocessing/{x}_kins.json" for x in ["tr", "vl", "te"]]))
+    data = get_group_distribution_diagrams(split_into_sets_individual_deterministic_top_k.get_assignment_info_dict("../../data/preprocessing/kin_to_fam_to_grp_817.csv", "../../data/raw_data/raw_data_22473.csv", *[f"../../data/preprocessing/{x}_kins.json" for x in ["tr", "vl", "te"]]))
 
     get_overall_plot(data, savefig = True)
     get_proportional_plot(data, savefig = True)

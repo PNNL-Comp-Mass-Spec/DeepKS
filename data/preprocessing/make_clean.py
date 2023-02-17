@@ -7,10 +7,10 @@ os.chdir("../../")
 def main():
     to_del = []
     for fi in os.listdir("data/"):
-        if bool(re.search("raw_data_[1-9]+.*\.csv", fi)):
+        if bool(re.search(r"raw_data_[1-9]+.*\.csv", fi)):
             to_del.append("data/"+fi)
     for fi in os.listdir("data/raw_data/"):
-        if bool(re.search("kinase_seq.*\.txt", fi)):
+        if bool(re.search(r"kinase_seq.*\.txt", fi)):
             to_del.append("data/raw_data/"+fi)
     
     del_str = "rm -f"

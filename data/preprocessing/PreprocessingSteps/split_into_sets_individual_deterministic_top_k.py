@@ -149,7 +149,7 @@ def split_into_sets(
     def algorithm4(tgt, group, verbose=True, num_restarts=100, top_k=5):
         scores = []
         states = []
-        for r in tqdm(range(1, num_restarts + 1), position=0, leave=True, desc="Group Restart Progress: ", file=sys.stderr):
+        for r in tqdm(range(1, num_restarts + 1), position=0, leave=True, desc="Group Restart Progress: ", file=sys.stderr, colour = 'cyan'):
             present = core_ai(tgt, r, group)
             states.append(present[0])
             scores.append(present[1])
@@ -177,7 +177,7 @@ def split_into_sets(
         group_sd = []
         group_states = {}
         for i, group in enumerate(
-            tq := tqdm(sorted(list(grp_to_num_sites.keys())), position=0, leave=True, file=sys.stderr)
+            tq := tqdm(sorted(list(grp_to_num_sites.keys())), position=0, leave=True, file=sys.stderr, colour = 'cyan')
         ):
             tq.set_description(f"Processing Group {group}")
             group_result = algorithm4(tgt, group, verbose, num_restarts=num_restarts)

@@ -1,11 +1,6 @@
 
 import pandas as pd
 import re
-import pathlib
-import os
-import sys
-import json
-import random
 import numpy as np
 from typing import Union
 
@@ -15,8 +10,8 @@ def format_for_excel(mtx_file, raw_data_file):
     uniprot_to_organism = pd.read_csv(raw_data_file)[['uniprot_id', 'organism']]\
                           .set_index('uniprot_id').to_dict()['organism']
 
-    gene_names = [re.sub("[\\(\\)\\*]", "", x).split("|")[0] for x in mtx.index]
-    uniprots = [re.sub("[\\(\\)\\*]", "", x).split("|")[1] for x in mtx.index]
+    gene_names = [re.sub(r"[\\(\\)\\*]", "", str(x)).split("|")[0] for x in mtx.index]
+    uniprots = [re.sub(r"[\\(\\)\\*]", "", str(x)).split("|")[1] for x in mtx.index]
     organisms = [uniprot_to_organism[uniprots[i]] for i in range(len(uniprots))]
     
     mtx['uniprot_id'] = uniprots

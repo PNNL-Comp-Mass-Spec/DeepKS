@@ -1,22 +1,24 @@
 from __future__ import annotations
+import collections
 
 if __name__ == "__main__":
-    from .write_splash import write_splash
+    from ..splash.write_splash import write_splash
 
-    write_splash()
+    write_splash("nn_trainer")
     print("Progress: Loading Modules", flush=True)
 
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io
-import torch.utils.data, datetime, pickle, pstats  # type: ignore
+import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io, psutil, numpy as np, os, itertools
+import torch.utils.data, datetime, cloudpickle as pickle, pickle as orig_pickle, pstats  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 from ..tools.parse import parsing
 from typing import Callable, Generator, Union, Tuple
 from pprint import pprint  # type: ignore
+from termcolor import colored
 
 # s = io.StringIO()
 # load_stats = pstats.Stats(pr, stream=s).sort_stats('tottime')
@@ -30,6 +32,8 @@ torch.manual_seed(42)
 
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 MAX_SIZE_DS = 4128
+memory_multiplier = 2**6
+EVAL_BATCH_SIZE = int(2 ** np.floor(np.log2(psutil.virtual_memory().total / (1024**2 * memory_multiplier))))
 
 
 def RAISE_ASSERTION_ERROR(x):
@@ -115,21 +119,62 @@ class IndividualClassifiers:
         return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
 
     def _run_dl_core(
-        self, which_groups: list[str], Xy_formatted_input_file: str, pred_groups: Union[None, dict[str, str]] = None
+        self,
+        which_groups: list[str],
+        Xy_formatted_input_file: str,
+        pred_groups: Union[None, dict[str, str]] = None,
+        tqdm_passthrough: Union[list[None], list[tqdm.tqdm]] = [],
+        cartesian_product: bool = False,
     ):
-        which_groups.sort()
-        Xy = pd.read_csv(Xy_formatted_input_file)
-        if pred_groups is None: # Training
+        which_groups_ordered = collections.OrderedDict(sorted({x: -1 for x in which_groups}.items()))
+        Xy: Union[pd.DataFrame, dict]
+        if not cartesian_product:
+            Xy = pd.read_csv(Xy_formatted_input_file)
+        else:
+            Xy = json.load(open(Xy_formatted_input_file))
+        if pred_groups is None:  # Training
             print("Warning: Using ground truth groups. (Normal for training)")
             Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
-        else: # Evaluation CHECK
-            if 'orig_lab_name' in Xy.columns: # Test
-                Xy["Group"] = [pred_groups[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
-            else: # Prediction
+        else:  # Evaluation CHECK
+            if "orig_lab_name" in Xy.columns if isinstance(Xy, pd.DataFrame) else "orig_lab_name" in Xy.keys():  # Test
+                Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["orig_lab_name"]]]
+            else:  # Prediction
                 Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
-        group_df: dict[str, pd.DataFrame] = {group: Xy[Xy["Group"] == group] for group in which_groups}
-        for group in tqdm.tqdm(which_groups, desc="Group Neural Network Evaluation Progress", leave=True, position=0): # Do only if Verbose
+        group_df: dict[str, Union[pd.DataFrame, dict]]
+        if not cartesian_product:
+            assert isinstance(Xy, pd.DataFrame)
+            group_df = {group: Xy[Xy["Group"] == group] for group in which_groups_ordered}
+        else:
+            group_df = {}
+            for group in tqdm.tqdm(which_groups_ordered, colour='cyan', leave=False, desc=colored("Info: Formatting data for each group", "cyan")):
+                group_df_inner = {}
+                put_in_indices = [i for i, x in enumerate(Xy["Group"]) if x == group]
+
+                group_df_inner['lab_name'] = Xy['lab_name']
+                group_df_inner['orig_lab_name'] = [Xy['orig_lab_name'][i] for i in put_in_indices]
+                group_df_inner['lab'] = [Xy['lab'][i] for i in put_in_indices]
+                group_df_inner['seq'] = Xy['seq']
+                group_df_inner['pair_id'] = [] # [Xy['pair_id'][j] for j in range(i, i + len(Xy['seq'])) for i in put_in_indices]
+                for i in put_in_indices:
+                    group_df_inner['pair_id'] += Xy['pair_id'][i*len(Xy['seq']):(i+1)*len(Xy['seq'])]
+                group_df_inner['class'] = Xy['class']
+                group_df_inner['num_seqs'] = ['N/A']
+                
+                group_df[group] = group_df_inner
+
+        for group in (
+            pb := tqdm.tqdm(
+                which_groups_ordered.keys(),
+                leave=True,
+                position=1,
+                desc=colored(f"Overall Group Evaluation Progress", "cyan"),
+                colour="cyan",
+            )
+        ):  # Do only if Verbose
+            if len(tqdm_passthrough) == 1:
+                tqdm_passthrough[0] = pb
             yield group, group_df[group]
+        print("\r" + " " * os.get_terminal_size()[0], end="\r")
 
     def train(
         self,
@@ -192,7 +237,16 @@ class IndividualClassifiers:
         assert (
             len(info_dict_passthrough) == 0
         )  # and info_dict_passthrough is not None, "Info dict passthrough must be a list of length 1"
-        gen_te = self._run_dl_core(which_groups, Xy_formatted_input_file, pred_groups=pred_groups)
+        tqdm_passthrough = [None]
+        gen_te = self._run_dl_core(
+            which_groups,
+            Xy_formatted_input_file,
+            pred_groups=pred_groups,
+            tqdm_passthrough=tqdm_passthrough,
+            cartesian_product=evaluation_kwargs["cartesian_product"]
+            if "cartesian_product" in evaluation_kwargs
+            else False,
+        )
         count = 0
         for (group_te, partial_group_df_te) in gen_te:
             if len(partial_group_df_te) == 0:
@@ -200,7 +254,7 @@ class IndividualClassifiers:
                 continue
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
-            (_, _, _, test_loader), info_dict = gather_data(
+            for (_, _, _, test_loader), info_dict in gather_data(
                 partial_group_df_te,
                 trf=0,
                 vf=0,
@@ -208,18 +262,34 @@ class IndividualClassifiers:
                 tef=1,
                 tokdict=self.default_tok_dict,
                 n_gram=ng,
-                device= self.device if 'predict_mode' not in evaluation_kwargs or not evaluation_kwargs['predict_mode'] else evaluation_kwargs['device'],
+                device=self.device
+                if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]
+                else evaluation_kwargs["device"],
                 maxsize=MAX_SIZE_DS,
-            )
-            info_dict_passthrough[group_te] = info_dict
-            assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
-            if 'predict_mode' not in evaluation_kwargs or not evaluation_kwargs['predict_mode']: 
-                self.interfaces[group_te].test(
-                    test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
-                )
-            assert test_loader is not None
-            count += 1
-            yield group_te, test_loader
+                eval_batch_size=EVAL_BATCH_SIZE,
+                cartesian_product=evaluation_kwargs["cartesian_product"]
+                if "cartesian_product" in evaluation_kwargs
+                else False,
+                tqdm_passthrough=tqdm_passthrough
+            ):
+                if len(tqdm_passthrough) == 1:
+                    assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+                    # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
+                    tqdm_passthrough[0].write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
+                info_dict_passthrough[group_te] = info_dict
+                info_dict_passthrough['on_chunk'] = info_dict['on_chunk']
+                info_dict_passthrough['total_chunks'] = info_dict['total_chunks']
+                assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
+                if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
+                    self.interfaces[group_te].test(
+                        test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
+                    )
+                assert test_loader is not None
+                count += 1
+                yield group_te, test_loader
+                # if len(tqdm_passthrough) == 1:
+                #     assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
+                #     tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
         if count > 0:
             pass
         else:
@@ -234,22 +304,28 @@ class IndividualClassifiers:
     def load_all(path, device=None) -> IndividualClassifiers:
         with open(path, "rb") as f:
             if device is None or "cuda" in device:
-                return torch.load(f)
-            else: # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
-                assert device == 'cpu'
-                class CPU_Unpickler(pickle.Unpickler):
-                    def find_class(self, module, name):
-                        if module == 'torch.storage' and name == '_load_from_bytes':
-                            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
-                        else: return super().find_class(module, name)
-                return CPU_Unpickler(f).load()
+                ic: IndividualClassifiers = pickle.load(f)
+                ic.individual_classifiers = {k: v.to(device) for k, v in ic.individual_classifiers.items()}
+                return ic
+            else:  # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
+                assert device == "cpu"
 
+                class CPU_Unpickler(orig_pickle.Unpickler):
+                    def find_class(self, module, name):
+                        if module == "torch.storage" and name == "_load_from_bytes":
+                            return lambda b: torch.load(io.BytesIO(b), map_location="cpu")
+                        else:
+                            return super().find_class(module, name)
+
+                return CPU_Unpickler(f).load()
 
     def roc_evaluation(self, new_args, pred_groups, true_groups, predict_mode):
         if "test" in new_args:
             test_filename = new_args["test"]
-        else: 
-            test_filename = ''
+        if "test_json" in new_args:
+            test_filename = new_args["test_json"]
+        else:
+            test_filename = ""
         if "load_include_eval" in new_args and new_args["load_include_eval"] is None and not predict_mode:
             grp_to_info_pass_through_info_dict = {}
             grp_to_loaders = {
@@ -267,7 +343,7 @@ class IndividualClassifiers:
             #     unfurled_pickle = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in pickled_version.items()}
 
             # unfurled_local = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in grp_to_loaders.items()} # type: ignore
-            
+
             print("Progress: ROC")
             NNInterface.get_combined_rocs_from_individual_models(
                 self.interfaces,
@@ -295,24 +371,38 @@ class IndividualClassifiers:
                 which_groups=list(pred_groups.values()),
                 Xy_formatted_input_file=test_filename,
                 pred_groups=pred_groups,
-                evaluation_kwargs={"predict_mode": True, "device": new_args['device']},
-                info_dict_passthrough=info_dict_passthrough
+                evaluation_kwargs={
+                    "predict_mode": True,
+                    "device": new_args["device"],
+                    "cartesian_product": "test_json" in new_args,
+                },
+                info_dict_passthrough=info_dict_passthrough,
             ):
                 # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
-                jumbled_predictions = self.interfaces[grp].predict(loader, cutoff = 0.5, device=new_args['device']) # TODO: Make adjustable cutoff
+                jumbled_predictions = self.interfaces[grp].predict(
+                    loader,int(info_dict_passthrough['on_chunk'] + 1), int(info_dict_passthrough['total_chunks']),cutoff=0.5, device=new_args["device"], group=grp
+                )  # TODO: Make adjustable cutoff
+                del loader
+                if "cuda" in str(self.device):
+                    torch.cuda.empty_cache()
                 new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
-                all_predictions_outputs.update({pair_id: (jumbled_predictions[0][i], jumbled_predictions[1][i])  for pair_id, i in zip(new_info, range(len(new_info)))}) 
-            
-            pred_items = sorted(all_predictions_outputs.items(), key=lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))) # Pair # {i}
-            return pred_items # TODO: Enable saving
+                all_predictions_outputs.update(
+                    {
+                        pair_id: (jumbled_predictions[0][i], jumbled_predictions[1][i], jumbled_predictions[2][i])
+                        for pair_id, i in zip(new_info, range(len(new_info)))
+                    }
+                )
+
+            pred_items = sorted(
+                all_predictions_outputs.items(), key=lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
+            )  # Pair # {i}
+            return pred_items  # TODO: Enable saving
 
         if self.args["s"]:
             print("Progress: Saving State to Disk")
             IndividualClassifiers.save_all(
-                self,
-                f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + ".pkl"
+                self, f"../bin/saved_state_dicts/indivudial_classifiers_{datetime.datetime.now().isoformat()}" + ".pkl"
             )
-        
 
 
 def main():
@@ -329,7 +419,9 @@ def main():
             #     "AGC",
             #     "TKL",
             # ]
-            groups: list[str] = pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_826.csv")["Group"].unique().tolist() # FIXME - all - make them configurable
+            groups: list[str] = (
+                pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_826.csv")["Group"].unique().tolist()
+            )  # FIXME - all - make them configurable
             default_grp_to_model_args = {
                 "ll1_size": 50,
                 "ll2_size": 25,
@@ -362,7 +454,9 @@ def main():
                 kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
             )
             print("Progress: About to Train")
-            fat_model.train(which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename)
+            fat_model.train(
+                which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename
+            )
         else:  # AKA, loading from file
             fat_model = IndividualClassifiers.load_all(
                 args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
@@ -371,10 +465,14 @@ def main():
         if args["load_include_eval"] is None and args["train"] is None:
             grp_to_loaders = {
                 grp: loader
-                for grp, loader in fat_model.evaluate(which_groups=groups, Xy_formatted_input_file=fat_model.args["test"])
+                for grp, loader in fat_model.evaluate(
+                    which_groups=groups, Xy_formatted_input_file=fat_model.args["test"]
+                )
             }
             # Working dataloaders
-            with open(f"../bin/saved_state_dicts/test_grp_to_loaders_{datetime.datetime.now().isoformat()}.pkl", "wb") as f:
+            with open(
+                f"../bin/saved_state_dicts/test_grp_to_loaders_{datetime.datetime.now().isoformat()}.pkl", "wb"
+            ) as f:
                 pickle.dump(grp_to_loaders, f)
             # raise RuntimeError("Done")
             print("Progress: ROC")
@@ -397,6 +495,7 @@ def main():
             )
     except Exception as e:
         print("Exception Occured.")
+
 
 if __name__ == "__main__":
     main()
