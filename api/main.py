@@ -7,9 +7,6 @@ import os, pathlib, typing, argparse, textwrap, re, json
 from numpy import require
 from termcolor import colored
 
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(where_am_i)
-
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
 
@@ -405,8 +402,9 @@ def parse_api() -> dict[str, typing.Any]:
     return args_dict
 
 
-def pre_main():
+def setup():
     global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections, json, config
+    os.chdir(pathlib.Path(__file__).parent.resolve())
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
@@ -420,4 +418,4 @@ def pre_main():
 
 
 if __name__ in ["__main__"]:
-    pre_main()
+    setup()

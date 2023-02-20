@@ -194,7 +194,8 @@ if (mode == "alin") {
   fi_name <- sprintf("../../raw_data/kinase_seq_alin_%d.csv", nrow(input_aligned_df))
   write.table(input_aligned_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = ",")
 } else {
-  input_df <- data.frame(kinase = toupper(as.character(aass_accid)), kinase_seq = toupper(as.vector(aass_values)), gene_name = toupper(aass_gn))
+  input_df <- data.frame(kinase = toupper(as.character(aass_accid)), kinase_seq = toupper(as.vector(aass_values)), gene_name = toupper(aass_gn)) %>% 
+    arrange(gene_name, kinase_seq, kinase)
   fi_name <- sprintf("../../raw_data/kinase_seq_%d.csv", nrow(input_df))
   write.table(input_df, file = fi_name, quote = FALSE, row.names = FALSE, sep = ",")
 }

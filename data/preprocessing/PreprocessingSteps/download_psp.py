@@ -2,7 +2,7 @@ import requests, pandas as pd, gzip, io, re, os, json, pathlib
 from termcolor import colored
 
 
-def get_phospho(redownload=False, outfile="PSP_script_download.xlsx"):
+def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug.xlsx")):
     url = "https://www.phosphosite.org/downloads/Kinase_Substrate_Dataset.gz"
     if not os.path.exists("Kinase_Substrate_Dataset.gz") and not redownload:
         try:

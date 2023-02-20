@@ -82,7 +82,7 @@ def gather_data(
     if len(tqdm_passthrough) == 1:
         tq: tqdm.tqdm = tqdm_passthrough[0]
         # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
-        tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r", file=open('/dev/fd/2', "w"))
+        tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
     assert abs(sum([trf, vf, tuf, tef, -1]) < 1e-16)
     
     # ===== #

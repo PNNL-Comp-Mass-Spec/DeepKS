@@ -10,7 +10,7 @@ import mlrose_hiive as mlr
 from typing import Union
 from numpy.ma import core as np_ma_core
 
-newstream = open("debug_non_det.log", "a")
+# newstream = open("debug_non_det.log", "a")
 np.set_printoptions(linewidth=240)
 
 def ma_from_inds(base_ar, inds):
@@ -143,7 +143,7 @@ def split_into_sets(
             opt, max_attempts=1000, max_iters=1000, random_state=random_state, init_state=[0 for _ in range(num_fams)]
         )
         if group == "<UNANNOTATED>" and random_state == 1:
-            print(res, file = newstream)
+            print(res)
         return res
 
     def algorithm4(tgt, group, verbose=True, num_restarts=100, top_k=5):
@@ -286,4 +286,4 @@ if __name__ == "__main__":
         get_restart=True,
         num_restarts=600,
     )
-    print("=====================\n\n", file=newstream)
+    print("=====================\n\n")
