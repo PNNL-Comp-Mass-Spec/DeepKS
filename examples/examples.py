@@ -10,7 +10,7 @@ EXAMPLES = [
             "-s",
             "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA",
             "-p",
-            "in_order",
+            "inorder",
             "-v"
         ],
         [

@@ -1,12 +1,11 @@
 import sys
-if __name__ == "__main__" and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]:
+if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]):
     from ..splash import write_splash
 
     write_splash.write_splash("main_api")
-import os, pathlib, typing, argparse, textwrap, re, json
-from numpy import require
-from termcolor import colored
 
+import os, sys, pathlib, typing, argparse, textwrap, re, json
+from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
 
@@ -15,7 +14,7 @@ def make_predictions(
     kin_info: dict,
     site_seqs: list[str],
     site_info: dict,
-    predictions_output_format: str = "in_order",
+    predictions_output_format: str = "inorder",
     suppress_seqs_in_output: bool = False,
     verbose: bool = True,
     pre_trained_gc: str = PRE_TRAINED_GC,
@@ -34,11 +33,13 @@ def make_predictions(
         kin_info (dict): The kinase (meta-) information.
         site_seqs ([str]): The site sequences. Each must be 15 residues long.
         site_info (dict): The site (meta-) information.
-        predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
-            - "in_order" returns a list of predictions in the same order as the input kinases and sites.
+        predictions_output_format (str, optional): The format of the output. Defaults to "inorder"
+            - "inorder"returns a list of predictions in the same order as the input kinases and sites.
             - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
             - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
             - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+            - "csv" outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input kinases, sites, sequence, metadata and predictions.
+            - "sqlite" outputs a sqlite database (filename = ../out/current-date-and-time.sqlite), where the columns include the input kinases, sites, sequence, metadata and predictions.
         suppress_seqs_in_output (bool, optional): Whether to include the input sequences in the output. Defaults to False.
         verbose (bool, optional): Whether to print predictions. Defaults to True.
         pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
@@ -50,12 +51,12 @@ def make_predictions(
         cartesian_product (bool, optional): Whether to make predictions for all combinations of kinases and sites. Defaults to False.
         group_output (bool, optional): Whether to return group predictions. Defaults to False.
     """
-    # try:
-    # Input validation
     config.cfg.set_mode('no_alin')
-    if True:  # FIXME: Use real exception handling
+    try:
         print(colored("Status: Validating inputs.", "green"))
-        assert predictions_output_format in ["in_order", "dictionary", "in_order_json", "dictionary_json"]
+        assert predictions_output_format in (["inorder" "dictionary", "in_order_json", "dictionary_json", 
+                                            "csv", "sqlite"]
+        )
 
         assert len(kinase_seqs) == len(site_seqs) or cartesian_product, (
             f"The number of kinases and sites must be equal. (There are {len(kinase_seqs)} kinases and"
@@ -77,11 +78,6 @@ def make_predictions(
                 f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is"
                 " problematic."
             )
-
-        # if cartesian_product:
-        #     orig_kin_seq_len = len(kinase_seqs)
-        #     kinase_seqs = list(itertools.chain(*[[kinase_seqs[i]] * len(site_seqs) for i in range(len(kinase_seqs))]))
-        #     site_seqs = site_seqs * orig_kin_seq_len
 
         if dry_run:
             print(colored("Status: Dry run successful!", "green"))
@@ -109,8 +105,7 @@ def make_predictions(
                 group_output=group_output,
             )
         except Exception as e:
-            print(colored("\n\nError: Predicting Failed!\n", "red"))
-            raise e
+            informative_exception(e, print_full_tb=True, top_message="Error: Prediction process failed!")
 
         assert res is not None or "json" in predictions_output_format
 
@@ -125,11 +120,8 @@ def make_predictions(
             print("\n" + "<" * int(np.floor(len(first_msg) / 2)) + ">" * int(np.ceil(len(first_msg) / 2)) + "\n")
         print(colored("Status: Done!\n", "green"))
         return res
-
-    # except Exception as e:
-    #     print(colored("Status: Something went wrong!\n\n", "green"))
-    #     raise e
-
+    except Exception as e:
+        print(informative_exception(e, print_full_tb=False))
 
 def parse_api() -> dict[str, typing.Any]:
     """Parse the command line arguments.
@@ -167,7 +159,7 @@ def parse_api() -> dict[str, typing.Any]:
         help="Comma-delimited kinase sequences (no spaces). Each must be <= 4128 residues long.",
         metavar="<kinase sequences>",
     )
-    k_group.add_argument(  # TODO: Add FASTA support
+    k_group.add_argument(
         "-kf",
         help="The file containing line-delimited kinase sequences. Each must be <= 4128 residues long.",
         metavar="<kinase sequences file>",
@@ -191,7 +183,7 @@ def parse_api() -> dict[str, typing.Any]:
     ap.add_argument("--site-info", required=False, help="Site information file. Must be able to be read as JSON. Same structure as `info_format_str`.", metavar="<site info file>")
 
     output_choices_helper = {
-        "in_order": (
+        "inorder": (
             "prints (if verbose == True) a list of predictions in the same order as the input kinases and sites."
         ),
         "dictionary": (
@@ -206,6 +198,12 @@ def parse_api() -> dict[str, typing.Any]:
             "outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where"
             " the keys are the input kinases and sites and the values are the predictions."
         ),
+        "csv": (
+            "outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input kinases, sites, sequence, metadata and predictions."
+        ),
+        "sqlite": (
+            "outputs an sqlite database (filename = ../out/current-date-and-time.sqlite), where the fields (columns) include the input kinases, sites, sequence, metadata and predictions."
+        )
     }
 
     ap.add_argument(
@@ -217,7 +215,7 @@ def parse_api() -> dict[str, typing.Any]:
 
     ap.add_argument(
         "-p",
-        default="in_order",
+        default="inorder",
         choices=output_choices_helper,
         help="\n".join(wrap("* " + f"{k}: {v}") for k, v in output_choices_helper.items()),
     )
@@ -250,7 +248,7 @@ def parse_api() -> dict[str, typing.Any]:
         default=PRE_TRAINED_GC,
         required=False,
         metavar="<pre-trained group classifier file>",
-    )  # FIXME: Max width
+    )
 
     import torch
 
@@ -403,7 +401,7 @@ def parse_api() -> dict[str, typing.Any]:
 
 
 def setup():
-    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, tqdm, itertools, collections, json, config
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config
     os.chdir(pathlib.Path(__file__).parent.resolve())
     args = parse_api()
 
@@ -413,6 +411,7 @@ def setup():
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
+    from ..tools.informative_tb import informative_exception
 
     make_predictions(**args)
 

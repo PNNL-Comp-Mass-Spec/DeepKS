@@ -4,6 +4,7 @@ if __name__ == "__main__":
     write_splash("gc_trainer")
     print("Progress: Loading Modules", flush=True)
 import pandas as pd, numpy as np, tempfile as tf, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm
+import re, sqlite3
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
@@ -112,7 +113,7 @@ class MultiStageClassifier:
         kin_info: dict,
         site_seqs: list[str],
         site_info: dict,
-        predictions_output_format: str = "in_order",
+        predictions_output_format: str = "inorder",
         suppress_seqs_in_output: bool = False,
         device: str = "cpu",
         scores: bool = False,
@@ -130,7 +131,9 @@ class MultiStageClassifier:
             "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
             "lab": kinase_seqs,
             "seq": site_seqs,
-            "pair_id": [f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))],
+            "pair_id": [
+                f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))
+            ],
             "class": [-1],
             "num_seqs": ["N/A"],
         }
@@ -139,7 +142,9 @@ class MultiStageClassifier:
             print(
                 colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green")
             )
-            self.align_novel_kin_seqs(id_to_seq) # existing_seqs = pd.read_csv("../data/raw_data/kinase_seqs_494.csv").index.tolist()
+            self.align_novel_kin_seqs(
+                id_to_seq
+            )  # existing_seqs = pd.read_csv("../data/raw_data/kinase_seqs_494.csv").index.tolist()
             print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
             if cartesian_product:
                 with open(f.name, "w") as f2:
@@ -217,10 +222,11 @@ class MultiStageClassifier:
                     ]
                 ]
             ), (
-                f"Error: Results lists are not all the same length (Debug: {len(kinase_seqs)} vs {len(kinase_seqs)} vs {len(site_seqs)} vs"
-                f" {len(boolean_predictions)} vs {len(numerical_scores)} vs {len(group_predictions)} vs"
-                f" {len(kinase_gene_names)} vs {len(site_gene_names)} vs {len(kinase_uniprot_accession)} vs"
-                f" {len(site_uniprot_accession)} vs {len(site_location)})"
+                f"Error: Results lists are not all the same length (Debug: {len(kinase_seqs)=} vs"
+                f" {len(kinase_seqs)=} vs {len(site_seqs)=} vs {len(boolean_predictions)=} vs"
+                f" {len(numerical_scores)=} vs {len(group_predictions)=} vs {len(kinase_gene_names)=} vs"
+                f" {len(site_gene_names)=} vs {len(kinase_uniprot_accession)=} vs {len(site_uniprot_accession)=} vs"
+                f" {len(site_location)=})"
             )
 
             ret = [
@@ -256,21 +262,34 @@ class MultiStageClassifier:
             ]
         else:
             ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
-        if "json" in predictions_output_format:
-            now = datetime.datetime.now(tz=dateutil.tz.tzlocal())
-            file_name = f"../out/{get_file_name()}.json"
-            print(colored(f"Info: Writing results to {file_name}.", "blue"))
-            json.dump(ret, open(file_name, "w"), indent=2)
+        if "_" in predictions_output_format:
+            file_name = (
+                f"{str(pathlib.Path(__file__).parent.resolve())}/"
+                f"../out/{get_file_name('results', re.sub(r'.*?_json', 'json', predictions_output_format))}"
+            )
+            print(colored(f"Info: Writing results to {file_name}", "blue"))
+            table = pd.DataFrame(ret)
+            if "json" in predictions_output_format:
+                table.to_json(open(file_name, "w"), orient="records", indent=3)
+            elif predictions_output_format == "csv":
+                table.to_csv(file_name, index=False)
+            else:
+                assert predictions_output_format == "sqlite"
+                table.to_sql(name="DeepKS Results", con=sqlite3.connect(file_name), index=False, if_exists="fail")
         else:
             return ret
 
     def align_novel_kin_seqs(
-        self, kin_id_to_seq: dict[str, str], existing_seqs=["../data/raw_data/kinase_seq_826.csv", "../data/raw_data/kinase_seq_494.csv"]
+        self,
+        kin_id_to_seq: dict[str, str],
+        existing_seqs=["../data/raw_data/kinase_seq_826.csv", "../data/raw_data/kinase_seq_494.csv"],
     ) -> None:
         train_kin_list = self.group_classifier.X_train
-        existing_seqs_to_known_ids = pd.concat([pd.read_csv(existing_seq) for existing_seq in existing_seqs], ignore_index=True) # TODO - fix variable names
-        existing_seqs_to_known_ids.drop(columns=['symbol'], inplace=True)
-        existing_seqs_to_known_ids.drop_duplicates(inplace=True, keep = 'first')
+        existing_seqs_to_known_ids = pd.concat(
+            [pd.read_csv(existing_seq) for existing_seq in existing_seqs], ignore_index=True
+        )  # TODO - fix variable names
+        existing_seqs_to_known_ids.drop(columns=["symbol"], inplace=True)
+        existing_seqs_to_known_ids.drop_duplicates(inplace=True, keep="first")
         existing_seqs_to_known_ids["Symbol"] = (
             existing_seqs_to_known_ids["gene_name"] + "|" + existing_seqs_to_known_ids["kinase"]
         )
@@ -315,6 +334,7 @@ class MultiStageClassifier:
             grp_pred.MTX.loc[additional_name] = grp_pred.MTX.loc[additional_name_dict[additional_name]]
 
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
+
 
 def main(run_args):
     train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
@@ -377,7 +397,9 @@ def efficient_to_csv(data_dict, outfile):
     headers = ",".join(data_dict.keys())
     max_len = max(len(x) for x in data_dict.values())
     dl = {k: len(v) for k, v in data_dict.items()}
-    assert all([x == 1 or x == max_len for x in [len(x) for x in data_dict.values()]]), f"Tried to write uneven length lists to csv. Data Dict lengths: {dl}"
+    assert all(
+        [x == 1 or x == max_len for x in [len(x) for x in data_dict.values()]]
+    ), f"Tried to write uneven length lists to csv. Data Dict lengths: {dl}"
     for k in data_dict:
         if len(data_dict[k]) == 1:
             data_dict[k] = data_dict[k] * max_len
@@ -388,7 +410,7 @@ def efficient_to_csv(data_dict, outfile):
             enumerate(zip(*data_dict.values())),
             total=max_len,
             desc=colored("Status: Writing prediction queries to tempfile.", "cyan"),
-            colour="cyan"
+            colour="cyan",
         ):
             f.write(",".join([str(x) for x in row_tuple]) + "\n")
             lines_written += 1

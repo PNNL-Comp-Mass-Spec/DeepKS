@@ -127,7 +127,7 @@ usage: python -m DeepKS.api.main [-h] (-k <kinase sequences> | -kf <kinase seque
                                  (-s <site sequences> | -sf <site sequences file>)
                                  [--kin-info <kinase info file>] [--site-info <site info file>]
                                  [--cartesian-product]
-                                 [-p {in_order,dictionary,in_order_json,dictionary_json}]
+                                 [-p {inorder,dictionary,in_order_json,dictionary_json,csv,sqlite}]
                                  [--suppress-seqs-in-output] [-v]
                                  [--pre_trained_nn <pre-trained neural network file>]
                                  [--pre_trained_gc <pre-trained group classifier file>]
@@ -149,7 +149,7 @@ python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt 
 
 python -m DeepKS.api.main -k KINASE_SEQ_1,KINASE_SEQ_2,KINASE_SEQ_3 -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p dictionary
 
-python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p in_order -v False
+python -m DeepKS.api.main -kf my/kinase/sequences.txt -s SITE_SEQ_1,SITE_SEQ_2,SITE_SEQ_3 -p inorder -v False
 
 python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt --dry-run
 ```
@@ -191,8 +191,8 @@ make_predictions(kinase_seqs, site_seqs, predictions_output_format, verbose, pre
     Args:
         kinase_seqs (list[str]): The kinase sequences. Each must be <= 4128 residues long.
         site_seqs ([str]): The site sequences. Each must be 15 residues long.
-        predictions_output_format (str, optional): The format of the output. Defaults to "in_order".
-            - "in_order" returns a list of predictions in the same order as the input kinases and sites.
+        predictions_output_format (str, optional): The format of the output. Defaults to "inorder"
+            - "inorder" returns a list of predictions in the same order as the input kinases and sites.
             - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
             - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
             - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.

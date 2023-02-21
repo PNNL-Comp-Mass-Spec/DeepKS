@@ -136,7 +136,7 @@ def gather_data(
                     "val": data.loc[val_ids]["orig_lab_name"].to_list(),
                     "test": data.loc[test_ids]["orig_lab_name"].to_list(),
                 },
-                "PairIDs": {  # FIXME!
+                "PairIDs": {
                     "train": data.loc[train_ids]["pair_id"].to_list(),
                     "val": data.loc[val_ids]["pair_id"].to_list(),
                     "test": data.loc[test_ids]["pair_id"].to_list(),

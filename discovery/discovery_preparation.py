@@ -16,6 +16,7 @@ ORGANISM = "9606"
 os.chdir(pathlib.Path(__file__).parent.resolve())
 DO_REQUEST = not os.path.exists("sequences_table.csv")
 
+
 def main(small_kin=None, small_site=None):
     # %%
     # Get the phosphosite data into appropriate format
@@ -34,9 +35,7 @@ def main(small_kin=None, small_site=None):
         # %% [markdown]
         # ### Only Need to be run once.
         loop = asyncio.get_event_loop()
-        tasks = [
-            loop.create_task(seq_request(gene_names=all_phos_sites_to_loc.keys(), outfile="psp_kinase_table.csv"))
-        ]
+        tasks = [loop.create_task(seq_request(gene_names=all_phos_sites_to_loc.keys(), outfile="psp_kinase_table.csv"))]
         loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
 
@@ -90,8 +89,8 @@ def main(small_kin=None, small_site=None):
                 if sequence[middle - 1] not in ["S", "T", "Y"]:
                     warn_num += 1
                     print(
-                        f"{warn_num}. Warning: Site {site} for gene {gene_name} is not a phosphorylation site (central AA ="
-                        f" {sequence[middle - 1]}). Skipping."
+                        f"{warn_num}. Warning: Site {site} for gene {gene_name} is not a phosphorylation site (central"
+                        f" AA = {sequence[middle - 1]}). Skipping."
                     )
                 if middle - FLANKING_OFFSET - 1 < 0:
                     l = 0
@@ -141,17 +140,32 @@ def main(small_kin=None, small_site=None):
     small_kin = len(kinase_list) if small_kin is None else small_kin
     small_site = len(site_list) if small_site is None else small_site
     kinase_symbol_list = relevant_kinase_symbols[:small_kin]
-    site_symbol_list = list(itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())]))[
-        :small_site
-    ]
+    site_symbol_list = list(
+        itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())])
+    )[:small_site]
 
     kinase_list = sorted(list(set(kinase_list[:small_kin])))
     site_list = sorted(list(set(site_list[:small_site])))
-
-
     kinase_symbol_list = set(kinase_symbol_list)
     site_symbol_list = set(site_symbol_list)
+    return kinase_symbol_to_kinase_sequence, symbol_to_location, symbol_to_flanking_sites
 
+
+def format_kin_and_site_lists(
+    kinase_symbol_to_kinase_sequence: collections.OrderedDict[str, str],
+    symbol_to_location: collections.OrderedDict[str, list[str]],
+    symbol_to_flanking_sites: collections.OrderedDict[str, list[str]],
+    kinase_list = None,
+    site_list = None,
+    save_dir = None,
+):
+    site_symbol_list = list(symbol_to_flanking_sites.keys())
+    kinase_symbol_list = list(kinase_symbol_to_kinase_sequence.keys())
+    if kinase_list is None:
+        kinase_list = [x.split("|")[0] for x in kinase_symbol_to_kinase_sequence.values()]
+    if site_list is None:
+        site_list = list(set([x.split("|")[0] for x in list(itertools.chain(*symbol_to_flanking_sites.values()))]))
+        site_list.sort()
     site_to_info = {}
 
     for site_symbol in site_symbol_list:
@@ -180,26 +194,27 @@ def main(small_kin=None, small_site=None):
 
     check_kin_to_info = set(kinase_to_info)
     check_site_to_info = set(site_to_info)
-    check_kin_list = set(kinase_list)
-    check_site_list = set(site_list)
     assert all([k in check_kin_to_info for k in kinase_list])
     assert all([s in check_site_to_info for s in site_list])
     assert all([k in check_kin_to_info for k in kinase_to_info])
     assert all([s in check_site_to_info for s in site_to_info])
-    assert len(kinase_list) == len(kinase_to_info) == len(common_kins)
-    assert len(site_list) == len(site_to_info) == len(common_sites)
+    assert len(kinase_list) == len(kinase_to_info) == len(common_kins), f"{len(kinase_list)} {len(kinase_to_info)} {len(common_kins)}"
+    assert len(site_list) == len(site_to_info) == len(common_sites), f"{len(site_list)} {len(site_to_info)} {len(common_sites)}"
 
-    with open(f"site_list_{len(site_list)}.txt", "w") as f, open(f"kinase_list_{len(kinase_list)}.txt", "w") as g:
+    if save_dir is None:
+        save_dir = pathlib.Path(__file__).parent.resolve()
+    with open(f"{save_dir}/site_list_{len(site_list)}.txt", "w") as f, open(f"{save_dir}/kinase_list_{len(kinase_list)}.txt", "w") as g:
         f.write("\n".join(site_list))
         g.write("\n".join(kinase_list))
 
-    with open(f"compact_kinase_info_{len(kinase_to_info)}.json", "w") as kf, open(
-        f"compact_site_info_{len(site_to_info)}.json", "w"
+    with open(f"{save_dir}/compact_kinase_info_{len(kinase_to_info)}.json", "w") as kf, open(
+        f"{save_dir}/compact_site_info_{len(site_to_info)}.json", "w"
     ) as sf:
         json.dump(kinase_to_info, kf, indent=3)
         json.dump(site_to_info, sf, indent=3)
 
-async def seq_request(gene_names = None, uniprot_ids = None, outfile = None) -> Union[None, pd.DataFrame]:
+
+async def seq_request(gene_names=None, uniprot_ids=None, outfile=None) -> Union[None, pd.DataFrame]:
     if gene_names is not None:
         req_key = "gene"
         req_iter = list(gene_names)
@@ -213,10 +228,7 @@ async def seq_request(gene_names = None, uniprot_ids = None, outfile = None) -> 
 
     query_part_1 = f"https://rest.uniprot.org/uniprotkb/stream?format=fasta&uncompressed=true&query=reviewed:true+AND+organism_id:{ORGANISM}+AND+"
     gene_queries = [
-        query_part_1
-        + "("
-        + "+OR+".join([f"{req_key}:{x}" for x in req_iter[i : i + UNIPROT_REQUEST_SIZE]])
-        + ")"
+        query_part_1 + "(" + "+OR+".join([f"{req_key}:{x}" for x in req_iter[i : i + UNIPROT_REQUEST_SIZE]]) + ")"
         for i in range(0, len(req_iter), UNIPROT_REQUEST_SIZE)
     ]
 
@@ -283,5 +295,4 @@ async def seq_request(gene_names = None, uniprot_ids = None, outfile = None) -> 
 
 
 if __name__ == "__main__":
-    main()
-
+    format_kin_and_site_lists(*main())

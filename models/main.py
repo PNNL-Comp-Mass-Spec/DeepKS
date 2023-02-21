@@ -1,19 +1,10 @@
-import datetime
-import os
-import pathlib
-import json
+import os, pathlib, json, torch, numpy as np, torch.nn as nn
 
-
-import sys
-import torch
-import torch.nn as nn
 from ..tools.tensorize import gather_data
 from ..tools.NNInterface import NNInterface
 from ..tools import file_names
 from matplotlib import rcParams
 from ..tools.formal_layers import Concatenation, Multiply, Transpose
-import numpy as np
-import pickle
 from ..tools.SimpleTuner import SimpleTuner
 from ..tools.model_utils import cNNUtils as U
 from ..config.cfg import get_mode

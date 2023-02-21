@@ -1,6 +1,6 @@
 # %%
 import pandas as pd, os, re, collections, asyncio, pathlib, warnings
-from .discovery_preparation import seq_request, ORGANISM, UNIPROT_REQUEST_SIZE
+from ..discovery_preparation import seq_request, ORGANISM, UNIPROT_REQUEST_SIZE
 
 async def main():
 # %%

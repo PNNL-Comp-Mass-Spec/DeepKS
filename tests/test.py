@@ -51,6 +51,14 @@ class TestMainAPIFromCMDL(unittest.TestCase):
 
         sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "dictionary_json", "-v", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--normalize-scores", "--cartesian-product"]
         self.main.setup()
+
+    def test_cartesian_product_csv(self):
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "csv", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--groups", "--normalize-scores", "--cartesian-product"]
+        self.main.setup()
+    
+    def test_cartesian_product_db(self):
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "sqlite", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--groups", "--normalize-scores", "--cartesian-product"]
+        self.main.setup()
     
     def test_bad_devices(self):
         sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites.txt", "-p", "dictionary", "-v", "--device", "cpuu"]
