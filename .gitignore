@@ -78,3 +78,4 @@ images/Excel Matrix/excel_art_formatted.csv
 discovery/*.json
 discovery/*.txt
 !discovery/phosphosites_base.txt
+data/raw_data/PSP_script_download.xlsx
