@@ -1,4 +1,4 @@
-import numpy as np, json, pandas as pd, itertools
+import numpy as np, json, pandas as pd
 from scipy.sparse import csr_matrix, csgraph, vstack
 from typing import Union
 from .get_array_percentile import get_array_percentile

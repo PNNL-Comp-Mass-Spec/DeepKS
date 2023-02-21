@@ -1,13 +1,9 @@
-import warnings
-from matplotlib.pyplot import plot, figure, xlabel, ylabel, legend, title, savefig, rcParams, ylim, xscale
-from matplotlib import axes, colors, pyplot as plt
-from matplotlib import cm
+import warnings, json, pandas as pd, numpy as np
+from matplotlib.pyplot import figure, rcParams
+from matplotlib import colors, pyplot as plt, cm
 from torch.utils.data import Dataset
 from math import floor, ceil
 from numpy import logspace
-import json
-import pandas as pd
-import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from termcolor import colored
 from typing import Union
@@ -119,9 +115,7 @@ class cNNUtils:
             raise RuntimeError("Must specify dilation.")
         if pad_tuple == (None, None):
             raise RuntimeError("Must specify pad.")
-        input_height_flag = True
         if input_height is None:
-            input_height_flag = False
             input_height = input_width
         if desired_height is None:
             desired_height = desired_width

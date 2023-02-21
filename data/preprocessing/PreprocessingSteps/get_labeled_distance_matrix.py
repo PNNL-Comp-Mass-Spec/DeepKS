@@ -1,6 +1,4 @@
-import os, pandas as pd, tempfile as tf, textwrap as tw, re, io
-from pandas import _typing as pd_typing
-from typing import Tuple
+import pandas as pd, textwrap as tw
 
 format_for_needle = (
     lambda x: x.replace("|", "_")

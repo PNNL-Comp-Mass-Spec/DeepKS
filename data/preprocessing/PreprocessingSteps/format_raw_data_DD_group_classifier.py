@@ -1,4 +1,4 @@
-import sys, re, json, random, pathlib, os, pandas as pd
+import re, json, random, pathlib, os, pandas as pd
 from typing import Union
 
 where_am_i = pathlib.Path(__file__).parent.resolve()

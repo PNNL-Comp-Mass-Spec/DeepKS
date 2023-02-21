@@ -1,7 +1,4 @@
-import itertools
-import matplotlib
-import random
-import numpy as np
+import itertools, random, numpy as np
 from matplotlib import pyplot as plt
 
 

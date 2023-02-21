@@ -1,18 +1,16 @@
-import functools, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as np, sklearn.model_selection, matplotlib, collections, tqdm, time
+import typing, multiprocessing, warnings, scipy, pandas as pd, json, re, os, pathlib, numpy as np
+import sklearn.model_selection, matplotlib, matplotlib.pyplot as plt
 from concurrent.futures import ProcessPoolExecutor as Pool
 from random import seed, shuffle
 from sklearn.pipeline import Pipeline
 from sklearn.neural_network import MLPClassifier
 from typing import Union
-import typing
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve
-import matplotlib.pyplot as plt
 from pprint import pprint  # type: ignore
 from sklearn.utils.validation import check_is_fitted
 from itertools import chain, combinations
-import multiprocessing
 from termcolor import colored
 
 def powerset(iterable):
@@ -179,14 +177,14 @@ def grid_search_no_cv(train_kins, train_true, val_kins, val_true, classifier_typ
 
     assert len(classifier_types) == len(hyperparameterses), "classifiers and hyperparameterses must be the same length."
     for classifier_type, hyperparameters in list(zip(classifier_types, hyperparameterses)):
-        for i, hp_dict in enumerate(mp := list(my_product(hyperparameters))):
+        for _, hp_dict in enumerate(list(my_product(hyperparameters))):
             argslist.append([classifier_type, hp_dict, managed_dict, train_kins, train_true, val_kins, val_true, managed_lock])
 
     managed_dict['best_score'] = 0
     managed_dict['best_descstr'] = "No classifier was more than 0% accurate."
     managed_dict['done'] = 0
     argslist = [a[:3] + [len(argslist)] + a[3:] for a in argslist]
-    with Pool(8) as executor:
+    with Pool(8):
         for a in argslist:
             grid_search_worker(*a)
 
@@ -197,7 +195,7 @@ def grid_search_no_cv(train_kins, train_true, val_kins, val_true, classifier_typ
 def custom_run():
     kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_826.csv", sep="\t").set_index(["kinase"])
 
-    train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets(
+    train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets( # type: ignore
         "../tools/pairwise_mtx_826.csv",
         "json/tr.json",
         "json/vl.json",

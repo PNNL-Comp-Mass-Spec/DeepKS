@@ -3,7 +3,7 @@ if __name__ == "__main__":
 
     write_splash("gc_trainer")
     print("Progress: Loading Modules", flush=True)
-import pandas as pd, numpy as np, tempfile as tf, json, datetime, dateutil.tz, cloudpickle as pickle, pathlib, os, tqdm
+import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm
 import re, sqlite3
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
@@ -56,7 +56,7 @@ class MultiStageClassifier:
             assert true_symbol_to_grp_dict is not None
             groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
         else:
-            groups_true = [None for u in unq_symbols]
+            groups_true = [None for _ in unq_symbols]
 
         ### Perform Real Accuracy
         groups_prediction = self.group_classifier.predict(unq_symbols)
@@ -406,7 +406,7 @@ def efficient_to_csv(data_dict, outfile):
     with open(outfile, "w") as f:
         f.write(headers + "\n")
         lines_written = 1
-        for i, row_tuple in tqdm.tqdm(
+        for _, row_tuple in tqdm.tqdm(
             enumerate(zip(*data_dict.values())),
             total=max_len,
             desc=colored("Status: Writing prediction queries to tempfile.", "cyan"),

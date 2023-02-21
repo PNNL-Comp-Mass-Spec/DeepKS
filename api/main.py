@@ -4,7 +4,7 @@ if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--hel
 
     write_splash.write_splash("main_api")
 
-import os, sys, pathlib, typing, argparse, textwrap, re, json
+import os, pathlib, typing, argparse, textwrap, re, json
 from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
@@ -54,9 +54,9 @@ def make_predictions(
     config.cfg.set_mode('no_alin')
     try:
         print(colored("Status: Validating inputs.", "green"))
-        assert predictions_output_format in (["inorder" "dictionary", "in_order_json", "dictionary_json", 
+        assert predictions_output_format in (["inorder", "dictionary", "in_order_json", "dictionary_json", 
                                             "csv", "sqlite"]
-        )
+        ), f"Output format was {predictions_output_format}, which is not allowed."
 
         assert len(kinase_seqs) == len(site_seqs) or cartesian_product, (
             f"The number of kinases and sites must be equal. (There are {len(kinase_seqs)} kinases and"
@@ -121,7 +121,7 @@ def make_predictions(
         print(colored("Status: Done!\n", "green"))
         return res
     except Exception as e:
-        print(informative_exception(e, print_full_tb=False))
+        print(informative_exception(e, print_full_tb=True))
 
 def parse_api() -> dict[str, typing.Any]:
     """Parse the command line arguments.
@@ -346,8 +346,6 @@ def parse_api() -> dict[str, typing.Any]:
     args_dict["group_output"] = args_dict.pop("groups")
     if not args_dict["scores"] and args_dict["normalize_scores"]:
         print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
-
-    import pandas as pd
 
     if args_dict["kin_info"] is None:
         kinase_info_dict = {

@@ -171,7 +171,6 @@ class SimpleTuner:
 
         for hp in desired_conf:
             if "_@pyex_" in desired_conf[hp]:
-                temp = None
                 loc = {}
                 exec(desired_conf[hp].replace("_@pyex_", "temp = "), globals(), loc)
                 desired_conf[hp] = loc["temp"]

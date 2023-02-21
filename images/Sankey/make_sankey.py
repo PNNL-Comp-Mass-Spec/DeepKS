@@ -1,14 +1,11 @@
 import pandas as pd, re, pathlib, os
 from psankey_modified.sankey import sankey
 from matplotlib import rcParams
-from matplotlib import pyplot as plt
 from ...tools.system_tools import os_system_and_get_stdout
 os.chdir(pathlib.Path(__file__).parent.resolve())
 
 def make_sankey():
     rcParams['font.family'] = 'monospace'
-
-    size = dict(width=2000, height=300)
 
     flows = pd.read_csv("./flows.csv")
 
@@ -19,7 +16,7 @@ def make_sankey():
 
     mod = {'D': dict(facecolor='green', edgecolor='black', alpha=1, label='D1', yPush=1)}
     mod.update(label_dict)
-    nodes, fig, ax = sankey(flows, aspect_ratio=3, nodelabels=True, linklabels=False, labelsize=9, nodecmap='viridis', nodecolorby='level', nodealpha=0.5, nodeedgecolor='white', nodemodifier=mod, plotOrder=plot_order)
+    _, fig, _ = sankey(flows, aspect_ratio=3, nodelabels=True, linklabels=False, labelsize=9, nodecmap='viridis', nodecolorby='level', nodealpha=0.5, nodeedgecolor='white', nodemodifier=mod, plotOrder=plot_order)
     # fig.savefig("big_sankey.svg", bbox_inches = "tight", pad_inches = 0)
     # fig.set_size_inches(fig.get_size_inches()[0], fig.get_size_inches()[1]*1.5)
     fig.savefig("big_sankey.pdf", transparent=True, bbox_inches='tight')

@@ -1,12 +1,6 @@
-import collections
-import re, sys
+import collections, re, sys, mlrose_hiive as mlr, pandas as pd, numpy as np, json
 from types import NoneType
-import pandas as pd
-import numpy as np
-import json
-from sklearn.utils import indexable
 from tqdm import tqdm
-import mlrose_hiive as mlr
 from typing import Union
 from numpy.ma import core as np_ma_core
 
@@ -176,7 +170,7 @@ def split_into_sets(
         group_r = []
         group_sd = []
         group_states = {}
-        for i, group in enumerate(
+        for _, group in enumerate(
             tq := tqdm(sorted(list(grp_to_num_sites.keys())), position=0, leave=True, colour = 'cyan')
         ):
             tq.set_description(f"Processing Group {group}")

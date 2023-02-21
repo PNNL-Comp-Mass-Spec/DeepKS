@@ -1,6 +1,5 @@
 # %% ### IMPORTS ---
-import plotly, plotly.express as px, pandas as pd, json, re, os, pathlib
-import plotly.graph_objects as go
+import pandas as pd, json, re, os, pathlib, plotly.graph_objects as go
 from matplotlib import rcParams
 
 rcParams["font.family"] = "P052-Roman"

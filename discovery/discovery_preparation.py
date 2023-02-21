@@ -3,8 +3,7 @@
 KIN_LEN_MAX = 4128
 
 import pandas as pd, numpy as np, re, os, collections, requests, asyncio, aiohttp, itertools, tqdm, time, json, pathlib
-from typing import List, Coroutine, Union
-from pprint import pprint
+from typing import Union
 
 np.set_printoptions(precision=3, edgeitems=10, linewidth=180)
 pd.set_option("display.max_columns", 100)
@@ -233,7 +232,6 @@ async def seq_request(gene_names=None, uniprot_ids=None, outfile=None) -> Union[
     ]
 
     # %%
-    from async_timeout import timeout
 
     MAX_TRIES = 4
 

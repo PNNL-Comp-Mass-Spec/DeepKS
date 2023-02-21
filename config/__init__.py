@@ -1,3 +1,1 @@
-from . import cfg
-
-__all__ = ('cfg') # type: ignore
+from . import cfg # type: ignore

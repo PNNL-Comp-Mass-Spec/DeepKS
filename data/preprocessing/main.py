@@ -1,4 +1,4 @@
-import os, sys, re, pathlib, pprint, tempfile as tf, pandas as pd
+import os, re, pathlib, pprint, tempfile as tf, pandas as pd
 from . import PreprocessingSteps as PS
 from ...tools import system_tools, get_needle_pairwise as get_pairwise
 from .PreprocessingSteps import get_labeled_distance_matrix as mtx_utils
@@ -68,7 +68,7 @@ def main():
                     symbols_unk = new_seq_df[(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]).isin(not_existing)]
                     new_seq_df.to_csv("temp.csv")
                     # Get restricted combinations
-                    all_fasta = mtx_utils.make_fasta(df_in="temp.csv", fasta_out=tmp.name)
+                    mtx_utils.make_fasta(df_in="temp.csv", fasta_out=tmp.name)
                     thin_mtx = get_pairwise.get_needle_pairwise_mtx(
                         tmp.name, new_mtx_file, num_procs=8, restricted_combinations=[list(existing), list(not_existing)]
                     )

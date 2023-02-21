@@ -1,14 +1,6 @@
-import collections
-import scipy
-import sigfig
-import signal
-from typing import Union, Callable
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+import collections, pandas as pd, numpy as np, seaborn as sns, matplotlib.pyplot as plt, matplotlib as mpl
 import sklearn.mixture as mix
+from typing import Union, Callable
 
 KIN_AND_ORG_TO_SYMBOL = pd.read_csv("../../data/raw_data/raw_data_22473.csv").applymap(lambda x: x.upper() if isinstance(x, str) else x).drop_duplicates(keep = 'first').set_index(['lab', 'organism']).to_dict()['uniprot_id']
 KIN_AND_ORG_TO_SYMBOL_DICT = collections.defaultdict(dict[str, str])

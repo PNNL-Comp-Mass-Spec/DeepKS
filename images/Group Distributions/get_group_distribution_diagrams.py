@@ -1,8 +1,5 @@
-import itertools, collections
-import matplotlib as mpl, matplotlib.pyplot as plt, textwrap
+import itertools, collections, pandas as pd, matplotlib as mpl, matplotlib.pyplot as plt, textwrap
 from brokenaxes import brokenaxes
-import pandas as pd
-import sys
 from ...data.preprocessing.PreprocessingSteps import split_into_sets_individual_deterministic_top_k
 
 mpl.rcParams['font.family'] = "monospace"

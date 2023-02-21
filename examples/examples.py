@@ -69,3 +69,6 @@ def _main():
             main.setup()
 
     print(colored("Info: All Examples Complete.", "blue"))
+
+if __name__ == "__main__":
+    _main()

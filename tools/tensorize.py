@@ -1,14 +1,6 @@
-from typing import Generator, Iterable, Tuple, Union
-import numpy as np
-import psutil
-import torch
-import pandas as pd
-import collections
-import json, tqdm
-import random
+import numpy as np, psutil, torch, pandas as pd, collections, json, tqdm, random, torch.utils.data
+from typing import Generator, Union
 from ..tools import model_utils
-import torch.utils.data
-import sys
 from termcolor import colored
 
 def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):
@@ -346,7 +338,7 @@ def gather_data(
                 int(rand_idx // len(data["seq"])),
                 int(rand_idx // len(data["lab"])),
             )
-            for i, idx_set in enumerate([train_ids_subset, val_ids_subset, tune_ids_subset, test_ids_subset]):
+            for _, idx_set in enumerate([train_ids_subset, val_ids_subset, tune_ids_subset, test_ids_subset]):
                 kin_tensor_data: list[torch.Tensor] = []
                 site_tensor_data: list[torch.Tensor] = []
                 class_tensor_data: list[torch.Tensor] = []

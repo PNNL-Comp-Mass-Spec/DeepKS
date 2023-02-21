@@ -10,8 +10,8 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, json, torch, tqdm, torch.utils, traceback, io, psutil, numpy as np, os, itertools
-import torch.utils.data, datetime, cloudpickle as pickle, pickle as orig_pickle, pstats  # type: ignore
+import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np
+import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -236,7 +236,6 @@ class IndividualClassifiers:
         info_dict_passthrough={},
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
         assert len(info_dict_passthrough) == 0, "Info dict passthrough must be empty for passing in"
-        dummy_tqdm = None
         tqdm_passthrough = [None]
         gen_te = self._run_dl_core(
             which_groups,
@@ -402,98 +401,95 @@ class IndividualClassifiers:
 
 
 def main():
-    try:
-        print("Progress: Parsing Args")
-        args = parsing()
-        if args["train"] is not None:  # AKA, not loading from pickle
-            print("Progress: Preparing Training Data")
-            train_filename = args["train"]
-            val_filename = args["val"]
-            device = args["device"]
-            assert device is not None
-            # groups: list[str] = [
-            #     "TK",
-            #     "AGC",
-            #     "TKL",
-            # ]
-            groups: list[str] = (
-                pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_826.csv")["Group"].unique().tolist()
-            )  # FIXME - all - make them configurable
-            default_grp_to_model_args = {
-                "ll1_size": 50,
-                "ll2_size": 25,
-                "emb_dim": 22,
-                "num_conv_layers": 1,
-                "dropout_pr": 0.4,
-                "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
-                "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
-            }
+    print("Progress: Parsing Args")
+    args = parsing()
+    if args["train"] is not None:  # AKA, not loading from pickle
+        print("Progress: Preparing Training Data")
+        train_filename = args["train"]
+        val_filename = args["val"]
+        device = args["device"]
+        assert device is not None
+        # groups: list[str] = [
+        #     "TK",
+        #     "AGC",
+        #     "TKL",
+        # ]
+        groups: list[str] = (
+            pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_826.csv")["Group"].unique().tolist()
+        )  # FIXME - all - make them configurable
+        default_grp_to_model_args = {
+            "ll1_size": 50,
+            "ll2_size": 25,
+            "emb_dim": 22,
+            "num_conv_layers": 1,
+            "dropout_pr": 0.4,
+            "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
+            "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
+        }
 
-            default_grp_to_interface_args: dict[str, Union[type, str, float, int]] = {
-                "loss_fn": torch.nn.BCEWithLogitsLoss,
-                "optim": torch.optim.Adam,
-                "model_summary_name": "../architectures/architecture (IC-XX).txt",
-                "lr": 0.003,
-                "batch_size": 64,
-                device: device,
-                "n_gram": 1,
-            } 
+        default_grp_to_interface_args: dict[str, Union[type, str, float, int]] = {
+            "loss_fn": torch.nn.BCEWithLogitsLoss,
+            "optim": torch.optim.Adam,
+            "model_summary_name": "../architectures/architecture (IC-XX).txt",
+            "lr": 0.003,
+            "batch_size": 64,
+            device: device,
+            "n_gram": 1,
+        } 
 
-            default_training_args = {"lr_decay_amount": 0.7, "lr_decay_freq": 3, "num_epochs": 5, "metric": "roc"}
-            assert device is not None
-            fat_model = IndividualClassifiers(
-                grp_to_model_args={group: default_grp_to_model_args for group in groups},
-                grp_to_interface_args={group: default_grp_to_interface_args for group in groups}, # type: ignore # FIXME
-                grp_to_training_args={group: default_training_args for group in groups},
-                device=device,
-                args=args,
-                groups=groups,
-                kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
+        default_training_args = {"lr_decay_amount": 0.7, "lr_decay_freq": 3, "num_epochs": 5, "metric": "roc"}
+        assert device is not None
+        fat_model = IndividualClassifiers(
+            grp_to_model_args={group: default_grp_to_model_args for group in groups},
+            grp_to_interface_args={group: default_grp_to_interface_args for group in groups}, # type: ignore # FIXME
+            grp_to_training_args={group: default_training_args for group in groups},
+            device=device,
+            args=args,
+            groups=groups,
+            kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
+        )
+        print("Progress: About to Train")
+        assert val_filename is not None
+        fat_model.train(
+            which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename
+        )
+    else:  # AKA, loading from file
+        fat_model = IndividualClassifiers.load_all(
+            args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
+        )
+        groups = list(fat_model.interfaces.keys())
+    if args["load_include_eval"] is None and args["train"] is None:
+        assert fat_model.args["test"] is not None
+        grp_to_loaders = {
+            grp: loader
+            for grp, loader in fat_model.evaluate(
+                which_groups=groups, Xy_formatted_input_file=fat_model.args["test"]
             )
-            print("Progress: About to Train")
-            assert val_filename is not None
-            fat_model.train(
-                which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename
-            )
-        else:  # AKA, loading from file
-            fat_model = IndividualClassifiers.load_all(
-                args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
-            )
-            groups = list(fat_model.interfaces.keys())
-        if args["load_include_eval"] is None and args["train"] is None:
-            assert fat_model.args["test"] is not None
-            grp_to_loaders = {
-                grp: loader
-                for grp, loader in fat_model.evaluate(
-                    which_groups=groups, Xy_formatted_input_file=fat_model.args["test"]
-                )
-            }
-            # Working dataloaders
-            with open(
-                f"../bin/saved_state_dicts/test_grp_to_loaders_{file_names.get()}.pkl", "wb"
-            ) as f:
-                pickle.dump(grp_to_loaders, f)
-            # raise RuntimeError("Done")
-            print("Progress: ROC")
-            NNInterface.get_combined_rocs_from_individual_models(
-                fat_model.interfaces,
-                grp_to_loaders,
-                f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
-                retain_evals=fat_model.evaluations,
-            )
-        elif args["train"] is None:
-            print("Progress: ROC")
-            NNInterface.get_combined_rocs_from_individual_models(
-                savefile=f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
-                from_loaded=fat_model.evaluations,
-            )
-        if args["s"]:
-            print("Progress: Saving State to Disk")
-            IndividualClassifiers.save_all(
-                fat_model, f"../bin/indivudial_classifiers_{file_names.get()}.pkl"
-            )
-    except Exception as e:
-        print("Exception Occured.")
+        }
+        # Working dataloaders
+        with open(
+            f"../bin/saved_state_dicts/test_grp_to_loaders_{file_names.get()}.pkl", "wb"
+        ) as f:
+            pickle.dump(grp_to_loaders, f)
+        # raise RuntimeError("Done")
+        print("Progress: ROC")
+        NNInterface.get_combined_rocs_from_individual_models(
+            fat_model.interfaces,
+            grp_to_loaders,
+            f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
+            retain_evals=fat_model.evaluations,
+        )
+    elif args["train"] is None:
+        print("Progress: ROC")
+        NNInterface.get_combined_rocs_from_individual_models(
+            savefile=f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
+            from_loaded=fat_model.evaluations,
+        )
+    if args["s"]:
+        print("Progress: Saving State to Disk")
+        IndividualClassifiers.save_all(
+            fat_model, f"../bin/indivudial_classifiers_{file_names.get()}.pkl"
+        )
 
 
 if __name__ == "__main__":

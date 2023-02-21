@@ -1,10 +1,6 @@
-import sys
-
 from ..tools.SimpleTuner import SimpleTuner
-import sys
-import torch
+import multiprocessing, torch
 from ..tools.NNInterface import *
-import multiprocessing
 from main import perform_k_fold
 
 num_classes = 1

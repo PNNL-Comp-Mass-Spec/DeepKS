@@ -1,4 +1,4 @@
-from typing import Union, Protocol
+from typing import Union
 from collections.abc import Collection
 import numpy as np
 

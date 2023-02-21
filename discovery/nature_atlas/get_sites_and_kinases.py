@@ -15,12 +15,11 @@ def main():
     NUM_KIN_ASSERT_AVAIL = 303
     NUM_RANDOM_KINS = 10
     SEED = 42
-    SHORTEN = lambda x: {k: v if len(str(v)) <= 80 else str(v)[:77] + "..." for k, v in x.items()}
+    SHORTEN = lambda x: {k: v if len(str(v)) <= 80 else str(v)[:77] + "..." for k, v in x.items()} # type: ignore
 
     # %% PROCESSING KINASES ---
     kin_seq_file = "../../data/raw_data/kinase_seq_918.csv"
     uni_to_seq = pd.read_csv(kin_seq_file).set_index("kinase").to_dict()["kinase_seq"]
-    kin_to_uni = pd.read_csv(kin_seq_file).set_index("gene_name").to_dict()["kinase"]
     matrix_name_to_uniprot_id: dict[str, str] = (
         pd.read_csv("./41586_2022_5575_MOESM3_ESM.csv").set_index("Matrix_name").to_dict()["Uniprot id"]
     )

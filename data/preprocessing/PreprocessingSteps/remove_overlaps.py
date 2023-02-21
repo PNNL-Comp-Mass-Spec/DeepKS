@@ -15,7 +15,6 @@ def remove_legitimate_duplicates(input_files, rel_sizes):
     for seq in rld:
         if len(s := set([x[0] for x in rld[seq]])) > 1:
             ls = list(s)
-            cntr = collections.Counter(ls)
             keep = random.sample([i for i in range(len(s))], k = 1, counts = [int(y/min([1/rel_sizes[x] for x in ls])) for y in [1/rel_sizes[x] for x in ls]])[0]
             for instance in rld[seq]:
                 if instance[0] != ls[keep]:
@@ -47,11 +46,8 @@ def validate_data(input_files):
         for seq, original_kinase in zip(seqs, original_kinases):
             val_dict[(seq, original_kinase)].append(inpf)
     
-    bad_entry = None
     for entry in val_dict.values():
-        bad_entry = entry
         assert len(set(entry)) == 1
-        bad_entry = None
 
 if __name__ == "__main__":
     import os, pathlib

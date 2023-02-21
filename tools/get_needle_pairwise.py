@@ -1,19 +1,6 @@
-import itertools
-import warnings
-import tqdm
-import os, re, tempfile, time, pathlib
-import threading
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd, tqdm
-import sys
-import contextlib
-
-matplotlib.rcParams["font.family"] = "monospace"
+import itertools, warnings, tqdm, os, re, tempfile, time, pathlib, matplotlib, numpy as np, pandas as pd, subprocess
 from multiprocessing.pool import ThreadPool
-import subprocess
-from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as mtx_utils
+matplotlib.rcParams["font.family"] = "monospace"
 
 format_for_needle = (
     lambda x: x.replace("|", "_")
@@ -133,7 +120,7 @@ def get_needle_pairwise_mtx(
         group_size_a = int(np.ceil(len(larger) / num_procs))
         for i in range(0, len(fastas_a), group_size_a):
             strs_a.append("".join(larger[i : i + group_size_a]))
-        strs_b = ["".join(smaller) for i in range(len(strs_a))]
+        strs_b = ["".join(smaller) for _ in range(len(strs_a))]
 
     assert len(strs_a) == len(strs_b) > 0, "Unequal number of strings/len of strings is zero"
     args = [[strs_a[i], strs_b[i], outfile, i] for i in range(len(strs_a))]

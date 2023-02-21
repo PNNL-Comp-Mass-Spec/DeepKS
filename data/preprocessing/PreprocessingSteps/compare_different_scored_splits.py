@@ -1,4 +1,4 @@
-import json, itertools, pandas as pd, numpy as np, random, matplotlib.pyplot as plt
+import json, itertools, pandas as pd, random
 
 def my_jaccard(x: set, y: set):
     if len(x.union(y)) == 0:
