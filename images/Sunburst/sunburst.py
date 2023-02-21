@@ -7,6 +7,19 @@ rcParams["font.family"] = "P052-Roman"
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
+def remove_timestamps(bytes: bytes) -> bytes: # So we don't get different versions in git
+    """
+    Get rid of this garbage in the pdf:
+        /CreationDate (D:20230220021238+00'00')
+        /ModDate (D:20230220021238+00'00')>>
+    """
+    rep_bytes = bytes[:200] # Semi-arbitrary number of bytes to look at when regexing
+    rest_bytes = bytes[200:]
+    rep_bytes = re.sub(r'/CreationDate \(.*\)'.encode("utf-8"), b'/CreationDate (D.00000000000000+00\'+00\')', rep_bytes)
+    rep_bytes = re.sub(r'/ModDate \(.*\)'.encode("utf-8"), b'/ModDate (D.00000000000000+00\'+00\')', rep_bytes)
+    all_bytes = rep_bytes + rest_bytes
+    return all_bytes
+
 # %% ### DATA FORMATTING ---
 def make_sunburst():
     kfg = pd.read_csv("../../data/preprocessing/kin_to_fam_to_grp_826.csv")
@@ -102,7 +115,7 @@ def make_sunburst():
 
     # fig.show()
     with open("sunburst.pdf", "wb") as f:
-        f.write(fig.to_image(format="pdf", height=1000, width=1000))
+        f.write(remove_timestamps(fig.to_image(format="pdf", height=1000, width=1000)))
 
 
     # %% ### EXPLAINER PLOT ---
@@ -136,7 +149,7 @@ def make_sunburst():
 
     # fig.show()
     with open("sunburst explainer.pdf", "wb") as f:
-        f.write(fig.to_image(format="pdf", height=1000, width=1000))
+        f.write(remove_timestamps(fig.to_image(format="pdf", height=1000, width=1000)))
 
     # %% ### COMPANION PLOT ---
     companion = pd.read_excel("./Onion Explainer.xlsx", sheet_name="Companion")
@@ -155,7 +168,7 @@ def make_sunburst():
 
     # fig.show()
     with open("sunburst explainer simple.pdf", "wb") as f:
-        f.write(fig.to_image(format="pdf", height=1000, width=1000))
+        f.write(remove_timestamps(fig.to_image(format="pdf", height=1000, width=1000)))
 
 # %% ### MAIN ---
 if __name__ == "__main__":

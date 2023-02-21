@@ -30,7 +30,7 @@ class TestMainAPIFromCMDL(unittest.TestCase):
         self.main.setup()
 
     def test_in_order(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "in_order", "-v", "--normalize-scores", "--suppress-seqs-in-output"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "inorder", "-v", "--normalize-scores", "--suppress-seqs-in-output"]
         self.main.setup()
 
     def test_in_order_json(self):
