@@ -1,2 +1,6 @@
 *.csv
 # CSV files can be obtained from excel files found at https://www.nature.com/articles/s41586-022-05575-3#Sec23
+*.json
+# Can be generated on the fly from the csv files
+*.txt
+# Can be generated on the fly from the csv files

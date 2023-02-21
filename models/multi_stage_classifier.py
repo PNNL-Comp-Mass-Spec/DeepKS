@@ -262,7 +262,7 @@ class MultiStageClassifier:
             ]
         else:
             ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
-        if "_" in predictions_output_format:
+        if predictions_output_format not in ['inorder', 'dictionary']:
             file_name = (
                 f"{str(pathlib.Path(__file__).parent.resolve())}/"
                 f"../out/{get_file_name('results', re.sub(r'.*?_json', 'json', predictions_output_format))}"

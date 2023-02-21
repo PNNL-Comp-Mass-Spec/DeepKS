@@ -79,3 +79,6 @@ discovery/*.json
 discovery/*.txt
 !discovery/phosphosites_base.txt
 data/raw_data/PSP_script_download.xlsx
+**/*.sqlite
+**/*.sqlite3
+**/*.db

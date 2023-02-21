@@ -4,7 +4,7 @@ if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--hel
 
     write_splash.write_splash("main_api")
 
-import os, pathlib, typing, argparse, textwrap, re, json
+import os, pathlib, typing, argparse, textwrap, re, json, warnings
 from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
@@ -78,7 +78,6 @@ def make_predictions(
                 f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is"
                 " problematic."
             )
-
         if dry_run:
             print(colored("Status: Dry run successful!", "green"))
             return
@@ -107,7 +106,7 @@ def make_predictions(
         except Exception as e:
             informative_exception(e, print_full_tb=True, top_message="Error: Prediction process failed!")
 
-        assert res is not None or "json" in predictions_output_format
+        assert res is not None or re.match("(json|csv|sqlite)", predictions_output_format)
 
         if verbose:
             assert res is not None
@@ -311,23 +310,35 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
         del args_dict["kf"]
     elif "kf" in args_dict:
-        args_dict["kinase_seqs"] = [line.strip() for line in open("../" + args_dict.pop("kf"))]
+        args_dict["kinase_seqs"] = [line.strip() for line in open("../" + args_dict["kf"])]
+        try:
+            assert (ii := int(re.sub(r"[^0-9]", "", args_dict.pop("kf").split("/")[-1].split(".")[0]))) == (ll := len(args_dict["kinase_seqs"]))
+        except AssertionError:
+            warnings.warn(f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input list ({ii}). This may cause unintended behavior.")
         del args_dict["k"]
+    else:
+        raise AssertionError("Should never be in this case.")
     if args_dict["s"] is not None:
         args_dict["site_seqs"] = args_dict.pop("s").split(",")
         del args_dict["sf"]
     elif "sf" in args_dict:
-        args_dict["site_seqs"] = [line.strip() for line in open("../" + args_dict.pop("sf"))]
+        args_dict["site_seqs"] = [line.strip() for line in open("../" + args_dict["sf"])]
+        try:
+            assert (ii := int(re.sub(r"[^0-9]", "", args_dict.pop("sf").split("/")[-1].split(".")[0]))) == (ll := len(args_dict["site_seqs"]))
+        except AssertionError:
+            warnings.warn(f"The number of sites in the input file name ({ll}) does not match the number of sites in the input list ({ii}). This may cause unintended behavior.")
         del args_dict["s"]
+    else:
+        raise AssertionError("Should never be in this case.")
 
     args_dict["predictions_output_format"] = args_dict.pop("p")
-    if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
-        args_dict["verbose"] = True
-        print(
-            colored(
-                'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
-            )
-        )
+    # if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
+    #     args_dict["verbose"] = True
+    #     print(
+    #         colored(
+    #             'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
+    #         )
+    #     )
     if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
         args_dict["verbose"] = False
         print(

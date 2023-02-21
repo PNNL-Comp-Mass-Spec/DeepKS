@@ -14,5 +14,5 @@ def get(prefix = "", suffix = "", prefix_sep = "_", suffix_sep = ".", win_compat
         full = re.sub(r"[\*<>\?\/\\\|~\"#%&\{\}]", "_", full)
     else:
         full = re.sub(r"[\\\/]", "_", full)
-    full = re.sub(r"[:\.]", "`", full)
+    full = re.sub(r":", "`", full)
     return full
