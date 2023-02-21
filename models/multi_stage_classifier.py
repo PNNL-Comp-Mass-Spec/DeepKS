@@ -162,7 +162,7 @@ class MultiStageClassifier:
                 numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
             boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
         print(colored("Status: Predictions Complete!", "green"))
-        if "dict" in predictions_output_format:
+        if "dict" in predictions_output_format or re.match(r"(sqlite|csv)", predictions_output_format):
             print(colored("Status: Copying Results to Dictionary.", "green"))
 
             # if cartesian_product:
@@ -178,33 +178,33 @@ class MultiStageClassifier:
             kinase_gene_names = (
                 base_kinase_gene_names
                 if not cartesian_product
-                else [x for _ in range(len(site_seqs)) for x in base_kinase_gene_names]
+                else [x for x in base_kinase_gene_names for _ in range(len(site_seqs))]
             )
             site_gene_names = (
                 base_site_gene_names
                 if not cartesian_product
-                else [x for x in base_site_gene_names for _ in range(len(kinase_seqs))]
+                else [x for _ in range(len(kinase_seqs)) for x in base_site_gene_names]
             )
             kinase_uniprot_accession = (
                 base_kinase_uniprot_accession
                 if not cartesian_product
-                else [x for _ in range(len(site_seqs)) for x in base_kinase_uniprot_accession]
+                else [x for x in base_kinase_uniprot_accession for _ in range(len(site_seqs))]
             )
             site_uniprot_accession = (
                 base_site_uniprot_accession
                 if not cartesian_product
-                else [x for x in base_site_uniprot_accession for _ in range(len(kinase_seqs))]
+                else [x for _ in range(len(kinase_seqs)) for x in base_site_uniprot_accession]
             )
             site_location = (
                 base_site_location
                 if not cartesian_product
-                else [x for x in base_site_location for _ in range(len(kinase_seqs))]
+                else [x for _ in range(len(kinase_seqs)) for x in base_site_location]
             )
             orig_kin_seq_len = len(kinase_seqs)
             kinase_seqs = (
-                kinase_seqs if not cartesian_product else [x for _ in range(len(site_seqs)) for x in kinase_seqs]
+                kinase_seqs if not cartesian_product else [x for x in kinase_seqs for _ in range(len(site_seqs))]
             )
-            site_seqs = site_seqs if not cartesian_product else [x for x in site_seqs for _ in range(orig_kin_seq_len)]
+            site_seqs = site_seqs if not cartesian_product else [x for _ in range(orig_kin_seq_len) for x in site_seqs]
             assert all(
                 [
                     len(x) == len(kinase_seqs)

@@ -306,28 +306,35 @@ def parse_api() -> dict[str, typing.Any]:
 
     args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
     args_dict = vars(args)
+    ii = ll = None
     if args_dict["k"] is not None:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
         del args_dict["kf"]
     elif "kf" in args_dict:
-        args_dict["kinase_seqs"] = [line.strip() for line in open("../" + args_dict["kf"])]
+        with open("../" + args_dict["kf"]) as f:
+            args_dict["kinase_seqs"] = [line.strip() for line in f]
         try:
-            assert (ii := int(re.sub(r"[^0-9]", "", args_dict.pop("kf").split("/")[-1].split(".")[0]))) == (ll := len(args_dict["kinase_seqs"]))
+            fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
+            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (ll := len(args_dict["kinase_seqs"])) 
         except AssertionError:
             warnings.warn(f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input list ({ii}). This may cause unintended behavior.")
         del args_dict["k"]
+        del args_dict["kf"]
     else:
         raise AssertionError("Should never be in this case.")
     if args_dict["s"] is not None:
         args_dict["site_seqs"] = args_dict.pop("s").split(",")
         del args_dict["sf"]
     elif "sf" in args_dict:
-        args_dict["site_seqs"] = [line.strip() for line in open("../" + args_dict["sf"])]
+        with open("../" + args_dict["sf"]) as f:
+            args_dict["site_seqs"] = [line.strip() for line in f]
         try:
-            assert (ii := int(re.sub(r"[^0-9]", "", args_dict.pop("sf").split("/")[-1].split(".")[0]))) == (ll := len(args_dict["site_seqs"]))
+            fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
+            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (ll := len(args_dict["site_seqs"])) 
         except AssertionError:
-            warnings.warn(f"The number of sites in the input file name ({ll}) does not match the number of sites in the input list ({ii}). This may cause unintended behavior.")
+            warnings.warn(f"The number of sites in the input file name ({ll}) does not match the number of sites in the input list ({ii}). This may cause unintended behavior.") 
         del args_dict["s"]
+        del args_dict["sf"]
     else:
         raise AssertionError("Should never be in this case.")
 
