@@ -154,34 +154,31 @@ def format_kin_and_site_lists(
     kinase_symbol_to_kinase_sequence: collections.OrderedDict[str, str],
     symbol_to_location: collections.OrderedDict[str, list[str]],
     symbol_to_flanking_sites: collections.OrderedDict[str, list[str]],
-    kinase_list = None,
-    site_list = None,
-    save_dir = None,
+    kinase_list=None,
+    site_list=None,
+    save_dir=None,
 ):
     site_symbol_list = list(symbol_to_flanking_sites.keys())
     kinase_symbol_list = list(kinase_symbol_to_kinase_sequence.keys())
     if kinase_list is None:
         kinase_list = [x.split("|")[0] for x in kinase_symbol_to_kinase_sequence.values()]
     if site_list is None:
-        site_list = list(set([x.split("|")[0] for x in list(itertools.chain(*symbol_to_flanking_sites.values()))]))
+        site_list = [x.split("|")[0] for x in list(itertools.chain(*symbol_to_flanking_sites.values()))]
         site_list.sort()
-    site_to_info = {}
 
+    site_to_info = collections.defaultdict(lambda: collections.defaultdict(list[str]))
     for site_symbol in site_symbol_list:
         for i, flank_seq in enumerate(symbol_to_flanking_sites[site_symbol]):
-            site_to_info[flank_seq] = {
-                "Uniprot Accession ID": site_symbol.split("|")[1],
-                "Gene Name": site_symbol.split("|")[0],
-                "Location": symbol_to_location[site_symbol][i],
-            }
+            site_to_info[flank_seq]["Uniprot Accession ID"].append(site_symbol.split("|")[1])
+            site_to_info[flank_seq]["Gene Name"].append(site_symbol.split("|")[0])
+            site_to_info[flank_seq]["Location"].append(symbol_to_location[site_symbol][i])
 
-    kinase_to_info = {
-        kinase_symbol_to_kinase_sequence[kinase_symbol]: {
-            "Uniprot Accession ID": kinase_symbol.split("|")[1],
-            "Gene Name": kinase_symbol.split("|")[0],
-        }
-        for kinase_symbol in kinase_symbol_list
-    }
+
+    # Rewrite kinase_to_info builder like the site_to_info builder
+    kinase_to_info = collections.defaultdict(lambda: collections.defaultdict(list[str]))
+    for kinase_symbol in kinase_symbol_list:
+        kinase_to_info[kinase_symbol]["Uniprot Accession ID"].append(kinase_symbol.split("|")[1])
+        kinase_to_info[kinase_symbol]["Gene Name"].append(kinase_symbol.split("|")[0])
 
     common_kins = set(kinase_to_info.keys()).intersection(set(kinase_list))
     common_sites = set(site_to_info.keys()).intersection(set(site_list))
@@ -197,12 +194,18 @@ def format_kin_and_site_lists(
     assert all([s in check_site_to_info for s in site_list])
     assert all([k in check_kin_to_info for k in kinase_to_info])
     assert all([s in check_site_to_info for s in site_to_info])
-    assert len(kinase_list) == len(kinase_to_info) == len(common_kins), f"{len(kinase_list)} {len(kinase_to_info)} {len(common_kins)}"
-    assert len(site_list) == len(site_to_info) == len(common_sites), f"{len(site_list)} {len(site_to_info)} {len(common_sites)}"
+    assert (
+        len(set(kinase_list)) == len(kinase_to_info) == len(common_kins)
+    ), f"{len(set(kinase_list))=}; {len(kinase_to_info)=}; {len(common_kins)=}"
+    assert (
+        len(set(site_list)) == len(site_to_info) == len(common_sites)
+    ), f"{len(set(site_list))=}; {len(site_to_info)=}; {len(common_sites)=}"
 
     if save_dir is None:
         save_dir = pathlib.Path(__file__).parent.resolve()
-    with open(f"{save_dir}/site_list_{len(site_list)}.txt", "w") as f, open(f"{save_dir}/kinase_list_{len(kinase_list)}.txt", "w") as g:
+    with open(f"{save_dir}/site_list_{len(site_list)}.txt", "w") as f, open(
+        f"{save_dir}/kinase_list_{len(kinase_list)}.txt", "w"
+    ) as g:
         f.write("\n".join(site_list))
         g.write("\n".join(kinase_list))
 
