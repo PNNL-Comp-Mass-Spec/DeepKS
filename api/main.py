@@ -1,12 +1,15 @@
 import sys
+
 if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]):
     from ..splash import write_splash
 
     write_splash.write_splash("main_api")
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions
+from pprint import pformat
 from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
+from ..tools import schema_validation
 
 
 def make_predictions(
@@ -29,33 +32,33 @@ def make_predictions(
     """Make a target/decoy prediction for a kinase-substrate pair.
 
     Args:
-        kinase_seqs (list[str]): The kinase sequences. Each must be >= 1 and <= 4128 residues long.
-        kin_info (dict): The kinase (meta-) information.
-        site_seqs ([str]): The site sequences. Each must be 15 residues long.
-        site_info (dict): The site (meta-) information.
-        predictions_output_format (str, optional): The format of the output. Defaults to "inorder"
-            - "inorder"returns a list of predictions in the same order as the input kinases and sites.
-            - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-            - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
-            - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-            - "csv" outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input kinases, sites, sequence, metadata and predictions.
-            - "sqlite" outputs a sqlite database (filename = ../out/current-date-and-time.sqlite), where the columns include the input kinases, sites, sequence, metadata and predictions.
-        suppress_seqs_in_output (bool, optional): Whether to include the input sequences in the output. Defaults to False.
-        verbose (bool, optional): Whether to print predictions. Defaults to True.
-        pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
-        pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
-        device (str, optional): Device to use for predictions. Defaults to "cpu".
-        scores (bool, optional): Whether to return scores. Defaults to False.
-        normalize_scores (bool, optional): Whether to normalize scores. Defaults to False.
-        dry_run (bool, optional): Whether to run a dry run (make sure input parameters work). Defaults to False.
-        cartesian_product (bool, optional): Whether to make predictions for all combinations of kinases and sites. Defaults to False.
-        group_output (bool, optional): Whether to return group predictions. Defaults to False.
+            kinase_seqs (list[str]): The kinase sequences. Each must be >= 1 and <= 4128 residues long.
+            kin_info (dict): The kinase (meta-) information.
+            site_seqs ([str]): The site sequences. Each must be 15 residues long.
+            site_info (dict): The site (meta-) information.
+            predictions_output_format (str, optional): The format of the output. Defaults to "inorder"
+                    - "inorder"returns a list of predictions in the same order as the input kinases and sites.
+                    - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+                    - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
+                    - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+                    - "csv" outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input kinases, sites, sequence, metadata and predictions.
+                    - "sqlite" outputs a sqlite database (filename = ../out/current-date-and-time.sqlite), where the columns include the input kinases, sites, sequence, metadata and predictions.
+            suppress_seqs_in_output (bool, optional): Whether to include the input sequences in the output. Defaults to False.
+            verbose (bool, optional): Whether to print predictions. Defaults to True.
+            pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
+            pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
+            device (str, optional): Device to use for predictions. Defaults to "cpu".
+            scores (bool, optional): Whether to return scores. Defaults to False.
+            normalize_scores (bool, optional): Whether to normalize scores. Defaults to False.
+            dry_run (bool, optional): Whether to run a dry run (make sure input parameters work). Defaults to False.
+            cartesian_product (bool, optional): Whether to make predictions for all combinations of kinases and sites. Defaults to False.
+            group_output (bool, optional): Whether to return group predictions. Defaults to False.
     """
-    config.cfg.set_mode('no_alin')
+    config.cfg.set_mode("no_alin")
     try:
         print(colored("Status: Validating inputs.", "green"))
-        assert predictions_output_format in (["inorder", "dictionary", "in_order_json", "dictionary_json", 
-                                            "csv", "sqlite"]
+        assert predictions_output_format in (
+            ["inorder", "dictionary", "in_order_json", "dictionary_json", "csv", "sqlite"]
         ), f"Output format was {predictions_output_format}, which is not allowed."
 
         assert len(kinase_seqs) == len(site_seqs) or cartesian_product, (
@@ -64,8 +67,8 @@ def make_predictions(
         )
         for i, kinase_seq in enumerate(kinase_seqs):
             assert 1 <= len(kinase_seq) <= 4128, (
-                f"Warning: DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index {i} ---"
-                f" {kinase_seq[0:10]}... is {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
+                "Warning: DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index"
+                f" {i} --- {kinase_seq[0:10]}... is {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
             )
             f"Kinase sequences must only contain letters. The input kinase at index {i} --- {kinase_seq[:10]}..."
             " is problematic."
@@ -122,12 +125,14 @@ def make_predictions(
     except Exception as e:
         print(informative_exception(e, print_full_tb=True))
 
+
 def parse_api() -> dict[str, typing.Any]:
     """Parse the command line arguments.
 
     Returns:
-        dict[str, Any]: Dictionary mapping the argument name to the argument value.
+            dict[str, Any]: Dictionary mapping the argument name to the argument value.
     """
+
     def wrap(s) -> str:
         if "\n" in s:
             wrapped = []
@@ -135,11 +140,13 @@ def parse_api() -> dict[str, typing.Any]:
                 num_leading_indents = len(re.findall("^\t+", line))
                 new_lines = wrap(line).split("\n")
                 for i in range(1, len(new_lines)):
-                    new_lines[i] = "\t"*num_leading_indents + new_lines[i]
+                    new_lines[i] = "\t" * num_leading_indents + new_lines[i]
                 wrapped.append("\n".join(new_lines))
             return "\n".join(wrapped)
         else:
-            return textwrap.fill(s, width=60, subsequent_indent="    ", expand_tabs=True, tabsize=4, replace_whitespace=False)
+            return textwrap.fill(
+                s, width=60, subsequent_indent="        ", expand_tabs=True, tabsize=4, replace_whitespace=False
+            )
 
     class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawTextHelpFormatter):
         def __init__(self, prog):
@@ -147,7 +154,7 @@ def parse_api() -> dict[str, typing.Any]:
 
         def _split_lines(self, text, width):
             return super()._split_lines(wrap(text), width) + [""]
-        
+
         def _get_help_string(self, action):
             return str(action.help) + "\n\t" + f"{f'(Default: {action.default}'})"
 
@@ -176,10 +183,13 @@ def parse_api() -> dict[str, typing.Any]:
         metavar="<site sequences file>",
     )
 
-    with open(f"{pathlib.Path(__file__).parent.resolve()}/info_file_format.txt") as info_format_f:
-        info_format_str = info_format_f.read()
-    ap.add_argument("--kin-info", required=False, help=info_format_str, metavar="<kinase info file>")
-    ap.add_argument("--site-info", required=False, help="Site information file. Must be able to be read as JSON. Same structure as `info_format_str`.", metavar="<site info file>")
+    ap.add_argument("--kin-info", required=False, help=f"Kinase information file. Must be able to be read as JSON. Correct schema is\n{pformat(schema_validation.KinSchema)}", metavar="<kinase info file>")
+    ap.add_argument(
+        "--site-info",
+        required=False,
+        help=f"Kinase information file. Must be able to be read as JSON. Correct schema is\n{pformat(schema_validation.SiteSchema)}",
+        metavar="<site info file>",
+    )
 
     output_choices_helper = {
         "inorder": (
@@ -198,11 +208,13 @@ def parse_api() -> dict[str, typing.Any]:
             " the keys are the input kinases and sites and the values are the predictions."
         ),
         "csv": (
-            "outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input kinases, sites, sequence, metadata and predictions."
+            "outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input"
+            " kinases, sites, sequence, metadata and predictions."
         ),
         "sqlite": (
-            "outputs an sqlite database (filename = ../out/current-date-and-time.sqlite), where the fields (columns) include the input kinases, sites, sequence, metadata and predictions."
-        )
+            "outputs an sqlite database (filename = ../out/current-date-and-time.sqlite), where the fields (columns)"
+            " include the input kinases, sites, sequence, metadata and predictions."
+        ),
     }
 
     ap.add_argument(
@@ -221,7 +233,7 @@ def parse_api() -> dict[str, typing.Any]:
     ap.add_argument(
         "--suppress-seqs-in-output",
         default=False,
-        required = False,
+        required=False,
         action="store_true",
         help="Whether to include the input sequences in the output.",
     )
@@ -315,9 +327,14 @@ def parse_api() -> dict[str, typing.Any]:
             args_dict["kinase_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
-            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (ll := len(args_dict["kinase_seqs"])) 
+            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+                ll := len(args_dict["kinase_seqs"])
+            )
         except AssertionError:
-            warnings.warn(f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input list ({ii}). This may cause unintended behavior.")
+            warnings.warn(
+                f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input"
+                f" list ({ii}). This may cause unintended behavior."
+            )
         del args_dict["k"]
         del args_dict["kf"]
     else:
@@ -330,9 +347,14 @@ def parse_api() -> dict[str, typing.Any]:
             args_dict["site_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
-            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (ll := len(args_dict["site_seqs"])) 
+            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+                ll := len(args_dict["site_seqs"])
+            )
         except AssertionError:
-            warnings.warn(f"The number of sites in the input file name ({ll}) does not match the number of sites in the input list ({ii}). This may cause unintended behavior.") 
+            warnings.warn(
+                f"The number of sites in the input file name ({ll}) does not match the number of sites in the input"
+                f" list ({ii}). This may cause unintended behavior."
+            )
         del args_dict["s"]
         del args_dict["sf"]
     else:
@@ -340,12 +362,12 @@ def parse_api() -> dict[str, typing.Any]:
 
     args_dict["predictions_output_format"] = args_dict.pop("p")
     # if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
-    #     args_dict["verbose"] = True
-    #     print(
-    #         colored(
-    #             'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
+    #         args_dict["verbose"] = True
+    #         print(
+    #                 colored(
+    #                         'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
+    #                 )
     #         )
-    #     )
     if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
         args_dict["verbose"] = False
         print(
@@ -354,7 +376,8 @@ def parse_api() -> dict[str, typing.Any]:
     if re.match(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]:
         print(
             colored(
-                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not JSON/CSV/SQLite.",
+                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
+                " JSON/CSV/SQLite.",
                 "blue",
             )
         )
@@ -371,13 +394,16 @@ def parse_api() -> dict[str, typing.Any]:
             for kinase_seq in args_dict["kinase_seqs"]
         }
     else:
-        kinase_info_dict = json.load(open("../" + args_dict["kin_info"]))
-        assert isinstance(kinase_info_dict, dict), f"Kinase information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(kinase_seq, str) for kinase_seq in kinase_info_dict.keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(kinase_info_dict[kinase_seq], dict) for kinase_seq in kinase_info_dict.keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(info_key, str) for kinase_seq in kinase_info_dict.keys() for info_key in kinase_info_dict[kinase_seq].keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(kinase_info_dict[kinase_seq][info_key], str) for kinase_seq in kinase_info_dict.keys() for info_key in kinase_info_dict[kinase_seq].keys()]), f"Kinase information format is incorrect. Correct format is {info_format_str}"
-    args_dict['kin_info'] = kinase_info_dict
+        with open("../" + args_dict["kin_info"]) as f:
+            kinase_info_dict = json.load(f)
+            try:
+                jsonschema.validate(kinase_info_dict, schema_validation.KinSchema)
+            except jsonschema.exceptions.ValidationError as e:
+                print(e)
+                print()
+                print(f"Kinase information format is incorrect. Correct schema is\n{pformat(schema_validation.KinSchema)}")
+                sys.exit(1)
+    args_dict["kin_info"] = kinase_info_dict
 
     if args_dict["site_info"] is None:
         site_info_dict = {
@@ -385,44 +411,30 @@ def parse_api() -> dict[str, typing.Any]:
             for site_seq in args_dict["site_seqs"]
         }
     else:
-        site_info_dict = json.load(open("../" + args_dict["site_info"]))
-        assert isinstance(site_info_dict, dict), f"Site information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(site_seq, str) for site_seq in site_info_dict.keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(site_info_dict[site_seq], dict) for site_seq in site_info_dict.keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(info_key, str) for site_seq in site_info_dict.keys() for info_key in site_info_dict[site_seq].keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
-        assert all([isinstance(site_info_dict[site_seq][info_key], str) for site_seq in site_info_dict.keys() for info_key in site_info_dict[site_seq].keys()]), f"Site information format is incorrect. Correct format is {info_format_str}"
-    args_dict['site_info'] = site_info_dict
+        with open("../" + args_dict["site_info"]) as f:
+            site_info_dict = json.load(f)
+            try:
+                jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
+            except jsonschema.exceptions.ValidationError as e:
+                print(e)
+                print()
+                print(f"Site information format is incorrect. Correct schema is\n{pformat(schema_validation.SiteSchema)}")
+                sys.exit(1)
+    args_dict["site_info"] = site_info_dict
 
-    assert all({"Uniprot Accession ID", "Gene Name"}.issubset(set(kinase_info_dict[kinase_seq].keys())) for kinase_seq in args_dict["kinase_seqs"]), (
-        "Kinase information file must have the columns 'Gene Name' and 'Uniprot Accession ID'"
-    )
-
-    assert all({"Uniprot Accession ID", "Gene Name", "Location"}.issubset(set(site_info_dict[site_seq].keys())) for site_seq in args_dict["site_seqs"]), (
-        "Site information file must have the columns 'Gene Name', 'Uniprot Accession ID', and 'Location'"
-    )
-
-    assert(all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"]))
-    assert(all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"]))
-
-    # args_dict["kinase_gene_names"] = list(kinase_info_dict.keys())
-    # args_dict["kinase_uniprot_accessions"] = [kinase_info_dict[kinase_seq]["Uniprot Accession ID"] for kinase_seq in args_dict["kinase_seqs"]]
-    # args_dict["site_gene_names"] = list(site_info_dict.keys())
-    # args_dict["site_uniprot_accessions"] = [site_info_dict[site_seq]["Uniprot Accession ID"] for site_seq in args_dict["site_seqs"]]
-    # args_dict["site_locations"] = [site_info_dict[site_seq]["Location"] for site_seq in args_dict["site_seqs"]]
-
-    # del args_dict["kin_info"]
-    # del args_dict["site_info"]
+    assert all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"])
+    assert all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"])
 
     return args_dict
 
 
 def setup():
-    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
     os.chdir(pathlib.Path(__file__).parent.resolve())
     args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
-    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier

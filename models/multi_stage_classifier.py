@@ -275,6 +275,9 @@ class MultiStageClassifier:
                 table.to_csv(file_name, index=False)
             else:
                 assert predictions_output_format == "sqlite"
+                for col in table.columns:
+                    if table[col].dtype == "object":
+                        table[col] = table[col].astype("string")
                 table.to_sql(name="DeepKS Results", con=sqlite3.connect(file_name), index=False, if_exists="fail")
         else:
             return ret
