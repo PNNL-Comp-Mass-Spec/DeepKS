@@ -177,8 +177,8 @@ def format_kin_and_site_lists(
     # Rewrite kinase_to_info builder like the site_to_info builder
     kinase_to_info = collections.defaultdict(lambda: collections.defaultdict(list[str]))
     for kinase_symbol in kinase_symbol_list:
-        kinase_to_info[kinase_symbol]["Uniprot Accession ID"].append(kinase_symbol.split("|")[1])
-        kinase_to_info[kinase_symbol]["Gene Name"].append(kinase_symbol.split("|")[0])
+        kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Uniprot Accession ID"].append(kinase_symbol.split("|")[1])
+        kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Gene Name"].append(kinase_symbol.split("|")[0])
 
     common_kins = set(kinase_to_info.keys()).intersection(set(kinase_list))
     common_sites = set(site_to_info.keys()).intersection(set(site_list))
