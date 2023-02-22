@@ -351,10 +351,10 @@ def parse_api() -> dict[str, typing.Any]:
         print(
             colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
         )
-    if args_dict["suppress_seqs_in_output"] and "json" not in args_dict["predictions_output_format"]:
+    if re.match(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]:
         print(
             colored(
-                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not JSON.",
+                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not JSON/CSV/SQLite.",
                 "blue",
             )
         )

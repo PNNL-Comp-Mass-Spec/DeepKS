@@ -8,7 +8,7 @@ else
     SITE_SIZE=86201
     cd ../../../
     python3 -m DeepKS.api.main --suppress-seqs-in-output --scores --normalize --groups \
-    -p sqlite --cartesian-product --device cuda:3 \
+    -p csv --cartesian-product --device cuda:3 \
     -kf discovery/nature_atlas/kinase_list_$KIN_SIZE.txt -sf discovery/nature_atlas/site_list_$SITE_SIZE.txt \
     --kin-info discovery/nature_atlas/compact_kinase_info_$KIN_SIZE.json \
     --site-info discovery/nature_atlas/compact_site_info_$SITE_SIZE.json
