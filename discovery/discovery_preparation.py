@@ -172,19 +172,32 @@ def format_kin_and_site_lists(
             site_to_info[flank_seq]["Uniprot Accession ID"].append(site_symbol.split("|")[1])
             site_to_info[flank_seq]["Gene Name"].append(site_symbol.split("|")[0])
             site_to_info[flank_seq]["Location"].append(symbol_to_location[site_symbol][i])
+    
+    # Sort so we get consistent site symbols for each site sequence
+    for v in site_to_info.values():
+        arg_sort_uaid = np.argsort(v["Uniprot Accession ID"])
+        v["Uniprot Accession ID"].sort()
+        v["Gene Name"] = [v["Gene Name"][i] for i in arg_sort_uaid]
+        v["Location"] = [v["Location"][i] for i in arg_sort_uaid]
 
-
-    # Rewrite kinase_to_info builder like the site_to_info builder
     kinase_to_info = collections.defaultdict(lambda: collections.defaultdict(list[str]))
     for kinase_symbol in kinase_symbol_list:
-        kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Uniprot Accession ID"].append(kinase_symbol.split("|")[1])
+        kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Uniprot Accession ID"].append(
+            kinase_symbol.split("|")[1]
+        )
         kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Gene Name"].append(kinase_symbol.split("|")[0])
+
+    # Also want to sort kinase_to_info like we did site_to_info
+    for v in kinase_to_info.values():
+        arg_sort_uaid = np.argsort(v["Uniprot Accession ID"])
+        v["Uniprot Accession ID"].sort()
+        v["Gene Name"] = [v["Gene Name"][i] for i in arg_sort_uaid]
 
     common_kins = set(kinase_to_info.keys()).intersection(set(kinase_list))
     common_sites = set(site_to_info.keys()).intersection(set(site_list))
 
-    kinase_list = [k for k in kinase_list if k in common_kins]
-    site_list = [s for s in site_list if s in common_sites]
+    kinase_list = sorted(list(set([k for k in kinase_list if k in common_kins])))
+    site_list = sorted(list(set([s for s in site_list if s in common_sites])))
     kinase_to_info = {k: kinase_to_info[k] for k in kinase_list}
     site_to_info = {s: site_to_info[s] for s in site_list}
 
@@ -195,11 +208,11 @@ def format_kin_and_site_lists(
     assert all([k in check_kin_to_info for k in kinase_to_info])
     assert all([s in check_site_to_info for s in site_to_info])
     assert (
-        len(set(kinase_list)) == len(kinase_to_info) == len(common_kins)
-    ), f"{len(set(kinase_list))=}; {len(kinase_to_info)=}; {len(common_kins)=}"
+        len(kinase_list) == len(kinase_to_info) == len(common_kins)
+    ), f"{len(kinase_list)=}; {len(kinase_to_info)=}; {len(common_kins)=}"
     assert (
-        len(set(site_list)) == len(site_to_info) == len(common_sites)
-    ), f"{len(set(site_list))=}; {len(site_to_info)=}; {len(common_sites)=}"
+        (len(site_list)) == len(site_to_info) == len(common_sites)
+    ), f"{len(site_list)=}; {len(site_to_info)=}; {len(common_sites)=}"
 
     if save_dir is None:
         save_dir = pathlib.Path(__file__).parent.resolve()
