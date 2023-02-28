@@ -351,7 +351,7 @@ class KNNGroupClassifier:
         # print()
         # print()
         pass_through[0] = round(100*np.sum(np.array(pred) == np.array(true))/len(true), 2)
-        return f"{100*np.sum(np.array(pred) == np.array(true))/len(true):3.2f}%"
+        return f"{100*np.sum(np.array(pred, dtype=None) == np.array(true, dtype=None))/len(true):3.2f}%"
 
 class SKGroupClassifier:
     def __init__(self, X_train, y_train, classifier: type[AcceptableClassifier], hyperparameters = {}):
