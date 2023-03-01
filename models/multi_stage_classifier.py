@@ -11,7 +11,7 @@ from . import group_classifier_definitions as grp_pred
 from . import individual_classifiers
 from ..tools.parse import parsing
 from ..tools.file_names import get as get_file_name
-from ..data.preprocessing.PreprocessingSteps import get_labeled_distance_matrix as dist_mtx_maker
+from ..tools import make_fasta as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
 from ..api.cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from sklearn.utils.validation import check_is_fitted

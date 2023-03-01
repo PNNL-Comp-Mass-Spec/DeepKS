@@ -1,7 +1,7 @@
 import os, re, pathlib, pprint, tempfile as tf, pandas as pd
 from . import PreprocessingSteps as PS
 from ...tools import system_tools, get_needle_pairwise as get_pairwise
-from .PreprocessingSteps import get_labeled_distance_matrix as mtx_utils
+from ...tools import make_fasta as mtx_utils
 from termcolor import colored
 
 # Change working directory to the directory of this file

@@ -1,0 +1,40 @@
+Kinase information file. Must be able to be read as JSON. Structure must be:
+
+    {
+        "<kinase sequence 1>": {
+            "Uniprot Accession ID": [<list of associated kinase Uniprot Accession IDs>],
+            "Gene Name": [<list of associated kinase gene names>]
+        },
+        "<kinase sequence 2>": {
+            "Uniprot Accession ID": [<list of associated kinase Uniprot Accession IDs>],
+            "Gene Name": [<list of associated kinase gene names>]
+        },
+        .
+        .
+        .
+    }
+
+For example, the following is a valid kinase information file:
+
+    {
+       "NEGWVSQFKQYLVDTDHNVTRRTAAYLFHYVARTWPECVHIDNMDMTNIVDFHCRVIQLS
+        KNFDFTWCFNCWWWWRGGMEAKPEYYYPHLMIDEMQRCID": {
+            "Uniprot Accession ID": ["KIN-ID1"], 
+            "Gene Name": ["KIN-1"]
+        },
+       "RIDNKWVLPRKSWQQNEEAMCAPVNCAHFKTYPINHYQYWGAAACCTFTGHISKGEWETP
+        YMKSFFMTEPMYQSKTSGEQKRSTE": {
+            "Uniprot Accession ID": [
+                                        "KIN-ID2", 
+                                        "Kin-2-Alternate-ID"
+                                    ],
+            "Gene Name": [
+                            "KIN-2", 
+                            "Kin-2-Alternate-GN"
+                        ]
+        },
+        .
+        .
+        .
+    }
+    

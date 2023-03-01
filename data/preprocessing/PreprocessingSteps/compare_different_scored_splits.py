@@ -28,7 +28,7 @@ def main(tr_file, vl_file, te_file):
             mtx.loc[c, c] = 100
         print(mtx, '\n')
 
-def imperical_expected_value(size, fraction):
+def empirical_expected_value(size, fraction):
     all = list(range(size))
     part_a = set(random.sample(all, int(size * fraction)))
     part_b = set(random.sample(all, int(size * fraction)))
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # Y = []
     # for size in [int(x) for x in [1e6]]:
     #     for fraction in [0] + np.linspace(0.01, 0.1, num=5).tolist() + np.linspace(0.1, 1, endpoint=True, num=10).tolist():
-    #         iee = imperical_expected_value(size, fraction)
+    #         iee = empirical_expected_value(size, fraction)
     #         X.append(fraction); Y.append(iee)
     # Y2 = [55.555*x**2 + 38.888*x for x in X]
     # plt.plot(X, Y, "bo-")

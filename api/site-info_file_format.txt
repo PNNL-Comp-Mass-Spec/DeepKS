@@ -1,0 +1,36 @@
+Site information file. Must be able to be read as JSON. Structure must be:
+
+    {
+        "<site sequence 1>": {
+            "Uniprot Accession ID": [<list of associated site Uniprot Accession IDs>],
+            "Gene Name": [<list of associated site gene names>],
+            "Location": [<list of phosphorylation locations for this site>]
+        },
+        "<site sequence 2>": {
+            "Uniprot Accession ID": [<list of associated site Uniprot Accession IDs>],
+            "Gene Name": [<list of associated site gene names>],
+            "Location": [<list of phosphorylation locations for this site>]
+        },
+        .
+        .
+        .
+    }
+
+For example, the following is a valid site information file:
+
+    "AYGEKEHCANCHNIV": {
+        "Uniprot Accession ID": ["SITE-ID1"],
+        "Gene Name": ["SITE-GN1"],
+        "Location": ["S1"]
+    },
+    "CHEFIPAKIPTNNIS": {
+        "Uniprot Accession ID": ["SITE-ID2", "SITE-ID2-SIMILAR"],
+        "Gene Name": ["SITE-GN2", "SITE-GN2-SIMILAR"],
+        "Location": ["S2", "S345"]
+    },
+    "MKNMWMPMHWELTGC": {
+        "Uniprot Accession ID": ["SITE-ID3"],
+        "Gene Name": ["SITE-GN3"],
+        "Location": ["S3", "S42", "S99"]
+    },
+    

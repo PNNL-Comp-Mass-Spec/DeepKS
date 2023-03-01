@@ -1,4 +1,9 @@
 <style>
+    iframe {
+        border-width: 2px;
+        border-color: black;
+        border-radius: 6px;
+    }
     pre.bash-output.bash-output{
         background-color: #ebe9c27f;
     }
@@ -6,7 +11,7 @@
         background-color: #ebe9c27f;
     }
     code{
-        background-color: rgba(220, 220, 220, 0.4);
+        background-color: rgba(220, 220, 220, 0.5);
         padding: 1px 3px;
         border-radius: 5px;
     }
@@ -90,7 +95,7 @@ Because we will use Apptainer to run the docker container, the commands are diff
 ```{bash}
 cp /usr/bin/nvidia-smi deepks-latest.sif/usr/bin/
 cp /usr/bin/nvidia-debugdump deepks-latest.sif/usr/bin/
-cp /usr/bin/nvidia-persistenced deepks-latest.sif/usr/bin/
+cp /usr/bin/nvidia-persistence deepks-latest.sif/usr/bin/
 cp /usr/bin/nvidia-cuda-mps-server deepks-latest.sif/usr/bin/
 cp /usr/bin/nvidia-cuda-mps-control deepks-latest.sif/usr/bin/
 ```
@@ -105,7 +110,7 @@ These don't seem to cause any issues.
 
 6. Change directory to `/` (i.e., the top-level directory) by running `cd /`.
 
-***Note: You will have `sudo` priviledges inside the Docker container (!) by virtue of passing `--fakeroot`. If you ever need to install programs, for example, this means you can do so inside the container.***
+***Note: You will have `sudo` privileges inside the Docker container (!) by virtue of passing `--fakeroot`. If you ever need to install programs, for example, this means you can do so inside the container.***
 
 # Running The Programs
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
@@ -212,11 +217,11 @@ parse_api():
     """
 ```
 # File Explainer
-
+Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.
+<div><iframe src="../tools/tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div>
 
 # Reproducing Everything From Scratch
 TODO — still working on cleaning things up.
-
 ## Preprocessing and Data Collection
 ## Training
 The python training scripts contain command line interfaces. However, to make running easier, one can use the bash scripts in the `models` directory. The bash scripts are simply wrappers around the python scripts. The bash scripts are the recommended way to run the training scripts.

@@ -183,11 +183,11 @@ def parse_api() -> dict[str, typing.Any]:
         metavar="<site sequences file>",
     )
 
-    ap.add_argument("--kin-info", required=False, help=f"Kinase information file. Must be able to be read as JSON. Correct schema is\n{pformat(schema_validation.KinSchema)}", metavar="<kinase info file>")
+    ap.add_argument("--kin-info", required=False, help=f"Kinase information file. See DeepKS/api/kin-info_file_format.txt for details about the correct format.", metavar="<kinase info file>")
     ap.add_argument(
         "--site-info",
         required=False,
-        help=f"Kinase information file. Must be able to be read as JSON. Correct schema is\n{pformat(schema_validation.SiteSchema)}",
+        help=f"Site information file. See DeepKS/api/site-info_file_format.txt for details about the correct format.",
         metavar="<site info file>",
     )
 
@@ -401,7 +401,9 @@ def parse_api() -> dict[str, typing.Any]:
             except jsonschema.exceptions.ValidationError as e:
                 print(e)
                 print()
-                print(f"Kinase information format is incorrect. Correct schema is\n{pformat(schema_validation.KinSchema)}")
+                print(f"Kinase information format is incorrect.")
+                with open("./kin-info_file_format.txt") as f:
+                    print(f.read())
                 sys.exit(1)
     args_dict["kin_info"] = kinase_info_dict
 
@@ -418,7 +420,9 @@ def parse_api() -> dict[str, typing.Any]:
             except jsonschema.exceptions.ValidationError as e:
                 print(e)
                 print()
-                print(f"Site information format is incorrect. Correct schema is\n{pformat(schema_validation.SiteSchema)}")
+                print(f"Site information format is incorrect.")
+                with open("./site-info_file_format.txt") as f:
+                    print(f.read())
                 sys.exit(1)
     args_dict["site_info"] = site_info_dict
 
