@@ -265,3 +265,6 @@ The python training scripts contain command line interfaces. However, to make ru
 </div>
 
 </div>
+<script>
+document.querySelector("head > title:nth-child(2)").innerHTML = "DeepKS Manual" 
+</script>
