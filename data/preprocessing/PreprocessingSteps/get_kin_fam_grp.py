@@ -79,7 +79,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
     for i, r in combined_df[combined_df["Family"].isna()].iterrows():
         checkpoints.append(i)
         for a in additional:
-            if bool(re.match(a, r["Kinase"])):
+            if bool(re.search(a, r["Kinase"])):
                 combined_df.at[i, "Family"] = re.sub(f"{a}", f"{additional[a]}", r["Kinase"])
                 combined_df.at[i, "Kinase"] = f"({r['Kinase']})"
                 break
@@ -92,7 +92,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
     not_found = 1
     for i, r in combined_df[combined_df["Group"].isna()].iterrows():
         for ag in additional_group:
-            if bool(re.match(ag, str(r["Family"]))):
+            if bool(re.search(ag, str(r["Family"]))):
                 combined_df.at[i, "Group"] = additional_group[ag]
                 combined_df.at[i, "Kinase"] = f"({r['Kinase']})"
                 break

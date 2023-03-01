@@ -2,6 +2,7 @@
     iframe {
         border-width: 2px;
         border-color: black;
+        border-style: solid;
         border-radius: 6px;
     }
     pre.bash-output.bash-output{
@@ -22,25 +23,81 @@
     }
     h1{
         border-bottom-width: 2px;
-        margin: 10px 0px 10px;
+        margin-top: 50px;
+        margin-bottom:10px;
+        margin-left:0px;
+        margin-right:0px;
+    }
+    h1:first-of-type{
+        border-bottom-width: 2px;
+        margin-top: 10px;
+        margin-bottom:10px;
+        margin-left:0px;
+        margin-right:0px;
     }
     
     h2{
         border-bottom-width: 1px;
         border-bottom-color: #00000040;
         border-bottom-style: solid;
+        margin-top: 25px;
     }
 
     h3{
         border-bottom-width: 1px;
         border-bottom-color: #00000040;
         border-bottom-style: dashed;
+        margin-top: 25px;
+    }
+
+    h4, h5, h6{
+        margin-top: 25px;
     }
 </style>
+<div style="display: table-row;">
+
+<div style="width:29%; display: table-cell; padding: 15px; border-radius:2px; border-style:solid; border-width:1.5px">
+
+# Table of Contents
+
+- [Table of Contents](#table-of-contents)
+- [Quickstart (Gets things up and running, but does not explain the tool — the rest of the manual goes in depth)](#quickstart-gets-things-up-and-running-but-does-not-explain-the-tool--the-rest-of-the-manual-goes-in-depth)
+- [Colors in this manual](#colors-in-this-manual)
+- [General Notes Relating to Devices (Read before running any program)](#general-notes-relating-to-devices-read-before-running-any-program)
+  - [Does My Computer Have a CUDA-compatible GPU?](#does-my-computer-have-a-cuda-compatible-gpu)
+  - [Follow **one** of the cases below.](#follow-one-of-the-cases-below)
+    - [Case A: Running On Personal Computer with CUDA](#case-a-running-on-personal-computer-with-cuda)
+    - [Case B: Running On Personal Computer without CUDA](#case-b-running-on-personal-computer-without-cuda)
+    - [Case C: Running On HPC Cluster](#case-c-running-on-hpc-cluster)
+- [Getting Started with Docker](#getting-started-with-docker)
+  - [Follow **one** of the cases below.](#follow-one-of-the-cases-below-1)
+    - [Case A/B: Running On Personal Computer](#case-ab-running-on-personal-computer)
+    - [Case C: Running on HPC cluster](#case-c-running-on-hpc-cluster-1)
+- [Running The Programs and API](#running-the-programs-and-api)
+  - [Using API](#using-api)
+    - [From Command Line](#from-command-line)
+    - [Adding to new code and importing](#adding-to-new-code-and-importing)
+      - [VS Code Integration](#vs-code-integration)
+      - [Importing](#importing)
+    - [Full API Specification](#full-api-specification)
+- [File Explainer](#file-explainer)
+- [Reproducing Everything From Scratch](#reproducing-everything-from-scratch)
+  - [Preprocessing and Data Collection](#preprocessing-and-data-collection)
+  - [Training](#training)
+  - [Evaluating](#evaluating)
+  - [Creating Evaluation Diagrams](#creating-evaluation-diagrams)
+  - [Creating Other Diagrams](#creating-other-diagrams)
+
+</div>
+<div style="width:2%; display: table-cell;">
+</div>
+<div style="width:69%; display: table-cell; padding: 15px; border-radius:2px; border-style:solid; border-width:1.5px">
+
 <h1 style='font-size:36pt'>DeepKS Manual</h1>
+
 <span style='font-size:15pt'> The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze and ensures the program will run exactly the same way on every computer. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool. </span>
 
-# Quickstart (Gets things up and running, but does not explain the theory behind the tool — the rest of the manual goes in depth)
+# Quickstart (Gets things up and running, but does not explain the tool — the rest of the manual goes in depth)
 1. See the [Quickstart guide](https://ben-drucker.gitlab.io/deepks-rename-trial/doc/quickstart.html).
 
 # Colors in this manual
@@ -112,11 +169,11 @@ These don't seem to cause any issues.
 
 ***Note: You will have `sudo` privileges inside the Docker container (!) by virtue of passing `--fakeroot`. If you ever need to install programs, for example, this means you can do so inside the container.***
 
-# Running The Programs
+# Running The Programs and API
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
 
 ## Using API
-## From Command Line
+### From Command Line
 The Command Line Interface is the main way to query the deep learning model. The API is a submodule of `DeepKS`. (Henceforth referred to as `DeepKS.api`.) The `DeepKS.api` module, itself contains a submodule `main`. (Henceforth referred to as `DeepKS.api.main`). This is the main "entrypoint" for running queries. Because of various Python specifications, `DeepKS.api.main` must be run as a module from _outside_ the `/DeepKS` directory. Hence, to run from the command line in the Docker container, run 
 
 ```bash
@@ -160,8 +217,8 @@ python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt 
 ```
 ***Note: The example files above are for example purposes only and don't actually exist.***
 
-## As a Python Import and VS Code integration
-### VS Code Integration
+### Adding to new code and importing
+#### VS Code Integration
 To make adding DeepKS to an external codebase, we recommend using VS Code. To do this, follow these steps:
 1. Open VS Code.
 2. Install the following extensions by searching for them:
@@ -172,7 +229,7 @@ To make adding DeepKS to an external codebase, we recommend using VS Code. To do
    - WSL (if using WSL)
 3. Go back to your terminal, and make sure you're inside the `benndrucker/deepks:latest` Docker container. Then run `/usr/share/code/bin/code-tunnel tunnel` and follow the instructions.
 
-### Importing
+#### Importing
 It is recommended to clone any external Git repositories to a directory inside the Docker container. Then, you can use VS Code to edit the files. Before importing the modules, you need to tell python where it lives. To do this, run 
 
 ```{bash}
@@ -187,35 +244,10 @@ from DeepKS.api.main import make_predictions
 import DeepKS.models.multi_stage_classifier as msc
 import DeepKS
 ```
-## API Specification
-### Functions of DeepKS.api.main:
-```python
-make_predictions(kinase_seqs, site_seqs, predictions_output_format, verbose, pre_trained_gc, pre_trained_nn):
-    """Make a target/decoy prediction for a kinase-substrate pair.
+### Full API Specification
+Below, you will find a scrollable list of API functions found in `DeepKS.api.main`.
+<div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div>
 
-    Args:
-        kinase_seqs (list[str]): The kinase sequences. Each must be <= 4128 residues long.
-        site_seqs ([str]): The site sequences. Each must be 15 residues long.
-        predictions_output_format (str, optional): The format of the output. Defaults to "inorder"
-            - "inorder" returns a list of predictions in the same order as the input kinases and sites.
-            - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-            - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
-            - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-        verbose (bool, optional): Whether to print predictions. Defaults to True.
-        pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
-        pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to "data/bin/deepks_weights.0.0.1.pt".
-    
-    Returns:
-        None, or dictionary, or list, depending on `predictions_output_format`
-    """
-
-parse_api():
-    """Parse the command line arguments.
-
-    Returns:
-        dict[str, Any]: Dictionary mapping the argument name to the argument value.
-    """
-```
 # File Explainer
 Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.
 <div><iframe src="../tools/tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div>
@@ -229,3 +261,7 @@ The python training scripts contain command line interfaces. However, to make ru
 ## Evaluating
 ## Creating Evaluation Diagrams
 ## Creating Other Diagrams
+
+</div>
+
+</div>

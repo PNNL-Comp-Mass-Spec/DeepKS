@@ -52,7 +52,7 @@ def main():
         )
 
         with tf.NamedTemporaryFile() as tmp:
-            cur_mtx_files = sorted([x for x in os.listdir() if re.match(r"^pairwise_mtx_[0-9]+.csv$", x)], reverse=True)
+            cur_mtx_files = sorted([x for x in os.listdir() if re.search(r"^pairwise_mtx_[0-9]+.csv$", x)], reverse=True)
             new_mtx_file = f"./pairwise_mtx_{re.sub('[^0-9]', '', seq_filename.split('/')[-1])}.csv"
             if len(cur_mtx_files) > 0:
                 try:

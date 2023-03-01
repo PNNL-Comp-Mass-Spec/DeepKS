@@ -162,7 +162,7 @@ class MultiStageClassifier:
                 numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
             boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
         print(colored("Status: Predictions Complete!", "green"))
-        if "dict" in predictions_output_format or re.match(r"(sqlite|csv)", predictions_output_format):
+        if "dict" in predictions_output_format or re.search(r"(sqlite|csv)", predictions_output_format):
             print(colored("Status: Copying Results to Dictionary.", "green"))
 
             # if cartesian_product:

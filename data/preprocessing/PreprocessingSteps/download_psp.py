@@ -60,7 +60,7 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
                 done = True
                 gene_names = {x["primaryAccession"]: x["genes"][0]["geneName"]["value"] for x in r.json()["results"]}
                 for i, r in table.iterrows():
-                    if bool(re.match(".*-[0-9]+$", r["KIN_ACC_ID"])):
+                    if bool(re.search(".*-[0-9]+$", r["KIN_ACC_ID"])):
                         gn = gene_names["-".join(r["KIN_ACC_ID"].split("-")[:-1])]
                     else:
                         gn = gene_names[r["KIN_ACC_ID"]]

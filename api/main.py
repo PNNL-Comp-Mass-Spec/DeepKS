@@ -1,3 +1,6 @@
+"""Contains functions that are an interface to the DeepKS project.
+"""
+
 import sys
 
 if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]):
@@ -17,7 +20,9 @@ def make_predictions(
     kin_info: dict,
     site_seqs: list[str],
     site_info: dict,
-    predictions_output_format: str = "inorder",
+    predictions_output_format: typing.Literal[
+        "inorder", "dictionary", "inorder_json", "dictionary_json", "csv", "sqlite"
+    ] = "csv",
     suppress_seqs_in_output: bool = False,
     verbose: bool = True,
     pre_trained_gc: str = PRE_TRAINED_GC,
@@ -31,28 +36,37 @@ def make_predictions(
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
-    Args:
-            kinase_seqs (list[str]): The kinase sequences. Each must be >= 1 and <= 4128 residues long.
-            kin_info (dict): The kinase (meta-) information.
-            site_seqs ([str]): The site sequences. Each must be 15 residues long.
-            site_info (dict): The site (meta-) information.
-            predictions_output_format (str, optional): The format of the output. Defaults to "inorder"
-                    - "inorder"returns a list of predictions in the same order as the input kinases and sites.
-                    - "dictionary" returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-                    - "in_order_json" outputs a JSON string (filename = ../out/current-date-and-time.json of a list of predictions in the same order as the input kinases and sites.
-                    - "dictionary_json" outputs a JSON string (filename = ../out/current-date-and-time.json) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
-                    - "csv" outputs a CSV table (filename = ../out/current-date-and-time.csv), where the columns include the input kinases, sites, sequence, metadata and predictions.
-                    - "sqlite" outputs a sqlite database (filename = ../out/current-date-and-time.sqlite), where the columns include the input kinases, sites, sequence, metadata and predictions.
-            suppress_seqs_in_output (bool, optional): Whether to include the input sequences in the output. Defaults to False.
-            verbose (bool, optional): Whether to print predictions. Defaults to True.
-            pre_trained_gc (str, optional): Path to previously trained group classifier model state. Defaults to PRE_TRAINED_GC.
-            pre_trained_nn (str, optional): Path to previously trained neural network model state. Defaults to PRE_TRAINED_NN.
-            device (str, optional): Device to use for predictions. Defaults to "cpu".
-            scores (bool, optional): Whether to return scores. Defaults to False.
-            normalize_scores (bool, optional): Whether to normalize scores. Defaults to False.
-            dry_run (bool, optional): Whether to run a dry run (make sure input parameters work). Defaults to False.
-            cartesian_product (bool, optional): Whether to make predictions for all combinations of kinases and sites. Defaults to False.
-            group_output (bool, optional): Whether to return group predictions. Defaults to False.
+        @arg kinase_seqs: The kinase sequences. Each must be >= 1 and <= 4128 residues long.
+        @arg kin_info: The kinase (meta-) information.
+        @arg site_seqs: The site sequences. Each must be 15 residues long.
+        @arg site_info: The site (meta-) information.
+        @arg predictions_output_format: The format of the output. 
+                - C{inorder} returns a list of predictions in the same order as the input kinases and sites.
+                - C{dictionary} returns a dictionary of predictions, where the keys are the input kinases and sites 
+                    and the values are the predictions.
+                - C{in_order_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a list of 
+                    predictions in the same order as the input kinases and sites.
+                - C{dictionary_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a 
+                    dictionary of predictions, where the keys are the input kinases and sites and the values are the 
+                    predictions.
+                - C{csv} outputs a CSV table (filename = C{"DeepKS/out/current-date-and-time.csv"}), where the columns include
+                    the input kinases, sites, sequence, metadata and predictions.
+                - C{sqlite} outputs a sqlite database (filename = C{"DeepKS/out/current-date-and-time.sqlite"}), where the 
+                    columns include the input kinases, sites, sequence, metadata and predictions.
+        @arg suppress_seqs_in_output: Whether to include the input sequences in the output. 
+                                                    
+        @arg verbose: Whether to print predictions. 
+        @arg pre_trained_gc: Path to previously trained group classifier model state. 
+                                        
+        @arg pre_trained_nn: Path to previously trained neural network model state. 
+                                        
+        @arg device: Device to use for predictions. 
+        @arg scores: Whether to return scores. 
+        @arg normalize_scores: Whether to normalize scores. 
+        @arg dry_run: Whether to run a dry run (make sure input parameters work). 
+        @arg cartesian_product: Whether to make predictions for all combinations of kinases and sites. 
+                                            
+        @arg group_output: Whether to return group predictions. 
     """
     config.cfg.set_mode("no_alin")
     try:
@@ -109,7 +123,7 @@ def make_predictions(
         except Exception as e:
             informative_exception(e, print_full_tb=True, top_message="Error: Prediction process failed!")
 
-        assert res is not None or re.match("(json|csv|sqlite)", predictions_output_format)
+        assert res is not None or re.search("(json|csv|sqlite)", predictions_output_format), f"Issue with results. ({res=}; {predictions_output_format=})"
 
         if verbose:
             assert res is not None
@@ -129,8 +143,7 @@ def make_predictions(
 def parse_api() -> dict[str, typing.Any]:
     """Parse the command line arguments.
 
-    Returns:
-            dict[str, Any]: Dictionary mapping the argument name to the argument value.
+    @returns: Dictionary mapping the argument name to the argument value.
     """
 
     def wrap(s) -> str:
@@ -183,7 +196,12 @@ def parse_api() -> dict[str, typing.Any]:
         metavar="<site sequences file>",
     )
 
-    ap.add_argument("--kin-info", required=False, help=f"Kinase information file. See DeepKS/api/kin-info_file_format.txt for details about the correct format.", metavar="<kinase info file>")
+    ap.add_argument(
+        "--kin-info",
+        required=False,
+        help=f"Kinase information file. See DeepKS/api/kin-info_file_format.txt for details about the correct format.",
+        metavar="<kinase info file>",
+    )
     ap.add_argument(
         "--site-info",
         required=False,
@@ -327,7 +345,7 @@ def parse_api() -> dict[str, typing.Any]:
             args_dict["kinase_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
-            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+            assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
                 ll := len(args_dict["kinase_seqs"])
             )
         except AssertionError:
@@ -347,7 +365,7 @@ def parse_api() -> dict[str, typing.Any]:
             args_dict["site_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
-            assert not re.match(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+            assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
                 ll := len(args_dict["site_seqs"])
             )
         except AssertionError:
@@ -373,11 +391,13 @@ def parse_api() -> dict[str, typing.Any]:
         print(
             colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
         )
-    if re.match(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]:
+    if re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]:
         print(
             colored(
-                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                " JSON/CSV/SQLite.",
+                (
+                    "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
+                    " JSON/CSV/SQLite."
+                ),
                 "blue",
             )
         )
@@ -432,10 +452,16 @@ def parse_api() -> dict[str, typing.Any]:
     return args_dict
 
 
-def setup():
+def setup(args: dict[str, typing.Any] = {}):
+    """Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with `args` (either passed in or from the commandline).
+
+    Args:
+        @arg args: DeepKS arguments. 
+    """
     global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
     os.chdir(pathlib.Path(__file__).parent.resolve())
-    args = parse_api()
+    if args == {}:
+        args = parse_api()
 
     print(colored("Status: Loading Modules...", "green"))
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema

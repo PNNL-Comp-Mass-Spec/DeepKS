@@ -57,7 +57,7 @@ async def main():
         "VRK3|Q8IV63": False
     }
     print(f"{len(PSP_symbols)=}")
-    PSP_filtered = [x for x in PSP_symbols if not re.match(r".*\|[0-9A-Z]+-[0-9]+", x)] # Remove All Remaining Isoforms
+    PSP_filtered = [x for x in PSP_symbols if not re.search(r".*\|[0-9A-Z]+-[0-9]+", x)] # Remove All Remaining Isoforms
     print(f"{len(PSP_filtered)=}")
     PSP_filtered = [x for x in PSP_symbols if x not in PSP_exclusion_dict or PSP_exclusion_dict[x]]
     print(f"{len(PSP_filtered)=}")

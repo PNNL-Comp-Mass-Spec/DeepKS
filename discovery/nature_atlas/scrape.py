@@ -83,7 +83,7 @@ def main():
                 wait.until(EC.presence_of_element_located((By.XPATH, "//*[@id=\"downloadScoreSiteButton\"]")))
                 download_button = driver.find_element(By.XPATH, "//*[@id=\"downloadScoreSiteButton\"]")
                 download_button.click()
-                while len(the_file_s := [file for file in os.listdir(os.path.expanduser(os.path.expandvars(download_path))) if re.match(r"score-site-result-table\s*\(*[0-9]*\)*\.tsv", file)]) < 1:
+                while len(the_file_s := [file for file in os.listdir(os.path.expanduser(os.path.expandvars(download_path))) if re.search(r"score-site-result-table\s*\(*[0-9]*\)*\.tsv", file)]) < 1:
                     time.sleep(0.01)
                 os.rename(os.path.expanduser(os.path.expandvars(os.path.join(download_path, the_file_s[0]))), new_name := os.path.expanduser(os.path.expandvars(os.path.join(download_path, f"{which_short_site}-{p}`{i}.tsv"))))
                 while os.path.getsize(new_name) < 20_000:

@@ -25,7 +25,7 @@ def main():
     )
 
     atlas = pd.read_csv("./41586_2022_5575_MOESM5_ESM.csv")
-    available_kinases: list[str] = [str(x) for x in atlas.columns if re.match(r"^[0-9A-Z]+_percentile$", str(x))]
+    available_kinases: list[str] = [str(x) for x in atlas.columns if re.search(r"^[0-9A-Z]+_percentile$", str(x))]
     assert (
         len(available_kinases) == NUM_KIN_ASSERT_AVAIL
     ), f"Expected {NUM_KIN_ASSERT_AVAIL} kinases, got {len(available_kinases)}"

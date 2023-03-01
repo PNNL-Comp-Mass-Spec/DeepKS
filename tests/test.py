@@ -1,5 +1,6 @@
 import unittest
 import sys, os
+from parameterized import parameterized
 
 class TestPreProcessing(unittest.TestCase):
     def setUp(self):
@@ -74,18 +75,18 @@ class TestMainAPIFromCMDL(unittest.TestCase):
         sys.argv = ["python3 -m DeepKS.api.main", "-h"]
         self.assertRaises(SystemExit, self.main.setup)
 
+from ..examples.examples import EXAMPLES
 class TestExamples(unittest.TestCase):
     def setUp(self):
         from ..api import main as this_main
         self.main = this_main
-        from ..examples.examples import EXAMPLES
-
-        self.examples = EXAMPLES
-        
-    def test_examples(self):
-        for ex in self.examples:
-            sys.argv = ex
-            self.main.setup()
+    
+    @parameterized.expand([[f'ex_{i}'] + EXAMPLES[i] for i in range(len(EXAMPLES))])
+    def test_examples(self, name, *ex):
+        # print(f"{name=}")
+        # print(f"{ex=}")
+        sys.argv = list(ex)
+        self.main.setup()
 
 
 # if __name__ == '__main__':

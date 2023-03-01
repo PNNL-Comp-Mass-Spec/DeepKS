@@ -1,5 +1,5 @@
 # %% ### IMPORTS ---
-import pandas as pd, json, re, os, pathlib, plotly.graph_objects as go
+import pandas as pd, json, re, os, pathlib, plotly.graph_objects as go, plotly.express as px, time
 from matplotlib import rcParams
 
 rcParams["font.family"] = "P052-Roman"
@@ -22,6 +22,13 @@ def remove_timestamps(bytes: bytes) -> bytes: # So we don't get different versio
 
 # %% ### DATA FORMATTING ---
 def make_sunburst():
+    #garbage graph
+    fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
+    fig.write_image(".gitig-garbage-graph.pdf")
+    time.sleep(2)
+    os.unlink(".gitig-garbage-graph.pdf")
+
+
     kfg = pd.read_csv("../../data/preprocessing/kin_to_fam_to_grp_826.csv")
     kfg["Symbol"] = [re.sub(r"[\(\)\*]", "", x) for x in kfg["Kinase"] + "|" + kfg["Uniprot"]]
 
