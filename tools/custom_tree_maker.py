@@ -6,7 +6,7 @@ from sys import argv
 from typing import Union
 
 def main():
-    if os.path.exists("tree.txt") and len(argv) == 1 or argv[1] != "-f":
+    if (os.path.exists("tree.txt") and len(argv) == 1) or (len(argv) > 1 and argv[1] != "-f"):
         print("Use -f to forcefully overwrite tree.txt")
         exit(1)
 
@@ -34,7 +34,8 @@ def main():
         desc = ""
         if path_to_node in tree_description_path_dict:
             desc = tree_description_path_dict[path_to_node].description
-        new_lines.append(orig_line.replace("\n", "") + (" :: " if desc != "" else "") + desc.replace("\n", ""))
+        if desc != "":
+            new_lines.append(orig_line.replace("\n", "") + " ⧐ " + desc.replace("\n", ""))
     
     with open("tree.txt", "w") as t:
         t.write("\n".join(new_lines))
