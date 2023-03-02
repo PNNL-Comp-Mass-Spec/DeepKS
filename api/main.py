@@ -428,15 +428,14 @@ def parse_api() -> dict[str, typing.Any]:
             kinase_info_dict = json.load(f)
             try:
                 jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
-            except jsonschema.exceptions.ValidationError as e:
-                print(e)
-                print()
-                print(f"Kinase information format is incorrect.")
+            except jsonschema.exceptions.ValidationError:
+                print("", file=sys.stderr)
+                print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
                 with open("./kin-info_file_format.txt") as f:
-                    print(f.read())
+                    print(colored(f.read(), "magenta"), file=sys.stderr)
                 sys.exit(1)
 
-    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
+    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
 
     args_dict["kin_info"] = kinase_info_dict
 
@@ -450,12 +449,11 @@ def parse_api() -> dict[str, typing.Any]:
             site_info_dict = json.load(f)
             try:
                 jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
-            except jsonschema.exceptions.ValidationError as e:
-                print(e)
-                print()
-                print(f"Site information format is incorrect.")
+            except jsonschema.exceptions.ValidationError:
+                print("", file=sys.stderr)
+                print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
                 with open("./site-info_file_format.txt") as f:
-                    print(f.read())
+                    print(colored(f.read(), "magenta"), file=sys.stderr)
                 sys.exit(1)
     args_dict["site_info"] = site_info_dict
 

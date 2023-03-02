@@ -1,0 +1,94 @@
+{
+    "NEGWVSQFKQYLVDTDHNVTRRTAAYLFHYVARTWPECVHIDNMDMTNIVDFHCRVIQLSKNFDFTWCFNCWWWWRGGMEAKPEYYYPHLMIDEMQRCID": {
+        "Uniprot Accession ID": [
+            "KIN-ID1"
+        ],
+        "Gene Name": [
+            "KIN-1"
+        ],
+        "Known Group": "<UNANNOTATED>"
+    },
+    "RIDNKWVLPRKSWQQNEEAMCAPVNCAHFKTYPINHYQYWGAAACCTFTGHISKGEWETPYMKSFFMTEPMYQSKTSGEQKRSTEAWGGHLWFHPTWHHD": {
+        "Uniprot Accession ID": [
+            "KIN-ID2",
+            "Kin-2-Alternate-ID"
+        ],
+        "Gene Name": [
+            "KIN-2",
+            "Kin-2-Alternate-GN"
+        ],
+        "Known Group": "<UNANNOTATED>"
+    },
+    "DVMDPLCFMATIRISWPLHPHRVLRKASWAYMSAYDVTQSKYLQQRVTDDMFATIFCMKLYAVCWCFCRCFWLPAKVKCWYNMTLVTDTGFDVVFTGHVS": {
+        "Uniprot Accession ID": [
+            "KIN-ID3"
+        ],
+        "Gene Name": [
+            "KIN-3"
+        ],
+        "Known Group": "TKL"
+    },
+    "PPILEPPKDDYNDWDEIFYIQTYSCFGSCLILWPMGVTQCTAGNTFNQTSKTASTGLDGCFRAGNPLTYKLWIMKYLLNCIYCALWSYQMCAKFQFDKCN": {
+        "Uniprot Accession ID": [
+            "KIN-ID4"
+        ],
+        "Gene Name": [
+            "KIN-4"
+        ],
+        "Known Group": "TK"
+    },
+    "VNHKNIYSKKCCRYSDDHLTNPYWKYYEESFRRLYMHGCLLLSSGEPKSEHFAKCKTGDFLCPIASMGMDEKNNLYMTLNWATWHDGIEGRTGIPKQHPT": {
+        "Uniprot Accession ID": [
+            "KIN-ID5"
+        ],
+        "Gene Name": [
+            "KIN-5"
+        ],
+        "Known Group": "STE"
+    },
+    "MGLAHHDIQFGRYLVCNFKKAAHNAKWRKWLGDQFDDYHTCVQCDCHPKRFQMPFWKQVYRDMFHGGMIRNWERQVLAGWIWRSLSYCCSNNPDNEKQHI": {
+        "Uniprot Accession ID": [
+            "KIN-ID6"
+        ],
+        "Gene Name": [
+            "KIN-6"
+        ],
+        "Known Group": "STE"
+    },
+    "GQQYGAIQTIEDGEKSNYCHHPHWHPAIQDRFVSHMDYQGAAAKMHGGTYDCQWPFFSFHKFDFGCAVNKFKQMVAWCAHNFTNGDIEMKQKPVHEQSHL": {
+        "Uniprot Accession ID": [
+            "KIN-ID7"
+        ],
+        "Gene Name": [
+            "KIN-7"
+        ],
+        "Known Group": "STE"
+    },
+    "TKINIGRCEGPREFYCPDRIFEYRRFATKRQCPMLVNFMNRYQLQVPMIFVNLSVNAIWKWHFRITHQGQTKRLDHDWRGHGTHEWMNPMTYQPAQPYQF": {
+        "Uniprot Accession ID": [
+            "KIN-ID8"
+        ],
+        "Gene Name": [
+            "KIN-8"
+        ],
+        "Known Group": "CMGC"
+    },
+    "FKCIEIDRWTTMDQITVFAWQHYWGTCKIRGPHIAKIKMYDYDVPYELMPEGSRPNFKYWHMCHLKRYWQRCSSVPNDEHNIIICGAWTAMMRLMADQYQ": {
+        "Uniprot Accession ID": [
+            "KIN-ID9"
+        ],
+        "Gene Name": [
+            "KIN-9"
+        ],
+        "Known Group": "CK1"
+    },
+    "LRGNAEICNHRTWGAVYECTPPVRWKNDEHRLCMVMNDWFTQTMDVKWQMDIEWGTEWNRCIHMQSGNDLSFCFETAQAPFFMATWNPWRQGWLHKKKVQ": {
+        "Uniprot Accession ID": [
+            "KIN-ID10"
+        ],
+        "Gene Name": [
+            "KIN-10"
+        ],
+        "Known Group": "AGC"
+    }
+}

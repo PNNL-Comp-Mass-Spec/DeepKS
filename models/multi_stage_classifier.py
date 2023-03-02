@@ -49,9 +49,10 @@ class MultiStageClassifier:
         # Open XY_formatted_input_file
         if "test_json" in newargs:
             input_file = json.load(open(Xy_formatted_input_file))
+            input_file = {k: pd.Series(v) for k, v in input_file.items()}
         else:
             input_file = pd.read_csv(Xy_formatted_input_file)
-        if predict_mode is False:
+        if not predict_mode:
             _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
                 "../data/preprocessing/kin_to_fam_to_grp_826.csv"
             )
@@ -59,18 +60,14 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols_sorted_order = np.argsort(np.asarray(set(input_file["orig_lab_name"])))
-        unq_symbols = np.asarray(list(set(input_file["orig_lab_name"])))[unq_symbols_sorted_order]
+        unq_symbols = input_file["orig_lab_name"].drop_duplicates()
+        unq_symbols_inds = unq_symbols.index.tolist()
+        unq_symbols = unq_symbols.tolist()
 
         if bypass_group_classifier:
-            true_symbol_to_grp_dict = {
-                symbol: known_group
-                for symbol, known_group in zip(
-                    unq_symbols, [bypass_group_classifier[i] for i in unq_symbols_sorted_order]
-                )
-            }
+            true_symbol_to_grp_dict = dict(zip(unq_symbols, [input_file['known_groups'][i] for i in unq_symbols_inds]))
 
-        if predict_mode is False or bypass_group_classifier:
+        if not predict_mode or bypass_group_classifier:
             assert true_symbol_to_grp_dict is not None
             groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
         else:
@@ -79,7 +76,8 @@ class MultiStageClassifier:
         ### Perform Real Accuracy
         groups_prediction = self.group_classifier.predict(unq_symbols)
         pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
-
+        true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
+        
         ### Perform Simulated 100% Accuracy
         # sim_ac = 1
         # wrong_inds = set()
@@ -96,8 +94,8 @@ class MultiStageClassifier:
 
         # Report performance
         res = {}
+        self.individual_classifiers.evaluations = {}
         if predict_mode is False or bypass_group_classifier:
-            true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
             print(
                 colored(
                     (
@@ -108,15 +106,11 @@ class MultiStageClassifier:
                     "blue",
                 )
             )
-
-            self.individual_classifiers.evaluations = {}
             self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
         if predict_mode:
-            true_grp_dict = {symbol: None for symbol in unq_symbols}
-            self.individual_classifiers.evaluations = {}
             newargs["test" if "test_json" not in newargs else "test_json"] = Xy_formatted_input_file
             res = self.individual_classifiers.roc_evaluation(
-                newargs, pred_grp_dict, true_groups=None, predict_mode=True
+                newargs, pred_grp_dict if not bypass_group_classifier else true_grp_dict, true_groups=None, predict_mode=True
             )
 
         print(

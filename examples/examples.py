@@ -39,6 +39,24 @@ EXAMPLES = [
             "--normalize-scores",
             "--cartesian-product",
         ],
+        [
+            "python3 -m DeepKS.api.main",
+            "-kf",
+            "tests/sample_inputs/kins.txt",
+            "-sf",
+            "tests/sample_inputs/sites-prod.txt",
+            "-p",
+            "csv",
+            "--kin-info",
+            "tests/sample_inputs/kin-info-known-groups.json",
+            "--site-info",
+            "tests/sample_inputs/site-info.json",
+            "--scores",
+            "--normalize-scores",
+            "--cartesian-product",
+            "--groups",
+            "--bypass-group-classifier"
+        ],
     ]
 
 def _main():
@@ -48,14 +66,15 @@ def _main():
         colored(
             (
                 "Info: This is an example script for DeepKS. To inspect the sample input files, check the"
-                " 'examples/sample_inputs' directory."
+                " 'DeepKS/tests/sample_inputs/' directory."
             ),
             "blue",
         )
     )
     
+    inds = range(len(EXAMPLES)) if "--ex-list" not in sys.argv else eval(sys.argv[sys.argv.index("--ex-list") + 1])
 
-    for i, example in enumerate(EXAMPLES):
+    for i, example in zip(inds, [EXAMPLES[i] for i in inds]):
         if i > 0:
             for _ in range(4):
                 print()
