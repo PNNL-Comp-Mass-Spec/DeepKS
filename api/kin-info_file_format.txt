@@ -3,11 +3,13 @@ Kinase information file. Must be able to be read as JSON. Structure must be:
     {
         "<kinase sequence 1>": {
             "Uniprot Accession ID": [<list of associated kinase Uniprot Accession IDs>],
-            "Gene Name": [<list of associated kinase gene names>]
+            "Gene Name": [<list of associated kinase gene names>],
+            "Known Group": <OPTIONAL known kinase group> -- one of {<UNANNOTATED>, ATYPICAL, AGC, CAMK, CK1 CMGC, OTHER, STE, TK, TKL}
         },
         "<kinase sequence 2>": {
             "Uniprot Accession ID": [<list of associated kinase Uniprot Accession IDs>],
             "Gene Name": [<list of associated kinase gene names>]
+            "Known Group": <OPTIONAL known kinase group>
         },
         .
         .

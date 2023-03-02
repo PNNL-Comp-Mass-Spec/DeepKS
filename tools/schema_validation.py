@@ -29,6 +29,13 @@ KinSchema = {
 SiteSchema = deepcopy(KinSchema)
 SiteSchema["patternProperties"] = site_pattern_properties
 
+bypass_gc = {"Known Group": {
+    "type": "string",
+    "enum": ["<UNANNOTATED>", "ATYPICAL", "AGC", "CAMK", "CK1", "CMGC", "OTHER", "STE", "TK", "TKL"]}}
+
+KinSchemaBypassGC = deepcopy(KinSchema)
+KinSchemaBypassGC["patternProperties"]["^.+$"]["properties"].update(bypass_gc)
+
 if __name__ == "__main__":
     sample = {
         "ABCDEFGHIJKLMNO": {"Uniprot Accession ID": ["P12345"], "Gene Name": ["ABC1"]},
@@ -45,7 +52,6 @@ if __name__ == "__main__":
             print("Valid")
         except jse.ValidationError as e:
             print("Invalid")
-
 
     sample = {
         "ABCDEFGHIJKLMNO": {"Uniprot Accession ID": ["P12345"], "Gene Name": ["ABC1"], "Location": ["T777"]},

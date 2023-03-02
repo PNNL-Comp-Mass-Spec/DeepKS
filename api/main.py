@@ -33,40 +33,39 @@ def make_predictions(
     dry_run: bool = False,
     cartesian_product: bool = False,
     group_output: bool = False,
+    bypass_group_classifier: list[str] = [],
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
-        @arg kinase_seqs: The kinase sequences. Each must be >= 1 and <= 4128 residues long.
-        @arg kin_info: The kinase (meta-) information.
-        @arg site_seqs: The site sequences. Each must be 15 residues long.
-        @arg site_info: The site (meta-) information.
-        @arg predictions_output_format: The format of the output. 
-                - C{inorder} returns a list of predictions in the same order as the input kinases and sites.
-                - C{dictionary} returns a dictionary of predictions, where the keys are the input kinases and sites 
-                    and the values are the predictions.
-                - C{in_order_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a list of 
-                    predictions in the same order as the input kinases and sites.
-                - C{dictionary_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a 
-                    dictionary of predictions, where the keys are the input kinases and sites and the values are the 
-                    predictions.
-                - C{csv} outputs a CSV table (filename = C{"DeepKS/out/current-date-and-time.csv"}), where the columns include
-                    the input kinases, sites, sequence, metadata and predictions.
-                - C{sqlite} outputs a sqlite database (filename = C{"DeepKS/out/current-date-and-time.sqlite"}), where the 
-                    columns include the input kinases, sites, sequence, metadata and predictions.
-        @arg suppress_seqs_in_output: Whether to include the input sequences in the output. 
-                                                    
-        @arg verbose: Whether to print predictions. 
-        @arg pre_trained_gc: Path to previously trained group classifier model state. 
-                                        
-        @arg pre_trained_nn: Path to previously trained neural network model state. 
-                                        
-        @arg device: Device to use for predictions. 
-        @arg scores: Whether to return scores. 
-        @arg normalize_scores: Whether to normalize scores. 
-        @arg dry_run: Whether to run a dry run (make sure input parameters work). 
-        @arg cartesian_product: Whether to make predictions for all combinations of kinases and sites. 
-                                            
-        @arg group_output: Whether to return group predictions. 
+    @arg kinase_seqs: The kinase sequences. Each must be >= 1 and <= 4128 residues long.
+    @arg kin_info: The kinase (meta-) information. See C{./kin-info_file_format.txt} for the required format.
+    @arg site_seqs: The site sequences. Each must be 15 residues long.
+    @arg site_info: The site (meta-) information. See C{./site-info_file_format.txt} for the required format.
+    @arg predictions_output_format: The format of the output.
+        - C{inorder} returns a list of predictions in the same order as the input kinases and sites.
+        - C{dictionary} returns a dictionary of predictions, where the keys are the input kinases and sites
+            and the values are the predictions.
+        - C{in_order_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a list of
+            predictions in the same order as the input kinases and sites.
+        - C{dictionary_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a
+            dictionary of predictions, where the keys are the input kinases and sites and the values are the
+            predictions.
+        - C{csv} outputs a CSV table (filename = C{"DeepKS/out/current-date-and-time.csv"}), where the columns include
+            the input kinases, sites, sequence, metadata and predictions.
+        - C{sqlite} outputs a sqlite database (filename = C{"DeepKS/out/current-date-and-time.sqlite"}), where the
+            columns include the input kinases, sites, sequence, metadata and predictions.
+    @arg suppress_seqs_in_output: Whether to include the input sequences in the output.
+    @arg verbose: Whether to print predictions.
+    @arg pre_trained_gc: Path to previously trained group classifier model state.
+    @arg pre_trained_nn: Path to previously trained neural network model state.
+    @arg device: Device to use for predictions.
+    @arg scores: Whether to return scores.
+    @arg normalize_scores: Whether to normalize scores.
+    @arg dry_run: Whether to run a dry run (make sure input parameters work).
+    @arg cartesian_product: Whether to make predictions for all combinations of kinases and sites.
+    @arg group_output: Whether to return group predictions.
+    @arg bypass_group_classifier: List of known kinase groups in the same order in which they appear in kinase_seqs. 
+                                  See C{./kin-info_file_format.txt} for instructions on how to specify groups.
     """
     config.cfg.set_mode("no_alin")
     try:
@@ -119,11 +118,14 @@ def make_predictions(
                 normalize_scores=normalize_scores,
                 cartesian_product=cartesian_product,
                 group_output=group_output,
+                bypass_group_classifier=bypass_group_classifier
             )
         except Exception as e:
             informative_exception(e, print_full_tb=True, top_message="Error: Prediction process failed!")
 
-        assert res is not None or re.search("(json|csv|sqlite)", predictions_output_format), f"Issue with results. ({res=}; {predictions_output_format=})"
+        assert res is not None or re.search(
+            "(json|csv|sqlite)", predictions_output_format
+        ), f"Issue with results. ({res=}; {predictions_output_format=})"
 
         if verbose:
             assert res is not None
@@ -327,6 +329,14 @@ def parse_api() -> dict[str, typing.Any]:
         action="store_true",
     )
     ap.add_argument(
+        "--bypass-group-classifier",
+        help="Whether or not to bypass the group classifier (due to having known groups). See C{./kin-info_file_format.txt} for instructions on how to specify groups.",
+        default=False,
+        required=False,
+        action="store_true"
+    )
+
+    ap.add_argument(
         "--dry-run",
         help="Only validates command line parameters; does not do any computations",
         default=False,
@@ -417,7 +427,7 @@ def parse_api() -> dict[str, typing.Any]:
         with open("../" + args_dict["kin_info"]) as f:
             kinase_info_dict = json.load(f)
             try:
-                jsonschema.validate(kinase_info_dict, schema_validation.KinSchema)
+                jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
             except jsonschema.exceptions.ValidationError as e:
                 print(e)
                 print()
@@ -425,6 +435,9 @@ def parse_api() -> dict[str, typing.Any]:
                 with open("./kin-info_file_format.txt") as f:
                     print(f.read())
                 sys.exit(1)
+
+    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
+
     args_dict["kin_info"] = kinase_info_dict
 
     if args_dict["site_info"] is None:
@@ -456,7 +469,7 @@ def setup(args: dict[str, typing.Any] = {}):
     """Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with `args` (either passed in or from the commandline).
 
     Args:
-        @arg args: DeepKS arguments. 
+        @arg args: DeepKS arguments.
     """
     global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
     os.chdir(pathlib.Path(__file__).parent.resolve())

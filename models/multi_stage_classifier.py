@@ -3,6 +3,7 @@ if __name__ == "__main__":
 
     write_splash("gc_trainer")
     print("Progress: Loading Modules", flush=True)
+from copy import deepcopy
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm
 import re, sqlite3
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
@@ -36,7 +37,14 @@ class MultiStageClassifier:
             self.individual_classifiers,
         )
 
-    def evaluate(self, newargs, Xy_formatted_input_file: str, evaluation_kwargs=None, predict_mode=False):
+    def evaluate(
+        self,
+        newargs,
+        Xy_formatted_input_file: str,
+        evaluation_kwargs=None,
+        predict_mode=False,
+        bypass_group_classifier={},
+    ):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
         if "test_json" in newargs:
@@ -51,8 +59,18 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = set(input_file["orig_lab_name"])
-        if predict_mode is False:
+        unq_symbols_sorted_order = np.argsort(np.asarray(set(input_file["orig_lab_name"])))
+        unq_symbols = np.asarray(list(set(input_file["orig_lab_name"])))[unq_symbols_sorted_order]
+
+        if bypass_group_classifier:
+            true_symbol_to_grp_dict = {
+                symbol: known_group
+                for symbol, known_group in zip(
+                    unq_symbols, [bypass_group_classifier[i] for i in unq_symbols_sorted_order]
+                )
+            }
+
+        if predict_mode is False or bypass_group_classifier:
             assert true_symbol_to_grp_dict is not None
             groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
         else:
@@ -60,6 +78,7 @@ class MultiStageClassifier:
 
         ### Perform Real Accuracy
         groups_prediction = self.group_classifier.predict(unq_symbols)
+        pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
 
         ### Perform Simulated 100% Accuracy
         # sim_ac = 1
@@ -75,37 +94,42 @@ class MultiStageClassifier:
         #     for i in range(len(groups_true))
         # ]
 
-        pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
-        if predict_mode is False:
-            true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
-        else:
-            true_grp_dict = {symbol: None for symbol in unq_symbols}
-
         # Report performance
-        if predict_mode is False:
-            print(f"Info: Group Classifier Accuracy — {self.group_classifier.test(groups_true, groups_prediction)}")
-
-            # Send to individual classifiers
-            print("Progress: Sending input kinases to individual classifiers (with group predictions)")
-            self.individual_classifiers.evaluations = {}
-            self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
-            return {}
-        else:
+        res = {}
+        if predict_mode is False or bypass_group_classifier:
+            true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
             print(
                 colored(
                     (
-                        "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
-                        " step [1/2]"
+                        "Info: Group Classifier Accuracy"
+                        f" {'(since we have known groups) ' if bypass_group_classifier else ''}—"
+                        f" {self.group_classifier.test(groups_true, groups_prediction)}"
                     ),
-                    "green",
+                    "blue",
                 )
             )
+
+            self.individual_classifiers.evaluations = {}
+            self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
+        if predict_mode:
+            true_grp_dict = {symbol: None for symbol in unq_symbols}
             self.individual_classifiers.evaluations = {}
             newargs["test" if "test_json" not in newargs else "test_json"] = Xy_formatted_input_file
             res = self.individual_classifiers.roc_evaluation(
                 newargs, pred_grp_dict, true_groups=None, predict_mode=True
             )
-            return res
+
+        print(
+            colored(
+                (
+                    "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
+                    " step [1/2]"
+                ),
+                "green"
+            )
+        )
+        
+        return res
 
     def predict(
         self,
@@ -120,6 +144,7 @@ class MultiStageClassifier:
         normalize_scores: bool = False,
         cartesian_product: bool = False,  # TODO - Use this if there's a better way of handing cartesian products
         group_output: bool = False,
+        bypass_group_classifier: list[str] = [],
     ):
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first").reset_index()
         seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
@@ -138,6 +163,8 @@ class MultiStageClassifier:
             "num_seqs": ["N/A"],
         }
 
+        data_dict = (data_dict | {"known_groups": bypass_group_classifier}) if bypass_group_classifier else data_dict
+
         with tf.NamedTemporaryFile("w") as f:
             print(
                 colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green")
@@ -149,9 +176,15 @@ class MultiStageClassifier:
             if cartesian_product:
                 with open(f.name, "w") as f2:
                     f2.write(json.dumps(data_dict, indent=3))
-                res = self.evaluate({"test_json": f.name, "device": device}, f.name, predict_mode=True)
+                res = self.evaluate(
+                    {"test_json": f.name, "device": device},
+                    f.name,
+                    predict_mode=True,
+                    bypass_group_classifier=bypass_group_classifier,
+                )
             else:
                 efficient_to_csv(data_dict, f.name)
+                # The "meat" of the prediction process.
                 res = self.evaluate({"test": f.name, "device": device}, f.name, predict_mode=True)
             assert res is not None, "Error: res is None"
             group_predictions = [x[1][2] for x in res]
@@ -262,7 +295,7 @@ class MultiStageClassifier:
             ]
         else:
             ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
-        if predictions_output_format not in ['inorder', 'dictionary']:
+        if predictions_output_format not in ["inorder", "dictionary"]:
             file_name = (
                 f"{str(pathlib.Path(__file__).parent.resolve())}/"
                 f"../out/{get_file_name('results', re.sub(r'.*?_json', 'json', predictions_output_format))}"
