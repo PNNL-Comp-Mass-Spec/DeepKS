@@ -98,12 +98,12 @@ def main():
                 lines_restored.append(to_restore_line)
     if RESTORE:
         assert isinstance(lines_restored, list)
-        with open(f"tools/tree_description.txt", "w") as d:
+        with open(f"docs/tree_description.txt", "w") as d:
             d.write("".join(lines_restored))
 
     with open("tools/tree_template.html") as tt:
         template = tt.read()
-    with open("tools/tree.html", "w") as t:
+    with open("docs/tree.html", "w") as t:
         new_lines[-1] = new_lines[-1].replace("├", "└")
         temp_lines = "\n".join(new_lines)
         final_lines = re.sub("        PUT FILE DIRS HERE", temp_lines, template)
