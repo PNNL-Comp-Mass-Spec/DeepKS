@@ -94,7 +94,7 @@
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">api</code> ▷  Contains the API for the DeepKS package.</div>
 <div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>cfg.py</code> ▷  Contains configuration paths for the API.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>default_paths.cfg.json</code> ▷  Contains data read by <code>./cfg.py</code></div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>main.py</code> ▷  Main API entry point.</div>
+<div style='display:table-row' class=even><code class='no-col'>│   └── </code><code>main.py</code> ▷  Main API entry point.</div>
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">architectures</code> ▷  Contains the architectures used in this package.</div>
 <div style='display:table-row' class=even><code class='no-col'>│   └── </code><code>HP_config_DB.tsv</code> ▷  Database of hyperparameter configurations.</div>
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">bin</code> ▷  Contains various binary files (typically machine learning previously trained models).</div>
@@ -130,10 +130,10 @@
 <div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>pairwise_mtx_918.csv</code> ▷  Example of a pairwise distance matrix (918 kinases x 918 kinases)</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>te_kins.json</code> ▷  List of kinases used in the test set (Uniprot gene names).</div>
 <div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>tr_kins.json</code> ▷  List of kinases used in the training set (Uniprot gene names).</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>vl_kins.json</code> ▷  List of kinases used in the validation set (Uniprot gene names).</div>
+<div style='display:table-row' class=odd><code class='no-col'>│   │   └── </code><code>vl_kins.json</code> ▷  List of kinases used in the validation set (Uniprot gene names).</div>
 <div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code class="dir">raw_data</code> ▷  Contains raw and intermediate data.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>PSP_script_download.xlsx</code> ▷  Modified PSP data table</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code class="dir">cache</code> ▷  Cache storing uniprot kinase sequences.</div>
+<div style='display:table-row' class=even><code class='no-col'>│   │   └── </code><code class="dir">cache</code> ▷  Cache storing uniprot kinase sequences.</div>
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">discovery</code> ▷  Contains files and subdirectories used for the discovery of new kinase-substrate predictions.</div>
 <div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code class="dir">all_human_pairs</code> ▷  Contains files used to generate the predictions for all human kinase-substrate pairs.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>download_necessary_kinases.py</code> ▷  Download necessary kinase sequences from Uniprot.</div>
@@ -146,20 +146,20 @@
 <div style='display:table-row' class=even><code class='no-col'>│       ├── </code><code>atlas_vs_deepks_2_figures.ipynb</code> ▷  Notebook containing scripts to plot figures representing the comparison between DeepKS and Atlas.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│       ├── </code><code>atlas_vs_deepks_3_corroboration.ipynb</code> ▷  Notebook containing scripts to corroborate the PSP database and Atlas's results.</div>
 <div style='display:table-row' class=even><code class='no-col'>│       ├── </code><code>get_sites_and_kinases.py</code> ▷  Script that helps extract the necessary kinase sequences and site sequences from Atlas's data.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│       ├── </code><code>scrape.py</code> ▷  Script that is a precursor for <code>./atlas_vs_deepks_3_corroboration.ipynb</code> that gets Atlas predictions for the PSP database sites.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">doc</code> ▷  Contains files used to generate the documentation.</div>
+<div style='display:table-row' class=odd><code class='no-col'>│       └── </code><code>scrape.py</code> ▷  Script that is a precursor for <code>./atlas_vs_deepks_3_corroboration.ipynb</code> that gets Atlas predictions for the PSP database sites.</div>
+<div style='display:table-row' class=even><code class='no-col'>└── </code><code class="dir">doc</code> ▷  Contains files used to generate the documentation.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>cuda_installation.html</code> ▷  HTML rendering of the CUDA installation guide.</div>
 <div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>cuda_installation.md</code> ▷  Markdown version of the CUDA installation guide.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>index.md</code> ▷  Markdown version of the main documentation page.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>link_button.svg</code> ▷  SVG file used for the link button in the documentation.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>quickstart.html</code> ▷  HTML rendering of the quickstart guide.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   └── </code><code>quickstart.md</code> ▷  Markdown version of the quickstart guide.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">examples</code> ▷  Examples one can run to get a feel for the API.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>__main__.py</code> ▷  Entrypoint wrapper for running examples. Calls <code>./examples.py</code>.</div>
+<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>quickstart.html</code> ▷  HTML rendering of the quickstart guide.</div>
+<div style='display:table-row' class=odd><code class='no-col'>│   └── </code><code>quickstart.md</code> ▷  Markdown version of the quickstart guide.</div>
+<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">examples</code> ▷  Examples one can run to get a feel for the API.</div>
+<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>__main__.py</code> ▷  Entrypoint wrapper for running examples. Calls <code>./examples.py</code>.</div>
+<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>examples.pdf</code> ▷  PDF of how the example output should look.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   └── </code><code>examples.py</code> ▷  Contains examples of how to use the API.</div>
 <div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">hpc</code> ▷  Contains HPC initialization script.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   └── </code><code>.interactive_slurm_script.py</code> ▷  Script to interactively initialize a Slurm job on a High Performance Computing cluster.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">images</code> ▷  Contains subdirectories with scripts to generate images, graphs, and diagrams for DeepKS.</div>
+<div style='display:table-row' class=even><code class='no-col'>└── </code><code class="dir">images</code> ▷  Contains subdirectories with scripts to generate images, graphs, and diagrams for DeepKS.</div>
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code>index.html</code> ▷  HTML rendering of the main documentation page. Used for Git(hub|lab) pages.</div>
 <div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">models</code> ▷  Directory containing the implementation of components of the DeepKS model.</div>
 <div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>HPTuningSimple.py</code> ▷   may not work.</div>
@@ -177,7 +177,7 @@
 </div>
 <div style='display:table-row' class=odd><code class='no-col'>│   └── </code><code>results_2023-02-22@22`44`25.2@+00`00.csv</code>
 </div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">public</code> ▷  Used for Gitlab pages</div>
+<div style='display:table-row' class=even><code class='no-col'>└── </code><code class="dir">public</code> ▷  Used for Gitlab pages</div>
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code>readme.md</code> ▷  Holds the icon one can click to view the Git(hub|lab) documentation pages.</div>
 <div style='display:table-row' class=even><code class='no-col'>├── </code><code>requirements.txt</code> ▷  Used to install python dependencies.</div>
 <div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">splash</code> ▷  Module used to generate splash screens.</div>
@@ -213,6 +213,8 @@
 <div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>schema_validation.py</code> ▷  Script that validates a JSON file against a JSON schema. Specifically used to validate the JSON files that contain site and kinase information (metadata).</div>
 <div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>system_tools.py</code> ▷  Script containing a wrapper for <code>subprocess.run</code> that can print and/or capture the output of a command.</div>
 <div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>tensorize.py</code> ▷  Script that converts a CSV or <code>pandas.DataFrame</code> into a <code>torch.Tensor</code>, moves it to the computation device, and creates a <code>torch.utils.data.DataLoader</code>s.</div>
+<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>tree.html</code> ▷  HTML file that displays a tree of DeepKS Repository.</div>
+<div style='display:table-row' class=even><code class='no-col'>    └── </code><code>tree_description.txt</code> ▷  Similar to <code>tree.html</code>'s tree listing, but stripped down to be essentially key-value pairs of [file/dir] -> [description] in the format <code>my_file.txt;A sample description of <code>my_file.</code></code></div>
     </div>
 
 </body>

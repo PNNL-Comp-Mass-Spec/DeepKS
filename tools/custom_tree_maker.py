@@ -1,23 +1,29 @@
 from __future__ import annotations
 
-import os, json, re, pprint
+import os, json, re, pprint, time
 from sys import argv
 from typing import Union
 
 DUMP = True
 RESTORE = "-r" in argv
+DRY = "--dry-run" in argv
 
 def main():
-    if (os.path.exists("tools/tree.md") and len(argv) == 1) or (len(argv) > 1 and argv[1] != "-f"):
-        print("Use -f to forcefully overwrite tree.txt")
-        exit(1)
 
-    ignore_patterns = ["*.pyc", "__pycache__", "__init__.py", ".git", ".DS_Store", ".vscode", ".gitig-*"]
+    ignore_patterns = ["*.pyc", "__pycache__", "__init__.py", ".git", ".DS_Store", ".vscode", ".gitig-*", "tree.txt"]
     ignore_patterns = [f" -I \"{p}\"" for p in ignore_patterns]
     ignore_patterns = "".join(ignore_patterns)
-    exitcode = os.system(f'tree -a -o tools/tree.txt {ignore_patterns}')
+    cmd = f'tree -a -o tools/tree.txt {ignore_patterns}'
+
+    if DRY:
+        print("Would have run: " + cmd)
+        exit(0)
+    exitcode = os.system(cmd)
     if exitcode:
         print(f"`tree` didn't run correctly (exit code {exitcode})")
+        exit(1)
+    if (os.path.exists("tools/tree.html") and len(argv) == 1) or (len(argv) > 1 and "-f" not in argv):
+        print("Use -f to forcefully overwrite tree.html")
         exit(1)
     description = {}
     if not RESTORE:
@@ -27,6 +33,8 @@ def main():
     with open("tools/tree.txt", "r") as t:
         lines = t.readlines()[:-2]
     os.unlink("tools/tree.txt")
+    while os.path.exists("tools/tree.txt"):
+        time.sleep(0.01)
 
     new_lines = []
     tree_repr = graph_from_text(lines).get_pre_order_trav()
@@ -49,7 +57,7 @@ def main():
     
     bg_class = 'odd'
     
-    for _, (orig_line, node, to_restore_line) in enumerate(zip(lines, tree_repr, lines_restore)):
+    for i, (orig_line, node, to_restore_line) in enumerate(zip(lines, tree_repr, lines_restore)):
         node_inner = node
         path_to_node = [node_inner.text]
         while node_inner.parent is not None:
@@ -72,6 +80,8 @@ def main():
                     "<code"
                     f" class='no-col'>{''.join(re.findall(r'[│─ ├└]', orig_line))}</code><code{bolded}>{re.findall(r'─ (.*)', orig_line)[0] if orig_line != '.' else '.'}</code>"
                 )
+                if i != 0 and tree_repr[i - 1].depth > node.depth:
+                    new_lines[-1] = new_lines[-1].replace("├", "└")
             except Exception as e:
                 print(e)
                 print(f"{orig_line=}{desc=}{node=}")
@@ -94,6 +104,7 @@ def main():
     with open("tools/tree_template.html") as tt:
         template = tt.read()
     with open("tools/tree.html", "w") as t:
+        new_lines[-1] = new_lines[-1].replace("├", "└")
         temp_lines = "\n".join(new_lines)
         final_lines = re.sub("        PUT FILE DIRS HERE", temp_lines, template)
         t.write(final_lines)
@@ -102,7 +113,7 @@ def main():
 class GraphFromTextNode:
     def __init__(self, text: str, depth: int, index_in_list: int, description:Union[str, None]=""):
         self.children: list[GraphFromTextNode] = []
-        self.parent: Union[GraphFromText, None] = None
+        self.parent: Union[GraphFromTextNode, None] = None
         self.is_directory: bool = False
         self.text = text
         self.text = re.sub(r"[\n│\s└├──]", "", self.text)
@@ -111,7 +122,7 @@ class GraphFromTextNode:
         self.index_in_list = index_in_list
 
     def __str__(self):
-        return f"(({self.text}|{self.description}))"
+        return f"(({self.text}|{self.description.strip() if self.description is not None else None}))"
 
     def __repr__(self):
         return self.__str__()
@@ -143,7 +154,7 @@ class GraphFromText:
     def get_pre_order_trav(self):
         self.res = []
         self._get_pre_order_trav_helper(self.root)
-        ret = self.res
+        ret: list[GraphFromTextNode] = self.res
         self.res = []
         return ret
 
@@ -199,7 +210,7 @@ def graph_from_text(lines) -> GraphFromText:
         parent = queue.pop(0)  #     cur <- q.dq()
         i = parent.index_in_list
         immediate_children = []
-        for j in range(i + 1, len(line_nodes) - 1):
+        for j in range(i + 1, len(line_nodes)):
             if line_nodes[j].depth <= parent.depth:
                 break
             if line_nodes[j].depth - 1 == parent.depth:

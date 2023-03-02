@@ -6,9 +6,10 @@
 ├── api;Contains the API for the DeepKS package.
 │   ├── cfg.py;Contains configuration paths for the API.
 │   ├── default_paths.cfg.json;Contains data read by <code>./cfg.py</code>
-│   ├── info_file_format.txt;TODO
+│   ├── kin-info_file_format.txt
 │   ├── main.py;Main API entry point.
-│   └── needleall.error
+│   ├── needleall.error
+│   └── site-info_file_format.txt
 ├── architectures;Contains the architectures used in this package.
 │   ├── .gitignore
 │   └── HP_config_DB.tsv;Database of hyperparameter configurations.
@@ -118,15 +119,37 @@
 │       ├── their_percentiles.csv
 │       └── their_ranks.csv
 ├── doc;Contains files used to generate the documentation.
+│   ├── api_pydoctor_docs
+│   │   ├── ajax.js
+│   │   ├── all-documents.html
+│   │   ├── apidocs.css
+│   │   ├── bootstrap.min.css
+│   │   ├── classIndex.html
+│   │   ├── extra.css
+│   │   ├── fonts
+│   │   │   ├── info.svg
+│   │   │   └── x-circle.svg
+│   │   ├── fullsearchindex.json
+│   │   ├── index.html
+│   │   ├── lunr.js
+│   │   ├── main.html -> index.html
+│   │   ├── moduleIndex.html
+│   │   ├── nameIndex.html
+│   │   ├── objects.inv
+│   │   ├── pydoctor.js
+│   │   ├── search.js
+│   │   ├── searchindex.json
+│   │   ├── searchlib.js
+│   │   ├── sidebartoggle.js
+│   │   └── undoccedSummary.html
 │   ├── cuda_installation.html;HTML rendering of the CUDA installation guide.
 │   ├── cuda_installation.md;Markdown version of the CUDA installation guide.
-│   ├── index.html
 │   ├── index.md;Markdown version of the main documentation page.
-│   ├── link_button.svg;SVG file used for the link button in the documentation.
 │   ├── quickstart.html;HTML rendering of the quickstart guide.
 │   └── quickstart.md;Markdown version of the quickstart guide.
 ├── examples;Examples one can run to get a feel for the API.
 │   ├── __main__.py;Entrypoint wrapper for running examples. Calls <code>./examples.py</code>.
+│   ├── examples.pdf;PDF of how the example output should look.
 │   └── examples.py;Contains examples of how to use the API.
 ├── hpc;Contains HPC initialization script.
 │   └── .interactive_slurm_script.py;Script to interactively initialize a Slurm job on a High Performance Computing cluster.
@@ -154,7 +177,8 @@
 │   │   └── psp_kinase_table.csv
 │   ├── Phylo Families
 │   │   ├── .lintr
-│   │   └── phylo_families.R
+│   │   ├── phylo_families.R
+│   │   └── phylo_families_Cairo.pdf
 │   ├── Sankey
 │   │   ├── big_sankey.pdf
 │   │   ├── flows.csv
@@ -261,6 +285,8 @@
 │   ├── 2023-02-19@21`12`42`5@-05`00.json
 │   ├── 2023-02-19@21`12`44`1@-05`00.json
 │   ├── 2023-02-19@21`12`46`2@-05`00.json
+│   ├── DeepKS_all_14.7M_human_predictions.csv
+│   ├── DeepKS_all_14.7M_human_predictions.sqlite
 │   ├── results_2023-02-20@22`52`08`4@-05`00`json
 │   ├── results_2023-02-20@22`52`19`4@-05`00`json
 │   ├── results_2023-02-20@22`52`29`7@-05`00`json
@@ -284,7 +310,45 @@
 │   ├── results_2023-02-21@17`48`33.3@+00`00.sqlite;
 │   ├── results_2023-02-21@18`51`09.5@+00`00.csv
 │   ├── results_2023-02-22@20`26`51.1@+00`00.csv
-│   └── results_2023-02-22@22`44`25.2@+00`00.csv;
+│   ├── results_2023-02-22@22`44`25.2@+00`00.csv;
+│   ├── results_2023-03-01@14`56`39.9@-05`00.json
+│   ├── results_2023-03-01@15`14`58.8@-05`00.json
+│   ├── results_2023-03-01@15`32`37.1@-05`00.json
+│   ├── results_2023-03-01@15`34`59.0@-05`00.json
+│   ├── results_2023-03-01@15`35`19.9@-05`00.json
+│   ├── results_2023-03-01@15`39`29.4@-05`00.json
+│   ├── results_2023-03-01@15`42`31.8@-05`00.json
+│   ├── results_2023-03-01@15`43`44.6@-05`00.json
+│   ├── results_2023-03-01@15`44`42.5@-05`00.json
+│   ├── results_2023-03-01@15`44`56.8@-05`00.json
+│   ├── results_2023-03-01@15`45`13.6@-05`00.json
+│   ├── results_2023-03-01@15`45`22.4@-05`00.json
+│   ├── results_2023-03-01@15`45`24.8@-05`00.csv
+│   ├── results_2023-03-01@15`45`27.2@-05`00.sqlite
+│   ├── results_2023-03-01@15`45`28.3@-05`00.json
+│   ├── results_2023-03-01@15`45`29.7@-05`00.json
+│   ├── results_2023-03-01@18`20`00.7@-05`00.json
+│   ├── results_2023-03-01@18`20`20.1@-05`00.json
+│   ├── results_2023-03-01@18`20`22.8@-05`00.csv
+│   ├── results_2023-03-01@18`20`25.4@-05`00.sqlite
+│   ├── results_2023-03-01@18`20`27.0@-05`00.json
+│   ├── results_2023-03-01@18`20`28.6@-05`00.json
+│   ├── results_2023-03-01@19`48`06.4@-05`00.json
+│   ├── results_2023-03-01@19`48`22.8@-05`00.json
+│   ├── results_2023-03-01@19`48`25.3@-05`00.csv
+│   ├── results_2023-03-01@19`48`27.6@-05`00.sqlite
+│   ├── results_2023-03-01@19`48`29.9@-05`00.json
+│   ├── results_2023-03-01@19`48`31.5@-05`00.json
+│   ├── results_2023-03-02@12`16`14.8@-05`00.csv
+│   ├── results_2023-03-02@12`18`32.5@-05`00.csv
+│   ├── results_2023-03-02@13`07`50.2@-05`00.csv
+│   ├── results_2023-03-02@13`12`59.5@-05`00.json
+│   ├── results_2023-03-02@13`13`02.5@-05`00.csv
+│   ├── results_2023-03-02@13`13`16.4@-05`00.json
+│   ├── results_2023-03-02@13`13`18.5@-05`00.csv
+│   ├── results_2023-03-02@13`13`20.9@-05`00.sqlite
+│   ├── results_2023-03-02@13`13`22.6@-05`00.json
+│   └── results_2023-03-02@13`13`25.0@-05`00.json
 ├── public;Used for Gitlab pages
 │   └── .gitkeep
 ├── readme.md;Holds the icon one can click to view the Git(hub|lab) documentation pages.
@@ -297,6 +361,7 @@
 │   └── write_splash.py;Script that actually prints the splash screens to the terminal.
 ├── tests;Unit tests for the project.
 │   ├── sample_inputs;Sample inputs for the unit tests.
+│   │   ├── kin-info-known-groups.json
 │   │   ├── kin-info.json;
 │   │   ├── kins.txt;
 │   │   ├── site-info.json;
@@ -321,4 +386,6 @@
     ├── schema_validation.py;Script that validates a JSON file against a JSON schema. Specifically used to validate the JSON files that contain site and kinase information (metadata).
     ├── system_tools.py;Script containing a wrapper for <code>subprocess.run</code> that can print and/or capture the output of a command.
     ├── tensorize.py;Script that converts a CSV or <code>pandas.DataFrame</code> into a <code>torch.Tensor</code>, moves it to the computation device, and creates a <code>torch.utils.data.DataLoader</code>s.
-    ├── tree.txt
+    ├── tree.html;HTML file that displays a tree of DeepKS Repository.
+    ├── tree_description.txt;Similar to <code>tree.html</code>'s tree listing, but stripped down to be essentially key-value pairs of [file/dir] -> [description] in the format <code>my_file.txt;A sample description of <code>my_file.</code></code>
+    └── tree_template.html
