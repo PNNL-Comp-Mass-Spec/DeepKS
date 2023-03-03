@@ -1,4 +1,7 @@
 <style>
+    :root{
+        --pctg: 25%;
+    }
     iframe {
         border-width: 2px;
         border-color: black;
@@ -53,10 +56,31 @@
     h4, h5, h6{
         margin-top: 25px;
     }
-</style>
-<div style="display: table-row;">
 
-<div style="width:29%; display: table-cell; padding: 15px; border-radius:2px; border-style:solid; border-width:1.5px">
+    /* .tab-cell {
+        vertical-align: top;
+    } */
+
+    .tab-cell-inner {
+        border-radius: 3px;
+        border-style: solid;
+        border-width: 1.5px;
+        padding: 12px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+
+    html,
+    body {
+        padding: unset;
+        margin: unset;
+        border: unset;
+        background: unset;
+    }
+</style>
+<div class="tab-cont">
+<div class="tab-cell" style="float:left; width:var(--pctg);">
+<div class="tab-cell-inner" style="margin-left:12px; margin-right:6px;">
 
 # Table of Contents
 
@@ -87,11 +111,10 @@
   - [Evaluating](#evaluating)
   - [Creating Evaluation Diagrams](#creating-evaluation-diagrams)
   - [Creating Other Diagrams](#creating-other-diagrams)
-
 </div>
-<div style="width:2%; display: table-cell;">
 </div>
-<div style="width:69%; display: table-cell; padding: 15px; border-radius:2px; border-style:solid; border-width:1.5px">
+<div class="tab-cell" style="float:right; width:calc(100% - var(--pctg));">
+<div class="tab-cell-inner" style="margin-right:12px; margin-left:6px;">
 
 <h1 style='font-size:36pt'>DeepKS Manual</h1>
 
@@ -246,11 +269,11 @@ import DeepKS
 ```
 ### Full API Specification
 Below, you will find a scrollable list of API functions found in `DeepKS.api.main`.
-<div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div>
+<!-- <div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div> -->
 
 # File Explainer
 Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.
-<div><iframe src="tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div>
+<!-- <div><iframe src="tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div> -->
 
 # Reproducing Everything From Scratch
 TODO — still working on cleaning things up.
@@ -261,9 +284,8 @@ The python training scripts contain command line interfaces. However, to make ru
 ## Evaluating
 ## Creating Evaluation Diagrams
 ## Creating Other Diagrams
-
 </div>
-
+</div>
 </div>
 <script>
 document.querySelector("head > title:nth-child(2)").innerHTML = "DeepKS Manual" 

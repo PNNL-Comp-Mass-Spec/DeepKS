@@ -13,7 +13,7 @@ def main():
     ignore_patterns = ["*.pyc", "__pycache__", "__init__.py", ".git", ".DS_Store", ".vscode", ".gitig-*", "tree.txt"]
     ignore_patterns = [f" -I \"{p}\"" for p in ignore_patterns]
     ignore_patterns = "".join(ignore_patterns)
-    cmd = f'tree -a -o tools/tree.txt {ignore_patterns}'
+    cmd = f'tree -a -o docs/tree.txt {ignore_patterns}'
 
     if DRY:
         print("Would have run: " + cmd)
@@ -22,7 +22,7 @@ def main():
     if exitcode:
         print(f"`tree` didn't run correctly (exit code {exitcode})")
         exit(1)
-    if (os.path.exists("tools/tree.html") and len(argv) == 1) or (len(argv) > 1 and "-f" not in argv):
+    if (os.path.exists("docs/tree.html") and len(argv) == 1) or (len(argv) > 1 and "-f" not in argv):
         print("Use -f to forcefully overwrite tree.html")
         exit(1)
     description = {}
@@ -30,10 +30,10 @@ def main():
         with open(argv[argv.index('-d') + 1], "r") as d:
             description = d.readlines()
 
-    with open("tools/tree.txt", "r") as t:
+    with open("docs/tree.txt", "r") as t:
         lines = t.readlines()[:-2]
-    os.unlink("tools/tree.txt")
-    while os.path.exists("tools/tree.txt"):
+    os.unlink("docs/tree.txt")
+    while os.path.exists("docs/tree.txt"):
         time.sleep(0.01)
 
     new_lines = []
@@ -72,6 +72,7 @@ def main():
             # print(f"{path_to_node=}")
         to_restore_line = (to_restore_line if desc is None else to_restore_line.replace("\n", "") + ";" + desc) if to_restore_line is not None else None
         if desc is not None:
+            desc = re.sub(r"¡(.*)¡", "<span class='warn'><i>\\1</i></span>", desc)
             bg_class = 'odd' if bg_class == 'even' else 'even'
             orig_line = orig_line.replace("\n", "").replace(" ", " ")
             try:
@@ -80,6 +81,7 @@ def main():
                     "<code"
                     f" class='no-col'>{''.join(re.findall(r'[│─ ├└]', orig_line))}</code><code{bolded}>{re.findall(r'─ (.*)', orig_line)[0] if orig_line != '.' else '.'}</code>"
                 )
+                
                 if i != 0 and tree_repr[i - 1].depth > node.depth:
                     new_lines[-1] = new_lines[-1].replace("├", "└")
             except Exception as e:
