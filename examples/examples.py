@@ -78,7 +78,7 @@ def _main():
         if i > 0:
             for _ in range(4):
                 print()
-        print(colored(f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from `DeepKS/`:", "yellow"))
+        print(colored(f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from `/`:", "yellow"))
         print()
         print(termcolor.colored(" ".join(example) + "\n", "yellow"))
         sys.argv = example

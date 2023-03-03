@@ -70,30 +70,38 @@ python3 -m DeepKS.examples
 ```
 This will run a few examples of DeepKS. You should see the following output (with more lines at the end):
 <pre class = "bash-output bash-output">
-Info: This is an example script for DeepKS. To inspect the sample input files, check the 'examples/sample_inputs' directory.
+<span style="color:blue;">Info: This is an example script for DeepKS. To inspect the sample input files, check the 'DeepKS/tests/sample_inputs/' directory.</span>
+<span style="color:goldenrod;">[Example 1/4] Simulating the following command line from `/`:</span>
 
-Info: [Example 1/3] Simulating the following command line from `DeepKS/`:
+<span style="color:goldenrod;">python3 -m DeepKS.api.main -k TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD -s VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA -p inorder -v
+</span>
+<span style="color:green;">Status: Loading Modules...</span>
+<span style="color:green;">Status: Validating inputs.</span>
+<span style="color:blue;">Info: Inputs are valid!</span>
+<span style="color:green;">Status: Loading previously trained models...</span>
+<span style="color:green;">Status: Beginning Prediction Process...</span>
+<span style="color:green;">Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).</span>
+<span style="color:green;">Status: Done Aligning Novel Kinase Sequences.</span>
+<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
+<span style="color:blue;">...(Re)loading Tensors into Device for Next Chunk...</span>
+<span style="color:blue;">...(Re)loading Tensors into Device for Next Chunk...</span>
 
-<span style = "color: blue">python3 -m DeepKS.api.main -kf ../tests/sample_inputs/kins.txt -sf ../tests/sample_inputs/sites.txt -p dictionary -v</span>
 
-Status: Loading Modules...
-Status: Loading previously trained models...
-Status: Beginning Prediction Process...
-Prediction Step [1/2]: Sending input kinases to group classifier
-Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]
-Group Neural Network Evaluation Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████| 50/50 [00:05<00:00,  9.61it/s]
+<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
+<span style="color:green;">Status: Predictions Complete!</span>
 
-<<<<<<<<<<<<<<<< REQUESTED RESULTS >>>>>>>>>>>>>>>>
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; REQUESTED RESULTS &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
 
-[{'kinase': 'NEGWVSQFKQYLVDTDHNVTRRTAAYLFHYVARTWPECVHIDNMDMTNIVDFHCRVIQLSKNFDFTWCFNCWWWWRGGMEAKPEYYYPHLMIDEMQRCID',
-'site': 'AYGEKEHCANCHNIV',
-'prediction': 'Decoy'},
-{'kinase': 'RIDNKWVLPRKSWQQNEEAMCAPVNCAHFKTYPINHYQYWGAAACCTFTGHISKGEWETPYMKSFFMTEPMYQSKTSGEQKRSTEAWGGHLWFHPTWHHD',
-'site': 'CHEFIPAKIPTNNIS',
-'prediction': 'Decoy'},
+['False Phos. Pair', 'False Phos. Pair', 'False Phos. Pair']
 
-...
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+
+<span style="color:green;">Status: Done!
+</span>
+.
+.
+.
 </pre>
-7. If this worked, you are successful!
-8. To close the docker container at any time, run `exit`. (Before doing so, make note of or copy the hash in the prompt.) This will close the container and return you to your normal terminal.
-9. To run DeepKS again, simply run the command `docker start -t <hash>` where `<hash>` is the hash of the container you just closed. The hash is the one you took a note of or copied in step 8. If you lost the hash, run `docker ps -a` to see a list of all containers (and hashes thereof) you have run.
+1. If this worked, you are successful!
+2. To close the docker container at any time, run `exit`. (Before doing so, make note of or copy the hash in the prompt.) This will close the container and return you to your normal terminal.
+3. To run DeepKS again, simply run the command `docker start -t <hash>` where `<hash>` is the hash of the container you just closed. The hash is the one you took a note of or copied in step 8. If you lost the hash, run `docker ps -a` to see a list of all containers (and hashes thereof) you have run.
