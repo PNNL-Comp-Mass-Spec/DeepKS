@@ -57,6 +57,10 @@
         margin-top: 25px;
     }
 
+    ul {
+        padding-left: 12px;
+    }
+
     /* .tab-cell {
         vertical-align: top;
     } */
