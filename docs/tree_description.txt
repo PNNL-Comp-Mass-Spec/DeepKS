@@ -39,7 +39,7 @@
 │   │   │   ├── complex_download_phospho.py;Script to get kinase groups and families by species. ¡Not working.¡ Will probably not be fixed. 
 │   │   │   ├── debug_non_det.log
 │   │   │   ├── download_psp.py;Module to download most recent version of PhosphositePlus Database from the internet.
-│   │   │   ├── format_raw_data_DD.py;Module to transform intermediate data tables into tensors that can be read by <code>torch</code>.
+│   │   │   ├── format_raw_data_DD.py;Module to transform intermediate data tables into tensors that can be read by <code>torch</code>. (The "DD" stands for "Double Data,", i.e., taking X inputs and outputting 2X inputs.)
 │   │   │   ├── get_kin_fam_grp.py;Download kinase group and kinase family information from the internet.
 │   │   │   ├── psp_exceptions.json;File of exceptions and modifications that have to be made to the PSP excel file.
 │   │   │   ├── remove_overlaps.py;Script to remove instances of kinase-substrate pairs where the site is present in the training, validation, and test sets.
