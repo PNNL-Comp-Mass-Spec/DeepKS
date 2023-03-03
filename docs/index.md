@@ -98,12 +98,14 @@
     - [Case A/B: Running On Personal Computer](#case-ab-running-on-personal-computer)
     - [Case C: Running on HPC cluster](#case-c-running-on-hpc-cluster-1)
 - [Running The Programs and API](#running-the-programs-and-api)
+  - [Trying Examples](#trying-examples)
   - [Using API](#using-api)
     - [From Command Line](#from-command-line)
     - [Adding to new code and importing](#adding-to-new-code-and-importing)
       - [VS Code Integration](#vs-code-integration)
       - [Importing](#importing)
     - [Full API Specification](#full-api-specification)
+  - [Running tests](#running-tests)
 - [File Explainer](#file-explainer)
 - [Reproducing Everything From Scratch](#reproducing-everything-from-scratch)
   - [Preprocessing and Data Collection](#preprocessing-and-data-collection)
@@ -189,11 +191,56 @@ cp /usr/bin/nvidia-cuda-mps-control deepks-latest.sif/usr/bin/
 These don't seem to cause any issues.
 
 6. Change directory to `/` (i.e., the top-level directory) by running `cd /`.
+7. Run the following command:<pre><code class="language-bash">docker run -it --name deepks-container --network host --hostname deepks-container benndrucker/deepks</code></pre>
+You should see this prompt: <code class = "inline-bash-output">(base) //deepks-container// [/] ▷ </code>. You are now in the DeepKS container. You must run DeepKS commands from here.
+Run the following command:
 
 ***Note: You will have `sudo` privileges inside the Docker container (!) by virtue of passing `--fakeroot`. If you ever need to install programs, for example, this means you can do so inside the container.***
 
 # Running The Programs and API
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
+
+## Trying Examples
+
+Because of various Python specifications, `DeepKS.examples` — the examples submodule — must be run as a module from _outside_ the `/DeepKS` directory. Hence, before running examples, ensure you are in the top-level directory (which contains a symbolic link (an alias) to `DeepKS`).  The examples submodule provides sample api calls to give the user a sense of how to use the tool. The full API specification is listed in the next section.
+
+Use the following command to actually start the examples:
+
+<pre><code class="language-bash">python3 -m DeepKS.examples</code></pre>
+<p>This will run a few examples of DeepKS. You should see the following output (with more lines at the end):</p>
+<pre class = "bash-output bash-output">
+<span style="color:blue;">Info: This is an example script for DeepKS. To inspect the sample input files, check the 'DeepKS/tests/sample_inputs/' directory.</span>
+<span style="color:goldenrod;">[Example 1/4] Simulating the following command line from `/`:</span>
+
+<span style="color:goldenrod;">python3 -m DeepKS.api.main -k TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD -s VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA -p inorder -v
+</span>
+<span style="color:green;">Status: Loading Modules...</span>
+<span style="color:green;">Status: Validating inputs.</span>
+<span style="color:blue;">Info: Inputs are valid!</span>
+<span style="color:green;">Status: Loading previously trained models...</span>
+<span style="color:green;">Status: Beginning Prediction Process...</span>
+<span style="color:green;">Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).</span>
+<span style="color:green;">Status: Done Aligning Novel Kinase Sequences.</span>
+<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
+<span style="color:blue;">...(Re)loading Tensors into Device for Next Chunk...</span>
+<span style="color:blue;">...(Re)loading Tensors into Device for Next Chunk...</span>
+
+
+<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
+<span style="color:green;">Status: Predictions Complete!</span>
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; REQUESTED RESULTS &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+
+['False Phos. Pair', 'False Phos. Pair', 'False Phos. Pair']
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+
+<span style="color:green;">Status: Done!
+</span>
+.
+.
+.
+</pre>
 
 ## Using API
 ### From Command Line
@@ -217,7 +264,7 @@ usage: python -m DeepKS.api.main [-h] (-k <kinase sequences> | -kf <kinase seque
                                  [--pre_trained_nn <pre-trained neural network file>]
                                  [--pre_trained_gc <pre-trained group classifier file>]
                                  [--device <device>] [--scores] [--normalize-scores] [--groups]
-                                 [--dry-run]
+                                 [--bypass-group-classifier] [--dry-run]
 ```
 - Anything in square brackets is optional and has default values. To view what these flags refer to (and their default values), run `python -m DeepKS.api.main --help`.
 - For each instance of round parentheses, you must provide one of the options between "`|`". 
@@ -270,6 +317,9 @@ import DeepKS
 ### Full API Specification
 Below, you will find a scrollable list of API functions found in `DeepKS.api.main`.
 <div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div>
+
+## Running tests
+It may be useful to run the tests to make sure everything is working properly (especially if the user modifies the DeepKS API). To do this run — from the top-level directory — `python3 -m unittest -fvb DeepKS.tests.test`. If all tests pass, and you want to see code coverage, you can run `coverage run -m unittest discover -fvb` and then `coverage -m report`.
 
 # File Explainer
 Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.
