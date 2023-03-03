@@ -121,7 +121,7 @@
 <span style='font-size:15pt'> The bulk of the DeepKS tool is run through Docker. It will essentially run like it would in a virtual machine. This makes dependency management a breeze and ensures the program will run exactly the same way on every computer. Follow the steps below to get started. One need not clone the DeepKS Git repository to use the tool. </span>
 
 # Quickstart (Gets things up and running, but does not explain the tool — the rest of the manual goes in depth)
-1. See the [Quickstart guide](https://ben-drucker.gitlab.io/deepks-rename-trial/doc/quickstart.html).
+1. See the [Quickstart guide](quickstart.html).
 
 # Colors in this manual
 - `This style is used for code the user should run.`
@@ -135,7 +135,7 @@ If you're not sure, follow the instructions [here](https://askubuntu.com/a/12734
 If you have a CUDA-compatible GPU, you can run the program on your personal computer and take advantage of the GPU. This is the fastest way to run the program (besides using an HPC cluster). 
 
 Most likely, your computer will be running Windows. If this is the case, there is some additional setup involved. If you want to bypass this setup, you can run the program without CUDA on your personal computer or on a HPC cluster (see below). But if you do want to run the program with CUDA on your personal computer, do the following:
-1. Go through the steps in the [auxillary help page](https://ben-drucker.gitlab.io/deepks-rename-trial/doc/cuda_installation.html).
+1. Go through the steps in the [auxillary help page](cuda_installation.html).
 
 ### Case B: Running On Personal Computer without CUDA
 1. Download Docker here https://www.docker.com/products/docker-desktop/ and follow the installation instructions for your operating system.
@@ -144,7 +144,7 @@ Most likely, your computer will be running Windows. If this is the case, there i
 
 0. Make sure you are connected to the cluster's VPN. (In the case of PNNL, make sure you are on campus or connected to the Onekey VPN.)
 1. Open a terminal SSH into the cluster with `ssh <username>@deception`, making sure to replace `<username>` with your actual username.
-2. Download the interactive Slurm script by running `cd ~ && wget https://gitlab.com/Ben-Drucker/deepks/-/raw/main/hpc/.interactive_slurm_script.py?inline=false`
+2. Download the interactive Slurm script by running `cd ~ && wget https://raw.githubusercontent.com/Ben-Drucker/DeepKS/main/build/hpc/.interactive_slurm_script.py`
 3. Run `python .interactive_slurm_script.py`. This will request an interactive session on a compute node.
 4. Ensure your session is loaded (i.e., that you are now in a terminal on the HPC. You can check this by running `hostname`. It should no longer be `deception0X`.)
 5. Run `module load apptainer` to load Apptainer.
