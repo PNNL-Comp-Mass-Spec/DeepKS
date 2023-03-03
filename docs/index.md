@@ -269,11 +269,11 @@ import DeepKS
 ```
 ### Full API Specification
 Below, you will find a scrollable list of API functions found in `DeepKS.api.main`.
-<!-- <div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div> -->
+<div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div>
 
 # File Explainer
 Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.
-<!-- <div><iframe src="tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div> -->
+<div><iframe src="tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div>
 
 # Reproducing Everything From Scratch
 TODO — still working on cleaning things up.
