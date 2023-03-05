@@ -8,7 +8,7 @@ if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--hel
 
     write_splash.write_splash("main_api")
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket
 from pprint import pformat
 from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
@@ -94,15 +94,17 @@ def make_predictions(
                 f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is"
                 " problematic."
             )
-        if dry_run:
-            print(colored("Status: Dry run successful!", "green"))
-            return
+        
         print(colored("Info: Inputs are valid!", "blue"))
+        
         # Create (load) multi-stage classifier
         print(colored("Status: Loading previously trained models...", "green"))
         group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
         individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, device=device)
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
+        if dry_run:
+            print(colored("Status: Dry run successful!", "green"))
+            return
 
         print(colored("Status: Beginning Prediction Process...", "green"))
         try:
@@ -294,7 +296,8 @@ def parse_api() -> dict[str, typing.Any]:
                 assert 0 <= cuda_num <= torch.cuda.device_count()
         except AssertionError:
             raise argparse.ArgumentTypeError(
-                f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:[0-9]+]'}."
+                f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
+                f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
             )
 
         return arg_value
@@ -401,12 +404,12 @@ def parse_api() -> dict[str, typing.Any]:
         print(
             colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
         )
-    if re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]:
+    if not (re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]):
         print(
             colored(
                 (
                     "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                    " JSON/CSV/SQLite."
+                    " json/csv/sqlite."
                 ),
                 "blue",
             )
@@ -428,11 +431,15 @@ def parse_api() -> dict[str, typing.Any]:
             kinase_info_dict = json.load(f)
             try:
                 jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
-            except jsonschema.exceptions.ValidationError:
+            except jsonschema.exceptions.ValidationError as e:
                 print("", file=sys.stderr)
                 print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
+                print(colored("\nFor reference, the jsonschema.exceptions.ValidationError was:", "magenta"))
+                print(colored(str(e), "magenta"))
+                print(colored("\n\nMore info:\n\n", "magenta"))
                 with open("./kin-info_file_format.txt") as f:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
+                    
                 sys.exit(1)
 
     args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
