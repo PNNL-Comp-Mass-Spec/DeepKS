@@ -8,11 +8,12 @@ if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--hel
 
     write_splash.write_splash("main_api")
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, torch, io
 from pprint import pformat
 from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from ..tools import schema_validation
+from ..tools.informative_tb import informative_exception
 
 
 def make_predictions(
@@ -102,6 +103,18 @@ def make_predictions(
         group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
         individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, device=device)
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
+        nn_sample = list(individual_classifiers.interfaces.values())[0]
+        summary_stringio = io.StringIO()
+        FAKE_BATCH_SIZE = 101
+        nn_sample.device = torch.device(device); nn_sample.inp_types = [torch.int32, torch.int32]; nn_sample.inp_size = [(FAKE_BATCH_SIZE, 15), (FAKE_BATCH_SIZE, 4128)]; nn_sample.model_summary_name = summary_stringio
+        nn_sample.write_model_summary()
+        summary_stringio.seek(0)
+        summary_string = re.sub(str(FAKE_BATCH_SIZE), "BaS", summary_stringio.read())
+        summary_string = re.sub(r"=+\nInput size \(MB\):.*\nForward\/backward pass size \(MB\):.*\nParams size \(MB\):.*\nEstimated Total Size \(MB\):.*\n=+", "", summary_string)
+        with open(os.path.abspath("") + "/../architectures/nn_summary.txt", "w") as f:
+            f.write(summary_string)
+
+
         if dry_run:
             print(colored("Status: Dry run successful!", "green"))
             return

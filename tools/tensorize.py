@@ -88,15 +88,18 @@ def gather_data(
         else:
             train_loader = None
 
-        eval_batch_size = (
-            len(X_val)
-            if vf > 0 and eval_batch_size is None
-            else len(X_tune)
-            if tuf > 0 and eval_batch_size is None
-            else len(X_test)
-            if tef > 0 and eval_batch_size is None
-            else eval_batch_size
-        )
+        # eval_batch_size = (
+        #     len(X_val)
+        #     if vf > 0 and eval_batch_size is None
+        #     else len(X_tune)
+        #     if tuf > 0 and eval_batch_size is None
+        #     else len(X_test)
+        #     if tef > 0 and eval_batch_size is None
+        #     else eval_batch_size
+        # )
+
+        eval_batch_size = len(X_test) // 4
+
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
                 model_utils.KSDataset(X_val, X_val_kin, y_val), batch_size=eval_batch_size
@@ -269,8 +272,8 @@ def gather_data(
     assert all(isinstance(x, str) for x in data["lab"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["seq"]), "Site sequences must be strings"
 
-    BYTES_PER_PAIR = 4*(4128 + 15 + 1)  # The approximate size of one kinase-site pair in bytes. (=4 bytes per float32 * (4128 floats per kinase + 15 floats per site + 1 float for the label)
-    BYTES_PER_PAIR_MULTIPLIER = 2 # Pretend data is larger than the original data
+    BYTES_PER_PAIR = 1.4e6  # The approximate size of one kinase-site pair in bytes + forward pass size.
+    BYTES_PER_PAIR_MULTIPLIER = 1 # Optionally pretend data is larger than the original data
     BYTES_PER_PAIR *= BYTES_PER_PAIR_MULTIPLIER
 
     if str(device) == str(torch.device('cpu')):
@@ -286,7 +289,7 @@ def gather_data(
     assert num_pairs_can_be_stored_per_dl > 0, "Can't fit one pair in memory. Check system memory usage."     
     num_partitions = max([int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]])
     assert num_partitions > 0, "num_partitions <= 0. Something went wrong."
-    assert num_partitions <= len(data['lab']), f"{num_partitions=} > {len(data['lab'])=}. Something went wrong."
+    # assert num_partitions <= len(data['lab']), f"{num_partitions=} > {len(data['lab'])=}. Something went wrong."
 
     # tqdm_passthrough[0].write(colored(f"Status: Partitioning data into {num_partitions} partitions", "green"))
     partition_size = min(num_pairs_can_be_stored_per_dl, len(data['lab'])*len(data['seq']) if cartesian_product else len(data['lab']))
