@@ -1,6 +1,6 @@
 ---
-name: user-issue
-about: Standard format for a `user-issue`
+name: user-error
+about: Standard format for a user-error
 title: ''
 labels: user-error
 assignees: ''
