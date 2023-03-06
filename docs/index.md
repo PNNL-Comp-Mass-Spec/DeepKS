@@ -79,7 +79,7 @@
         padding: unset;
         margin: unset;
         border: unset;
-        background: unset;
+        background: rgba(255, 255, 255, 1);
     }
 </style>
 <div class="tab-cont">
@@ -111,6 +111,7 @@
     - [Full API Specification](#full-api-specification)
   - [Running tests](#running-tests)
 - [File Explainer](#file-explainer)
+- [Troubleshooting](#troubleshooting)
 - [Reproducing Everything From Scratch](#reproducing-everything-from-scratch)
   - [Preprocessing and Data Collection](#preprocessing-and-data-collection)
   - [Training](#training)
@@ -328,6 +329,49 @@ It may be useful to run the tests to make sure everything is working properly (e
 # File Explainer
 Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.
 <div><iframe src="tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div>
+
+# Troubleshooting
+Here are some general troubleshooting guidelines:
+- Generally, errors will be presented in the following format:
+
+<pre>
+<span style="color:purple;">Full Traceback:</span>
+<span style="color:purple;">
+DeepKS/tools/informative_tb.py:121, in &lt;module&gt;
+    fn_a()
+</span><span style="color:purple;">
+  DeepKS/tools/informative_tb.py:106, in fn_a
+      fn_b()
+</span><span style="color:purple;">
+    DeepKS/tools/informative_tb.py:110, in fn_b
+        fn_c()
+</span><span style="color:purple;">
+      DeepKS/tools/informative_tb.py:114, in fn_c
+          fn_d()
+</span><span style="color:purple;">
+        DeepKS/tools/informative_tb.py:118, in fn_d
+    ---&gt;    raise RuntimeError(&quot;This is a test exception!&quot;)
+</span>
+
+
+<span style="color:red;">Error: Something went wrong! Error message(s) below. Full traceback above.
+</span>
+<span style="color:red;">==========================================================================================</span>
+<span style="color:purple;">  * Error Type: RuntimeError (Description: Raised when an error is detected that doesn't
+        fall in any of the other categories. The associated value is a string indicating
+        what precisely went wrong.)</span>
+<span style="color:purple;">  * Error Message: This is a test exception!</span>
+<span style="color:purple;">  * Error Location: DeepKS/tools/informative_tb.py:121</span>
+<span style="color:purple;">  * Error Function: &lt;module&gt;</span>
+<span style="color:red;">==========================================================================================</span>
+
+</pre>
+- Interpreting this:
+  - At the top is the full traceback, which details the origin of the error.
+  - At the bottom is an error summary, which includes the error type, message, location, and function. There is also a description of the error type. This is a generic description pulled from the Python documentation. The error message may be more useful and specific.
+  - If the user cannot determine the cause of the error and fix it, they can open an "error" [issue on the GitHub repository](https://github.com/Ben-Drucker/DeepKS/issues/new/choose). Click "Get started" to the right of "user-error". Then, add a title, copy and paste the required information (based on the issue template), and click "Submit new issue".
+  - If no errors were raised, but the output was unexpected, they can open an "unexpected output" issue [on the GitHub repository](https://github.com/Ben-Drucker/DeepKS/issues/new/choose). Click "Get started" to the right of "user-unexpected output". Then, add a title, copy, paste, and add the required information (based on the issue template), and click "Submit new issue".
+  - For all other issues, on [the issues page](https://github.com/Ben-Drucker/DeepKS/issues/new/choose), one can select "Don’t see your issue here? Open a blank issue." at the bottom. (But make sure to ensure the issue doesn't fit into the other two categories first.)
 
 # Reproducing Everything From Scratch
 TODO — still working on cleaning things up.
