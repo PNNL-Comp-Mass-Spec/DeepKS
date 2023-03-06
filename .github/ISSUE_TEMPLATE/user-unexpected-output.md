@@ -2,7 +2,7 @@
 name: user-unexpected output
 about: Standard format for user-unexpected output
 title: ''
-labels: ''
+labels: user-unexpected output
 assignees: ''
 
 ---
