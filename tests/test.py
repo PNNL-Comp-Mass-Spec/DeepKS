@@ -2,6 +2,8 @@ import unittest
 import sys, os
 from parameterized import parameterized
 
+DEVICE = os.environ.get("DEVICE", "cpu")
+
 class TestPreProcessing(unittest.TestCase):
     def setUp(self):
         global main
@@ -27,38 +29,38 @@ class TestMainAPIFromCMDL(unittest.TestCase):
         self.main = this_main
 
     def test_dict(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "dictionary", "--scores"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "dictionary", "--scores", "--device", DEVICE]
         self.main.setup()
 
     def test_in_order(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "inorder", "-v", "--normalize-scores", "--suppress-seqs-in-output"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "inorder", "-v", "--normalize-scores", "--suppress-seqs-in-output", "--device", DEVICE]
         self.main.setup()
 
     def test_in_order_json(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "in_order_json", "-v"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "in_order_json", "-v", "--device", DEVICE]
         self.main.setup()
 
     def test_dict_json(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "dictionary_json"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-k", "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD", "-s", "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA", "-p", "dictionary_json", "--device", DEVICE]
         self.main.setup()
 
     def test_load_from_file(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites.txt", "-p", "dictionary", "-v"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites.txt", "-p", "dictionary", "-v", "--device", DEVICE]
         self.main.setup()
 
     def test_cartesian_product(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "dictionary_json", "-v", "--dry-run", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--cartesian-product"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "dictionary_json", "-v", "--dry-run", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--cartesian-product", "--device", DEVICE]
         self.main.setup()
 
-        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "dictionary_json", "-v", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--normalize-scores", "--cartesian-product"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "dictionary_json", "-v", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--normalize-scores", "--cartesian-product", "--device", DEVICE]
         self.main.setup()
 
     def test_cartesian_product_csv(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "csv", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--groups", "--normalize-scores", "--cartesian-product"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "csv", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--groups", "--normalize-scores", "--cartesian-product", "--device", DEVICE]
         self.main.setup()
     
     def test_cartesian_product_db(self):
-        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "sqlite", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--groups", "--normalize-scores", "--cartesian-product"]
+        sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites-prod.txt", "-p", "sqlite", "--kin-info", "tests/sample_inputs/kin-info.json", "--site-info", "tests/sample_inputs/site-info.json", "--scores", "--groups", "--normalize-scores", "--cartesian-product", "--device", DEVICE]
         self.main.setup()
     
     def test_bad_devices(self):
@@ -88,6 +90,8 @@ class TestExamples(unittest.TestCase):
         sys.argv = list(ex)
         self.main.setup()
 
+api_suite = unittest.TestSuite()
+api_suite.addTests([unittest.TestLoader().loadTestsFromTestCase(TestExamples), unittest.TestLoader().loadTestsFromTestCase(TestMainAPIFromCMDL)])
 
 # if __name__ == '__main__':
 #     runner = unittest.TextTestRunner()
