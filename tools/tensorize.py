@@ -98,7 +98,7 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = len(X_test) // 4
+        eval_batch_size = max(1, len(X_test) // 4)
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(

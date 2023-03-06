@@ -2,7 +2,6 @@ aiohttp
 brokenaxes
 cloudpickle
 coverage
-dill
 git+https://github.com/Ben-Drucker/psankey-modified@master#egg=psankey_modified
 git+https://github.com/Ben-Drucker/roc_comparison-modified@main#egg=roc_comparison_modified
 git+https://github.com/Ben-Drucker/torchinfo-modified@main#egg=torchinfo_modified
@@ -24,6 +23,7 @@ requests
 scikit_learn
 scipy
 seaborn
+selenium
 sigfig
 termcolor
 tqdm
