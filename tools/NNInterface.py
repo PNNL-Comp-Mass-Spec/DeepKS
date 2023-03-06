@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm
+import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
 import scipy, itertools
 from matplotlib.axes import Axes
 from typing import Tuple, Union, Callable, Any  # type: ignore
@@ -44,10 +44,12 @@ class NNInterface:
             self.write_model_summary()
 
     def write_model_summary(self):
-        assert isinstance(self.model_summary_name, str)
-        fp = open(self.model_summary_name, "w", encoding="utf-8")
-        fp.write(str(self))
-        fp.close()
+        if isinstance(self.model_summary_name, str):
+            with open(self.model_summary_name, "w", encoding="utf-8") as f:
+                f.write(str(self))
+                
+        elif isinstance(self.model_summary_name, io.StringIO):
+            self.model_summary_name.write(str(self))
 
     def __str__(self):
         try:

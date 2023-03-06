@@ -2,6 +2,8 @@ import sys, termcolor, os, pathlib, warnings
 from ..api import main
 from termcolor import colored
 
+DEVICE = os.environ.get("DEVICE", "cpu")
+
 EXAMPLES = [
         [
             "python3 -m DeepKS.api.main",
@@ -11,7 +13,9 @@ EXAMPLES = [
             "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA",
             "-p",
             "inorder",
-            "-v"
+            "-v",
+            "--device", 
+            DEVICE
         ],
         [
             "python3 -m DeepKS.api.main",
@@ -21,7 +25,9 @@ EXAMPLES = [
             "tests/sample_inputs/sites.txt",
             "-p",
             "dictionary",
-            "-v"
+            "-v",
+            "--device", 
+            DEVICE
         ],
         [
             "python3 -m DeepKS.api.main",
@@ -38,6 +44,8 @@ EXAMPLES = [
             "--scores",
             "--normalize-scores",
             "--cartesian-product",
+            "--device", 
+            DEVICE
         ],
         [
             "python3 -m DeepKS.api.main",
@@ -55,7 +63,9 @@ EXAMPLES = [
             "--normalize-scores",
             "--cartesian-product",
             "--groups",
-            "--bypass-group-classifier"
+            "--bypass-group-classifier",
+            "--device", 
+            DEVICE
         ],
     ]
 

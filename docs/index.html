@@ -122,7 +122,7 @@
         padding: unset;
         margin: unset;
         border: unset;
-        background: unset;
+        background: rgba(255, 255, 255, 1);
     }
 </style>
 <div class="tab-cont">
@@ -174,6 +174,7 @@
 </ul>
 </li>
 <li><a href="#file-explainer">File Explainer</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
 <li><a href="#reproducing-everything-from-scratch">Reproducing Everything From Scratch</a>
 <ul>
 <li><a href="#preprocessing-and-data-collection">Preprocessing and Data Collection</a></li>
@@ -375,6 +376,54 @@ python -m DeepKS.api.main -kf my/kinase/sequences.txt -sf my/site/sequences.txt 
 <h1 id="file-explainer">File Explainer</h1>
 <p>Below, you will find a scrollable tree of files in this repository and their descriptions. Boldfaced nodes represent directories.</p>
 <div><iframe src="tree.html" width=100% height=500px style="overscroll-behavior:contain;"></iframe></div>
+<h1 id="troubleshooting">Troubleshooting</h1>
+<p>Here are some general troubleshooting guidelines:</p>
+<ul>
+<li>Generally, errors will be presented in the following format:</li>
+</ul>
+<pre>
+<span style="color:purple;">Full Traceback:</span>
+<span style="color:purple;">
+DeepKS/tools/informative_tb.py:121, in &lt;module&gt;
+    fn_a()
+</span><span style="color:purple;">
+  DeepKS/tools/informative_tb.py:106, in fn_a
+      fn_b()
+</span><span style="color:purple;">
+    DeepKS/tools/informative_tb.py:110, in fn_b
+        fn_c()
+</span><span style="color:purple;">
+      DeepKS/tools/informative_tb.py:114, in fn_c
+          fn_d()
+</span><span style="color:purple;">
+        DeepKS/tools/informative_tb.py:118, in fn_d
+    ---&gt;    raise RuntimeError(&quot;This is a test exception!&quot;)
+</span>
+
+
+<span style="color:red;">Error: Something went wrong! Error message(s) below. Full traceback above.
+</span>
+<span style="color:red;">==========================================================================================</span>
+<span style="color:purple;">  * Error Type: RuntimeError (Description: Raised when an error is detected that doesn't
+        fall in any of the other categories. The associated value is a string indicating
+        what precisely went wrong.)</span>
+<span style="color:purple;">  * Error Message: This is a test exception!</span>
+<span style="color:purple;">  * Error Location: DeepKS/tools/informative_tb.py:121</span>
+<span style="color:purple;">  * Error Function: &lt;module&gt;</span>
+<span style="color:red;">==========================================================================================</span>
+
+</pre>
+<ul>
+<li>Interpreting this:
+<ul>
+<li>At the top is the full traceback, which details the origin of the error.</li>
+<li>At the bottom is an error summary, which includes the error type, message, location, and function. There is also a description of the error type. This is a generic description pulled from the Python documentation. The error message may be more useful and specific.</li>
+<li>If the user cannot determine the cause of the error and fix it, they can open an &quot;error&quot; <a href="https://github.com/Ben-Drucker/DeepKS/issues/new/choose">issue on the GitHub repository</a>. Click &quot;Get started&quot; to the right of &quot;user-error&quot;. Then, add a title, copy and paste the required information (based on the issue template), and click &quot;Submit new issue&quot;.</li>
+<li>If no errors were raised, but the output was unexpected, they can open an &quot;unexpected output&quot; issue <a href="https://github.com/Ben-Drucker/DeepKS/issues/new/choose">on the GitHub repository</a>. Click &quot;Get started&quot; to the right of &quot;user-unexpected output&quot;. Then, add a title, copy, paste, and add the required information (based on the issue template), and click &quot;Submit new issue&quot;.</li>
+<li>For all other issues, on <a href="https://github.com/Ben-Drucker/DeepKS/issues/new/choose">the issues page</a>, one can select &quot;Don’t see your issue here? Open a blank issue.&quot; at the bottom. (But make sure to ensure the issue doesn't fit into the other two categories first.)</li>
+</ul>
+</li>
+</ul>
 <h1 id="reproducing-everything-from-scratch">Reproducing Everything From Scratch</h1>
 <p>TODO — still working on cleaning things up.</p>
 <h2 id="preprocessing-and-data-collection">Preprocessing and Data Collection</h2>

@@ -83,3 +83,4 @@ data/raw_data/PSP_script_download.xlsx
 **/*.sqlite3
 **/*.db
 saved_dict_repr_file.json
+api/cached_docs.json

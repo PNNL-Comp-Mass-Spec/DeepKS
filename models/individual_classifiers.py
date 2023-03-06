@@ -34,7 +34,7 @@ torch.manual_seed(42)
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 MAX_SIZE_DS = 4128
 memory_multiplier = 2**6
-EVAL_BATCH_SIZE = int(2 ** np.floor(np.log2(psutil.virtual_memory().total / (1024**2 * memory_multiplier))))
+EVAL_BATCH_SIZE = 0
 
 
 def RAISE_ASSERTION_ERROR(x):
@@ -265,7 +265,7 @@ class IndividualClassifiers:
                 if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]
                 else evaluation_kwargs["device"],
                 maxsize=MAX_SIZE_DS,
-                eval_batch_size=EVAL_BATCH_SIZE,
+                eval_batch_size= 2**10 if evaluation_kwargs["device"] == "cpu" else 2**16,
                 cartesian_product=evaluation_kwargs["cartesian_product"]
                 if "cartesian_product" in evaluation_kwargs
                 else False,

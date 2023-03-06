@@ -88,15 +88,18 @@ def gather_data(
         else:
             train_loader = None
 
-        eval_batch_size = (
-            len(X_val)
-            if vf > 0 and eval_batch_size is None
-            else len(X_tune)
-            if tuf > 0 and eval_batch_size is None
-            else len(X_test)
-            if tef > 0 and eval_batch_size is None
-            else eval_batch_size
-        )
+        # eval_batch_size = (
+        #     len(X_val)
+        #     if vf > 0 and eval_batch_size is None
+        #     else len(X_tune)
+        #     if tuf > 0 and eval_batch_size is None
+        #     else len(X_test)
+        #     if tef > 0 and eval_batch_size is None
+        #     else eval_batch_size
+        # )
+
+        eval_batch_size = max(1, len(X_test) // 4)
+
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
                 model_utils.KSDataset(X_val, X_val_kin, y_val), batch_size=eval_batch_size
@@ -161,7 +164,7 @@ def gather_data(
                 "maxsize": max_kin_length,
                 "tok_dict": tok_dict,
                 "on_chunk": desired_chunk_pos,
-                "total_chunks": np.ceil(len(data['lab']) / MAX_KINASE_PARTITION)
+                "total_chunks": num_partitions
             }
         ret_info_dict.update(update_dict)
 
@@ -268,36 +271,35 @@ def gather_data(
     
     assert all(isinstance(x, str) for x in data["lab"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["seq"]), "Site sequences must be strings"
-    MAX_KINASE_PARTITION = 6
-    free_ram_and_swap_GB = 0
-    DATA_SIZE_MULTIPLIER = 1.7e5 # The approximate size of one kinase-site pair in bytes
-    DATA_SIZE_MULTIPLIER_MULTIPLIER = 2 # Pretend data is 2x larger than the original data
-    DATA_SIZE_MULTIPLIER *= DATA_SIZE_MULTIPLIER_MULTIPLIER
+
+    BYTES_PER_PAIR = 1.4e6  # The approximate size of one kinase-site pair in bytes + forward pass size.
+    BYTES_PER_PAIR_MULTIPLIER = 1 # Optionally pretend data is larger than the original data
+    BYTES_PER_PAIR *= BYTES_PER_PAIR_MULTIPLIER
+
     if str(device) == str(torch.device('cpu')):
-        free_ram_and_swap_GB = psutil.virtual_memory().available + psutil.swap_memory().free
-    elif 'cuda' in str(device):
-        free_ram_and_swap_GB = torch.cuda.mem_get_info(device)[0]
+        free_ram_and_swap_B = psutil.virtual_memory().available + psutil.swap_memory().free
+    else:
+        assert 'cuda' in str(device), "Device must be either 'cpu' or a cuda device."
+        free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]
     
-    MAX_KINASE_PARTITION = int(free_ram_and_swap_GB/(len(data['seq'])*DATA_SIZE_MULTIPLIER))
+    num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / BYTES_PER_PAIR)
 
+    assert len(data['lab']) == len(data['seq']) or cartesian_product, "Length of kinase and site lists must be equal."
 
-    assert MAX_KINASE_PARTITION != 0, "MAX_KINASE_PARTITION is 0. Something went wrong."
-    max_num_kins_for_cur_mem = int(free_ram_and_swap_GB / (DATA_SIZE_MULTIPLIER*len(data['seq'])))
-    assert max_num_kins_for_cur_mem > 0, "Can't fit one kinase and all sites in memory. There may be a workaround in the future."     
-    num_partitions = np.ceil(len(data['lab']) / max_num_kins_for_cur_mem)
+    assert num_pairs_can_be_stored_per_dl > 0, "Can't fit one pair in memory. Check system memory usage."     
+    num_partitions = max([int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]])
     assert num_partitions > 0, "num_partitions <= 0. Something went wrong."
-    assert num_partitions <= len(data['lab']), f"{num_partitions=} > {len(data['lab'])=}. Something went wrong."
-    if torch.device(device) != torch.device('cpu') and 'cuda' not in str(device):
-        print(colored("Warning: Device is not CPU or CUDA. This may cause issues.", "red"))
-    # tqdm_passthrough[0].write(colored(f"Status: Partitioning data into {num_partitions} partitions", "green"))
+    # assert num_partitions <= len(data['lab']), f"{num_partitions=} > {len(data['lab'])=}. Something went wrong."
 
+    # tqdm_passthrough[0].write(colored(f"Status: Partitioning data into {num_partitions} partitions", "green"))
+    partition_size = min(num_pairs_can_be_stored_per_dl, len(data['lab'])*len(data['seq']) if cartesian_product else len(data['lab']))
     for partition_id in range(int(num_partitions)):
         final_kin_tensor_chunks = []
         final_site_tensor_chunks = []
         final_class_chunks = []
         # print(colored(f"Status: Writing Tensor Data to RAM", "green"))
-        begin_idx = len(data['seq'])*min(MAX_KINASE_PARTITION, len(data['lab']))*partition_id
-        end_idx = len(data['seq'])*min(MAX_KINASE_PARTITION, len(data['lab']))*(partition_id+1)
+        begin_idx = partition_size*partition_id
+        end_idx = partition_size*(partition_id+1)
         train_ids_subset = train_ids[begin_idx:end_idx]
         val_ids_subset = val_ids[begin_idx:end_idx]
         tune_ids_subset = tune_ids[begin_idx:end_idx]

@@ -8,11 +8,12 @@ if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--hel
 
     write_splash.write_splash("main_api")
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, torch, io
 from pprint import pformat
 from termcolor import colored
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from ..tools import schema_validation
+from ..tools.informative_tb import informative_exception
 
 
 def make_predictions(
@@ -94,15 +95,29 @@ def make_predictions(
                 f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is"
                 " problematic."
             )
-        if dry_run:
-            print(colored("Status: Dry run successful!", "green"))
-            return
+        
         print(colored("Info: Inputs are valid!", "blue"))
+        
         # Create (load) multi-stage classifier
         print(colored("Status: Loading previously trained models...", "green"))
         group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
         individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, device=device)
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
+        nn_sample = list(individual_classifiers.interfaces.values())[0]
+        summary_stringio = io.StringIO()
+        FAKE_BATCH_SIZE = 101
+        nn_sample.device = torch.device(device); nn_sample.inp_types = [torch.int32, torch.int32]; nn_sample.inp_size = [(FAKE_BATCH_SIZE, 15), (FAKE_BATCH_SIZE, 4128)]; nn_sample.model_summary_name = summary_stringio
+        nn_sample.write_model_summary()
+        summary_stringio.seek(0)
+        summary_string = re.sub(str(FAKE_BATCH_SIZE), "BaS", summary_stringio.read())
+        summary_string = re.sub(r"=+\nInput size \(MB\):.*\nForward\/backward pass size \(MB\):.*\nParams size \(MB\):.*\nEstimated Total Size \(MB\):.*\n=+", "", summary_string)
+        with open(os.path.abspath("") + "/../architectures/nn_summary.txt", "w") as f:
+            f.write(summary_string)
+
+
+        if dry_run:
+            print(colored("Status: Dry run successful!", "green"))
+            return
 
         print(colored("Status: Beginning Prediction Process...", "green"))
         try:
@@ -294,7 +309,8 @@ def parse_api() -> dict[str, typing.Any]:
                 assert 0 <= cuda_num <= torch.cuda.device_count()
         except AssertionError:
             raise argparse.ArgumentTypeError(
-                f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:[0-9]+]'}."
+                f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
+                f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
             )
 
         return arg_value
@@ -343,124 +359,130 @@ def parse_api() -> dict[str, typing.Any]:
         required=False,
         action="store_true",
     )
-
-    args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
-    args_dict = vars(args)
-    ii = ll = None
-    if args_dict["k"] is not None:
-        args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
-        del args_dict["kf"]
-    elif "kf" in args_dict:
-        with open("../" + args_dict["kf"]) as f:
-            args_dict["kinase_seqs"] = [line.strip() for line in f]
-        try:
-            fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
-            assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
-                ll := len(args_dict["kinase_seqs"])
-            )
-        except AssertionError:
-            warnings.warn(
-                f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input"
-                f" list ({ii}). This may cause unintended behavior."
-            )
-        del args_dict["k"]
-        del args_dict["kf"]
-    else:
-        raise AssertionError("Should never be in this case.")
-    if args_dict["s"] is not None:
-        args_dict["site_seqs"] = args_dict.pop("s").split(",")
-        del args_dict["sf"]
-    elif "sf" in args_dict:
-        with open("../" + args_dict["sf"]) as f:
-            args_dict["site_seqs"] = [line.strip() for line in f]
-        try:
-            fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
-            assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
-                ll := len(args_dict["site_seqs"])
-            )
-        except AssertionError:
-            warnings.warn(
-                f"The number of sites in the input file name ({ll}) does not match the number of sites in the input"
-                f" list ({ii}). This may cause unintended behavior."
-            )
-        del args_dict["s"]
-        del args_dict["sf"]
-    else:
-        raise AssertionError("Should never be in this case.")
-
-    args_dict["predictions_output_format"] = args_dict.pop("p")
-    # if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
-    #         args_dict["verbose"] = True
-    #         print(
-    #                 colored(
-    #                         'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
-    #                 )
-    #         )
-    if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
-        args_dict["verbose"] = False
-        print(
-            colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
-        )
-    if re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]:
-        print(
-            colored(
-                (
-                    "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                    " JSON/CSV/SQLite."
-                ),
-                "blue",
-            )
-        )
-
-    args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
-    args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
-    args_dict["group_output"] = args_dict.pop("groups")
-    if not args_dict["scores"] and args_dict["normalize_scores"]:
-        print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
-
-    if args_dict["kin_info"] is None:
-        kinase_info_dict = {
-            kinase_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>"}
-            for kinase_seq in args_dict["kinase_seqs"]
-        }
-    else:
-        with open("../" + args_dict["kin_info"]) as f:
-            kinase_info_dict = json.load(f)
+    try:
+        args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
+        args_dict = vars(args)
+        ii = ll = None
+        if args_dict["k"] is not None:
+            args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
+            del args_dict["kf"]
+        elif "kf" in args_dict:
+            with open("../" + args_dict["kf"]) as f:
+                args_dict["kinase_seqs"] = [line.strip() for line in f]
             try:
-                jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
-            except jsonschema.exceptions.ValidationError:
-                print("", file=sys.stderr)
-                print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
-                with open("./kin-info_file_format.txt") as f:
-                    print(colored(f.read(), "magenta"), file=sys.stderr)
-                sys.exit(1)
-
-    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
-
-    args_dict["kin_info"] = kinase_info_dict
-
-    if args_dict["site_info"] is None:
-        site_info_dict = {
-            site_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>", "Location": "<UNK>"}
-            for site_seq in args_dict["site_seqs"]
-        }
-    else:
-        with open("../" + args_dict["site_info"]) as f:
-            site_info_dict = json.load(f)
+                fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
+                assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+                    ll := len(args_dict["kinase_seqs"])
+                )
+            except AssertionError:
+                warnings.warn(
+                    f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input"
+                    f" list ({ii}). This may cause unintended behavior."
+                )
+            del args_dict["k"]
+            del args_dict["kf"]
+        else:
+            raise AssertionError("Should never be in this case.")
+        if args_dict["s"] is not None:
+            args_dict["site_seqs"] = args_dict.pop("s").split(",")
+            del args_dict["sf"]
+        elif "sf" in args_dict:
+            with open("../" + args_dict["sf"]) as f:
+                args_dict["site_seqs"] = [line.strip() for line in f]
             try:
-                jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
-            except jsonschema.exceptions.ValidationError:
-                print("", file=sys.stderr)
-                print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
-                with open("./site-info_file_format.txt") as f:
-                    print(colored(f.read(), "magenta"), file=sys.stderr)
-                sys.exit(1)
-    args_dict["site_info"] = site_info_dict
+                fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
+                assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+                    ll := len(args_dict["site_seqs"])
+                )
+            except AssertionError:
+                warnings.warn(
+                    f"The number of sites in the input file name ({ll}) does not match the number of sites in the input"
+                    f" list ({ii}). This may cause unintended behavior."
+                )
+            del args_dict["s"]
+            del args_dict["sf"]
+        else:
+            raise AssertionError("Should never be in this case.")
 
-    assert all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"])
-    assert all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"])
+        args_dict["predictions_output_format"] = args_dict.pop("p")
+        # if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
+        #         args_dict["verbose"] = True
+        #         print(
+        #                 colored(
+        #                         'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
+        #                 )
+        #         )
+        if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
+            args_dict["verbose"] = False
+            print(
+                colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
+            )
+        if not (re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]):
+            print(
+                colored(
+                    (
+                        "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
+                        " json/csv/sqlite."
+                    ),
+                    "blue",
+                )
+            )
 
-    return args_dict
+        args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
+        args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
+        args_dict["group_output"] = args_dict.pop("groups")
+        if not args_dict["scores"] and args_dict["normalize_scores"]:
+            print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
+
+        if args_dict["kin_info"] is None:
+            kinase_info_dict = {
+                kinase_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>"}
+                for kinase_seq in args_dict["kinase_seqs"]
+            }
+        else:
+            with open("../" + args_dict["kin_info"]) as f:
+                kinase_info_dict = json.load(f)
+                try:
+                    jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
+                except jsonschema.exceptions.ValidationError as e:
+                    print("", file=sys.stderr)
+                    print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
+                    print(colored("\nFor reference, the jsonschema.exceptions.ValidationError was:", "magenta"))
+                    print(colored(str(e), "magenta"))
+                    print(colored("\n\nMore info:\n\n", "magenta"))
+                    with open("./kin-info_file_format.txt") as f:
+                        print(colored(f.read(), "magenta"), file=sys.stderr)
+                        
+                    informative_exception(e, "", False)
+
+        args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
+
+        args_dict["kin_info"] = kinase_info_dict
+
+        if args_dict["site_info"] is None:
+            site_info_dict = {
+                site_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>", "Location": "<UNK>"}
+                for site_seq in args_dict["site_seqs"]
+            }
+        else:
+            with open("../" + args_dict["site_info"]) as f:
+                site_info_dict = json.load(f)
+                try:
+                    jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
+                except jsonschema.exceptions.ValidationError:
+                    print("", file=sys.stderr)
+                    print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
+                    with open("./site-info_file_format.txt") as f:
+                        print(colored(f.read(), "magenta"), file=sys.stderr)
+                    sys.exit(1)
+        args_dict["site_info"] = site_info_dict
+
+        assert all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"])
+        assert all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"])
+
+        return args_dict
+    except Exception as e:
+        informative_exception(e, "Error: DeepKS API failed to parse arguments.")
 
 
 def setup(args: dict[str, typing.Any] = {}):

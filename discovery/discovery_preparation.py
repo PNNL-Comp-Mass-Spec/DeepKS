@@ -3,6 +3,7 @@
 KIN_LEN_MAX = 4128
 
 import pandas as pd, numpy as np, re, os, collections, requests, asyncio, aiohttp, itertools, tqdm, time, json, pathlib
+import warnings
 from typing import Union
 
 np.set_printoptions(precision=3, edgeitems=10, linewidth=180)
@@ -157,6 +158,7 @@ def format_kin_and_site_lists(
     kinase_list=None,
     site_list=None,
     save_dir=None,
+    kinase_symbol_to_kinase_known_group: collections.OrderedDict[str, str] = collections.OrderedDict(),
 ):
     site_symbol_list = list(symbol_to_flanking_sites.keys())
     kinase_symbol_list = list(kinase_symbol_to_kinase_sequence.keys())
@@ -172,7 +174,7 @@ def format_kin_and_site_lists(
             site_to_info[flank_seq]["Uniprot Accession ID"].append(site_symbol.split("|")[1])
             site_to_info[flank_seq]["Gene Name"].append(site_symbol.split("|")[0])
             site_to_info[flank_seq]["Location"].append(symbol_to_location[site_symbol][i])
-    
+
     # Sort so we get consistent site symbols for each site sequence
     for v in site_to_info.values():
         arg_sort_uaid = np.argsort(v["Uniprot Accession ID"])
@@ -186,12 +188,42 @@ def format_kin_and_site_lists(
             kinase_symbol.split("|")[1]
         )
         kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Gene Name"].append(kinase_symbol.split("|")[0])
+        if kinase_symbol in kinase_symbol_to_kinase_known_group:
+            if kinase_symbol_to_kinase_known_group[kinase_symbol] not in {
+                "<UNANNOTATED>",
+                "ATYPICAL",
+                "AGC",
+                "CAMK",
+                "CK1",
+                "CMGC",
+                "OTHER",
+                "STE",
+                "TK",
+                "TKL",
+            }:
+                warnings.warn(
+                    f'For kinase {kinase_symbol}, got "known" group annotation of'
+                    f" {kinase_symbol_to_kinase_known_group[kinase_symbol]}, which is not recognized. Coercing it to"
+                    " <UNKNOWN>."
+                )
+                kinase_symbol_to_kinase_known_group[kinase_symbol] = "<UNKNOWN>"
+            kinase_to_info[kinase_symbol_to_kinase_sequence[kinase_symbol]]["Known Group"].append(
+                kinase_symbol_to_kinase_known_group[kinase_symbol]
+            )
+        elif len(kinase_symbol_to_kinase_known_group) > 0:
+            warnings.warn(
+                f"There is no known group provided for {kinase_symbol}, yet known groups are provided for other kinases"
+                f" (e.g., {list(kinase_symbol_to_kinase_known_group.keys())[:3]}...). Annotations will still be written"
+                " to kinase info file, but there may be issues down the road, since not all kinases have known group"
+                " annotations."
+            )
 
     # Also want to sort kinase_to_info like we did site_to_info
     for v in kinase_to_info.values():
         arg_sort_uaid = np.argsort(v["Uniprot Accession ID"])
         v["Uniprot Accession ID"].sort()
         v["Gene Name"] = [v["Gene Name"][i] for i in arg_sort_uaid]
+        v["Known Group"] = v["Known Group"][arg_sort_uaid[0]]
 
     common_kins = set(kinase_to_info.keys()).intersection(set(kinase_list))
     common_sites = set(site_to_info.keys()).intersection(set(site_list))
