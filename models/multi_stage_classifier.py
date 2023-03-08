@@ -37,17 +37,16 @@ class MultiStageClassifier:
             self.individual_classifiers,
         )
 
-    def evaluate(
+    def evaluation_preparation(
         self,
-        newargs,
+        addl_args,
         Xy_formatted_input_file: str,
-        evaluation_kwargs=None,
         predict_mode=False,
         bypass_group_classifier={},
     ):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
-        if "test_json" in newargs:
+        if "test_json" in addl_args:
             input_file = json.load(open(Xy_formatted_input_file))
             input_file = {k: pd.Series(v) for k, v in input_file.items()}
         else:
@@ -106,11 +105,11 @@ class MultiStageClassifier:
                     "blue",
                 )
             )
-            self.individual_classifiers.roc_evaluation(newargs, pred_grp_dict, true_grp_dict, predict_mode)
+            self.individual_classifiers.evaluation(addl_args, pred_grp_dict, true_grp_dict, predict_mode)
         if predict_mode:
-            newargs["test" if "test_json" not in newargs else "test_json"] = Xy_formatted_input_file
-            res = self.individual_classifiers.roc_evaluation(
-                newargs, pred_grp_dict if not bypass_group_classifier else true_grp_dict, true_groups=None, predict_mode=True
+            addl_args["test" if "test_json" not in addl_args else "test_json"] = Xy_formatted_input_file
+            res = self.individual_classifiers.evaluation(
+                addl_args, pred_grp_dict if not bypass_group_classifier else true_grp_dict, true_groups=None, predict_mode=True
             )
 
         print(
@@ -136,7 +135,7 @@ class MultiStageClassifier:
         device: str = "cpu",
         scores: bool = False,
         normalize_scores: bool = False,
-        cartesian_product: bool = False,  # TODO - Use this if there's a better way of handing cartesian products
+        cartesian_product: bool = False,
         group_output: bool = False,
         bypass_group_classifier: list[str] = [],
     ):
@@ -170,7 +169,7 @@ class MultiStageClassifier:
             if cartesian_product:
                 with open(f.name, "w") as f2:
                     f2.write(json.dumps(data_dict, indent=3))
-                res = self.evaluate(
+                res = self.evaluation_preparation(
                     {"test_json": f.name, "device": device},
                     f.name,
                     predict_mode=True,
@@ -179,7 +178,7 @@ class MultiStageClassifier:
             else:
                 efficient_to_csv(data_dict, f.name)
                 # The "meat" of the prediction process.
-                res = self.evaluate({"test": f.name, "device": device}, f.name, predict_mode=True)
+                res = self.evaluation_preparation({"test": f.name, "device": device}, f.name, predict_mode=True)
             assert res is not None, "Error: res is None"
             group_predictions = [x[1][2] for x in res]
             numerical_scores = [x[1][1] for x in res]
@@ -419,7 +418,7 @@ def main(run_args):
         return
 
     msc = MultiStageClassifier(group_classifier, individual_classifiers)
-    msc.evaluate(run_args, run_args["test"])
+    msc.evaluation_preparation(run_args, run_args["test"])
 
 
 def efficient_to_csv(data_dict, outfile):

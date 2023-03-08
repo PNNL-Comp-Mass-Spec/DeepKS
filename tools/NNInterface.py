@@ -2,7 +2,7 @@ from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
 import scipy, itertools
 from matplotlib.axes import Axes
-from typing import Tuple, Union, Callable, Any  # type: ignore
+from typing import Collection, Iterable, Tuple, Union, Callable, Any  # type: ignore
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
@@ -10,6 +10,7 @@ from roc_comparison_modified.auc_delong import delong_roc_test
 from .roc_lambda import get_avg_roc
 from termcolor import colored
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
+from ..tools.raw_score_to_prob import raw_score_to_probability
 
 rcParams["font.family"] = "monospace"
 rcParams["font.size"] = 12
@@ -320,6 +321,7 @@ class NNInterface:
         retain_evals=None,
         from_loaded=None,
         grp_to_loader_true_groups=None,
+        eqn_passthrough=None
     ):
         assert grp_to_loader_true_groups is not None
         if from_loaded is None:
@@ -365,7 +367,8 @@ class NNInterface:
                 true_grp_to_outputs_and_labels[group]["labels"],
             )
             orig_i = orig_order.index(group)
-            res = NNInterface.roc_core(outputs, labels, orig_i, line_labels=[f"{group}"], linecolor=None, total_obs = len(all_obs))
+            
+            res = NNInterface.roc_core(outputs, labels, orig_i, line_labels=[f"{group}"], linecolor=None, total_obs = len(all_obs), eqn_passthrough=eqn_passthrough)
             # if group in ['AGC', 'TK', 'CMGC']:
             points_fpr.append(res[0])
             points_tpr.append(res[1])
@@ -429,13 +432,15 @@ class NNInterface:
 
     @staticmethod
     def roc_core(
-        outputs,
+        outputs: Collection[float],
         labels,
         i,
         linecolor=(0.5, 0.5, 0.5),
         line_labels=["Train Set", "Validation Set", "Test Set", f"Held Out Family — {HELD_OUT_FAMILY}"],
         alpha=0.05,
-        total_obs:int=1
+        total_obs:int=1,
+        compute_bona_fide_probs=False,
+        eqn_passthrough=None
     ):
         assert len(outputs) == len(labels), (
             f"Something is wrong in NNInterface.roc_core; the length of outputs ({len(outputs)}) does not equal the"
@@ -474,6 +479,14 @@ class NNInterface:
         plt.title("ROC Curves (with DeLong Test 95% confidence intervals)")
         plt.xticks([x / 100 for x in range(0, 110, 10)])
         plt.yticks([x / 100 for x in range(0, 110, 10)])
+
+        if compute_bona_fide_probs:
+            assert eqn_passthrough is not None, "eqn_passthrough is None."
+            sorted_output_order = np.argsort(np.asarray(outputs))
+            sorted_outputs = np.asarray(outputs)[sorted_output_order].tolist()
+            sorted_labels = np.asarray(labels)[sorted_output_order].tolist()
+            raw_score_to_probability(sorted_outputs, sorted_labels, print_eqn=True, eqn_passthrough=eqn_passthrough)
+
         return roc_data[0], roc_data[1], aucscore
 
     @staticmethod
