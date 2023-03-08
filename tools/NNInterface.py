@@ -233,6 +233,8 @@ class NNInterface:
                 elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
                     labels = labels.float()
 
+                if outputs.dim() == 0:
+                    outputs = outputs.unsqueeze(0)
                 loss = self.criterion(outputs, labels)
 
                 predictions = torch.Tensor([-1])
@@ -250,7 +252,13 @@ class NNInterface:
                     performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
                 elif metric == "roc":
                     scores = outputs.data.cpu()
-                    performance = sklearn.metrics.roc_auc_score(labels.cpu(), scores)
+                    try:
+                        performance = sklearn.metrics.roc_auc_score(labels.cpu(), scores)
+                    except ValueError as e:
+                        if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
+                            raise e
+                        else:
+                            performance = 0.0
 
                 all_labels += labels.cpu().numpy().tolist()
                 all_outputs += outputs.data.cpu().numpy().tolist()
