@@ -72,9 +72,10 @@ def gather_data(
     clusterfile: filename of json defining kinase clusters
     """
     if len(tqdm_passthrough) == 1:
-        tq: tqdm.tqdm = tqdm_passthrough[0]
+        tq = tqdm_passthrough[0]
         # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
-        tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
+        if tq is not None:
+            tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
     assert abs(sum([trf, vf, tuf, tef, -1]) < 1e-16)
     
     # ===== #
@@ -98,7 +99,7 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = max(1, len(X_test) // 4)
+        eval_batch_size = max([len(X) // 1 for X in [X_val, X_tune, X_test]])
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
@@ -118,7 +119,6 @@ def gather_data(
             )
         else:
             test_loader = None
-
         if isinstance(data, pd.DataFrame):
             ret_info_dict = {
                 "kin_orders": {
@@ -132,9 +132,9 @@ def gather_data(
                     "test": data.loc[test_ids]["orig_lab_name"].to_list(),
                 },
                 "PairIDs": {
-                    "train": data.loc[train_ids]["pair_id"].to_list(),
-                    "val": data.loc[val_ids]["pair_id"].to_list(),
-                    "test": data.loc[test_ids]["pair_id"].to_list(),
+                    "train": data.loc[train_ids]["pair_id"].to_list() if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data)) else [f"N/A # {i}" for i in range(len(train_ids))],
+                    "val": data.loc[val_ids]["pair_id"].to_list() if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data)) else [f"N/A # {i}" for i in range(len(val_ids))],
+                    "test": data.loc[test_ids]["pair_id"].to_list() if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data)) else [f"N/A # {i}" for i in range(len(test_ids))]
                 },
             }
         else:
@@ -218,13 +218,13 @@ def gather_data(
         data["lab"] = [clust_dict[x] for x in data["lab"]]
 
     class_col = "lab" if mc else "class"
-    class_labels = pd.unique(data[class_col])
+    class_labels = list(set(data[class_col]))
     classes = len(class_labels)
     if set(class_labels) in [{0, 1}, {1}, {0}]:
         remapping_class_label_dict = {0: 0, 1: 1}
         remapping_class_label_dict_inv = {0: "Decoy", 1: "Real"}
         remapping_class_label_dict_inv = remapping_class_label_dict_inv
-        assert all(isinstance(x, int) for x in class_labels), "Class labels must be integers"
+        assert all(isinstance(x, int) for x in class_labels) or all(isinstance(x, str) and x.isdigit() for x in class_labels), f"Class labels must be integers ({class_labels[:10]=})"
         data[class_col] = [remapping_class_label_dict[int(x)] for x in data[class_col]]
     elif set(class_labels) != {-1}:  # I.e., not predict mode
         remapping_class_label_dict = {class_labels[i]: i for i in range(len(class_labels))}

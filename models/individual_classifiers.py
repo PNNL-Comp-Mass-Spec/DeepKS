@@ -4,7 +4,7 @@ import collections
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
-    write_splash("nn_trainer")
+    write_splash("main_nn_trainer")
     print("Progress: Loading Modules", flush=True)
 
 # import cProfile
@@ -191,7 +191,7 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_tr]["n_gram"]
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
-            (train_loader, _, _, _), _ = gather_data(
+            (train_loader, _, _, _), _ = list(gather_data(
                 partial_group_df_tr,
                 trf=1,
                 vf=0,
@@ -201,9 +201,9 @@ class IndividualClassifiers:
                 train_batch_size=b,
                 n_gram=ng,
                 device=self.device,
-                maxsize=MAX_SIZE_DS,
-            )
-            (_, val_loader, _, _), _ = gather_data(
+                maxsize=MAX_SIZE_DS
+            ))[0]
+            (_, val_loader, _, _), _ = list(gather_data(
                 partial_group_df_vl,
                 trf=0,
                 vf=1,
@@ -212,8 +212,8 @@ class IndividualClassifiers:
                 tokdict=self.default_tok_dict,
                 n_gram=ng,
                 device=self.device,
-                maxsize=MAX_SIZE_DS,
-            )
+                maxsize=MAX_SIZE_DS
+            ))[0]
             self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader)
             self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader)
             msm = self.grp_to_interface_args[group_tr]["model_summary_name"]

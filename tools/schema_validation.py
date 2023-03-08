@@ -9,7 +9,7 @@ kin_pattern_properties = {
             "Uniprot Accession ID": {"type": "array", "minItems": 1, "items": {"type": "string"}},
             "Gene Name": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         },
-        "additionalProperties": False
+        "additionalProperties": True
     }
 }
 
