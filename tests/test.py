@@ -1,5 +1,4 @@
-import unittest
-import sys, os
+import sys, os, argparse, unittest
 from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
@@ -65,17 +64,17 @@ class TestMainAPIFromCMDL(unittest.TestCase):
     
     def test_bad_devices(self):
         sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites.txt", "-p", "dictionary", "-v", "--device", "cpuu"]
-        self.assertRaises(SystemExit, self.main.setup) # TODO - add error code check
+        self.assertRaises(argparse.ArgumentError, self.main.setup) # TODO - add error code check
 
         sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites.txt", "-p", "dictionary", "-v", "--device", "cudaa"]
-        self.assertRaises(SystemExit, self.main.setup)
+        self.assertRaises(argparse.ArgumentError, self.main.setup)
 
         sys.argv = ["python3 -m DeepKS.api.main", "-kf", "tests/sample_inputs/kins.txt", "-sf", "tests/sample_inputs/sites.txt", "-p", "dictionary", "-v", "--device", "cuda:999"]
-        self.assertRaises(SystemExit, self.main.setup)
+        self.assertRaises(argparse.ArgumentError, self.main.setup)
 
     def test_get_help(self):
         sys.argv = ["python3 -m DeepKS.api.main", "-h"]
-        self.assertRaises(SystemExit, self.main.setup)
+        self.assertRaises(argparse.ArgumentError, self.main.setup)
 
 from ..examples.examples import EXAMPLES
 class TestExamples(unittest.TestCase):

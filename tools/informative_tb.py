@@ -1,7 +1,22 @@
-import html2text, traceback, os, types, typing, sys, re, requests, json, textwrap
+import html2text, traceback, os, types, typing, sys, re, requests, json, textwrap, pathlib, io
 from termcolor import colored
 
 FAKE_TERM_WIDTH = 90
+class Capturing(list):
+    """https://stackoverflow.com/a/16571630/16158339"""
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._stderr = sys.stderr
+        sys.stdout = self._stringio = io.StringIO()
+        sys.stderr = self._stringio2 = io.StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        self.extend(self._stringio2.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        del self._stringio2    # free up some memory
+        sys.stdout = self._stdout
+        sys.stderr = self._stderr
 
 def informative_exception(
     e: Exception,
@@ -60,11 +75,13 @@ def informative_exception(
     print(colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"), file=sys.stderr)
     print()
 
-    exit(exitcode)
+    with Capturing():
+        raise e
 
 
 def get_exception_description(exception_type: str):
-    if not os.path.exists(os.path.abspath("") + "/cached_docs.json") or 'REDOWNLOAD' in os.environ:
+    cached = str(pathlib.Path(__file__).parent.resolve()) + "/cached_docs.json"
+    if not os.path.exists(cached) or 'REDOWNLOAD' in os.environ:
         base_url = "https://docs.python.org/3/library/exceptions.html"
         r = requests.get(base_url)
         try:
@@ -89,9 +106,9 @@ def get_exception_description(exception_type: str):
             error_type_to_description[key] = re.sub('\u00e2\u0080\u009d', "\"", error_type_to_description[key])
             error_type_to_description[key] = re.sub('`', r"", error_type_to_description[key])
         doc_dict = error_type_to_description
-        json.dump(doc_dict, open(os.path.abspath("") + "/cached_docs.json", "w"), indent=3)
+        json.dump(doc_dict, open(cached, "w"), indent=3)
     else:
-        doc_dict = json.load(open(os.path.abspath("") + "/cached_docs.json", "r"))
+        doc_dict = json.load(open(cached, "r"))
 
     return doc_dict[exception_type] if exception_type in doc_dict else "No description found."
 

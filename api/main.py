@@ -15,6 +15,21 @@ from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
 
+class Capturing(list):
+    """https://stackoverflow.com/a/16571630/16158339"""
+    def __enter__(self):
+        self._stdout = sys.stdout
+        self._stderr = sys.stderr
+        sys.stdout = self._stringio = io.StringIO()
+        sys.stderr = self._stringio2 = io.StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        self.extend(self._stringio2.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        del self._stringio2    # free up some memory
+        sys.stdout = self._stdout
+        sys.stderr = self._stderr
 
 def make_predictions(
     kinase_seqs: list[str],
@@ -188,7 +203,24 @@ def parse_api() -> dict[str, typing.Any]:
         def _get_help_string(self, action):
             return str(action.help) + "\n\t" + f"{f'(Default: {action.default}'})"
 
-    ap = argparse.ArgumentParser(prog="python -m DeepKS.api.main", formatter_class=CustomFormatter)
+    ap = argparse.ArgumentParser(prog="python -m DeepKS.api.main", formatter_class=CustomFormatter, exit_on_error=False)
+    
+    def new_exit(status = 0, message = None):
+        raise ValueError()
+    
+    error_orig = ap.error
+    ap.exit = new_exit
+    
+    def new_err(message):
+        output = ""
+        try:
+            with Capturing() as output:
+                error_orig(message)
+        except Exception:
+            raise argparse.ArgumentError(None, "\t\n".join(output))
+            
+    ap.error = new_err
+
     k_group = ap.add_mutually_exclusive_group(required=True)
     k_group.add_argument(
         "-k",
@@ -361,128 +393,128 @@ def parse_api() -> dict[str, typing.Any]:
     )
     try:
         args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
-        args_dict = vars(args)
-        ii = ll = None
-        if args_dict["k"] is not None:
-            args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
-            del args_dict["kf"]
-        elif "kf" in args_dict:
-            with open("../" + args_dict["kf"]) as f:
-                args_dict["kinase_seqs"] = [line.strip() for line in f]
-            try:
-                fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
-                assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
-                    ll := len(args_dict["kinase_seqs"])
-                )
-            except AssertionError:
-                warnings.warn(
-                    f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input"
-                    f" list ({ii}). This may cause unintended behavior."
-                )
-            del args_dict["k"]
-            del args_dict["kf"]
-        else:
-            raise AssertionError("Should never be in this case.")
-        if args_dict["s"] is not None:
-            args_dict["site_seqs"] = args_dict.pop("s").split(",")
-            del args_dict["sf"]
-        elif "sf" in args_dict:
-            with open("../" + args_dict["sf"]) as f:
-                args_dict["site_seqs"] = [line.strip() for line in f]
-            try:
-                fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
-                assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
-                    ll := len(args_dict["site_seqs"])
-                )
-            except AssertionError:
-                warnings.warn(
-                    f"The number of sites in the input file name ({ll}) does not match the number of sites in the input"
-                    f" list ({ii}). This may cause unintended behavior."
-                )
-            del args_dict["s"]
-            del args_dict["sf"]
-        else:
-            raise AssertionError("Should never be in this case.")
-
-        args_dict["predictions_output_format"] = args_dict.pop("p")
-        # if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
-        #         args_dict["verbose"] = True
-        #         print(
-        #                 colored(
-        #                         'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
-        #                 )
-        #         )
-        if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
-            args_dict["verbose"] = False
-            print(
-                colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
-            )
-        if not (re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]):
-            print(
-                colored(
-                    (
-                        "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                        " json/csv/sqlite."
-                    ),
-                    "blue",
-                )
-            )
-
-        args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
-        args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
-        args_dict["group_output"] = args_dict.pop("groups")
-        if not args_dict["scores"] and args_dict["normalize_scores"]:
-            print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
-
-        if args_dict["kin_info"] is None:
-            kinase_info_dict = {
-                kinase_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>"}
-                for kinase_seq in args_dict["kinase_seqs"]
-            }
-        else:
-            with open("../" + args_dict["kin_info"]) as f:
-                kinase_info_dict = json.load(f)
-                try:
-                    jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
-                except jsonschema.exceptions.ValidationError as e:
-                    print("", file=sys.stderr)
-                    print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
-                    print(colored("\nFor reference, the jsonschema.exceptions.ValidationError was:", "magenta"))
-                    print(colored(str(e), "magenta"))
-                    print(colored("\n\nMore info:\n\n", "magenta"))
-                    with open("./kin-info_file_format.txt") as f:
-                        print(colored(f.read(), "magenta"), file=sys.stderr)
-                        
-                    informative_exception(e, "", False)
-
-        args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
-
-        args_dict["kin_info"] = kinase_info_dict
-
-        if args_dict["site_info"] is None:
-            site_info_dict = {
-                site_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>", "Location": "<UNK>"}
-                for site_seq in args_dict["site_seqs"]
-            }
-        else:
-            with open("../" + args_dict["site_info"]) as f:
-                site_info_dict = json.load(f)
-                try:
-                    jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
-                except jsonschema.exceptions.ValidationError:
-                    print("", file=sys.stderr)
-                    print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
-                    with open("./site-info_file_format.txt") as f:
-                        print(colored(f.read(), "magenta"), file=sys.stderr)
-                    sys.exit(1)
-        args_dict["site_info"] = site_info_dict
-
-        assert all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"])
-        assert all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"])
-
-        return args_dict
     except Exception as e:
-        informative_exception(e, "Error: DeepKS API failed to parse arguments.")
+        informative_exception(e, "Issue with arguments provided.", print_full_tb=False)
+    args_dict = vars(args)
+    ii = ll = None
+    if args_dict["k"] is not None:
+        args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
+        del args_dict["kf"]
+    elif "kf" in args_dict:
+        with open("../" + args_dict["kf"]) as f:
+            args_dict["kinase_seqs"] = [line.strip() for line in f]
+        try:
+            fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
+            assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+                ll := len(args_dict["kinase_seqs"])
+            )
+        except AssertionError:
+            warnings.warn(
+                f"The number of kinases in the input file name ({ll}) does not match the number of kinases in the input"
+                f" list ({ii}). This may cause unintended behavior."
+            )
+        del args_dict["k"]
+        del args_dict["kf"]
+    else:
+        raise AssertionError("Should never be in this case.")
+    if args_dict["s"] is not None:
+        args_dict["site_seqs"] = args_dict.pop("s").split(",")
+        del args_dict["sf"]
+    elif "sf" in args_dict:
+        with open("../" + args_dict["sf"]) as f:
+            args_dict["site_seqs"] = [line.strip() for line in f]
+        try:
+            fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
+            assert not re.search(r"[0-9^]", fn_relevant) or (ii := int(re.sub(r"[^0-9]", "", fn_relevant))) == (
+                ll := len(args_dict["site_seqs"])
+            )
+        except AssertionError:
+            warnings.warn(
+                f"The number of sites in the input file name ({ll}) does not match the number of sites in the input"
+                f" list ({ii}). This may cause unintended behavior."
+            )
+        del args_dict["s"]
+        del args_dict["sf"]
+    else:
+        raise AssertionError("Should never be in this case.")
+
+    args_dict["predictions_output_format"] = args_dict.pop("p")
+    # if "json" not in args_dict["predictions_output_format"] and not args_dict["verbose"]:
+    #         args_dict["verbose"] = True
+    #         print(
+    #                 colored(
+    #                         'Info: Verbose mode is being set to "True" because the predictions output format is not JSON.', "blue"
+    #                 )
+    #         )
+    if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
+        args_dict["verbose"] = False
+        print(
+            colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
+        )
+    if not (re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]):
+        print(
+            colored(
+                (
+                    "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
+                    " json/csv/sqlite."
+                ),
+                "blue",
+            )
+        )
+
+    args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
+    args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
+    args_dict["group_output"] = args_dict.pop("groups")
+    if not args_dict["scores"] and args_dict["normalize_scores"]:
+        print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
+
+    if args_dict["kin_info"] is None:
+        kinase_info_dict = {
+            kinase_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>"}
+            for kinase_seq in args_dict["kinase_seqs"]
+        }
+    else:
+        with open("../" + args_dict["kin_info"]) as f:
+            kinase_info_dict = json.load(f)
+            try:
+                jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
+            except jsonschema.exceptions.ValidationError as e:
+                print("", file=sys.stderr)
+                print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
+                print(colored("\nFor reference, the jsonschema.exceptions.ValidationError was:", "magenta"))
+                print(colored(str(e), "magenta"))
+                print(colored("\n\nMore info:\n\n", "magenta"))
+                with open("./kin-info_file_format.txt") as f:
+                    print(colored(f.read(), "magenta"), file=sys.stderr)
+                    
+                informative_exception(e, "", False)
+
+    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
+
+    args_dict["kin_info"] = kinase_info_dict
+
+    if args_dict["site_info"] is None:
+        site_info_dict = {
+            site_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>", "Location": "<UNK>"}
+            for site_seq in args_dict["site_seqs"]
+        }
+    else:
+        with open("../" + args_dict["site_info"]) as f:
+            site_info_dict = json.load(f)
+            try:
+                jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
+            except jsonschema.exceptions.ValidationError:
+                print("", file=sys.stderr)
+                print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
+                with open("./site-info_file_format.txt") as f:
+                    print(colored(f.read(), "magenta"), file=sys.stderr)
+                sys.exit(1)
+    args_dict["site_info"] = site_info_dict
+
+    assert all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"])
+    assert all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"])
+
+    return args_dict
 
 
 def setup(args: dict[str, typing.Any] = {}):
@@ -492,9 +524,13 @@ def setup(args: dict[str, typing.Any] = {}):
         @arg args: DeepKS arguments.
     """
     global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
+    from ..tools.informative_tb import informative_exception
     os.chdir(pathlib.Path(__file__).parent.resolve())
-    if args == {}:
-        args = parse_api()
+    if not isinstance(args, dict) or (hasattr(args, "__len__") and len(args) == 0):
+        try:
+            args = parse_api()
+        except Exception as e:
+            informative_exception(e, "Error: DeepKS API failed to parse arguments.")
 
     print(colored("Status: Loading Modules...", "green"))
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
@@ -502,7 +538,7 @@ def setup(args: dict[str, typing.Any] = {}):
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
-    from ..tools.informative_tb import informative_exception
+    
 
     make_predictions(**args)
 
