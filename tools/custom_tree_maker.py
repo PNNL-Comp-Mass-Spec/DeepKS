@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os, json, re, pprint, time
+import os, json, re, pprint, time, pathlib
 from sys import argv
 from typing import Union
 
@@ -8,12 +8,16 @@ DUMP = True
 RESTORE = "-r" in argv
 DRY = "--dry-run" in argv
 
-def main():
+TOP_DIR = f"{pathlib.Path(__file__).parent.resolve()}/../"
 
+# TODO: Make lines 90 degrees if end of inner list
+
+def main():
+    os.chdir(TOP_DIR)
     ignore_patterns = ["*.pyc", "__pycache__", "__init__.py", ".git", ".DS_Store", ".vscode", ".gitig-*", "tree.txt"]
     ignore_patterns = [f" -I \"{p}\"" for p in ignore_patterns]
     ignore_patterns = "".join(ignore_patterns)
-    cmd = f'tree -a -o docs/tree.txt {ignore_patterns}'
+    cmd = f'tree -a -o {TOP_DIR}docs/tree.txt {ignore_patterns}'
 
     if DRY:
         print("Would have run: " + cmd)
@@ -22,7 +26,7 @@ def main():
     if exitcode:
         print(f"`tree` didn't run correctly (exit code {exitcode})")
         exit(1)
-    if (os.path.exists("docs/tree.html") and len(argv) == 1) or (len(argv) > 1 and "-f" not in argv):
+    if (os.path.exists(f"{TOP_DIR}docs/tree.html") and len(argv) == 1) or (len(argv) > 1 and "-f" not in argv):
         print("Use -f to forcefully overwrite tree.html")
         exit(1)
     description = {}
@@ -30,10 +34,10 @@ def main():
         with open(argv[argv.index('-d') + 1], "r") as d:
             description = d.readlines()
 
-    with open("docs/tree.txt", "r") as t:
+    with open(f"{TOP_DIR}docs/tree.txt", "r") as t:
         lines = t.readlines()[:-2]
-    os.unlink("docs/tree.txt")
-    while os.path.exists("docs/tree.txt"):
+    os.unlink(f"{TOP_DIR}docs/tree.txt")
+    while os.path.exists(f"{TOP_DIR}docs/tree.txt"):
         time.sleep(0.01)
 
     new_lines = []
@@ -45,14 +49,14 @@ def main():
     if RESTORE:
         lines_restore = lines.copy()
         lines_restored = []
-        with open("saved_dict_repr_file.json", "r") as f:
+        with open(f"{TOP_DIR}saved_dict_repr_file.json", "r") as f:
             tree_description_path_dict = {eval(k): v for k, v in json.load(f).items()}
     else:
         assert len(description) != 0; "RESTORE is not True, but there is no description information provided."
         tree_description_path_dict = graph_from_text(description).get_dict_repr()
     
     if DUMP:
-        with open("saved_dict_repr_file.json", "w") as f:
+        with open(f"{TOP_DIR}saved_dict_repr_file.json", "w") as f:
             json.dump({str(p): v for p, v in tree_description_path_dict.items()}, f, indent=4, sort_keys=True)
     
     bg_class = 'odd'
@@ -83,7 +87,8 @@ def main():
                 )
                 
                 if i != 0 and tree_repr[i - 1].depth > node.depth:
-                    new_lines[-1] = new_lines[-1].replace("├", "└")
+                    # new_lines[-1] = new_lines[-1].replace("├", "└")
+                    pass
             except Exception as e:
                 print(e)
                 print(f"{orig_line=}{desc=}{node=}")
@@ -94,19 +99,19 @@ def main():
             else:
                 new_lines[-1] += desc
             
-            new_lines[-1] = f"<div style='display:table-row' class={bg_class}>{new_lines[-1]}</div>"
+            new_lines[-1] = f"<div style='display:table-row' class={bg_class}>{new_lines[-1]}</div>".replace("└", "├")
         if RESTORE:
             if to_restore_line is not None and lines_restored is not None:
                 lines_restored.append(to_restore_line)
     if RESTORE:
         assert isinstance(lines_restored, list)
-        with open(f"docs/tree_description.txt", "w") as d:
+        with open(f"{TOP_DIR}docs/tree_description.txt", "w") as d:
             d.write("".join(lines_restored))
 
-    with open("tools/tree_template.html") as tt:
+    with open(f"{TOP_DIR}tools/tree_template.html") as tt:
         template = tt.read()
-    with open("docs/tree.html", "w") as t:
-        new_lines[-1] = new_lines[-1].replace("├", "└")
+    with open(f"{TOP_DIR}docs/tree.html", "w") as t:
+        # new_lines[-1] = new_lines[-1].replace("├", "└")
         temp_lines = "\n".join(new_lines)
         final_lines = re.sub("        PUT FILE DIRS HERE", temp_lines, template)
         t.write(final_lines)
