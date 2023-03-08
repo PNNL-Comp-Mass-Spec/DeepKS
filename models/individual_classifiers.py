@@ -227,7 +227,7 @@ class IndividualClassifiers:
                 extra_description="(Group: %s)" % group_tr.upper(),
             )
 
-    def evaluate(
+    def obtain_group_and_loader(
         self,
         which_groups: list[str],
         Xy_formatted_input_file: str,
@@ -314,55 +314,23 @@ class IndividualClassifiers:
 
                 return CPU_Unpickler(f).load()
 
-    def roc_evaluation(self, new_args, pred_groups, true_groups, predict_mode):
+    def evaluation(self, new_args, pred_groups, true_groups, predict_mode):
         if "test" in new_args:
-            test_filename = new_args["test"]
+            test_filename = new_args["test"] # Dataframe-based evaluation
         elif "test_json" in new_args:
-            test_filename = new_args["test_json"]
+            test_filename = new_args["test_json"] # Json-based evaluation
         else:
-            raise AssertionError("Must specify either `test` or `test_json` in `new_args`.")
-        if "load_include_eval" in new_args and new_args["load_include_eval"] is None and not predict_mode:
-            grp_to_info_pass_through_info_dict = {}
-            grp_to_loaders = {
-                grp: loader
-                for grp, loader in self.evaluate(
-                    which_groups=self.groups,
-                    Xy_formatted_input_file=test_filename,
-                    pred_groups=pred_groups,
-                    info_dict_passthrough=grp_to_info_pass_through_info_dict,
-                )
-            }
+            raise ValueError("Must specify either `test` or `test_json` in `new_args`.")
+        
+        def potentially_save_individual_classifiers():
+            if self.args["s"]:
+                print("Progress: Saving State to Disk")
+                IndividualClassifiers.save_all(self, f"../bin/saved_state_dicts/indi_clss_{file_names.get()}" + ".pkl")
 
-            # if False:
-            #     pickled_version = pickle.load(open("/people/druc594/ML/DeepKS/bin/saved_state_dicts/test_grp_to_loaders_2023-01-11T17:49:21.981786.pkl", "rb"))
-            #     unfurled_pickle = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in pickled_version.items()}
-
-            # unfurled_local = {g: (l.dataset.class_.tolist(), l.dataset.data.tolist(), l.dataset.target.tolist()) for g, l in grp_to_loaders.items()} # type: ignore
-
-            print("Progress: ROC")
-            NNInterface.get_combined_rocs_from_individual_models(
-                self.interfaces,
-                grp_to_loaders,
-                f"../images/Evaluation and Results/ROC_{file_names.get()}",
-                retain_evals=self.evaluations,
-                grp_to_loader_true_groups={
-                    grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]]
-                    for grp in grp_to_info_pass_through_info_dict
-                },
-            )
-
-        elif not predict_mode:
-            print("Progress: ROC")
-            NNInterface.get_combined_rocs_from_individual_models(
-                savefile=f"../bin/saved_state_dicts/indivudial_classifiers_{file_names.get()}"
-                + file_names.get()
-                + ".pkl",
-                from_loaded=self.evaluations,
-            )
-        else:
+        if predict_mode:
             all_predictions_outputs = {}
             info_dict_passthrough = {}
-            for grp, loader in self.evaluate(
+            for grp, loader in self.obtain_group_and_loader(
                 which_groups=list(pred_groups.values()),
                 Xy_formatted_input_file=test_filename,
                 pred_groups=pred_groups,
@@ -391,13 +359,43 @@ class IndividualClassifiers:
             pred_items = sorted(
                 all_predictions_outputs.items(), key=lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
             )  # Pair # {i}
-            return pred_items  # TODO: Enable saving
+            potentially_save_individual_classifiers()
+            return pred_items
 
-        if self.args["s"]:
-            print("Progress: Saving State to Disk")
-            IndividualClassifiers.save_all(
-                self, f"../bin/saved_state_dicts/indivudial_classifiers_{file_names.get()}" + ".pkl"
-            )
+        else: # Not predict mode
+            if new_args["load_include_eval"] is None: # Need to eval
+                grp_to_info_pass_through_info_dict = {}
+                grp_to_loaders = {
+                    grp: loader
+                    for grp, loader in self.obtain_group_and_loader(
+                        which_groups=self.groups,
+                        Xy_formatted_input_file=test_filename,
+                        pred_groups=pred_groups,
+                        info_dict_passthrough=grp_to_info_pass_through_info_dict,
+                    )
+                }
+
+                print("Progress: ROC")
+                NNInterface.get_combined_rocs_from_individual_models(
+                    self.interfaces,
+                    grp_to_loaders,
+                    f"../images/Evaluation and Results/ROC_{file_names.get()}",
+                    retain_evals=self.evaluations,
+                    grp_to_loader_true_groups={
+                        grp: [true_groups[x] for x in grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]]
+                        for grp in grp_to_info_pass_through_info_dict
+                    },
+                )
+
+            else: # Eval already completed
+                print("Progress: ROC")
+                NNInterface.get_combined_rocs_from_individual_models(
+                    savefile=f"../bin/saved_state_dicts/indivudial_classifiers_{file_names.get()}"
+                    + file_names.get()
+                    + ".pkl",
+                    from_loaded=self.evaluations,
+                )
+            potentially_save_individual_classifiers()
 
 
 def main():
@@ -462,7 +460,7 @@ def main():
         assert fat_model.args["test"] is not None
         grp_to_loaders = {
             grp: loader
-            for grp, loader in fat_model.evaluate(
+            for grp, loader in fat_model.obtain_group_and_loader(
                 which_groups=groups, Xy_formatted_input_file=fat_model.args["test"]
             )
         }

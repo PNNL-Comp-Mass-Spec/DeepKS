@@ -96,11 +96,6 @@ def main():
         print("\nStep 5: Creating Table of Targets and computing Decoys.\n")
         input_good = False
         while not input_good:
-            # eval_or_train_on_all = input(
-            #     "[E]valuation Mode (splits into train/val/test split) or [T]raining Mode (retrains model on all available"
-            #     " data)? [Type E or T]: "
-            # ) # FOR DEBUGGING
-            # TODO - for debugging. Uncomment out.
             if eval_or_train_on_all.lower() == "e":
                 input_good = True
                 print("Step 5a: Must obtain train/val/test splits.")
