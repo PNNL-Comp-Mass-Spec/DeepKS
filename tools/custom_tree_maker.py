@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import os, json, re, pprint, time, pathlib
 from sys import argv
 from typing import Union
@@ -108,7 +107,7 @@ def main():
         with open(f"{TOP_DIR}docs/tree_description.txt", "w") as d:
             d.write("".join(lines_restored))
 
-    with open(f"{TOP_DIR}tools/tree_template.html") as tt:
+    with open(f"{TOP_DIR}docs/tree_template.html") as tt:
         template = tt.read()
     with open(f"{TOP_DIR}docs/tree.html", "w") as t:
         # new_lines[-1] = new_lines[-1].replace("├", "└")
