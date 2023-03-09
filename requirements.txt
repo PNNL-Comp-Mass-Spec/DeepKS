@@ -5,6 +5,7 @@ coverage
 git+https://github.com/Ben-Drucker/psankey-modified@master#egg=psankey_modified
 git+https://github.com/Ben-Drucker/roc_comparison-modified@main#egg=roc_comparison_modified
 git+https://github.com/Ben-Drucker/torchinfo-modified@main#egg=torchinfo_modified
+graphviz
 html2text
 jsonschema
 kaleido
@@ -18,6 +19,7 @@ pandas
 plotly
 prettytable
 psutil
+pycallgraph2
 python_dateutil
 requests
 scikit_learn
