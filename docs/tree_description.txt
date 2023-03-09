@@ -1,29 +1,36 @@
 .;This is the root directory of the DeepKS package.
 ├── .gitattributes;Contains Git LFS information.
+├── .github;Contains Github issue templates.
+│   └── ISSUE_TEMPLATE;Issue templates subdirectory.
+│       ├── user-error.md;
+│       └── user-unexpected-output.md;
 ├── .gitignore;Contains files to be ignored by Git.
-├── .gitlab-ci.yml;Used by Gitlab pages
+├── .gitlab-ci.yml;Used by Gitlab pages.
 ├── Gemfile;Used for Gitlab Pages.
 ├── api;Contains the API for the DeepKS package.
 │   ├── cfg.py;Contains configuration paths for the API.
 │   ├── default_paths.cfg.json;Contains data read by <code>./cfg.py</code>
-│   ├── kin-info_file_format.txt
+│   ├── kin-info_file_format.txt;Contains information about how kin-info files need to be formatted.
 │   ├── main.py;Main API entry point.
 │   ├── needleall.error
-│   └── site-info_file_format.txt
+│   └── site-info_file_format.txt;Contains information about how site-info files need to be formatted.
 ├── architectures;Contains the architectures used in this package.
 │   ├── .gitignore
-│   └── HP_config_DB.tsv;Database of hyperparameter configurations.
+│   ├── HP_config_DB.tsv;Database of hyperparameter configurations.
+│   └── nn_summary.txt
 ├── bin;Contains various binary files (typically machine learning previously trained models).
 │   ├── .gitignore
 │   ├── deepks_gc_weights.0.0.1.gherkin;Model file for the group classifier.
 │   └── deepks_nn_weights.0.0.1.gherkin;Model file for the neural networks.
 ├── build;Contains auxiliary build files.
 │   ├── build_and_nvidia_script.sh;Shell script used to enable CUDA on HPC/apptainer.
-│   └── cuda_wsl_installer.sh;Shell script used to install CUDA on WSL.
+│   ├── cuda_wsl_installer.sh;Shell script used to install CUDA on WSL.
+│   └── hpc
+│       └── .interactive_slurm_script.py;Script to interactively initialize a Slurm job on a High Performance Computing cluster.
 ├── config;Contains global configuration files for the DeepKS package.
 │   ├── cfg.py;Global configuration module. Has functions to set/get prediction modes and perform directory changes.
 │   └── mode.cfg;Contains the current settings (prediction mode, verbosity mode ¡Not implemented yet.¡). This is read by <code>./cfg.py</code>.
-├── data;Contains the data used in this package.
+├── data;Contains the data used in this package.  Train/val/test model inputs are of the form <code>raw_data_X_formatted_Y_Z.csv</code>, where X, Y, and Z (optional) are numbers that represent the initial number of inputs, the percentile cutoff for similarity (see data preprocessing details), and the number of inputs after overlaps were removed (again, see data preprocessing details), respectively.
 │   ├── kin_to_fam_to_grp_5.csv
 │   ├── kin_to_fam_to_grp_821.csv
 │   ├── preprocessing;Used to preprocess data into a format acceptable by the API and <code>torch</code>.
@@ -53,33 +60,34 @@
 │   │   ├── needleall.error
 │   │   ├── pairwise_mtx_822.csv
 │   │   ├── pairwise_mtx_826.csv
-│   │   ├── pairwise_mtx_918.csv;Example of a pairwise distance matrix (918 kinases x 918 kinases)
+│   │   ├── pairwise_mtx_918.csv;Example of a pairwise distance matrix (918 kinases x 918 kinases).
 │   │   ├── te_kins.json;List of kinases used in the test set (Uniprot gene names).
 │   │   ├── te_kins_large.json
 │   │   ├── tr_kins.json;List of kinases used in the training set (Uniprot gene names).
 │   │   ├── tr_kins_large.json
 │   │   ├── vl_kins.json;List of kinases used in the validation set (Uniprot gene names).
 │   │   └── vl_kins_large.json
-│   ├── raw_data;Contains raw and intermediate data.
-│   │   ├── PSP_script_download.xlsx;Modified PSP data table
+│   ├── raw_data;Contains raw and intermediate data. Files of the format <code>kinase_seq_X.csv</code> contain rows with Uniprot accession ID, Uniprot gene name, and kinase sequence, where X is the number of rows. Files of the format <code>raw_data_Y.csv</code> contain slightly processed and pruned data from the PSP excel download, where Y is the number of rows.
+│   │   ├── PSP_script_download.xlsx;Modified PSP data table.
 │   │   ├── cache;Cache storing uniprot kinase sequences.
 │   │   │   ├── .gitignore
 │   │   │   └── UNIPROT_kinase_sequences.fasta
 │   │   ├── duplicates.csv
-│   │   ├── kinase_seq_494.csv
+│   │   ├── kinase_seq_494.csv;
 │   │   ├── kinase_seq_822.txt
-│   │   ├── kinase_seq_826.csv
-│   │   ├── kinase_seq_918.csv
-│   │   ├── raw_data_22473.csv
-│   │   ├── raw_data_22588.csv
+│   │   ├── kinase_seq_826.csv;
+│   │   ├── kinase_seq_918.csv;
+│   │   ├── raw_data_22473.csv;
+│   │   ├── raw_data_22588.csv;
 │   │   └── raw_data_45176_formatted_65.csv
 │   ├── raw_data_162_group_classifier_formatted.csv
 │   ├── raw_data_209_group_classifier_formatted.csv
-│   ├── raw_data_31834_formatted_65_26610.csv
+│   ├── raw_data_31834_formatted_65_26610.csv;
 │   ├── raw_data_446_group_classifier_formatted.csv
-│   ├── raw_data_45176_formatted_65.csv
-│   ├── raw_data_6406_formatted_95_5616.csv
-│   └── raw_data_6500_formatted_95_5698.csv
+│   ├── raw_data_45176_formatted_65.csv;
+│   ├── raw_data_6406_formatted_95_5616.csv;
+│   └── raw_data_6500_formatted_95_5698.csv;
+├── demonstrated_call_graph_tree.png
 ├── discovery;Contains files and subdirectories used for the discovery of new kinase-substrate predictions.
 │   ├── .gitattributes
 │   ├── all_human_pairs;Contains files used to generate the predictions for all human kinase-substrate pairs.
@@ -100,6 +108,7 @@
 │       ├── atlas_vs_deepks_1_processing.ipynb;Notebook containing scripts to enable comparison between DeepKS and Atlas.
 │       ├── atlas_vs_deepks_2_figures.ipynb;Notebook containing scripts to plot figures representing the comparison between DeepKS and Atlas.
 │       ├── atlas_vs_deepks_3_corroboration.ipynb;Notebook containing scripts to corroborate the PSP database and Atlas's results.
+│       ├── atlas_vs_deepks_percentile_score.png
 │       ├── compact_kinase_info_10.json
 │       ├── compact_site_info_86201.json
 │       ├── derived_df.csv
@@ -118,7 +127,7 @@
 │       ├── their_percentiles.csv
 │       └── their_ranks.csv
 ├── docs;Contains files used to generate the documentation.
-│   ├── api_pydoctor_docs
+│   ├── api_pydoctor_docs;Contains API-reference documentation generated by the <code>pydoctor</code> package.
 │   │   ├── ajax.js
 │   │   ├── all-documents.html
 │   │   ├── apidocs.css
@@ -147,13 +156,12 @@
 │   ├── quickstart.html;HTML rendering of the quickstart guide.
 │   ├── quickstart.md;Markdown version of the quickstart guide.
 │   ├── tree.html;HTML file that displays a tree of DeepKS Repository.
-│   └── tree_description.txt;Similar to <code>tree.html</code>'s tree listing, but stripped down to be essentially key-value pairs of [file/dir] -> [description] in the format <code>my_file.txt;A sample description of <code>my_file.</code></code>
+│   ├── tree_description.txt;Similar to <code>tree.html</code>'s tree listing, but stripped down to be essentially key-value pairs of <i>file/dir</i> ⟼ <i>description</i> in the format <code>my_file.txt;A sample description of &#x3C;code&#x3E;my_file.txt&#x3C;&#x2F;code&#x3E;</code>, where <code>&#x3C;code&#x3E;&#x3C;&#x2F;code&#x3E;</code> tags wrap monospace text.
+│   └── tree_template.html;Template for the layout of this tree listing.
 ├── examples;Examples one can run to get a feel for the API.
 │   ├── __main__.py;Entrypoint wrapper for running examples. Calls <code>./examples.py</code>.
 │   ├── examples.pdf;PDF of how the example output should look.
 │   └── examples.py;Contains examples of how to use the API.
-├── hpc;Contains HPC initialization script.
-│   └── .interactive_slurm_script.py;Script to interactively initialize a Slurm job on a High Performance Computing cluster.
 ├── images;Contains subdirectories with scripts to generate images, graphs, and diagrams for DeepKS.
 │   ├── Animation
 │   │   └── Algorithm Animation.ipynb
@@ -195,12 +203,14 @@
 │   └── Sunburst
 │       ├── .ipynb_checkpoints
 │       ├── Onion Explainer.xlsx
+│       ├── pycallgraph.png
 │       ├── sunburst explainer simple.pdf
 │       ├── sunburst explainer.pdf
 │       ├── sunburst.pdf
 │       └── sunburst.py
 ├── models;Directory containing the implementation of components of the DeepKS model.
 │   ├── HPTuningSimple.py; may not work.
+│   ├── cached_docs.json
 │   ├── data_dict_output_test.csv
 │   ├── group_classifier_definitions.py;Contains python definitions of the group classifiers (<code>class SKGroupClassifier</code>).
 │   ├── individual_classifiers.py;Contains python definitions of the individual neural network classifiers (<code>class IndividualClassifier</code>).
@@ -210,7 +220,7 @@
 │   ├── main.py;Contains definitions of the PyTorch neural network models used in DeepKS.
 │   ├── multi_stage_classifier.py;Contains python definitions of the multi-stage classifier (<code>class MultiStageClassifier</code>) that combines the group and individual classifiers.
 │   ├── needleall.error
-│   ├── run_individual_classifiers.sh;Convenience script for training the individual classifiers and obtaining weights.
+│   ├── train_individual_classifiers.sh
 │   └── train_multi_stage_classifier.sh;Convenience script for training the group classifier (as a step in multi-stage classification process).
 ├── out;Directory containing resultant predictions from the DeepKS model. (Examples below.)
 │   ├── .gitignore
@@ -348,8 +358,19 @@
 │   ├── results_2023-03-02@13`13`18.5@-05`00.csv
 │   ├── results_2023-03-02@13`13`20.9@-05`00.sqlite
 │   ├── results_2023-03-02@13`13`22.6@-05`00.json
-│   └── results_2023-03-02@13`13`25.0@-05`00.json
-├── public;Used for Gitlab pages
+│   ├── results_2023-03-02@13`13`25.0@-05`00.json
+│   ├── results_2023-03-02@21`27`10.1@-05`00.json
+│   ├── results_2023-03-02@21`27`14.3@-05`00.csv
+│   ├── results_2023-03-02@21`27`31.1@-05`00.json
+│   ├── results_2023-03-02@21`27`34.7@-05`00.csv
+│   ├── results_2023-03-02@21`27`39.5@-05`00.sqlite
+│   ├── results_2023-03-02@21`27`41.4@-05`00.json
+│   ├── results_2023-03-02@21`27`43.2@-05`00.json
+│   ├── results_2023-03-03@12`50`20.1@-05`00.json
+│   ├── results_2023-03-03@12`50`22.7@-05`00.csv
+│   ├── results_2023-03-06@19`46`57.5@+00`00.csv
+│   └── results_2023-03-08@00`08`56.9@+00`00.csv
+├── public;Used for Gitlab pages.
 │   └── .gitkeep
 ├── readme.md;Holds the icon one can click to view the Git(hub|lab) documentation pages.
 ├── requirements.txt;Used to install python dependencies.
@@ -361,7 +382,7 @@
 │   └── write_splash.py;Script that actually prints the splash screens to the terminal.
 ├── tests;Unit tests for the project.
 │   ├── sample_inputs;Sample inputs for the unit tests.
-│   │   ├── kin-info-known-groups.json
+│   │   ├── kin-info-known-groups.json;
 │   │   ├── kin-info.json;
 │   │   ├── kins.txt;
 │   │   ├── site-info.json;
@@ -369,21 +390,23 @@
 │   │   └── sites.txt;
 │   └── test.py;Main testing script to run.
 └── tools;Miscellaneous tools used in the project.
-    ├── NNInterface.py;Definition of large class (<code>class NNInterface</code>) that provides a clean user interface for NN training, predict, plotting, saving, among other things
+    ├── NNInterface.py;Definition of large class (<code>class NNInterface</code>) that provides a clean user interface for NN training, predict, plotting, saving, among other things.
     ├── SimpleTuner.py;Definition of the <code>class SimpleTuner</code> that provides a clean user interface for hyperparameter tuning.
     ├── bipartite_derangement.py;Contains functions that generate derangements using bipartite graphs.
+    ├── cached_docs.json;Used to cache documentation for <code>./informative_tb</code>.
     ├── custom_tree_maker.py;Custom module to make flexible file trees.
-    ├── description.txt
     ├── file_names.py;Module that creates time-stamped files with a prefix and suffix.
     ├── formal_layers.py;Contains definitions for wrapper classes for PyTorch layers that don't have a formal definition in PyTorch. For example, <code>class Flatten</code> is a wrapper for <code>torch.nn.Flatten</code>.
     ├── get_array_percentile.py;Given a <code>numpy</code> array, returns boolean array representing whether each element is in the top <code>percentile</code> of the array.
     ├── get_needle_pairwise.py;Script to get pairwise distances using EMBOSS's <code>needle</code> program.
     ├── informative_tb.py;Script to print a more informative, user-friendly traceback.
-    ├── make_fasta.py
+    ├── make_call_graph.py;Create a call graph to understand the flow of a program.
+    ├── make_call_graph_demonstrator.py;Helper file in the demonstration the use of <code>./make_call_graph.py</code>.
+    ├── make_fasta.py;Utility to create a FASTA file from an input dataframe of sequences.
     ├── model_utils.py;Contains various functions that support the neural network definitions in <code>DeepKS/models/main.py</code>.
     ├── parse.py;Contains parsing functions for parsing command line when training/testing the neural network component of DeepKS.
-    ├── roc_lambda.py
+    ├── raw_score_to_prob.py;Utility to convert raw scores into probabilities.
+    ├── roc_lambda.py;Utility to find the weight average line in an ROC plot.
     ├── schema_validation.py;Script that validates a JSON file against a JSON schema. Specifically used to validate the JSON files that contain site and kinase information (metadata).
     ├── system_tools.py;Script containing a wrapper for <code>subprocess.run</code> that can print and/or capture the output of a command.
-    ├── tensorize.py;Script that converts a CSV or <code>pandas.DataFrame</code> into a <code>torch.Tensor</code>, moves it to the computation device, and creates a <code>torch.utils.data.DataLoader</code>s.
-    └── tree_template.html
+    └── tensorize.py;Script that converts a CSV or <code>pandas.DataFrame</code> into a <code>torch.Tensor</code>, moves it to the computation device, and creates a <code>torch.utils.data.DataLoader</code>s.

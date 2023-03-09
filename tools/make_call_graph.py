@@ -1,21 +1,63 @@
 from pycallgraph2 import PyCallGraph
 from pycallgraph2.output import GraphvizOutput
 from pycallgraph2.config import Config
-from pycallgraph2.globbing_filter import GlobbingFilter
-from . import custom_tree_maker
-import sys
+import sys, re
+
+
+class GlobbingFilter(object):
+    """Filter module names using a set of globs.
+
+    Objects are matched against the exclude list first, then the include list.
+    Anything that passes through without matching either, is excluded.
+    """
+
+    def __init__(self, include=None, exclude=None):
+        if include is None and exclude is None:
+            include = [".*"]
+            exclude = []
+        elif include is None:
+            include = [".*"]
+        elif exclude is None:
+            exclude = []
+
+        self.include = include
+        self.exclude = exclude
+
+    def __call__(self, full_name=""):
+        assert isinstance(self.exclude, list)
+        for pattern in self.exclude:
+            if isinstance(pattern, str):
+                if re.search(pattern, full_name):
+                    return False
+
+        for pattern in self.include:
+            if re.search(pattern, full_name):
+                return True
+
+        return False
 
 
 class DeepKSCallGraph:
     def __init__(
         self,
-        exclude_globs=["pycallgraph.*", "*.<listcomp>", "*.<dictcomp>"],
-        include_globs=["*"],
+        keep_all_from="DeepKS",
+        exclude_globs=[
+            r"pycallgraph\..*",
+            r".*<listcomp>",
+            r".*<dictcomp>",
+            r".*<setcomp>",
+            r"^_[^_].*",
+            r"__(?!(init|str)).*__",
+            r"^<lambda>$"
+        ],
+        include_globs=[],
         other_config={},
         other_output={},
     ):
         self.exclude_globs = exclude_globs
-        self.include_globs = include_globs
+        outer_module = re.sub(r"<module '(.*)' from.*", r"\1", str(sys.modules[__name__])).split(".")[0]
+        # print(f"{outer_module=}")
+        self.include_globs = include_globs + [r"(^__main__$|^" + outer_module + r"\..*$)"]
         self.other_config = other_config
         self.other_output = other_output
 
@@ -29,7 +71,16 @@ class DeepKSCallGraph:
 
 
 if __name__ == "__main__":
-    DeepKSCallGraph().make_call_graph(
+    from . import make_call_graph_demonstrator
+
+    DeepKSCallGraph(other_output={'output_file': './demonstrated_call_graph.png'}).make_call_graph(
+        make_call_graph_demonstrator.dummy_fn,
+        [],
+    )
+
+    from . import custom_tree_maker
+
+    DeepKSCallGraph(other_output={'output_file': './demonstrated_call_graph_tree.png'}).make_call_graph(
         custom_tree_maker.main,
         [
             "-f",
@@ -37,3 +88,5 @@ if __name__ == "__main__":
             "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/docs/tree_description.txt",
         ],
     )
+
+    print("Uncomment to view examples")
