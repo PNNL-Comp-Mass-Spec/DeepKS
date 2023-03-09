@@ -99,7 +99,7 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = max([len(X) // 1 for X in [X_val, X_tune, X_test]])
+        eval_batch_size = max([len(X) // 1 for X in [X_val, X_tune, X_test]] + [1])
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
@@ -287,7 +287,7 @@ def gather_data(
     assert len(data['lab']) == len(data['seq']) or cartesian_product, "Length of kinase and site lists must be equal."
 
     assert num_pairs_can_be_stored_per_dl > 0, "Can't fit one pair in memory. Check system memory usage."     
-    num_partitions = max([int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]])
+    num_partitions = max([int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]] + [1])
     assert num_partitions > 0, "num_partitions <= 0. Something went wrong."
     # assert num_partitions <= len(data['lab']), f"{num_partitions=} > {len(data['lab'])=}. Something went wrong."
 

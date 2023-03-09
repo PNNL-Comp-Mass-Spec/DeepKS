@@ -59,7 +59,7 @@ class CNN(nn.Module):
 
     def forward(self, x, ret_size=False):
         if self.do_transpose:
-            out = self.transpose(x)
+            out = self.transpose.forward(x)
         else:
             out = x
         out = self.conv(out)
@@ -295,15 +295,15 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         ]
 
     def forward(self, site_seq, kin_seq, ret_size=False):
-        emb_site = self.emb_site(site_seq)
-        emb_kin = self.emb_kin(kin_seq)
+        emb_site = self.emb_site.forward(site_seq)
+        emb_kin = self.emb_kin.forward(kin_seq)
 
         out_site = emb_site
         out_kin = emb_kin
         for cnn in self.site_cnns:
-            out_site = cnn(out_site)
+            out_site = cnn.forward(out_site)
         for cnn in self.kin_cnns:
-            out_kin = cnn(out_kin)
+            out_kin = cnn.forward(out_kin)
 
         if ret_size:
             return (
@@ -311,20 +311,20 @@ class KinaseSubstrateRelationshipNN(nn.Module):
                 np.array([np.array(out_site.size()), np.array(out_kin.size())])[:, -1],
             )
 
-        weights = self.attn(out_site, out_kin)
+        weights = self.attn.forward(out_site, out_kin)
         weights = torch.softmax(weights / out_site.size(-1) ** (0.5), dim=-1)
-        out_site = self.mult(out_site, weights)
-        out_kin = self.mult(out_kin, weights)
+        out_site = self.mult.forward(out_site, weights)
+        out_kin = self.mult.forward(out_kin, weights)
 
-        out = self.cat(out_site, out_kin)
+        out = self.cat.forward(out_site, out_kin)
 
-        out = self.linear(out)
+        out = self.linear.forward(out)
         out = self.activation(out)
         out = self.dropout(out)
         out = self.intermediate(out)
         out = self.activation(out)
         out = self.dropout(out)
-        return self.final(out).squeeze()
+        return self.final.forward(out).squeeze()
 
 
 def perform_k_fold(config, display_within_train=False, process_device="cpu"):
