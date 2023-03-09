@@ -1,4 +1,4 @@
-import argparse, re, os, torch, pathlib
+import argparse, re, os, torch, pathlib, warnings
 from typing import Union
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(os.path.join(os.path.abspath(os.path.join(where_am_i, os.pardir)), "models"))
@@ -49,7 +49,10 @@ def parsing() -> dict[str, Union[str, None]]:
             val_filename = args['val']
             assert all([args[x] is not None for x in ['train', 'val']]), "If not specifying --load argument, must` specify --train and --val arguments."
             for f in [train_filename, val_filename]:
-                assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
+                try:
+                    assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
+                except AssertionError as e:
+                    warnings.warn(str(e), UserWarning)
                 assert os.path.exists(f), f"Input file '{f}' does not exist."
     else:
         load_filename = args['load_include_eval']

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
-import scipy, itertools
+import scipy, itertools, warnings
 from matplotlib.axes import Axes
 from typing import Collection, Iterable, Tuple, Union, Callable, Any  # type: ignore
 from prettytable import PrettyTable
@@ -104,7 +104,7 @@ class NNInterface:
             threshold = float("inf")
         while not ((lowest_loss < threshold and epoch >= num_epochs) or epoch >= 2 * num_epochs):
             self.model.train()
-            total_step = len(train_loader)
+            total_step = train_loader.dataset.__len__()
             if epoch % lr_decay_freq == 0 and epoch > 0:
                 for param in self.optimizer.param_groups:
                     param["lr"] *= lr_decay_amount
@@ -114,7 +114,7 @@ class NNInterface:
                 labels = labels.to(self.device)
 
                 # Forward pass
-                outputs = self.model(*X)
+                outputs = self.model.forward(*X)
                 if outputs.size() == torch.Size([]):
                     outputs = outputs.reshape([1])
                 torch.cuda.empty_cache()
@@ -132,9 +132,23 @@ class NNInterface:
                 if (b + 1) % print_every == 0 and verbose:
                     if metric == "roc":
                         if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                            score = sklearn.metrics.roc_auc_score(labels.cpu(), torch.sigmoid(outputs.data.cpu()).cpu())
+                            try:
+                                score = sklearn.metrics.roc_auc_score(labels.cpu(), torch.sigmoid(outputs.data.cpu()).cpu())
+                            except ValueError as e:
+                                if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
+                                    raise e
+                                else:
+                                    warnings.warn("Setting score = 0.0 since there is only one class present in y_true.")
+                                    score = 0.0
                         else:  # AKA isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                            score = sklearn.metrics.roc_auc_score(labels.cpu(), outputs.data.cpu())
+                            try:
+                                score = sklearn.metrics.roc_auc_score(labels.cpu(), outputs.data.cpu())
+                            except ValueError as e:
+                                if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
+                                    raise e
+                                else:
+                                    warnings.warn("Setting score = 0.0 since there is only one class present in y_true.")
+                                    score = 0.0
                     else:  # AKA metric == "acc":
                         if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
                             score = sklearn.metrics.accuracy_score(

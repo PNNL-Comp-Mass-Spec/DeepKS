@@ -10,7 +10,7 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np
+import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings
 import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
@@ -214,18 +214,21 @@ class IndividualClassifiers:
                 device=self.device,
                 maxsize=MAX_SIZE_DS
             ))[0]
-            self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader)
-            self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader)
-            msm = self.grp_to_interface_args[group_tr]["model_summary_name"]
-            assert isinstance(msm, str), "Model summary name must be a string"
-            self.interfaces[group_tr].model_summary_name = msm + "-" + group_tr.upper()
-            self.interfaces[group_tr].write_model_summary()
-            self.interfaces[group_tr].train(
-                train_loader,
-                val_dl=val_loader,
-                **self.grp_to_training_args[group_tr],
-                extra_description="(Group: %s)" % group_tr.upper(),
-            )
+            if len(train_loader) != 0:
+                self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader)
+                self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader)
+                msm = self.grp_to_interface_args[group_tr]["model_summary_name"]
+                assert isinstance(msm, str), "Model summary name must be a string"
+                self.interfaces[group_tr].model_summary_name = msm + "-" + group_tr.upper()
+                self.interfaces[group_tr].write_model_summary()
+                self.interfaces[group_tr].train(
+                    train_loader,
+                    val_dl=val_loader,
+                    **self.grp_to_training_args[group_tr],
+                    extra_description="(Group: %s)" % group_tr.upper(),
+                )
+            else:
+                warnings.warn(f"No data for group {group_tr}, skipping training for this group. Neural network weights will be random.")
 
     def obtain_group_and_loader(
         self,
@@ -308,7 +311,8 @@ class IndividualClassifiers:
                 class CPU_Unpickler(orig_pickle.Unpickler):
                     def find_class(self, module, name):
                         if module == "torch.storage" and name == "_load_from_bytes":
-                            return lambda b: torch.load(io.BytesIO(b), map_location="cpu")
+                            unpickler_lambda = lambda b: torch.load(io.BytesIO(b), map_location="cpu")
+                            return unpickler_lambda
                         else:
                             return super().find_class(module, name)
 
@@ -355,9 +359,9 @@ class IndividualClassifiers:
                         for pair_id, i in zip(new_info, range(len(new_info)))
                     }
                 )
-
+            key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
             pred_items = sorted(
-                all_predictions_outputs.items(), key=lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
+                all_predictions_outputs.items(), key= key_lambda
             )  # Pair # {i}
             potentially_save_individual_classifiers()
             return pred_items

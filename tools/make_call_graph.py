@@ -42,22 +42,22 @@ class DeepKSCallGraph:
         self,
         keep_all_from="DeepKS",
         exclude_globs=[
-            r"pycallgraph\..*",
-            r".*<listcomp>",
-            r".*<dictcomp>",
-            r".*<setcomp>",
-            r"^_[^_].*",
-            r"__(?!(init|str)).*__",
-            r"^<lambda>$"
+            # r"pycallgraph\..*",
+            # r".*<listcomp>.*",
+            # r".*<dictcomp>.*",
+            # r".*<setcomp>.*",
+            # r"^_[^_].*",
+            # r"__(?!(init|str)).*__",
+            # r"^<lambda>$"
         ],
-        include_globs=[],
+        include_globs=[r".*"],
         other_config={},
         other_output={},
     ):
         self.exclude_globs = exclude_globs
         outer_module = re.sub(r"<module '(.*)' from.*", r"\1", str(sys.modules[__name__])).split(".")[0]
         # print(f"{outer_module=}")
-        self.include_globs = include_globs + [r"(^__main__$|^" + outer_module + r"\..*$)"]
+        self.include_globs = include_globs# + [r"(^__main__$|^" + outer_module + r"\..*$)"]
         self.other_config = other_config
         self.other_output = other_output
 
