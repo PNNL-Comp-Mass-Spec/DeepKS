@@ -335,7 +335,7 @@ class IndividualClassifiers:
                 if v := re.search(r"deepks_nn_weights_v\d+.pkl", file):
                     max_version = max(max_version, int(v.group(0)))
             if self.args.get("s"):
-                print("Progress: Saving State to Disk")
+                print(colored("Status: Serializing and Saving Neural Networks to Disk."), "green")
                 IndividualClassifiers.save_all(self, f"{parent}/../bin/deepks_nn_weights_v{max_version}.cornichon")
 
         if predict_mode:
