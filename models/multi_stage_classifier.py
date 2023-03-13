@@ -1,8 +1,9 @@
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
+    from termcolor import colored
 
-    write_splash("gc_trainer")
-    print("Progress: Loading Modules", flush=True)
+    write_splash("main_gc_trainer")
+    print(colored("Progress: Loading Modules", "green"), flush=True)
 from copy import deepcopy
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm
 import re, sqlite3

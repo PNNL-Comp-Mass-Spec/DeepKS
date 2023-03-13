@@ -1,11 +1,8 @@
-import os, pathlib
-old_dir = os.getcwd()
+import pathlib
 
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(where_am_i)
+parent = pathlib.Path(__file__).parent.resolve()
 
 def write_splash(splash_file):
-    splash_screen = open(f"{splash_file}.splash", "r").read()
+    splash_screen = open(f"{parent}/{splash_file}.splash", "r").read()
     print(splash_screen)
     print()
-    os.chdir(old_dir)
