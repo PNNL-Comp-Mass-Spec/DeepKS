@@ -295,8 +295,8 @@ class IndividualClassifiers:
 
     @staticmethod
     def save_all(individualClassifiers: IndividualClassifiers, path):
-        f = open(path, "wb")
-        torch.save(individualClassifiers, f)
+        with open(path, "wb") as f:
+            pickle.dump(individualClassifiers, f)
 
     @staticmethod
     def load_all(path, device=None) -> IndividualClassifiers:
