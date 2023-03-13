@@ -1,6 +1,7 @@
 import pathlib, os, traceback
 from typing import Union
 from termcolor import colored
+
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
@@ -26,27 +27,15 @@ def my_pop(df, index):
 
 
 def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
-    try:
-        assert "held_out_percentile" in config or (
-            "dataframe_generation_mode" in config and config["dataframe_generation_mode"] == "tr-all"
-        )
-        assert "train_percentile" in config
-        assert "dataframe_generation_mode" in config
-        if "held_out_percentile" in config:
-            held_out_percentile = config["held_out_percentile"]
-        else:
-            held_out_percentile = None
-        train_percentile = config["train_percentile"]
-        dataframe_generation_mode = config["dataframe_generation_mode"]
-    except AssertionError:
-        _, _, tb = sys.exc_info()
-        tb_info = traceback.extract_tb(tb)
-        file, line, func, text = tb_info[-1]
-
-        print(
-            f"An assertion error occurred in file {file}, on line {line}, in function {func}, in assertion « {text} »"
-        )
-        raise AssertionError()
+    assert "held_out_percentile" in config or config.get("dataframe_generation_mode") == "tr-all"
+    assert "train_percentile" in config
+    assert "dataframe_generation_mode" in config
+    if "held_out_percentile" in config:
+        held_out_percentile = config["held_out_percentile"]
+    else:
+        held_out_percentile = None
+    train_percentile = config["train_percentile"]
+    dataframe_generation_mode = config["dataframe_generation_mode"]
 
     all_data = (
         pd.read_csv(input_fn)
@@ -71,10 +60,10 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
                 .drop("lab", axis=1, inplace=False)
                 .rename(columns={"lab_updated": "lab"}, inplace=False)
             )
-            get_input_dataframe_helper(all_df, input_fn, kin_seq_file, distance_matrix_file, percentile)
+            get_input_dataframe_core(all_df, input_fn, kin_seq_file, distance_matrix_file, percentile)
 
     elif dataframe_generation_mode == "tr-all":
-        get_input_dataframe_helper(
+        get_input_dataframe_core(
             section_df=all_data,
             input_fn=input_fn,
             kin_seq_file=kin_seq_file,
@@ -87,7 +76,7 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
         raise ValueError("`dataframe_generation_mode` is not one of `tr-val-te` or `tr-all`.")
 
 
-def get_input_dataframe_helper(
+def get_input_dataframe_core(
     section_df: pd.DataFrame,
     input_fn: str,
     kin_seq_file: str,
@@ -112,7 +101,9 @@ def get_input_dataframe_helper(
     max_seen_end = 0
     max_seen_start = 0
     for kin in start_dict:
-        if (end_dict[kin] <= max_seen_end and max_seen_end != 0) or (start_dict[kin] <= max_seen_start and max_seen_start != 0):
+        if (end_dict[kin] <= max_seen_end and max_seen_end != 0) or (
+            start_dict[kin] <= max_seen_start and max_seen_start != 0
+        ):
             raise ValueError()
         max_seen_end = end_dict[kin]
         max_seen_start = start_dict[kin]
@@ -124,38 +115,30 @@ def get_input_dataframe_helper(
     # decoy = my_pop(all_data, to_pop_inds).reset_index(drop=True)
     target = all_data.copy()
     decoy = all_data.copy()
+    decoy['class'] = 0
 
-    target["original_kinase"] = target["lab"]
-    decoy["original_kinase"] = decoy["lab"]
+    for df in [target, decoy]:
+        df['original_kinase'] = target["lab"]
+        df['original_uniprot_id'] = target['uniprot_id']
 
     if os.path.exists(f"{sum(sizes)}.derangement"):
         derangement = json.load(open(f"{sum(sizes)}.derangement"))
         print(colored("Info: Using derangement found in cache.", "blue"))
     else:
+        print(colored("Warning: Computing derangement instead of using cache.", "yellow"))
         derangement = [
             x if x is not None else len(decoy)
-            for x in get_groups_derangement4(order, sizes, kin_seq_file, distance_matrix_file, percentile, cache_derangement=True)
+            for x in get_groups_derangement4(
+                order, sizes, kin_seq_file, distance_matrix_file, percentile, cache_derangement=True
+            )
         ]
-        print(colored("Warning: Computing derangement instead of using cache.", "yellow"))
-    decoy.loc[len(decoy)] = ["NOLAB", "NOSITE", "NOSEQ", "NOID", "NONUM", "NOCLASS", "NOORIG", "NOORIGKIN"]  # type: ignore
-    decoy_seqs = (
-        decoy.iloc[derangement].reset_index().drop("index", axis=1).squeeze()
-    )
 
-    print("done processing derangement.\n")
+    print(colored("Status: Done processing derangement.", "green"))
+    print(colored("Status: assembling final data.", "green"))
 
-    print("assembling final data...")
-    decoy = pd.DataFrame(
-        {
-            "lab": decoy["lab"],
-            "seq": decoy_seqs["seq"],
-            "original_kinase": decoy_seqs["original_kinase"],
-            "uniprot_id": decoy_seqs["uniprot_id"],
-            "num_sites": decoy_seqs["num_sites"],
-            "class": 0,
-        }
-    )
-    decoy = decoy[(decoy["seq"] != "NOSEQ") & (~decoy["seq"].isna())]
+    for col in ['original_kinase', 'original_uniprot_id', 'seq']:
+        decoy[col] = decoy[col].loc[derangement].reset_index(drop=True)
+
     for i, r in decoy.iterrows():  # weak version
         assert r["lab"] != r["original_kinase"]
     all_data = pd.concat([target, decoy], ignore_index=True)
@@ -172,46 +155,43 @@ def get_input_dataframe_helper(
 
     all_data_w_seqs = pd.DataFrame(
         {
-            "orig_lab_name": all_data["original_kinase"] + "|" + all_data["uniprot_id"],
-            "lab": all_data["lab"],
-            "kin_seq": [kin_seqs_dict[k][:] for k in all_data["original_kinase"] + "|" + all_data["uniprot_id"]],
-            "seq": all_data["seq"],
-            "class": all_data["class"],
-            "num_seqs": all_data["num_sites"],
+            "Original Kinase Gene Name": all_data["original_kinase"] + "|" + all_data["original_uniprot_id"],
+            "Kinase Gene Name (Possibly Deranged)": all_data["lab"] + "|" + all_data["uniprot_id"],
+            "Num Seqs in Orig Kin": all_data["num_sites"],
+            "Class": all_data["class"],
+            "Site Sequence": all_data["seq"],
+            "Kinase Sequence": [kin_seqs_dict[k][:] for k in all_data["lab"] + "|" + all_data["uniprot_id"]],
         }
     )
-    all_data_w_seqs.rename(columns={"lab": "lab_name", "kin_seq": "lab"}, inplace=True)
 
     extra = "" if mode == "no_alin" else "_alin"
     extra += f"_{percentile}"
     all_data_w_seqs = all_data_w_seqs.sort_values(
-        by=["class", "lab_name", "orig_lab_name", "seq"], ascending=[False, True, True, True]
+        by=["Class", "Kinase Sequence", "Original Kinase Gene Name", "Site Sequence"], ascending=[False, True, True, True]
     )
 
     if write_file:
         all_data_w_seqs.to_csv(
-            "/".join(input_fn.split("/")[:-1] + [re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn.split("/")[-1]).replace(".csv", "")])
+            "/".join(
+                input_fn.split("/")[:-1]
+                + [re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn.split("/")[-1]).replace(".csv", "")]
+            )
             + f"_formatted{extra}.csv",
             index=False,
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
-    print(f"Size: {len(all_data_w_seqs)}")
+    print(colored(f"Info: Outputting formatted data file with size: {len(all_data_w_seqs)}", "blue"))
 
 
 if __name__ == "__main__":
     if mode == "no_alin":
-        kin_seq_file = "../../raw_data/kinase_seq_822.txt"
+        kin_seq_file = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/kinase_seq_826.csv"
     else:
         raise RuntimeError("mode not supported")
 
     get_input_dataframe(
-        "../../raw_data/raw_data_22473.csv",
+        "../../raw_data/raw_data_22588.csv",
         kin_seq_file,
         "../pairwise_mtx_826.csv",
-        {
-            "held_out_percentile": 95,
-            "train_percentile": 65,
-            "num_held_out_kins": 60,
-            "dataframe_generation_mode": "pre",
-        },
+        {"train_percentile": 65, "dataframe_generation_mode": "tr-all"},
     )
