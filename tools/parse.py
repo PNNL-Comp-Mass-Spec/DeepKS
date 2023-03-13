@@ -8,7 +8,8 @@ def parsing() -> dict[str, Union[str, None]]:
     global train_filename, val_filename, test_filename
     parser = argparse.ArgumentParser()
 
-    def device(arg_value):
+
+    def device_eligibility(arg_value):
         try:
             assert(bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value)))
             if "cuda" in arg_value:
@@ -20,8 +21,9 @@ def parsing() -> dict[str, Union[str, None]]:
             raise argparse.ArgumentTypeError(f"Device '{arg_value}' does not exist. Choices are {'cpu', 'cuda[:<gpu #>]'}.")
         
         return arg_value
+    # determine_device_eligibility_wrapper = lambda x: device(x)
         
-    parser.add_argument("--device", type=device, help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
+    parser.add_argument("--device", type=str, help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.", metavar='<device>', default='cuda:0' if torch.cuda.is_available() else 'cpu')
     parser.add_argument("--train", type=str, help="Specify train file name", required=False, metavar='<train_file_name.csv>')
     parser.add_argument("--val", type=str, help="Specify validation file name", required=False, metavar='<val_file_name.csv>')
     parser.add_argument("--test", type=str, help="Specify test file name", required=False, metavar='<test_file_name.csv>')
@@ -35,6 +37,9 @@ def parsing() -> dict[str, Union[str, None]]:
     except Exception as e:
         print(e)
         exit(1)
+
+    device_eligibility(args['device'])
+
     if args['load_include_eval'] is None:
         test_filename = args['test']
         if args['load'] is not None:
@@ -53,7 +58,7 @@ def parsing() -> dict[str, Union[str, None]]:
                     assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
                 except AssertionError as e:
                     warnings.warn(str(e), UserWarning)
-                assert os.path.exists(f), f"Input file '{f}' does not exist."
+                assert os.path.exists(os.path.expanduser(f)), f"Input file '{f}' does not exist."
     else:
         load_filename = args['load_include_eval']
         assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."

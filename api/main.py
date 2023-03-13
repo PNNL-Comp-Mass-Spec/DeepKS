@@ -1,17 +1,19 @@
 """Contains functions that are an interface to the DeepKS project.
 """
-
 import sys
+from termcolor import colored
 
-if __name__ == "__main__" and (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]):
+if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
     from ..splash import write_splash
 
     write_splash.write_splash("main_api")
+    print(colored("Status: Loading Modules...", "green"))
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, torch, io
-from pprint import pformat
-from termcolor import colored
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch
+
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
+API_IMPORT_MODE = "true" in (s := open(str(pathlib.Path(__file__).parent.resolve())+"/../config/API_IMPORT_MODE.json", "r").read())
+
 from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
 
@@ -118,16 +120,16 @@ def make_predictions(
         group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
         individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, device=device)
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
-        nn_sample = list(individual_classifiers.interfaces.values())[0]
-        summary_stringio = io.StringIO()
-        FAKE_BATCH_SIZE = 101
-        nn_sample.device = torch.device(device); nn_sample.inp_types = [torch.int32, torch.int32]; nn_sample.inp_size = [(FAKE_BATCH_SIZE, 15), (FAKE_BATCH_SIZE, 4128)]; nn_sample.model_summary_name = summary_stringio
-        nn_sample.write_model_summary()
-        summary_stringio.seek(0)
-        summary_string = re.sub(str(FAKE_BATCH_SIZE), "BaS", summary_stringio.read())
-        summary_string = re.sub(r"=+\nInput size \(MB\):.*\nForward\/backward pass size \(MB\):.*\nParams size \(MB\):.*\nEstimated Total Size \(MB\):.*\n=+", "", summary_string)
-        with open(os.path.abspath("") + "/../architectures/nn_summary.txt", "w") as f:
-            f.write(summary_string)
+        # nn_sample = list(individual_classifiers.interfaces.values())[0]
+        # summary_stringio = io.StringIO()
+        # FAKE_BATCH_SIZE = 101
+        # nn_sample.device = torch.device(device); nn_sample.inp_types = [torch.int32, torch.int32]; nn_sample.inp_size = [(FAKE_BATCH_SIZE, 15), (FAKE_BATCH_SIZE, 4128)]; nn_sample.model_summary_name = summary_stringio
+        # nn_sample.write_model_summary()
+        # summary_stringio.seek(0)
+        # summary_string = re.sub(str(FAKE_BATCH_SIZE), "BaS", summary_stringio.read())
+        # summary_string = re.sub(r"=+\nInput size \(MB\):.*\nForward\/backward pass size \(MB\):.*\nParams size \(MB\):.*\nEstimated Total Size \(MB\):.*\n=+", "", summary_string)
+        # with open(os.path.abspath("") + "/../architectures/nn_summary.txt", "w") as f:
+        #     f.write(summary_string)
 
 
         if dry_run:
@@ -177,6 +179,8 @@ def parse_api() -> dict[str, typing.Any]:
 
     @returns: Dictionary mapping the argument name to the argument value.
     """
+
+    print(colored("Status: Parsing Arguments", "green"))
 
     def wrap(s) -> str:
         if "\n" in s:
@@ -330,29 +334,26 @@ def parse_api() -> dict[str, typing.Any]:
         required=False,
         metavar="<pre-trained group classifier file>",
     )
-
-    import torch
-
-    def device(arg_value):
+    
+    def device_eligibility(arg_value):
         try:
-            assert bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value))
+            assert(bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value)))
             if "cuda" in arg_value:
-                assert torch.cuda.is_available()
                 if arg_value == "cuda":
                     return arg_value
                 cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
-                assert 0 <= cuda_num <= torch.cuda.device_count()
-        except AssertionError:
+                assert(0 <= cuda_num <= torch.cuda.device_count())
+        except Exception:
             raise argparse.ArgumentTypeError(
                 f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
                 f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
             )
-
+        
         return arg_value
 
     ap.add_argument(
         "--device",
-        type=device,
+        type=str,
         help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.",
         metavar="<device>",
         default="cuda:0" if torch.cuda.is_available() else "cpu",
@@ -399,6 +400,7 @@ def parse_api() -> dict[str, typing.Any]:
     except Exception as e:
         informative_exception(e, "Issue with arguments provided.", print_full_tb=False)
     args_dict = vars(args)
+    device_eligibility(args_dict['device'])
     ii = ll = None
     if args_dict["k"] is not None:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
@@ -535,16 +537,29 @@ def setup(args: dict[str, typing.Any] = {}):
         except Exception as e:
             informative_exception(e, "Error: DeepKS API failed to parse arguments.")
 
-    print(colored("Status: Loading Modules...", "green"))
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
-    
 
     make_predictions(**args)
 
+if __name__ == "__main__":
+    args = parse_api()
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
+    from ..models.individual_classifiers import IndividualClassifiers
+    from ..models.multi_stage_classifier import MultiStageClassifier
+    from ..models.group_classifier_definitions import SKGroupClassifier
+    from .. import config
+    make_predictions(**args)
 
-if __name__ in ["__main__"]:
-    setup()
+print("API_IMPORT_MODE", API_IMPORT_MODE)
+if API_IMPORT_MODE:
+    print("API_IMPORT_MODE")
+    import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema, torch
+    from ..models.individual_classifiers import IndividualClassifiers
+    from ..models.multi_stage_classifier import MultiStageClassifier
+    from ..models.group_classifier_definitions import SKGroupClassifier
+    from .. import config    
+

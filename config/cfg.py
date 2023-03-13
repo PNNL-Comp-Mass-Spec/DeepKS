@@ -22,3 +22,5 @@ def _prerun():
 
 def _postrun(old_wd):
     os.chdir(old_wd)
+
+API_IMPORT_MODE = False
