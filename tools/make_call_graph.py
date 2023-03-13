@@ -50,20 +50,20 @@ class DeepKSCallGraph:
             # r"__(?!(init|str)).*__",
             # r"^<lambda>$"
         ],
-        include_globs=[r".*"],
+        include_globs=[],
         other_config={},
         other_output={},
     ):
         self.exclude_globs = exclude_globs
         outer_module = re.sub(r"<module '(.*)' from.*", r"\1", str(sys.modules[__name__])).split(".")[0]
         # print(f"{outer_module=}")
-        self.include_globs = include_globs# + [r"(^__main__$|^" + outer_module + r"\..*$)"]
+        self.include_globs = include_globs + [r"(^__main__$|^" + outer_module + r"\..*$)"]
         self.other_config = other_config
         self.other_output = other_output
 
-    def make_call_graph(self, function, cmdline_args):
+    def make_call_graph(self, function, cmdline_args, output_class: type = GraphvizOutput):
         with PyCallGraph(
-            output=GraphvizOutput(**self.other_output),
+            output=output_class(**self.other_output),
             config=Config(trace_filter=GlobbingFilter(exclude=self.exclude_globs, include=self.include_globs)),
         ):
             sys.argv += cmdline_args

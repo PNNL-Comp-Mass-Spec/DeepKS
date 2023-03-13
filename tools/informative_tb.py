@@ -75,8 +75,9 @@ def informative_exception(
     print(colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"), file=sys.stderr)
     print()
 
-    with Capturing():
-        raise e
+    # with Capturing():
+    #     raise e
+    sys.exit(1)
 
 
 def get_exception_description(exception_type: str):

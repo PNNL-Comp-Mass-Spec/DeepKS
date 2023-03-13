@@ -34,7 +34,7 @@ class NNInterface:
             torch.nn.BCEWithLogitsLoss,
             torch.nn.CrossEntropyLoss,
         ], "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
-        self.optimizer = optim
+        self.optimizer: torch.optim.Optimizer = optim
         self.device = device
         self.inp_size = inp_size
         self.inp_types = inp_types
@@ -119,9 +119,9 @@ class NNInterface:
                     outputs = outputs.reshape([1])
                 torch.cuda.empty_cache()
                 if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                    loss = self.criterion(outputs, labels.long())
+                    loss: torch.Tensor = self.criterion.__call__(outputs, labels.long())
                 else:  # AKA isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                    loss = self.criterion(outputs, labels.float())
+                    loss: torch.Tensor = self.criterion.__call__(outputs, labels.float())
 
                 # Backward and optimize
                 self.optimizer.zero_grad()
@@ -198,7 +198,7 @@ class NNInterface:
             # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
             assert torch.equal(labels, torch.Tensor([-1]*len(labels)).to(device)), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
-            outputs = self.model(*X)
+            outputs = self.model.forward(*X)
             
             if "cuda" in device:
                 torch.cuda.empty_cache()
@@ -233,14 +233,14 @@ class NNInterface:
         avg_loss = []
         self.model.eval()
         outputs = torch.Tensor([-1])
-        if self.device == torch.device('cpu'):
-            input("!!! Warning: About to evaluate using CPU. This may be lengthy and/or crash your computer (due to high RAM use). Press any key to continue anyway (ctrl+c to abort): ")
+        # if self.device == torch.device('cpu'):
+        #     input("!!! Warning: About to evaluate using CPU. This may be lengthy and/or crash your computer (due to high RAM use). Press any key to continue anyway (ctrl+c to abort): ")
 
         with torch.no_grad():
             for *X, labels in list(dataloader):
                 X = [x.to(self.device) for x in X]
                 labels = labels.to(self.device)
-                outputs = self.model(*X)
+                outputs = self.model.forward(*X)
                 torch.cuda.empty_cache()
                 if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
                     labels = labels.long()

@@ -1,6 +1,7 @@
 from ..tools.make_call_graph import DeepKSCallGraph
 from ..models.individual_classifiers import main
-import tqdm, contextlib, sys, time
+from pycallgraph2.output import GephiOutput, GraphvizOutput
+import tqdm, contextlib, sys, time, os
 from tqdm.contrib import DummyTqdmFile
 
 @contextlib.contextmanager
@@ -36,15 +37,15 @@ def std_out_err_redirect_tqdm():
 
 
 # test_bar()
-DeepKSCallGraph(other_config={'include_stdlib': True}, other_output={'output_file': '/home/ubuntu/call_flow.pdf', 'output_type': "pdf"}).make_call_graph(
+DeepKSCallGraph(other_config={'include_stdlib': True, 'groups': True}, other_output={'output_file': os.path.abspath(os.path.expanduser('~/Desktop/call_flow.pdf')), 'output_type': 'pdf'}, exclude_globs=["__len__", "__getitem__", r"torch._tensor.Tensor.__array__", "torch._tensor.Tensor.storage"], include_globs=[r"torch\._tensor\.Tensor\..*", r"torch\.optim\.optimizer\.[^\.]+$"]).make_call_graph(
     main,
     [
         "--train",
-        "/home/ubuntu/DeepKS/data/raw_data_trunc_200.csv",
+        "~/Desktop/DeepKS_/DeepKS/data/raw_data_trunc_200.csv",
         "--val",
-        "/home/ubuntu/DeepKS/data/raw_data_trunc_105.csv",
+        "~/Desktop/DeepKS_/DeepKS/data/raw_data_trunc_105.csv",
         "--device",
-        "cuda:4",
-        "-s",
-    ]
+        "cpu"
+    ],
+    output_class=GraphvizOutput
 )
