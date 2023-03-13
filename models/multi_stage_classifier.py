@@ -48,7 +48,8 @@ class MultiStageClassifier:
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
         if "test_json" in addl_args:
-            input_file = json.load(open(Xy_formatted_input_file))
+            with open(Xy_formatted_input_file) as f:
+                input_file = json.load(f)
             input_file = {k: pd.Series(v) for k, v in input_file.items()}
         else:
             input_file = pd.read_csv(Xy_formatted_input_file)
@@ -344,9 +345,8 @@ class MultiStageClassifier:
                 dist_mtx_maker.make_fasta(existing_seqs, temp_fasta_known.name)
                 dist_mtx_maker.make_fasta(temp_df_in_file.name, temp_fasta_novel.name)
                 with open(combined_temp_fasta.name, "w") as combined_fasta:
-                    combined_fasta.write(
-                        open(temp_fasta_known.name, "r").read() + open(temp_fasta_novel.name, "r").read()
-                    )
+                    with open(temp_fasta_known.name, "r") as known_fasta, open(temp_fasta_novel.name, "r") as novel_fasta:
+                        combined_fasta.write(known_fasta.read() + novel_fasta.read())
 
                 with tf.NamedTemporaryFile() as temp_mtx_out:
                     novel_df = get_needle_pairwise_mtx(

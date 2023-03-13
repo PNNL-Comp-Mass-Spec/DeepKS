@@ -133,7 +133,8 @@ class IndividualClassifiers:
         if not cartesian_product:
             Xy = pd.read_csv(Xy_formatted_input_file)
         else:
-            Xy = json.load(open(Xy_formatted_input_file))
+            with open(Xy_formatted_input_file, "r") as f:
+                Xy = json.load(f)
         if pred_groups is None:  # Training
             print("Warning: Using ground truth groups. (Normal for training)")
             Xy["Group"] = [symbol_to_grp_dict[x] for x in Xy["Original Kinase Gene Name"].apply(DEL_DECOR)]

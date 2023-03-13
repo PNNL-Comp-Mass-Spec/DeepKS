@@ -10,7 +10,7 @@ os.chdir(where_am_i)
 DEBUGGING = False if "DEBUGGING" not in os.environ else True if os.environ["DEBUGGING"] == "1" else False
 USE_XL_CACHE = False if "USE_XL_CACHE" not in os.environ else True if os.environ["USE_XL_CACHE"] == "1" else False
 
-perform_steps = eval(sys.argv[1]) if len(sys.argv) > 1 else {}
+perform_steps = eval(sys.argv[sys.argv.index("--perform-steps") + 1]) if "--perform-steps" in sys.argv else {}
 
 def main():
     # FOR DEBUGGING:

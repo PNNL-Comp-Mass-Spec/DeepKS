@@ -117,13 +117,8 @@ def make_predictions(
         
         # Create (load) multi-stage classifier
         print(colored("Status: Loading previously trained models...", "green"))
-        group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
-
-        import inspect
-        ic = IndividualClassifiers.load_all("/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_nn_weights.0.0.1.gherkin")
-        print(inspect.getsource(ic._run_dl_core))
-
-
+        with open(pre_trained_gc, "rb") as f:
+            group_classifier: SKGroupClassifier = pickle.load(f)
         individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, target_device=device)
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
         # nn_sample = list(individual_classifiers.interfaces.values())[0]
@@ -327,14 +322,14 @@ def parse_api() -> dict[str, typing.Any]:
     )
 
     ap.add_argument(
-        "--pre_trained_nn",
+        "--pre-trained-nn",
         help="The path to the pre-trained neural network.",
         default=PRE_TRAINED_NN,
         required=False,
         metavar="<pre-trained neural network file>",
     )
     ap.add_argument(
-        "--pre_trained_gc",
+        "--pre-trained-gc",
         help="The path to the pre-trained group classifier.",
         default=PRE_TRAINED_GC,
         required=False,

@@ -66,7 +66,8 @@ def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
         tmp_b.flush()
         cmd = f"needleall -asequence {tmp_a.name} -bsequence {tmp_b.name} -auto -aformat3 markx3 -outfile {outfile}"
         # tq.write("Running command")
-        retcode = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+        with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            retcode = proc.wait()
     if retcode != 0:
         raise RuntimeError(f"Error: The `needleall` command for running pairwise alignments did not exit with success. For reference, the failed command was:\n\n{cmd}")
     with open(outfile, "r") as f:
@@ -90,7 +91,8 @@ def get_needle_pairwise_mtx(
     assert len(restricted_combinations) in [0, 2], "Restricted combinations must be a list of two iterables or empty."
     if len(restricted_combinations) == 2 and (len(restricted_combinations[0]) == 0 or len(restricted_combinations[1]) == 0):
         return pd.DataFrame()
-    fasta_all = re.findall(r">.*\n[^>]+", open(fasta, "r").read())
+    with open(fasta, "r") as f:
+        fasta_all = re.findall(r">.*\n[^>]+", f.read())
     if subset == -1:
         subset = len(fasta_all)
     fastas = [format_for_needle(x) for x in fasta_all[:subset]]
