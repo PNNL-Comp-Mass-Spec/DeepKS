@@ -4,3 +4,7 @@
 # Can be generated on the fly from the csv files
 *.txt
 # Can be generated on the fly from the csv files
+!site_list_7890.txt
+!kinase_list_10.txt
+!compact_kinase_info_10.json
+!compact_site_info_86201.json
