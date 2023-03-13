@@ -80,7 +80,7 @@ def gather_data(
     
     # ===== #
     def package(desired_length = None, desired_chunk_pos = None):
-        nonlocal eval_batch_size, X_train, X_train_kin, y_train, X_val, X_val_kin, y_val, X_tune, X_tune_kin, y_tune, X_test, X_test_kin, y_test
+        nonlocal eval_batch_size, X_train, X_train_kin, y_train, X_val, X_val_kin, y_val, X_tune, X_tune_kin, y_tune, X_test, X_test_kin, y_test, device
         if trf > 0:
             train_loader = torch.utils.data.DataLoader(
                 model_utils.KSDataset(X_train, X_train_kin, y_train),
@@ -99,7 +99,7 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = max([len(X) // 1 for X in [X_val, X_tune, X_test]] + [1])
+        eval_batch_size = max([len(X) // (1 if 'cuda' in str(device) else (9 if len(X) % 10 != 0 else 10)) for X in [X_val, X_tune, X_test]] + [1])
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
@@ -277,7 +277,8 @@ def gather_data(
     BYTES_PER_PAIR *= BYTES_PER_PAIR_MULTIPLIER
 
     if str(device) == str(torch.device('cpu')):
-        free_ram_and_swap_B = psutil.virtual_memory().available + psutil.swap_memory().free
+        free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free)/1.25
+        # print(colored(f"{psutil.virtual_memory().available=}{psutil.swap_memory().free=}", "yellow"))
     else:
         assert 'cuda' in str(device), "Device must be either 'cpu' or a cuda device."
         free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]

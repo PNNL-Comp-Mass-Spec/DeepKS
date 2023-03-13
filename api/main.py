@@ -118,7 +118,13 @@ def make_predictions(
         # Create (load) multi-stage classifier
         print(colored("Status: Loading previously trained models...", "green"))
         group_classifier: SKGroupClassifier = pickle.load(open(pre_trained_gc, "rb"))
-        individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, device=device)
+
+        import inspect
+        ic = IndividualClassifiers.load_all("/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_nn_weights.0.0.1.gherkin")
+        print(inspect.getsource(ic._run_dl_core))
+
+
+        individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, target_device=device)
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
         # nn_sample = list(individual_classifiers.interfaces.values())[0]
         # summary_stringio = io.StringIO()

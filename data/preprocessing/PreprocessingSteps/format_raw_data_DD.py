@@ -115,7 +115,7 @@ def get_input_dataframe_core(
     # decoy = my_pop(all_data, to_pop_inds).reset_index(drop=True)
     target = all_data.copy()
     decoy = all_data.copy()
-    decoy['class'] = 0
+    decoy['Class'] = 0
 
     for df in [target, decoy]:
         df['original_kinase'] = target["lab"]
@@ -158,7 +158,7 @@ def get_input_dataframe_core(
             "Original Kinase Gene Name": all_data["original_kinase"] + "|" + all_data["original_uniprot_id"],
             "Kinase Gene Name (Possibly Deranged)": all_data["lab"] + "|" + all_data["uniprot_id"],
             "Num Seqs in Orig Kin": all_data["num_sites"],
-            "Class": all_data["class"],
+            "Class": all_data["Class"],
             "Site Sequence": all_data["seq"],
             "Kinase Sequence": [kin_seqs_dict[k][:] for k in all_data["lab"] + "|" + all_data["uniprot_id"]],
         }

@@ -153,7 +153,7 @@ class MultiStageClassifier:
             "pair_id": [
                 f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))
             ],
-            "class": [-1],
+            "Class": [-1],
             "Num Seqs in Orig Kin": ["N/A"],
         }
 

@@ -1,5 +1,8 @@
-import html2text, traceback, os, types, typing, sys, re, requests, json, textwrap, pathlib, io
+import html2text, traceback, os, types, typing, sys, re, requests, json, textwrap, pathlib, io, pprint
+from ..tools.nice_printer import nice_printer
 from termcolor import colored
+
+
 
 FAKE_TERM_WIDTH = 90
 class Capturing(list):
@@ -48,7 +51,7 @@ def informative_exception(
 
         print("", file=sys.stderr)
         # print(colored("".join(traceback.format_tb(traceback_)), "magenta"), file=sys.stderr)
-
+    extr = traceback.extract_tb(traceback_)
     print("\n", file=sys.stderr)
     print(colored(f"{top_message}\n", "red"), file=sys.stderr)
     print(colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"), file=sys.stderr)
@@ -67,11 +70,21 @@ def informative_exception(
         modified_path = "/".join(extracted_path.split("/")[extracted_path.split("/").index(fake_root_dir) :])
     except ValueError:
         modified_path = "/".join(extracted_path.split("/")[-4:])
-    print(colored(f"  * Error Location: {modified_path}:{traceback_.tb_lineno}", "magenta"), file=sys.stderr)
+    print(colored(f"  * Error Location: {modified_path}:{extr[-1].lineno}", "magenta"), file=sys.stderr)
     print(
-        colored(f"  * Error Function: {traceback.extract_stack(traceback_.tb_frame, limit=1)[-1][2]}", "magenta"),
+        colored(f"  * Error Function: {extr[-1][2]}", "magenta"),
         file=sys.stderr,
     )
+    tb_locals = {}
+    tb = traceback_.tb_next
+    while tb:
+        tb_locals = tb.tb_frame.f_locals
+        tb = tb.tb_next
+
+    local_variable_nice_io = io.StringIO()
+    nice_printer(tb_locals, file=local_variable_nice_io, initial_indent=6)
+    local_variable_nice_io.seek(0)
+    print(colored(f"  * Local Variables:\n{local_variable_nice_io.read()}", "magenta"), file=sys.stderr)
     print(colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"), file=sys.stderr)
     print()
 

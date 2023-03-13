@@ -1,4 +1,4 @@
-import os, re, pathlib, pprint, tempfile as tf, pandas as pd
+import os, re, pathlib, pprint, tempfile as tf, pandas as pd, sys
 from . import PreprocessingSteps as PS
 from ...tools import system_tools, get_needle_pairwise as get_pairwise
 from ...tools import make_fasta as mtx_utils
@@ -9,6 +9,8 @@ where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 DEBUGGING = False if "DEBUGGING" not in os.environ else True if os.environ["DEBUGGING"] == "1" else False
 USE_XL_CACHE = False if "USE_XL_CACHE" not in os.environ else True if os.environ["USE_XL_CACHE"] == "1" else False
+
+perform_steps = eval(sys.argv[1]) if len(sys.argv) > 1 else {}
 
 def main():
     # FOR DEBUGGING:
@@ -22,13 +24,13 @@ def main():
             "T"
         )
 
-    if not (DEBUGGING or USE_XL_CACHE):
+    if (not (DEBUGGING or USE_XL_CACHE)) or 1 in perform_steps:
         print("Step 1: Download most recent version of the PhosphositePlus database.")
         PS.download_psp.get_phospho(outfile="../raw_data/PSP_script_download.xlsx")
     else:
         print(colored("Warning: Using cached version of PSP database.", "yellow"))
 
-    if not DEBUGGING:
+    if not DEBUGGING or 2 in perform_steps:
         print("Step 2: Download sequences using the Uniprot REST API. Using R.")
         print("Step 2a: Ensuring `Rscript` is in PATH.")
         if os.system("Rscript --version 1>/dev/null 2>/dev/null") != 0:
@@ -41,11 +43,11 @@ def main():
         )
         print("\n~~~~ END R MESSAGES ~~~~\n")
 
-    if not DEBUGGING:
+    if not DEBUGGING or 3 in perform_steps:
         print("Step 3: Determining Kinase Family and Group Classifications (from http://www.kinhub.org/kinases.html).")
         kin_fam_grp_filename = PS.get_kin_fam_grp.get_kin_to_fam_to_grp(seq_filename).split("/")[:-1]
 
-    if not DEBUGGING:
+    if not DEBUGGING or 4 in perform_steps:
         print(
             "Step 4: Getting pairwise distance matrix for all sequences to assess similarity and to be used later in the kinase"
             " group classifier."
@@ -92,7 +94,7 @@ def main():
             else:
                 get_pairwise.get_needle_pairwise_mtx(tmp.name, new_mtx_file, num_procs=4, restricted_combinations=[])
 
-    if not DEBUGGING:
+    if not DEBUGGING or 5 in perform_steps:
         print("\nStep 5: Creating Table of Targets and computing Decoys.\n")
         input_good = False
         while not input_good:

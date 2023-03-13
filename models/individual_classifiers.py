@@ -10,7 +10,7 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings
+import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings, dill
 import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats, pathlib, os  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
@@ -119,15 +119,16 @@ class IndividualClassifiers:
         symbol_to_grp_dict = symbol_to_grp.set_index("Symbol").to_dict()["Group"]
         return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
 
+    @staticmethod
     def _run_dl_core(
-        self,
         which_groups: list[str],
         Xy_formatted_input_file: str,
         pred_groups: Union[None, dict[str, str]] = None,
         tqdm_passthrough: list[tqdm.tqdm] = [],
         cartesian_product: bool = False,
+        symbol_to_grp_dict: dict = {}
     ):
-        which_groups_ordered = collections.OrderedDict(sorted({x: -1 for x in which_groups}.items()))
+        which_groups_ordered = sorted(list(set(which_groups)))
         Xy: Union[pd.DataFrame, dict]
         if not cartesian_product:
             Xy = pd.read_csv(Xy_formatted_input_file)
@@ -135,7 +136,7 @@ class IndividualClassifiers:
             Xy = json.load(open(Xy_formatted_input_file))
         if pred_groups is None:  # Training
             print("Warning: Using ground truth groups. (Normal for training)")
-            Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["Original Kinase Gene Name"].apply(DEL_DECOR)]
+            Xy["Group"] = [symbol_to_grp_dict[x] for x in Xy["Original Kinase Gene Name"].apply(DEL_DECOR)]
         else:  # Evaluation CHECK
             if "Original Kinase Gene Name" in Xy.columns if isinstance(Xy, pd.DataFrame) else "Original Kinase Gene Name" in Xy.keys():  # Test
                 Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Original Kinase Gene Name"]]]
@@ -158,14 +159,13 @@ class IndividualClassifiers:
                 group_df_inner['pair_id'] = [] # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
                 for i in put_in_indices:
                     group_df_inner['pair_id'] += Xy['pair_id'][i*len(Xy['Site Sequence']):(i+1)*len(Xy['Site Sequence'])]
-                group_df_inner['class'] = Xy['class']
+                group_df_inner['Class'] = Xy['Class']
                 group_df_inner['Num Seqs in Orig Kin'] = ['N/A']
-                
                 group_df[group] = group_df_inner
 
         for group in (
             pb := tqdm.tqdm(
-                which_groups_ordered.keys(),
+                which_groups_ordered,
                 leave=True,
                 position=1,
                 desc=colored(f"Overall Group Evaluation Progress", "cyan"),
@@ -183,8 +183,8 @@ class IndividualClassifiers:
         Xy_formatted_train_file: str,
         Xy_formatted_val_file: str,
     ):
-        gen_train = self._run_dl_core(which_groups, Xy_formatted_train_file)
-        gen_val = self._run_dl_core(which_groups, Xy_formatted_val_file)
+        gen_train = self._run_dl_core(which_groups, Xy_formatted_train_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
+        gen_val = self._run_dl_core(which_groups, Xy_formatted_val_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
         for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in zip(gen_train, gen_val):
             assert group_tr == group_vl, "Group mismatch: %s != %s" % (group_tr, group_vl)
             b = self.grp_to_interface_args[group_tr]["batch_size"]
@@ -296,20 +296,22 @@ class IndividualClassifiers:
     @staticmethod
     def save_all(individualClassifiers: IndividualClassifiers, path):
         with open(path, "wb") as f:
-            pickle.dump(individualClassifiers, f)
+            pickle.dump(individualClassifiers, f, )
 
     @staticmethod
-    def load_all(path, device=None) -> IndividualClassifiers:
+    def load_all(path, target_device='cpu') -> IndividualClassifiers:
+        if not isinstance(target_device, str):
+            target_device = str(target_device)
         with open(path, "rb") as f:
-            if device is None or "cuda" in device:
+            if "cuda" in target_device:
                 ic: IndividualClassifiers = pickle.load(f)
-                ic.individual_classifiers = {k: v.to(device) for k, v in ic.individual_classifiers.items()}
+                ic.individual_classifiers = {k: v.to(target_device) for k, v in ic.individual_classifiers.items()}
                 ic.args = {}
                 return ic
-            else:  # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
-                assert device == "cpu"
+            elif target_device == "cpu":  # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
+                assert target_device == "cpu"
 
-                class CPU_Unpickler(orig_pickle.Unpickler):
+                class CPU_Unpickler(dill.Unpickler):
                     def find_class(self, module, name):
                         if module == "torch.storage" and name == "_load_from_bytes":
                             unpickler_lambda = lambda b: torch.load(io.BytesIO(b), map_location="cpu")
@@ -319,6 +321,8 @@ class IndividualClassifiers:
                 ret = CPU_Unpickler(f).load()
                 ret.args = {}
                 return ret
+            else:
+                raise NotImplementedError("Invalid `target_device`")
 
     def evaluation(self, addl_args, pred_groups, true_groups, predict_mode):
         if "test" in addl_args:
