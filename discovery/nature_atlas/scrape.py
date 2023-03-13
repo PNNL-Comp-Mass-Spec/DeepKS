@@ -12,7 +12,7 @@ WAIT_TIMEOUT = 30
 def main():
     options = Options()
     options.add_experimental_option("prefs", {
-    "download.default_directory": r"/Users/druc594/Downloads/KinLibDown/",
+    "download.default_directory": (dd := r"/Users/druc594/Downloads/HIPK2-sites/"),
     "download.prompt_for_download": False,
     "download.directory_upgrade": True,
     "safebrowsing.enabled": True,
@@ -22,15 +22,18 @@ def main():
     userAget = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
     options.add_argument("--user-agent=" + userAget)
 
+    for file in os.listdir(dd):
+        os.unlink(dd + file)
+
 
     # Replace this with the URL of the page you want to use
     url = "https://kinase-library.phosphosite.org/sites"
 
     # Replace this with the path to the file you want to upload
-    file_path = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/discovery/nature_atlas/kinase_sites_ST_150.csv"
+    file_path = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/discovery/nature_atlas/hipk2_sites_for_kin_lib_64.txt"
 
     # Replace this with the path where you want to download the results
-    download_path = "~/Downloads/KinLibDown/"
+    download_path = dd
 
     # Set up the web driver (in this case, for Chrome)
     driver = webdriver.Chrome(options=options)
