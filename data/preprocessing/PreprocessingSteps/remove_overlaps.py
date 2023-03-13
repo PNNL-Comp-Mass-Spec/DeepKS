@@ -5,7 +5,7 @@ random.seed(0)
 def remove_legitimate_duplicates(input_files, rel_sizes):
     in_dict = collections.defaultdict(list)
     for inpf in input_files:
-        seqs = pd.read_csv(inpf)['seq'].to_list()
+        seqs = pd.read_csv(inpf)['Site Sequence'].to_list()
         for i in range(len(seqs)):
             in_dict[seqs[i]].append((inpf, i))
     
@@ -41,8 +41,8 @@ def validate_data(input_files):
     val_dict = collections.defaultdict(list)
     for inpf in input_files:
         df = pd.read_csv(inpf)
-        seqs = df['seq'].to_list()
-        original_kinases = df['lab'].to_list()
+        seqs = df['Site Sequence'].to_list()
+        original_kinases = df['Kinase Sequence'].to_list()
         for seq, original_kinase in zip(seqs, original_kinases):
             val_dict[(seq, original_kinase)].append(inpf)
     

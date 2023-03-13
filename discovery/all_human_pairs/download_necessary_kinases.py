@@ -8,7 +8,7 @@ async def main():
 
     PSP_symbols = pd.read_csv("../data/raw_data/raw_data_22588.csv")
     PSP_symbols = PSP_symbols[PSP_symbols["organism"] == "HUMAN"]
-    PSP_symbols = sorted((PSP_symbols["lab"] + "|" + PSP_symbols["uniprot_id"]).unique().tolist())
+    PSP_symbols = sorted((PSP_symbols["Kinase Sequence"] + "|" + PSP_symbols["uniprot_id"]).unique().tolist())
     PSP_exclusion_dict = { # True means keep, False means remove
         "BCKDK|O14874": True,
         "BCR/ABL FUSION|A9UF07": True,

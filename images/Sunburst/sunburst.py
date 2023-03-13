@@ -60,7 +60,7 @@ def make_sunburst():
                 )
                 r["MLSet"] = label
 
-    num_sites_df = pd.read_csv("../../data/raw_data/raw_data_22588.csv").rename({"lab": "Kinase"}, axis="columns")
+    num_sites_df = pd.read_csv("../../data/raw_data/raw_data_22588.csv").rename({"Kinase Sequence": "Kinase"}, axis="columns")
     new_df = pd.merge(new_df, num_sites_df, how="left", on="Kinase").drop_duplicates(keep="first").reset_index(drop=True)
     num_sites_df["Symbol"] = num_sites_df["Kinase"] + "|" + num_sites_df["uniprot_id"]
 

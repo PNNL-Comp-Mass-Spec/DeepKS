@@ -2,7 +2,7 @@ import collections, pandas as pd, numpy as np, seaborn as sns, matplotlib.pyplot
 import sklearn.mixture as mix
 from typing import Union, Callable
 
-KIN_AND_ORG_TO_SYMBOL = pd.read_csv("../../data/raw_data/raw_data_22473.csv").applymap(lambda x: x.upper() if isinstance(x, str) else x).drop_duplicates(keep = 'first').set_index(['lab', 'organism']).to_dict()['uniprot_id']
+KIN_AND_ORG_TO_SYMBOL = pd.read_csv("../../data/raw_data/raw_data_22473.csv").applymap(lambda x: x.upper() if isinstance(x, str) else x).drop_duplicates(keep = 'first').set_index(['Kinase Sequence', 'organism']).to_dict()['uniprot_id']
 KIN_AND_ORG_TO_SYMBOL_DICT = collections.defaultdict(dict[str, str])
 for k, v in KIN_AND_ORG_TO_SYMBOL.items():
     KIN_AND_ORG_TO_SYMBOL_DICT[k[0]][k[1]] = v

@@ -75,15 +75,15 @@ def split_into_sets(
         fam_to_kin[f].sort()
 
     raw = (
-        pd.read_csv(raw_input_file)[["lab", "num_sites", "uniprot_id"]]
-        .rename(columns={"Kinase": "lab", "uniprot_id": "Uniprot"})
+        pd.read_csv(raw_input_file)[["Kinase Sequence", "num_sites", "uniprot_id"]]
+        .rename(columns={"Kinase": "Kinase Sequence", "uniprot_id": "Uniprot"})
         .drop_duplicates()
         .applymap(lambda x: x.upper() if isinstance(x, str) else x)
     )
     num_sites_join = pd.merge(kin_fam_grp, raw, how="left", on="Uniprot")
-    assert len(num_sites_join["lab"]) == len(num_sites_join["Uniprot"]) == len(num_sites_join["num_sites"])
+    assert len(num_sites_join["Kinase Sequence"]) == len(num_sites_join["Uniprot"]) == len(num_sites_join["num_sites"])
     kin_to_num_seq = {
-        f"{l}|{u}": n for l, u, n in zip(num_sites_join["lab"], num_sites_join["Uniprot"], num_sites_join["num_sites"])
+        f"{l}|{u}": n for l, u, n in zip(num_sites_join["Kinase Sequence"], num_sites_join["Uniprot"], num_sites_join["num_sites"])
     }
     fam_to_num_seq = collections.defaultdict(int)
     kin_to_num_seq_new = {}

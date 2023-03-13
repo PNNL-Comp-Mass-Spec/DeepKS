@@ -59,7 +59,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["orig_lab_name"].drop_duplicates()
+        unq_symbols = input_file["Original Kinase Gene Name"].drop_duplicates()
         unq_symbols_inds = unq_symbols.index.tolist()
         unq_symbols = unq_symbols.tolist()
 
@@ -145,15 +145,15 @@ class MultiStageClassifier:
         assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
 
         data_dict = {
-            "lab_name": ["N/A"],
-            "orig_lab_name": [seq_to_id[k] for k in kinase_seqs],
-            "lab": kinase_seqs,
-            "seq": site_seqs,
+            "Kinase Gene Name (Possibly Deranged)": ["N/A"],
+            "Original Kinase Gene Name": [seq_to_id[k] for k in kinase_seqs],
+            "Kinase Sequence": kinase_seqs,
+            "Site Sequence": site_seqs,
             "pair_id": [
                 f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))
             ],
             "class": [-1],
-            "num_seqs": ["N/A"],
+            "Num Seqs in Orig Kin": ["N/A"],
         }
 
         data_dict = (data_dict | {"known_groups": bypass_group_classifier}) if bypass_group_classifier else data_dict

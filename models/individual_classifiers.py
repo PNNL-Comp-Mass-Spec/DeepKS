@@ -11,7 +11,7 @@ if __name__ == "__main__":
 # pr = cProfile.Profile()
 # pr.enable()
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings
-import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats  # type: ignore
+import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats, pathlib, os  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -135,12 +135,12 @@ class IndividualClassifiers:
             Xy = json.load(open(Xy_formatted_input_file))
         if pred_groups is None:  # Training
             print("Warning: Using ground truth groups. (Normal for training)")
-            Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["orig_lab_name"].apply(DEL_DECOR)]
+            Xy["Group"] = [self.symbol_to_grp_dict[x] for x in Xy["Original Kinase Gene Name"].apply(DEL_DECOR)]
         else:  # Evaluation CHECK
-            if "orig_lab_name" in Xy.columns if isinstance(Xy, pd.DataFrame) else "orig_lab_name" in Xy.keys():  # Test
-                Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["orig_lab_name"]]]
+            if "Original Kinase Gene Name" in Xy.columns if isinstance(Xy, pd.DataFrame) else "Original Kinase Gene Name" in Xy.keys():  # Test
+                Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Original Kinase Gene Name"]]]
             else:  # Prediction
-                Xy["Group"] = [pred_groups[x] for x in Xy["lab_name"].apply(DEL_DECOR)]
+                Xy["Group"] = [pred_groups[x] for x in Xy["Kinase Gene Name (Possibly Deranged)"].apply(DEL_DECOR)]
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
             assert isinstance(Xy, pd.DataFrame)
@@ -151,15 +151,15 @@ class IndividualClassifiers:
                 group_df_inner = {}
                 put_in_indices = [i for i, x in enumerate(Xy["Group"]) if x == group]
 
-                group_df_inner['lab_name'] = Xy['lab_name']
-                group_df_inner['orig_lab_name'] = [Xy['orig_lab_name'][i] for i in put_in_indices]
-                group_df_inner['lab'] = [Xy['lab'][i] for i in put_in_indices]
-                group_df_inner['seq'] = Xy['seq']
-                group_df_inner['pair_id'] = [] # [Xy['pair_id'][j] for j in range(i, i + len(Xy['seq'])) for i in put_in_indices]
+                group_df_inner['Kinase Gene Name (Possibly Deranged)'] = Xy['Kinase Gene Name (Possibly Deranged)']
+                group_df_inner['Original Kinase Gene Name'] = [Xy['Original Kinase Gene Name'][i] for i in put_in_indices]
+                group_df_inner['Kinase Sequence'] = [Xy['Kinase Sequence'][i] for i in put_in_indices]
+                group_df_inner['Site Sequence'] = Xy['Site Sequence']
+                group_df_inner['pair_id'] = [] # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
                 for i in put_in_indices:
-                    group_df_inner['pair_id'] += Xy['pair_id'][i*len(Xy['seq']):(i+1)*len(Xy['seq'])]
+                    group_df_inner['pair_id'] += Xy['pair_id'][i*len(Xy['Site Sequence']):(i+1)*len(Xy['Site Sequence'])]
                 group_df_inner['class'] = Xy['class']
-                group_df_inner['num_seqs'] = ['N/A']
+                group_df_inner['Num Seqs in Orig Kin'] = ['N/A']
                 
                 group_df[group] = group_df_inner
 
@@ -304,6 +304,7 @@ class IndividualClassifiers:
             if device is None or "cuda" in device:
                 ic: IndividualClassifiers = pickle.load(f)
                 ic.individual_classifiers = {k: v.to(device) for k, v in ic.individual_classifiers.items()}
+                ic.args = {}
                 return ic
             else:  # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
                 assert device == "cpu"
@@ -315,21 +316,27 @@ class IndividualClassifiers:
                             return unpickler_lambda
                         else:
                             return super().find_class(module, name)
+                ret = CPU_Unpickler(f).load()
+                ret.args = {}
+                return ret
 
-                return CPU_Unpickler(f).load()
-
-    def evaluation(self, new_args, pred_groups, true_groups, predict_mode):
-        if "test" in new_args:
-            test_filename = new_args["test"] # Dataframe-based evaluation
-        elif "test_json" in new_args:
-            test_filename = new_args["test_json"] # Json-based evaluation
+    def evaluation(self, addl_args, pred_groups, true_groups, predict_mode):
+        if "test" in addl_args:
+            test_filename = addl_args["test"] # Dataframe-based evaluation
+        elif "test_json" in addl_args:
+            test_filename = addl_args["test_json"] # Json-based evaluation
         else:
-            raise ValueError("Must specify either `test` or `test_json` in `new_args`.")
+            raise ValueError("Must specify either `test` or `test_json` in `addl_args`.")
         
         def potentially_save_individual_classifiers():
-            if self.args["s"]:
+            parent = pathlib.Path(__file__).parent.resolve()
+            max_version = -1
+            for file in os.listdir(parent):
+                if v := re.search(r"deepks_nn_weights_v\d+.pkl", file):
+                    max_version = max(max_version, int(v.group(0)))
+            if self.args.get("s"):
                 print("Progress: Saving State to Disk")
-                IndividualClassifiers.save_all(self, f"../bin/saved_state_dicts/indi_clss_{file_names.get()}" + ".pkl")
+                IndividualClassifiers.save_all(self, f"{parent}/../bin/deepks_nn_weights_v{max_version}.cornichon")
 
         if predict_mode:
             all_predictions_outputs = {}
@@ -340,14 +347,14 @@ class IndividualClassifiers:
                 pred_groups=pred_groups,
                 evaluation_kwargs={
                     "predict_mode": True,
-                    "device": new_args["device"],
-                    "cartesian_product": "test_json" in new_args,
+                    "device": addl_args["device"],
+                    "cartesian_product": "test_json" in addl_args,
                 },
                 info_dict_passthrough=info_dict_passthrough,
             ):
                 # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
                 jumbled_predictions = self.interfaces[grp].predict(
-                    loader,int(info_dict_passthrough['on_chunk'] + 1), int(info_dict_passthrough['total_chunks']),cutoff=0.5, device=new_args["device"], group=grp
+                    loader,int(info_dict_passthrough['on_chunk'] + 1), int(info_dict_passthrough['total_chunks']),cutoff=0.5, device=addl_args["device"], group=grp
                 )  # TODO: Make adjustable cutoff
                 del loader
                 if "cuda" in str(self.device):
@@ -367,7 +374,7 @@ class IndividualClassifiers:
             return pred_items
 
         else: # Not predict mode
-            if new_args["load_include_eval"] is None: # Need to eval
+            if addl_args["load_include_eval"] is None: # Need to eval
                 grp_to_info_pass_through_info_dict = {}
                 grp_to_loaders = {
                     grp: loader
