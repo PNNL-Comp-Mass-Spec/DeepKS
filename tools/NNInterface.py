@@ -1,8 +1,10 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
+import tempfile
 import scipy, itertools, warnings
 from matplotlib.axes import Axes
-from typing import Collection, Iterable, Tuple, Union, Callable, Any  # type: ignore
+from matplotlib import lines
+from typing import Collection, Iterable, Tuple, Union, Callable, Any # type: ignore
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
@@ -104,7 +106,7 @@ class NNInterface:
             threshold = float("inf")
         while not ((lowest_loss < threshold and epoch >= num_epochs) or epoch >= 2 * num_epochs):
             self.model.train()
-            total_step = train_loader.dataset.__len__()
+            total_step = len(train_loader.dataset)
             if epoch % lr_decay_freq == 0 and epoch > 0:
                 for param in self.optimizer.param_groups:
                     param["lr"] *= lr_decay_amount
@@ -181,10 +183,10 @@ class NNInterface:
             if val_dl is not None:
                 total_step = len(val_dl)
                 if verbose:
-                    accuracy, loss, _, _, _, _ = self.eval(val_dl, cutoff, metric)
+                    accuracy, val_loss, _, _, _, _ = self.eval(val_dl, cutoff, metric)
                     print(
                         "\tVAL Epoch [{}/{}], Batch [{}/{}], Val Loss: {:.4f}, Val {}: {:.2f} <<<".format(
-                            epoch + 1, num_epochs, b + 1, total_step, loss, metric, accuracy
+                            epoch + 1, num_epochs, b + 1, total_step, val_loss, metric, accuracy
                         )
                     )
 
@@ -343,8 +345,12 @@ class NNInterface:
         retain_evals=None,
         from_loaded=None,
         grp_to_loader_true_groups=None,
-        eqn_passthrough=None
-    ):
+        get_emp_eqn=True,
+        emp_eqn_kwargs={},
+        get_avg_roc_line=True,
+        pickle_loc=None,
+        _ic_ref=None
+    ) -> Union[None, dict]:
         assert grp_to_loader_true_groups is not None
         if from_loaded is None:
             grp_to_interface = {k: grp_to_interface[k] for k in grp_to_loader}
@@ -357,6 +363,7 @@ class NNInterface:
         plt.plot([0, 1], [0, 1], color="black", linestyle="dashed", alpha=1, linewidth=1, label=" Random Model ┆ AUC 0.5   ┆" + " "*25 + "┆ n = ∞")
         groups = grp_to_interface.keys() if from_loaded is None else from_loaded.keys()
         true_grp_to_outputs_and_labels = collections.defaultdict(lambda: collections.defaultdict(list))
+        grp_to_emp_eqn = {}
         for grp in groups:
             if from_loaded is None:
                 interface = grp_to_interface[grp]
@@ -370,33 +377,62 @@ class NNInterface:
             else:
                 outputs = from_loaded[grp]["test"]["outputs"]
                 labels = from_loaded[grp]["test"]["labels"]
-
+            agst = np.argsort(outputs)
+            booled_labels = [bool(x) for x in labels]
+            if get_emp_eqn:
+                emp_prob_lambda = raw_score_to_probability(sorted(outputs), [booled_labels[i] for i in agst], **emp_eqn_kwargs) # type: ignore
+                grp_to_emp_eqn[grp] = emp_prob_lambda
+            else:
+                def emp_prob_lambda(l: list[Union[float,int]]):
+                    raise AssertionError("For some reason, get_emp_eqn was set to False, but the emp_prob_lambda was called.")
             for i in range(len(grp_to_loader_true_groups[grp])):
                 true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs"].append(outputs[i])
                 true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["labels"].append(labels[i])
+                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["group_model_used"].append(grp)
+                if get_emp_eqn:
+                    true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs_emp_prob"].append(emp_prob_lambda([outputs[i]])[0])
 
             assert len(outputs) == len(labels), (
                 "Something is wrong in NNInterface.get_all_rocs_by_group; the length of outputs, the number of labels,"
                 f" and the number of kinases in `kinase_order` are not equal. (Respectively, {len(outputs)},"
                 f" {len(labels)}"
             )
+
+        if get_emp_eqn:
+            setattr(_ic_ref, "grp_to_emp_eqn", grp_to_emp_eqn)
+            # Repickle
+            if _ic_ref is not None:
+                try:
+                    with tempfile.NamedTemporaryFile() as tf:
+                        _ic_ref.save_all(_ic_ref, tf.name)
+                        print(colored("Info Re-saved Individual Classifiers with empirical equation.", "blue"))
+                    
+                        with open(_ic_ref.repickle_loc.replace(".pkl", "_with_emp_eqn.pkl"), "wb") as f:
+                            f.write(tf.read())
+                except Exception as e:
+                    warnings.warn(f"Couldn't repickle Individual Classifiers with empirical equation: {e}", UserWarning)
+            else:
+                warnings.warn("No repickle location found for Individual Classifiers. Not repickling; can't save empirical equation.", UserWarning)
+
         points_fpr = []
         points_tpr = []
         aucs = []
+        eqn_passthrough = []
         for group in set(all_obs := list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()]))):
             outputs, labels = (
-                true_grp_to_outputs_and_labels[group]["outputs"],
+                true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else 'outputs'] ,
                 true_grp_to_outputs_and_labels[group]["labels"],
             )
             orig_i = orig_order.index(group)
             
-            res = NNInterface.roc_core(outputs, labels, orig_i, line_labels=[f"{group}"], linecolor=None, total_obs = len(all_obs), eqn_passthrough=eqn_passthrough)
+            plt.ioff()
+            res = NNInterface.roc_core(outputs, labels, orig_i, line_labels=[f"{group}"], linecolor=None, total_obs = len(all_obs), eqn_passthrough=eqn_passthrough, eqn_kwargs=emp_eqn_kwargs)
             # if group in ['AGC', 'TK', 'CMGC']:
             points_fpr.append(res[0])
             points_tpr.append(res[1])
             aucs.append(res[2])
-
-        get_avg_roc(points_fpr, points_tpr, aucs, True)
+        if get_avg_roc_line:
+            get_avg_roc(points_fpr, points_tpr, aucs, True)
         
         plt.legend(
             loc="lower right",
@@ -406,7 +442,8 @@ class NNInterface:
         )
 
         if savefile:
-            fig.savefig(savefile + "_" + str(len(groups)) + ".pdf", bbox_inches="tight")
+            fig.savefig(savefile, bbox_inches="tight")
+
 
     def get_all_rocs_by_group(
         self, loader, kinase_order, savefile="", kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv"
@@ -461,8 +498,8 @@ class NNInterface:
         line_labels=["Train Set", "Validation Set", "Test Set", f"Held Out Family — {HELD_OUT_FAMILY}"],
         alpha=0.05,
         total_obs:int=1,
-        compute_bona_fide_probs=False,
-        eqn_passthrough=None
+        eqn_kwargs:dict={},
+        eqn_passthrough:list=[]
     ):
         assert len(outputs) == len(labels), (
             f"Something is wrong in NNInterface.roc_core; the length of outputs ({len(outputs)}) does not equal the"
@@ -473,15 +510,25 @@ class NNInterface:
             linecolor = plt.rcParams["axes.prop_cycle"].by_key()["color"][i]
 
         roc_data = sklearn.metrics.roc_curve(labels, outputs)
-        aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
+        try:
+            aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
+        except ValueError as e:
+            if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
+                raise e
+            else:
+                aucscore = 0.0
         labels, outputs, rand_outputs = NNInterface.create_random(
             np.array(labels), np.array(outputs), group=line_labels[0].split(" ")[0]
         )
-        random_auc = sklearn.metrics.roc_auc_score(labels, rand_outputs)
-        assert abs(random_auc - 0.5) < 1e-16, f"Random ROC not equal to 0.5! (Was {random_auc})"
-        _, se, diff = delong_roc_test(labels, rand_outputs, outputs)
-        quant = -scipy.stats.norm.ppf(alpha / 2)
-        is_signif = (diff + quant * se + 0.5) > (diff - quant * se + 0.5) > 0.5
+        if len(labels):
+            random_auc = sklearn.metrics.roc_auc_score(labels, rand_outputs)
+            assert abs(random_auc - 0.5) < 1e-16, f"Random ROC not equal to 0.5! (Was {random_auc})"
+            _, se, diff = delong_roc_test(labels, rand_outputs, outputs)
+            quant = -scipy.stats.norm.ppf(alpha / 2)
+            is_signif = (diff + quant * se + 0.5) > (diff - quant * se + 0.5) > 0.5
+        else:
+            is_signif = False
+            se = diff = quant = float("nan")
         label=(
                 f"{line_labels[0] if len(line_labels) == 1 else line_labels[i]:>13} ┆ AUC {aucscore:.3f} ┆ {100-int(alpha*100)}% CI ="
                 f" [{max(0, (diff - quant*se + 0.5)):.2f}, {min((diff + quant*se + 0.5), 1):.2f}]"
@@ -496,26 +543,30 @@ class NNInterface:
             label=label,
             alpha=1 if is_signif else 0.25,
         )
+        plt.gca().set_aspect(1)
         if aucscore > 0.98:
             NNInterface.inset_auc()
         plt.title("ROC Curves (with DeLong Test 95% confidence intervals)")
         plt.xticks([x / 100 for x in range(0, 110, 10)])
         plt.yticks([x / 100 for x in range(0, 110, 10)])
 
-        if compute_bona_fide_probs:
-            assert eqn_passthrough is not None, "eqn_passthrough is None."
-            sorted_output_order = np.argsort(np.asarray(outputs))
-            sorted_outputs = np.asarray(outputs)[sorted_output_order].tolist()
-            sorted_labels = np.asarray(labels)[sorted_output_order].tolist()
-            raw_score_to_probability(sorted_outputs, sorted_labels, print_eqn=True, eqn_passthrough=eqn_passthrough)
+        # if len(labels):
+        #     sorted_output_order = np.argsort(np.asarray(outputs))
+        #     sorted_outputs = np.asarray(outputs)[sorted_output_order].tolist()
+        #     sorted_labels = [bool(x) for x in np.asarray(labels)[sorted_output_order].tolist()]
+        #     eqn = raw_score_to_probability(sorted_outputs, sorted_labels, **eqn_kwargs)
 
+        #     for i in range(len(eqn_passthrough)):
+        #         del eqn_passthrough[i]
+        #     eqn_passthrough.append(eqn)
+            
         return roc_data[0], roc_data[1], aucscore
 
     @staticmethod
     def inset_auc():
-        ax = plt.gca()
-        ax_inset = ax.inset_axes([0.5, 0.1, 0.45, 0.65])
-        x1, x2, y1, y2 = 0, 0.2, 0.8, 1
+        ax:plt.Axes = plt.gca()
+        ax_inset = ax.inset_axes([0.65, 0.1, 0.5, 0.5])
+        x1, x2, y1, y2 = 0, 0.15, 0.85, 1
         ax_inset.set_xlim(x1, x2)
         ax_inset.set_ylim(y1, y2)
         ax.indicate_inset_zoom(ax_inset, linestyle="dashed")
@@ -523,7 +574,8 @@ class NNInterface:
         ax_inset.set_yticks([y1, y2])
         ax_inset.set_xticklabels([x1, x2])
         ax_inset.set_yticklabels([y1, y2])
-        ax_inset.plot(ax.lines[0].get_xdata(), ax.lines[0].get_ydata(), color="b", linewidth=1)
+        rel_line: lines.Line2D = ax.lines[-1]
+        ax_inset.plot(rel_line.get_xdata(), rel_line.get_ydata(), linestyle=rel_line.get_linestyle(), linewidth=rel_line.get_linewidth(), color=rel_line.get_color())
 
     @staticmethod
     def create_random(labels: np.ndarray, outputs: np.ndarray, group=""):
@@ -551,18 +603,21 @@ class NNInterface:
             ast = ast[:rm_idx] + ast[rm_idx + 1 :]
 
         asts: list[int] = sorted(ast)
-        labels2: np.ndarray = labels[np.array(asts)]
-        outputs2: np.ndarray = outputs[np.array(asts)]
+        if len(asts) > 0:
+            labels2: np.ndarray = labels[np.array(asts)]
+            outputs2: np.ndarray = outputs[np.array(asts)]
 
-        assert not len(labels2[(labels2 == 1)]) % 2, "319"
-        assert not len(labels2[(labels2 == 0)]) % 2, "320"
+            assert not len(labels2[(labels2 == 1)]) % 2, "319"
+            assert not len(labels2[(labels2 == 0)]) % 2, "320"
 
-        ast2 = np.argsort(labels2)
-        rand_outputs = np.zeros_like(labels2)
-        for i in range(len(ast2)):
-            rand_outputs[ast2[i]] = 1 if i % 2 else 0
+            ast2 = np.argsort(labels2)
+            rand_outputs = np.zeros_like(labels2)
+            for i in range(len(ast2)):
+                rand_outputs[ast2[i]] = 1 if i % 2 else 0
 
-        return labels2, outputs2, rand_outputs
+            return labels2, outputs2, rand_outputs
+        else:
+            return [], [], []
 
     def test(
         self, test_loader, verbose: Union[bool, int] = True, savefile=True, cutoff: Union[float, None]=0.5, text="Test Accuracy of the model", metric="acc"

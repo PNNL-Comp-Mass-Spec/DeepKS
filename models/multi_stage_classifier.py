@@ -4,9 +4,8 @@ if __name__ == "__main__":
 
     write_splash("main_gc_trainer")
     print(colored("Progress: Loading Modules", "green"), flush=True)
-from copy import deepcopy
-import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm
-import re, sqlite3
+import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
+from typing import Callable
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
@@ -22,6 +21,7 @@ from termcolor import colored
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
+warnings.filterwarnings(action="always", category=UserWarning)
 
 class MultiStageClassifier:
     def __init__(
@@ -66,7 +66,7 @@ class MultiStageClassifier:
         unq_symbols = unq_symbols.tolist()
 
         if bypass_group_classifier:
-            true_symbol_to_grp_dict = dict(zip(unq_symbols, [input_file['known_groups'][i] for i in unq_symbols_inds]))
+            true_symbol_to_grp_dict = dict(zip(unq_symbols, [input_file["known_groups"][i] for i in unq_symbols_inds]))
 
         if not predict_mode or bypass_group_classifier:
             assert true_symbol_to_grp_dict is not None
@@ -78,7 +78,6 @@ class MultiStageClassifier:
         groups_prediction = self.group_classifier.predict(unq_symbols)
         pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
         true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
-        
         ### Perform Simulated 100% Accuracy
         # sim_ac = 1
         # wrong_inds = set()
@@ -107,23 +106,28 @@ class MultiStageClassifier:
                     "blue",
                 )
             )
-            self.individual_classifiers.evaluation(addl_args, pred_grp_dict, true_grp_dict, predict_mode)
+            self.individual_classifiers.evaluation(
+                addl_args, pred_grp_dict, true_grp_dict, predict_mode, get_emp_eqn=True
+            )
+            # assert isinstance(emp_eqn, Callable)
         if predict_mode:
             addl_args["test" if "test_json" not in addl_args else "test_json"] = Xy_formatted_input_file
+            print(
+                colored(
+                    (
+                        "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
+                        " step [1/2]"
+                    ),
+                    "green",
+                )
+            )
             res = self.individual_classifiers.evaluation(
-                addl_args, pred_grp_dict if not bypass_group_classifier else true_grp_dict, true_groups=None, predict_mode=True
+                addl_args,
+                pred_grp_dict if not bypass_group_classifier else true_grp_dict,
+                true_groups={},
+                predict_mode=True,
             )
 
-        print(
-            colored(
-                (
-                    "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
-                    " step [1/2]"
-                ),
-                "green"
-            )
-        )
-        
         return res
 
     def predict(
@@ -140,6 +144,7 @@ class MultiStageClassifier:
         cartesian_product: bool = False,
         group_output: bool = False,
         bypass_group_classifier: list[str] = [],
+        convert_raw_to_prob=True,
     ):
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first").reset_index()
         seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
@@ -181,27 +186,42 @@ class MultiStageClassifier:
                 efficient_to_csv(data_dict, f.name)
                 # The "meat" of the prediction process.
                 res = self.evaluation_preparation({"test": f.name, "device": device}, f.name, predict_mode=True)
-            assert res is not None, "Error: res is None"
+            assert isinstance(res, list), "res is not a list"
+            assert res is not None, "res is None"
+            emp_eqns = [x[1][3] for x in res]
             group_predictions = [x[1][2] for x in res]
             numerical_scores = [x[1][1] for x in res]
+            pred_ids = [x[0] for x in res]
             if normalize_scores:
                 max_ = max(numerical_scores)
                 min_ = min(numerical_scores)
                 numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
+            if convert_raw_to_prob:
+                assert len(emp_eqns) == len(numerical_scores), "emp_eqns and numerical_scores are not the same length"
+                mapped_numerical_scores = []
+                for pred_id, x, emp_eqn in zip(pred_ids, numerical_scores, emp_eqns):
+                    if isinstance(emp_eqn, Callable):
+                        mapped_numerical_scores.append(emp_eqn([x])[0])
+                    else:
+                        warnings.warn(
+                            colored(f"No empirical equation found for query {pred_id}. Returning raw score.", "yellow"),
+                            UserWarning
+                        )
+                        mapped_numerical_scores.append(x)
             boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
         print(colored("Status: Predictions Complete!", "green"))
         if "dict" in predictions_output_format or re.search(r"(sqlite|csv)", predictions_output_format):
             print(colored("Status: Copying Results to Dictionary.", "green"))
 
-            # if cartesian_product:
-            #     kinase_seqs = list(itertools.chain(*[[x]*len(site_seqs) for x in kinase_seqs]))
-            #     site_seqs = list(itertools.chain(*[site_seqs]*len(kinase_seqs)))
-
-            base_kinase_gene_names = [kin_info[k]["Gene Name"] for k in kinase_seqs]
-            base_kinase_uniprot_accession = [kin_info[k]["Uniprot Accession ID"] for k in kinase_seqs]
-            base_site_gene_names = [site_info[s]["Gene Name"] for s in site_seqs]
-            base_site_uniprot_accession = [site_info[s]["Uniprot Accession ID"] for s in site_seqs]
-            base_site_location = [site_info[s]["Location"] for s in site_seqs]
+            base_kinase_gene_names = [kin_info[k]["Gene Name"] if k in kin_info else "?" for k in kinase_seqs]
+            base_kinase_uniprot_accession = [
+                kin_info[k]["Uniprot Accession ID"] if k in kin_info else "?" for k in kinase_seqs
+            ]
+            base_site_gene_names = [site_info[s]["Gene Name"] if s in site_info else "?" for s in site_seqs]
+            base_site_uniprot_accession = [
+                site_info[s]["Uniprot Accession ID"] if s in site_info else "?" for s in site_seqs
+            ]
+            base_site_location = [site_info[s]["Location"] if s in site_info else "?" for s in site_seqs]
 
             kinase_gene_names = (
                 base_kinase_gene_names
@@ -345,7 +365,9 @@ class MultiStageClassifier:
                 dist_mtx_maker.make_fasta(existing_seqs, temp_fasta_known.name)
                 dist_mtx_maker.make_fasta(temp_df_in_file.name, temp_fasta_novel.name)
                 with open(combined_temp_fasta.name, "w") as combined_fasta:
-                    with open(temp_fasta_known.name, "r") as known_fasta, open(temp_fasta_novel.name, "r") as novel_fasta:
+                    with open(temp_fasta_known.name, "r") as known_fasta, open(
+                        temp_fasta_novel.name, "r"
+                    ) as novel_fasta:
                         combined_fasta.write(known_fasta.read() + novel_fasta.read())
 
                 with tf.NamedTemporaryFile() as temp_mtx_out:
@@ -367,21 +389,32 @@ class MultiStageClassifier:
 
 
 def main(run_args):
-    train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
-        "../data/preprocessing/pairwise_mtx_826.csv",
-        "../data/preprocessing/tr_kins.json",
-        "../data/preprocessing/vl_kins.json",
-        "../data/preprocessing/te_kins.json",
-        "../data/preprocessing/kin_to_fam_to_grp_826.csv",
-    )
+    # train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
+    #     "../data/preprocessing/pairwise_mtx_826.csv",
+    #     "../data/preprocessing/tr_kins.json",
+    #     "../data/preprocessing/vl_kins.json",
+    #     "../data/preprocessing/te_kins.json",
+    #     "../data/preprocessing/kin_to_fam_to_grp_826.csv",
+    # )
 
-    train_kins, eval_kins, train_true, eval_true = (  # type: ignore
-        np.array(train_kins + val_kins),
-        np.array(test_kins),
-        np.array(train_true + val_true),
-        np.array(test_true),
-    )
+    # train_kins, eval_kins, train_true, eval_true = (  # type: ignore
+    #     np.array(train_kins + val_kins),
+    #     np.array(test_kins),
+    #     np.array(train_true + val_true),
+    #     np.array(test_true),
+    # )
+
     # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
+
+    train_kins = np.asarray(
+        pd.read_csv(
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
+        )["Original Kinase Gene Name"]
+        .drop_duplicates(keep="first")
+        .values
+    ).tolist()
+    train_true = ["CMGC" for _ in range(len(train_kins))]
+
     group_classifier = grp_pred.SKGroupClassifier(
         X_train=train_kins,
         y_train=train_true,
@@ -449,6 +482,6 @@ def efficient_to_csv(data_dict, outfile):
 if __name__ == "__main__":
     run_args = parsing()
     assert (
-        run_args["load"] is not None or run_args["load_include_eval"]
+        run_args.get("load") is not None or run_args.get("load_include_eval") is not None
     ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
     main(run_args)

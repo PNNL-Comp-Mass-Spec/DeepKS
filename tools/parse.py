@@ -55,7 +55,8 @@ def parsing() -> dict[str, Union[str, None]]:
             assert all([args[x] is not None for x in ['train', 'val']]), "If not specifying --load argument, must` specify --train and --val arguments."
             for f in [train_filename, val_filename]:
                 try:
-                    assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"
+                    # assert 'formatted' in f, "'formatted' is not in the train filename. Did you select the correct file?"# TODO
+                    pass
                 except AssertionError as e:
                     warnings.warn(str(e), UserWarning)
                 assert os.path.exists(os.path.expanduser(f)), f"Input file '{f}' does not exist."
