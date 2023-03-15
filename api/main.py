@@ -11,6 +11,8 @@ if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"])
 
 import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch
 
+warnings.filterwarnings(action="always", category=UserWarning)
+
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 API_IMPORT_MODE = "true" in (s := open(str(pathlib.Path(__file__).parent.resolve())+"/../config/API_IMPORT_MODE.json", "r").read())
 
@@ -52,6 +54,7 @@ def make_predictions(
     cartesian_product: bool = False,
     group_output: bool = False,
     bypass_group_classifier: list[str] = [],
+    convert_raw_to_prob: bool = True
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
@@ -84,6 +87,7 @@ def make_predictions(
     @arg group_output: Whether to return group predictions.
     @arg bypass_group_classifier: List of known kinase groups in the same order in which they appear in kinase_seqs. 
                                   See C{./kin-info_file_format.txt} for instructions on how to specify groups.
+    @arg convert_raw_to_prob: Whether to convert raw scores to empirical probabilities. The neural network save file's object must have a C{emp_eqn} attribute (i.e., a mapping from raw score to empirical probability).
     """
     config.cfg.set_mode("no_alin")
     try:
@@ -151,7 +155,8 @@ def make_predictions(
                 normalize_scores=normalize_scores,
                 cartesian_product=cartesian_product,
                 group_output=group_output,
-                bypass_group_classifier=bypass_group_classifier
+                bypass_group_classifier=bypass_group_classifier,
+                convert_raw_to_prob=convert_raw_to_prob
             )
         except Exception as e:
             informative_exception(e, print_full_tb=True, top_message="Error: Prediction process failed!")
@@ -396,6 +401,15 @@ def parse_api() -> dict[str, typing.Any]:
         required=False,
         action="store_true",
     )
+
+    ap.add_argument(
+        "--convert-raw-to-prob",
+        help="Attempt to convert raw scores into empirical probabilities.",
+        default=False,
+        required=False,
+        action="store_true",
+    )
+    
     try:
         args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
     except Exception as e:
@@ -476,7 +490,7 @@ def parse_api() -> dict[str, typing.Any]:
 
     if args_dict["kin_info"] is None:
         kinase_info_dict = {
-            kinase_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>"}
+            kinase_seq: {"Gene Name": "?", "Uniprot Accession ID": "?"}
             for kinase_seq in args_dict["kinase_seqs"]
         }
     else:
@@ -495,13 +509,12 @@ def parse_api() -> dict[str, typing.Any]:
                     
                 informative_exception(e, "", False)
 
-    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
 
     args_dict["kin_info"] = kinase_info_dict
 
     if args_dict["site_info"] is None:
         site_info_dict = {
-            site_seq: {"Gene Name": "<UNK>", "Uniprot Accession ID": "<UNK>", "Location": "<UNK>"}
+            site_seq: {"Gene Name": "?", "Uniprot Accession ID": "?", "Location": "?"}
             for site_seq in args_dict["site_seqs"]
         }
     else:
@@ -516,9 +529,19 @@ def parse_api() -> dict[str, typing.Any]:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
                 sys.exit(1)
     args_dict["site_info"] = site_info_dict
+    
+    try:
+        for kinase_seq in args_dict["kinase_seqs"]:
+            assert kinase_seq in kinase_info_dict, f"Kinase sequence {kinase_seq} not found in kinase info file."
+        for site_seq in args_dict["site_seqs"]:
+            assert site_seq in site_info_dict, f"Site sequence {site_seq} not found in site info file."
+    except AssertionError as e:
+        if args_dict['bypass_group_classifier'] and re.search(r"Kinase sequence.*not found in kinase info file\.", str(e)):
+            raise AssertionError(f"{e} (Since `--bypass-group-classifier` was set, this is a fatal error.)")
+        else:
+            warnings.warn(colored(f"{e} (The output will not contain info for this sequence.)", "yellow"))
 
-    assert all(kinase_seq in kinase_info_dict for kinase_seq in args_dict["kinase_seqs"])
-    assert all(site_seq in site_info_dict for site_seq in args_dict["site_seqs"])
+    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
 
     return args_dict
 
@@ -555,9 +578,7 @@ if __name__ == "__main__":
     from .. import config
     make_predictions(**args)
 
-print("API_IMPORT_MODE", API_IMPORT_MODE)
 if API_IMPORT_MODE:
-    print("API_IMPORT_MODE")
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema, torch
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier

@@ -2,7 +2,7 @@ import itertools, random, numpy as np
 from matplotlib import pyplot as plt
 
 
-def get_avg_roc(fprs, tprs, aucs = None, plot = True):
+def get_avg_roc(fprs, tprs, aucs=None, plot=True):
     total_n = len(list(itertools.chain(*fprs))) + 1
     X = np.linspace(0, 1, num=total_n, endpoint=False).tolist()
     X = [X[i // 2] for i in range(len(X) * 2)]
@@ -10,9 +10,15 @@ def get_avg_roc(fprs, tprs, aucs = None, plot = True):
     micro_avg = 0
     if aucs is not None:
         for i, a in enumerate(aucs):
-            micro_avg += a * len(fprs[i])/total_n
+            micro_avg += a * len(fprs[i]) / total_n
     if plot:
-        plt.gca().plot(X, Y[1:] + [1], color="black", linewidth=3, **({} if aucs is None else {'label': f"{'Average Value':>13} ┆ ROC Micro Average  {micro_avg:3.3f}"}))
+        plt.gca().plot(
+            X,
+            Y[1:] + [1],
+            color="black",
+            linewidth=3,
+            **({} if aucs is None else {"label": f"{'Average Value':>13} ┆ ROC Micro Average  {micro_avg:3.3f}"}),
+        )
 
     return X, Y
 
@@ -47,7 +53,9 @@ def get_tpr(fprs, tprs, fpr_x, weighted=True):
                 break
         assert tpr != -1
         running_sum += tpr * rel_weight
-    assert 0 <= running_sum <= 1, "Avg. ROC cannot be lower than 0 or higher than 1."
+    assert 0 <= running_sum <= 1 or np.isnan(
+        running_sum
+    ), "Avg. ROC cannot be lower than 0 or higher than 1. Alternatively, it must be NaN."
     return running_sum
 
 

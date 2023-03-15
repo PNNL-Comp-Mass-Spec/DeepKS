@@ -84,3 +84,8 @@ data/raw_data/PSP_script_download.xlsx
 **/*.db
 saved_dict_repr_file.json
 api/cached_docs.json
+data/raw_data/raw_data_trunc_110.csv
+data/raw_data/raw_data_trunc_250.csv
+data/raw_data/small_emp_kin-info_1.json
+data/raw_data/small_emp_kins_1.csv
+data/raw_data/small_emp_sites_104.csv

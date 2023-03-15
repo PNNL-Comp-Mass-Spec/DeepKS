@@ -81,7 +81,7 @@ def main():
     atlas_site_info = atlas[["Uniprot Primary Accession", "Gene", "Phosphosite", "SITE_+/-7_AA"]].copy()
     for i, r in atlas_site_info.iterrows():
         if pd.isna(r["Gene"]):
-            atlas_site_info.at[i, "Gene"] = f"<UNK>UnipAc:{r['Uniprot Primary Accession']}"
+            atlas_site_info.at[i, "Gene"] = f"?UnipAc:{r['Uniprot Primary Accession']}"
     atlas_site_info["Symbol"] = atlas_site_info["Gene"] + "|" + atlas_site_info["Uniprot Primary Accession"]
     atlas_site_info["SITE_+/-7_AA"] = atlas_site_info["SITE_+/-7_AA"].apply(lambda x: x.replace("_", "X"))
 
