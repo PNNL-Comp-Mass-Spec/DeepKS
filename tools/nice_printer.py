@@ -49,7 +49,7 @@ def _base_dict_shortener(node, max_items, max_str_len, cur_indent, addl_end = ""
             _base_iterable_shortener(v, max_items, max_str_len, cur_indent + SUBSEQUENT_INDENT)
         else:
             _base_singleton_shortener(v, max_str_len, "")
-        if e >= max_items:
+        if e >= max_items and not is_first:
             print("... ", end="", file=FILE)
             break
         print("", file=FILE)

@@ -1,3 +1,4 @@
+import collections
 import html2text, traceback, os, types, typing, sys, re, requests, json, textwrap, pathlib, io, pprint
 from ..tools.nice_printer import nice_printer
 from termcolor import colored
@@ -65,7 +66,7 @@ def informative_exception(
     print(colored(f"  * Error Message: {e}", "magenta"), file=sys.stderr)
     assert isinstance(e.__traceback__, types.TracebackType)
 
-    extracted_path = traceback_.tb_frame.f_code.co_filename
+    extracted_path = extr[-1].filename
     try:
         modified_path = "/".join(extracted_path.split("/")[extracted_path.split("/").index(fake_root_dir) :])
     except ValueError:
@@ -80,6 +81,8 @@ def informative_exception(
     while tb:
         tb_locals = tb.tb_frame.f_locals
         tb = tb.tb_next
+    
+    tb_locals = dict(collections.OrderedDict(sorted(tb_locals.items())))
 
     local_variable_nice_io = io.StringIO()
     nice_printer(tb_locals, file=local_variable_nice_io, initial_indent=6)
