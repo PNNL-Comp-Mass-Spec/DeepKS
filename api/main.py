@@ -5,9 +5,9 @@ from termcolor import colored
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
     from ..splash import write_splash
-
-    write_splash.write_splash("main_api")
-    print(colored("Status: Loading Modules...", "green"))
+    if __name__ == "__main__":
+        write_splash.write_splash("main_api")
+        print(colored("Status: Loading Modules...", "green"))
 
 import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch
 

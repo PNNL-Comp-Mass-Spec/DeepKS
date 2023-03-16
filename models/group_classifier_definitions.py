@@ -30,6 +30,8 @@ matplotlib.rcParams["font.family"] = "monospace"
 
 MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_918.csv", index_col=0)
 
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
+
 class AcceptableClassifier(typing.Protocol):
     def fit(self, X, y) -> typing.Any:
         ...
@@ -64,9 +66,9 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
     """
     class NewClass(acceptable_classifier.__class__):
         def fit(self, X, y) -> typing.Any:
-            self.training_X = [x.replace("RET|PTC2|Q15300", "RET/PTC2|Q15300") for x in X]
+            self.training_X = [x for x in X]
             self.training_y = y
-            print("@@@ Doing True (`super`) fitting.")
+            print(colored("Status: Fitting SKlearn classifier in Factory.", "green"))
             coords = get_coordinates(self.training_X, self.training_X)[0]
             super().fit(coords, self.training_y)
         def predict(self, X) -> typing.Any:
@@ -124,13 +126,14 @@ def perform_hyperparameter_tuning(
 
 def get_ML_sets(dist_matrix_file, json_tr, json_vl, json_te, kin_fam_grp_file, kin_seqs=None, verbose=False):
     del_decor = lambda x: re.sub(r"[\(\)\*]", "", x)
-    dist_matrix = pd.read_csv(dist_matrix_file, index_col=0)
+    dist_matrix = pd.read_csv(join_first(0, dist_matrix_file), index_col=0)
     symbol_to_grp = pd.read_csv(kin_fam_grp_file)
     symbol_to_grp["Symbol"] = symbol_to_grp["Kinase"].apply(del_decor) + "|" + symbol_to_grp["Uniprot"]
     symbol_to_grp_dict = symbol_to_grp.set_index("Symbol").to_dict()["Group"]
-    train_kins = [del_decor(x) for x in json.load(open(json_tr, "r"))]
-    val_kins = [del_decor(x) for x in json.load(open(json_vl, "r"))]
-    test_kins = [del_decor(x) for x in json.load(open(json_te, "r"))]
+    with open(json_tr, "r") as ftr, open(json_vl, "r") as fvl, open(json_te, "r") as fte:
+        train_kins = [del_decor(x) for x in json.load(ftr)]
+        val_kins = [del_decor(x) for x in json.load(fvl)]
+        test_kins = [del_decor(x) for x in json.load(fte)]
 
     train_true = [symbol_to_grp_dict[x] for x in dist_matrix.loc[train_kins, train_kins].index]
     val_true = [symbol_to_grp_dict[x] for x in dist_matrix.loc[val_kins, val_kins].index]

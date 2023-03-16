@@ -1,7 +1,6 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
-import tempfile
-import scipy, itertools, warnings
+import tempfile, os, scipy, itertools, warnings, pathlib
 from matplotlib.axes import Axes
 from matplotlib import lines
 from typing import Collection, Iterable, Tuple, Union, Callable, Any # type: ignore
@@ -18,6 +17,7 @@ rcParams["font.family"] = "monospace"
 rcParams["font.size"] = 12
 # rcParams["font.serif"] = ["monospace", "Times", "Times New Roman", "Gentinum", "URW Bookman", "Roman", "Nimbus Roman"]
 
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
 
 class NNInterface:
     def __init__(
@@ -47,6 +47,7 @@ class NNInterface:
             self.write_model_summary()
 
     def write_model_summary(self):
+        self.model_summary_name = join_first(0, self.model_summary_name)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
                 f.write(str(self))

@@ -1,73 +1,15 @@
-import sys, termcolor, os, pathlib, warnings
+import sys, termcolor, os, pathlib, warnings, json
 from ..api import main
 from termcolor import colored
 
 DEVICE = os.environ.get("DEVICE", "cpu")
 
-EXAMPLES = [
-        [
-            "python3 -m DeepKS.api.main",
-            "-k",
-            "TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD",
-            "-s",
-            "VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA",
-            "-p",
-            "inorder",
-            "-v",
-            "--device", 
-            DEVICE
-        ],
-        [
-            "python3 -m DeepKS.api.main",
-            "-kf",
-            "tests/sample_inputs/kins.txt",
-            "-sf",
-            "tests/sample_inputs/sites.txt",
-            "-p",
-            "dictionary",
-            "-v",
-            "--device", 
-            DEVICE
-        ],
-        [
-            "python3 -m DeepKS.api.main",
-            "-kf",
-            "tests/sample_inputs/kins.txt",
-            "-sf",
-            "tests/sample_inputs/sites-prod.txt",
-            "-p",
-            "dictionary_json",
-            "--kin-info",
-            "tests/sample_inputs/kin-info.json",
-            "--site-info",
-            "tests/sample_inputs/site-info.json",
-            "--scores",
-            "--normalize-scores",
-            "--cartesian-product",
-            "--device", 
-            DEVICE
-        ],
-        [
-            "python3 -m DeepKS.api.main",
-            "-kf",
-            "tests/sample_inputs/kins.txt",
-            "-sf",
-            "tests/sample_inputs/sites-prod.txt",
-            "-p",
-            "csv",
-            "--kin-info",
-            "tests/sample_inputs/kin-info-known-groups.json",
-            "--site-info",
-            "tests/sample_inputs/site-info.json",
-            "--scores",
-            "--normalize-scores",
-            "--cartesian-product",
-            "--groups",
-            "--bypass-group-classifier",
-            "--device", 
-            DEVICE
-        ],
-    ]
+EXAMPLES = []
+with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "tests/examples.json")) as f:
+    EXAMPLES = json.load(f)
+    for ex in EXAMPLES:
+        if "DEVICE_PLACEHOLDER" in ex:
+            ex[ex.index("DEVICE_PLACEHOLDER")] = DEVICE
 
 def _main():
     os.chdir(pathlib.Path(__file__).parent.resolve())

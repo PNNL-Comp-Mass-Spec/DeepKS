@@ -4,7 +4,8 @@ if __name__ == "__main__":
 
     write_splash("main_gc_trainer")
     print(colored("Progress: Loading Modules", "green"), flush=True)
-import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
+from lib2to3.pytree import convert
+import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings, itertools
 from typing import Callable
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
@@ -22,6 +23,19 @@ where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
 warnings.filterwarnings(action="always", category=UserWarning)
+
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
+
+def smart_save_gc(individual_classifier: grp_pred.SKGroupClassifier):
+    bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
+    max_version = -1
+    for file in os.listdir(bin_):
+        if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(2)) + 1)
+    save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
+    print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
+    with open(save_path, "wb") as f:
+        pickle.dump(individual_classifier, f)   
 
 class MultiStageClassifier:
     def __init__(
@@ -44,9 +58,11 @@ class MultiStageClassifier:
         Xy_formatted_input_file: str,
         predict_mode=False,
         bypass_group_classifier={},
+        get_emp_eqn=True
     ):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
+        Xy_formatted_input_file = join_first(1, Xy_formatted_input_file)
         if "test_json" in addl_args:
             with open(Xy_formatted_input_file) as f:
                 input_file = json.load(f)
@@ -107,7 +123,7 @@ class MultiStageClassifier:
                 )
             )
             self.individual_classifiers.evaluation(
-                addl_args, pred_grp_dict, true_grp_dict, predict_mode, get_emp_eqn=True
+                addl_args, pred_grp_dict, true_grp_dict, predict_mode, get_emp_eqn=get_emp_eqn
             )
             # assert isinstance(emp_eqn, Callable)
         if predict_mode:
@@ -126,6 +142,7 @@ class MultiStageClassifier:
                 pred_grp_dict if not bypass_group_classifier else true_grp_dict,
                 true_groups={},
                 predict_mode=True,
+                get_emp_eqn=get_emp_eqn
             )
 
         return res
@@ -181,11 +198,12 @@ class MultiStageClassifier:
                     f.name,
                     predict_mode=True,
                     bypass_group_classifier=bypass_group_classifier,
+                    get_emp_eqn=convert_raw_to_prob
                 )
             else:
                 efficient_to_csv(data_dict, f.name)
                 # The "meat" of the prediction process.
-                res = self.evaluation_preparation({"test": f.name, "device": device}, f.name, predict_mode=True)
+                res = self.evaluation_preparation({"test": f.name, "device": device}, f.name, predict_mode=True, get_emp_eqn=convert_raw_to_prob)
             assert isinstance(res, list), "res is not a list"
             assert res is not None, "res is None"
             emp_eqns = [x[1][3] for x in res]
@@ -377,10 +395,10 @@ class MultiStageClassifier:
                         num_procs=6,
                         restricted_combinations=[train_kin_list, val_kin_list],
                     )
-        novel_df.rename(
-            columns={"RET|PTC2|Q15300": "RET/PTC2|Q15300"} if "RET|PTC2|Q15300" in novel_df.columns else {},
-            inplace=True,
-        )
+        # novel_df.rename(
+        #     columns={"RET|PTC2|Q15300": "RET/PTC2|Q15300"} if "RET|PTC2|Q15300" in novel_df.columns else {},
+        #     inplace=True,
+        # )
         for additional_name in additional_name_dict:
             grp_pred.MTX[additional_name] = grp_pred.MTX[additional_name_dict[additional_name]]
             grp_pred.MTX.loc[additional_name] = grp_pred.MTX.loc[additional_name_dict[additional_name]]
@@ -388,32 +406,33 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def main(run_args):
-    # train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
-    #     "../data/preprocessing/pairwise_mtx_826.csv",
-    #     "../data/preprocessing/tr_kins.json",
-    #     "../data/preprocessing/vl_kins.json",
-    #     "../data/preprocessing/te_kins.json",
-    #     "../data/preprocessing/kin_to_fam_to_grp_826.csv",
-    # )
+def main():
+    run_args = parsing()
+    assert (
+        run_args.get("load") is not None or run_args.get("load_include_eval") is not None
+    ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
 
-    # train_kins, eval_kins, train_true, eval_true = (  # type: ignore
-    #     np.array(train_kins + val_kins),
-    #     np.array(test_kins),
-    #     np.array(train_true + val_true),
-    #     np.array(test_true),
-    # )
+
+    train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
+        *([join_first(0, x) for x in ["../data/preprocessing/pairwise_mtx_826.csv",
+        "../data/preprocessing/tr_kins.json",
+        "../data/preprocessing/vl_kins.json",
+        "../data/preprocessing/te_kins.json",
+        "../data/preprocessing/kin_to_fam_to_grp_826.csv"]] + [None, None])
+    )
+
+    train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
 
     # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
 
-    train_kins = np.asarray(
-        pd.read_csv(
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
-        )["Original Kinase Gene Name"]
-        .drop_duplicates(keep="first")
-        .values
-    ).tolist()
-    train_true = ["CMGC" for _ in range(len(train_kins))]
+    # train_kins = np.asarray(
+    #     pd.read_csv(
+    #         "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
+    #     )["Original Kinase Gene Name"]
+    #     .drop_duplicates(keep="first")
+    #     .values
+    # ).tolist()
+    # train_true = ["CMGC" for _ in range(len(train_kins))]
 
     group_classifier = grp_pred.SKGroupClassifier(
         X_train=train_kins,
@@ -436,22 +455,20 @@ def main(run_args):
     #     classifier=KNeighborsClassifier,
     #     hyperparameters={"metric": "chebyshev", "n_neighbors": 1},
     # )
+    assert run_args["device"] is not None, "Somehow, device is not set."
 
-    individual_classifiers = IndividualClassifiers.load_all(
+    individual_classifiers_ = IndividualClassifiers.load_all(
         run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
         run_args["device"],
     )
     if run_args["c"]:
         check_is_fitted(group_classifier.model)
-        pickle.dump(individual_classifiers, open(f"{PRE_TRAINED_NN}", "wb"))
-        open(f"{PRE_TRAINED_GC}", "wb").write(pickle.dumps(group_classifier))
-        print(colored("Info: Saved pre-trained classifiers to disk with the following paths:", "blue"))
-        print(f"* {PRE_TRAINED_NN}")
-        print(f"* {PRE_TRAINED_GC}")
-        print(colored("Status: Exiting Successfully.", "green"))
+        smart_save_gc(group_classifier)
         return
 
-    msc = MultiStageClassifier(group_classifier, individual_classifiers)
+    assert run_args["test"] is not None, "Must provide test set for evaluating."
+
+    msc = MultiStageClassifier(group_classifier, individual_classifiers_)
     msc.evaluation_preparation(run_args, run_args["test"])
 
 
@@ -480,8 +497,4 @@ def efficient_to_csv(data_dict, outfile):
 
 
 if __name__ == "__main__":
-    run_args = parsing()
-    assert (
-        run_args.get("load") is not None or run_args.get("load_include_eval") is not None
-    ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
-    main(run_args)
+    main()

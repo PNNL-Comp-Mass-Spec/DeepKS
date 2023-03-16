@@ -10,7 +10,7 @@ if __name__ == "__main__":
 # import cProfile
 # pr = cProfile.Profile()
 # pr.enable()
-import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings, dill
+import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings, dill, inspect
 import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats, pathlib, os  # type: ignore
 from .main import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
@@ -30,12 +30,21 @@ MAX_SIZE_DS = 4128
 memory_multiplier = 2**6
 EVAL_BATCH_SIZE = 0
 
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
 
 def RAISE_ASSERTION_ERROR(x):
     raise AssertionError(x)
 
 
-#### ===================================================================== ####
+def smart_save_nn(individual_classifier: IndividualClassifiers):
+    bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
+    max_version = -1
+    for file in os.listdir(bin_):
+        if v := re.search(r"(UNITTESTVERSION|)deepks_nn_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(2)) + 1)
+    savepath = os.path.join(bin_, f"deepks_nn_weights.{max_version}.cornichon")
+    print(colored(f"Status: Serializing and Saving Neural Networks to Disk. ({savepath})", "green"))
+    IndividualClassifiers.save_all(individual_classifier, savepath)
 
 
 class IndividualClassifiers:
@@ -106,11 +115,11 @@ class IndividualClassifiers:
 
     @staticmethod
     def get_symbol_to_grp_dict(kin_fam_grp_file: str):
-        default_tok_dict = json.load(open("./json/tok_dict.json", "r"))
-        kin_symbol_to_grp = pd.read_csv(kin_fam_grp_file)
-        symbol_to_grp = pd.read_csv(kin_fam_grp_file)
-        symbol_to_grp["Symbol"] = symbol_to_grp["Kinase"].apply(DEL_DECOR) + "|" + symbol_to_grp["Uniprot"]
-        symbol_to_grp_dict = symbol_to_grp.set_index("Symbol").to_dict()["Group"]
+        with open(join_first(0, "json/tok_dict.json"), "r") as f:
+            default_tok_dict = json.load(f)
+        kin_symbol_to_grp = pd.read_csv(join_first(0, kin_fam_grp_file))
+        kin_symbol_to_grp["Symbol"] = kin_symbol_to_grp["Kinase"].apply(DEL_DECOR) + "|" + kin_symbol_to_grp["Uniprot"]
+        symbol_to_grp_dict = kin_symbol_to_grp.set_index("Symbol").to_dict()["Group"]
         return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
 
     @staticmethod
@@ -123,6 +132,7 @@ class IndividualClassifiers:
         symbol_to_grp_dict: dict = {},
     ):
         which_groups_ordered = sorted(list(set(which_groups)))
+        Xy_formatted_input_file = join_first(1, Xy_formatted_input_file)
         Xy: Union[pd.DataFrame, dict]
         if not cartesian_product:
             Xy = pd.read_csv(Xy_formatted_input_file)
@@ -382,16 +392,6 @@ class IndividualClassifiers:
         else:
             raise ValueError("Must specify either `test` or `test_json` in `addl_args`.")
 
-        def potentially_save_individual_classifiers():
-            parent = pathlib.Path(__file__).parent.resolve()
-            max_version = -1
-            for file in os.listdir(parent):
-                if v := re.search(r"deepks_nn_weights_v\d+.pkl", file):
-                    max_version = max(max_version, int(v.group(0)))
-            if self.args.get("s"):
-                print(colored("Status: Serializing and Saving Neural Networks to Disk."), "green")
-                IndividualClassifiers.save_all(self, f"{parent}/../bin/deepks_nn_weights_v{max_version}.cornichon")
-
         if predict_mode:
             all_predictions_outputs = {}
             info_dict_passthrough = {}
@@ -444,7 +444,8 @@ class IndividualClassifiers:
                     ) from None
             key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
             pred_items = sorted(all_predictions_outputs.items(), key=key_lambda)  # Pair # {i}
-            potentially_save_individual_classifiers()
+            if self.args.get('s'):
+                smart_save_nn(self)
             return pred_items
 
         else:  # Not predict mode
@@ -487,7 +488,8 @@ class IndividualClassifiers:
                     + ".pkl",
                     from_loaded=self.evaluations,
                 )
-            potentially_save_individual_classifiers()
+            if self.args.get('s'):
+                smart_save_nn(self)
 
 
 def main():
@@ -499,9 +501,8 @@ def main():
         val_filename = args["val"]
         device = args["device"]
         assert device is not None
-
         groups: list[str] = (
-            pd.read_csv("../data/preprocessing/kin_to_fam_to_grp_826.csv")["Group"].unique().tolist()
+            pd.read_csv(join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"))["Group"].unique().tolist()
         )  # FIXME - all - make them configurable
         default_grp_to_model_args = {
             "ll1_size": 50,
@@ -536,7 +537,7 @@ def main():
         )
         print("Progress: About to Train")
         assert val_filename is not None
-        fat_model.train(which_groups=groups, Xy_formatted_train_file=train_filename, Xy_formatted_val_file=val_filename)
+        fat_model.train(which_groups=groups, Xy_formatted_train_file=join_first(1, train_filename), Xy_formatted_val_file=join_first(1, val_filename))
     else:  # AKA, loading from file
         fat_model = IndividualClassifiers.load_all(
             args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
@@ -566,8 +567,7 @@ def main():
             from_loaded=fat_model.evaluations,
         )
     if args["s"]:
-        print("Progress: Saving State to Disk")
-        IndividualClassifiers.save_all(fat_model, f"../bin/individual_classifiers_{file_names.get()}.pkl")
+        smart_save_nn(fat_model)
 
 
 if __name__ == "__main__":

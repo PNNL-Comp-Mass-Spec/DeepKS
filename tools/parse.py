@@ -1,7 +1,5 @@
 import argparse, re, os, torch, pathlib, warnings
 from typing import Union
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(os.path.join(os.path.abspath(os.path.join(where_am_i, os.pardir)), "models"))
 
 def parsing() -> dict[str, Union[str, None]]:
     print("Progress: Parsing Arguments")
@@ -59,7 +57,7 @@ def parsing() -> dict[str, Union[str, None]]:
                     pass
                 except AssertionError as e:
                     warnings.warn(str(e), UserWarning)
-                assert os.path.exists(os.path.expanduser(f)), f"Input file '{f}' does not exist."
+                assert os.path.exists(os.path.join(pathlib.Path(__file__).parent.resolve().parent.resolve(), os.path.expanduser(f))), f"Input file '{f}' does not exist."
     else:
         load_filename = args['load_include_eval']
         assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."
