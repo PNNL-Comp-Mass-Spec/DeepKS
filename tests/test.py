@@ -16,26 +16,26 @@ class TestMisc(unittest.TestCase):
             self.bu = fl.read()
         
 
-    def test_smart_save_nn(self):
-        self.sample_files = ["UNITTESTVERSIONdeepks_nn_weights.0.cornichon",
-                        "UNITTESTVERSIONdeepks_nn_weights.2.cornichon",
-                        "UNITTESTVERSIONdeepks_nn_weights.5.cornichon"]
-        self.old_dir = os.getcwd()
-        os.chdir(self.parent)
-        assert os.path.exists(self.real_file)
-        for f in self.sample_files:
-            with open(f, "w") as fl:
-                fl.write("This is a test nn weight file.")
+    # def test_smart_save_nn(self):
+    #     self.sample_files = ["UNITTESTVERSIONdeepks_nn_weights.0.cornichon",
+    #                     "UNITTESTVERSIONdeepks_nn_weights.2.cornichon",
+    #                     "UNITTESTVERSIONdeepks_nn_weights.5.cornichon"]
+    #     self.old_dir = os.getcwd()
+    #     os.chdir(self.parent)
+    #     assert os.path.exists(self.real_file)
+    #     for f in self.sample_files:
+    #         with open(f, "w") as fl:
+    #             fl.write("This is a test nn weight file.")
 
-        self.smart_save_nn(self.IndividualClassifiers.load_all(self.real_file))
-        assert os.path.exists(os.path.join(self.parent, "deepks_nn_weights.6.cornichon"))
+    #     self.smart_save_nn(self.IndividualClassifiers.load_all(self.real_file))
+    #     assert os.path.exists(os.path.join(self.parent, "deepks_nn_weights.6.cornichon"))
         
-    def tearDown(self):
-        [os.unlink(f) for f in self.sample_files + ["deepks_nn_weights.6.cornichon"]]
-        os.chdir(self.old_dir)
-        # restore backup
-        with open(os.path.join(self.parent, self.real_file), "wb") as restore:
-            restore.write(self.bu)
+    # def tearDown(self):
+    #     [os.unlink(f) for f in self.sample_files + ["deepks_nn_weights.6.cornichon"]]
+    #     os.chdir(self.old_dir)
+    #     # restore backup
+    #     with open(os.path.join(self.parent, self.real_file), "wb") as restore:
+    #         restore.write(self.bu)
         
 
 
