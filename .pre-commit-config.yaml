@@ -1,0 +1,11 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: no-symlinks
+        name: Remove Symlinks
+        entry: build/selective_black.sh
+        language: script
+    -   id: selective-black
+        name: Format with Black on Modified Files
+        entry: build/remove-symlinks.sh
+        language: script
