@@ -16,6 +16,7 @@ nbformat
 numpy
 openpyxl
 pandas
+parameterized
 plotly
 prettytable
 psutil

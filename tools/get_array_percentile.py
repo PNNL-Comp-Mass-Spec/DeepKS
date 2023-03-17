@@ -21,7 +21,7 @@ def get_array_percentile(
                         elements of `arr` are < `percentile[1]` and >= than `percentile[0]` along the provided axe(s).
         axes (int or iterable of ints): The axe(s) along which to compute percentiles.
         tf (iterable): [Default = (1, 0)] `tf[0]` is object to insert
-            if the percentile condition is met, and `tf[1]` is the object to insert otherwise.
+            if the percentile condition is met, and `tf[1]` is the object to insert otherwise. Summary tf = [less than pctl, more than pctl]
 
     Returns:
         (np.array): np.array based on percentile and arr
@@ -30,6 +30,12 @@ def get_array_percentile(
     assert len(tf) == 2, "Length of `tf` must be 2."
     if isinstance(axes, int):
         axes = [axes]
+    orig_shape = arr.shape
+    do_reshape = False
+    if len(axes) == 0:
+        arr = arr.ravel()
+        axes = [0]
+        do_reshape = True
     assert len(axes) <= arr.ndim, "The number of axes provided must not exceed the dimension of the input array."
     if isinstance(percentile, Union[int, float]):
         new_percentile = (0, percentile)
@@ -58,4 +64,16 @@ def get_array_percentile(
 
     a = np.asarray(np.where((pctls_upper > arr) & (arr >= pctls_lower), *tuple(tf)))
 
+    if do_reshape:
+        a = a.reshape(orig_shape)
+
     return a
+
+
+if __name__ == "__main__":
+    base = np.arange(100).reshape(10, 10)
+    print(base)
+    print(get_array_percentile(base, 50, 0, (1, 0)))
+    print(get_array_percentile(base, 25, 0, (0, 1)))
+    print(get_array_percentile(base, 75, 1, (True, False)))
+    print(get_array_percentile(base, 75, [], ("A", "B")))
