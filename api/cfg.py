@@ -13,6 +13,7 @@ warnings.filterwarnings("always")
 
 PRE_TRAINED_NN = PRE_TRAINED_GC = ""
 
+
 def smart_get_latest():
     global PRE_TRAINED_NN, PRE_TRAINED_GC
     # List bin directory
@@ -31,5 +32,6 @@ def smart_get_latest():
     PRE_TRAINED_NN, PRE_TRAINED_GC = tuple(set_vars)
     print(colored(f"Info: Using latest pre-trained neural network: {PRE_TRAINED_NN}", "blue"))
     print(colored(f"Info: Using latest pre-trained group classifier: {PRE_TRAINED_GC}", "blue"))
+
 
 smart_get_latest()

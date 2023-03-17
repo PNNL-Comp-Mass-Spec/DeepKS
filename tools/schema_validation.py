@@ -9,7 +9,7 @@ kin_pattern_properties = {
             "Uniprot Accession ID": {"type": "array", "minItems": 1, "items": {"type": "string"}},
             "Gene Name": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         },
-        "additionalProperties": True
+        "additionalProperties": True,
     }
 }
 
@@ -30,9 +30,12 @@ KinSchema = {
 SiteSchema = deepcopy(KinSchema)
 SiteSchema["patternProperties"] = site_pattern_properties
 
-bypass_gc = {"Known Group": {
-    "type": "string",
-    "enum": ["<UNANNOTATED>", "ATYPICAL", "AGC", "CAMK", "CK1", "CMGC", "OTHER", "STE", "TK", "TKL"]}}
+bypass_gc = {
+    "Known Group": {
+        "type": "string",
+        "enum": ["<UNANNOTATED>", "ATYPICAL", "AGC", "CAMK", "CK1", "CMGC", "OTHER", "STE", "TK", "TKL"],
+    }
+}
 
 KinSchemaBypassGC = deepcopy(KinSchema)
 KinSchemaBypassGC["patternProperties"]["^.+$"]["properties"].update(bypass_gc)

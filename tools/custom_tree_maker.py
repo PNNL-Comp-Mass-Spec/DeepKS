@@ -11,12 +11,13 @@ TOP_DIR = f"{pathlib.Path(__file__).parent.resolve()}/../"
 
 # TODO: Make lines 90 degrees if end of inner list
 
+
 def main():
     os.chdir(TOP_DIR)
     ignore_patterns = ["*.pyc", "__pycache__", "__init__.py", ".git", ".DS_Store", ".vscode", ".gitig-*", "tree.txt"]
-    ignore_patterns = [f" -I \"{p}\"" for p in ignore_patterns]
+    ignore_patterns = [f' -I "{p}"' for p in ignore_patterns]
     ignore_patterns = "".join(ignore_patterns)
-    cmd = f'tree -a -o {TOP_DIR}docs/tree.txt {ignore_patterns}'
+    cmd = f"tree -a -o {TOP_DIR}docs/tree.txt {ignore_patterns}"
 
     if DRY:
         print("Would have run: " + cmd)
@@ -30,7 +31,7 @@ def main():
         exit(1)
     description = {}
     if not RESTORE:
-        with open(argv[argv.index('-d') + 1], "r") as d:
+        with open(argv[argv.index("-d") + 1], "r") as d:
             description = d.readlines()
 
     with open(f"{TOP_DIR}docs/tree.txt", "r") as t:
@@ -41,9 +42,8 @@ def main():
 
     new_lines = []
     tree_repr = graph_from_text(lines).get_pre_order_trav()
-    
 
-    lines_restore = [None]*len(lines)
+    lines_restore = [None] * len(lines)
     lines_restored = None
     if RESTORE:
         lines_restore = lines.copy()
@@ -51,15 +51,16 @@ def main():
         with open(f"{TOP_DIR}saved_dict_repr_file.json", "r") as f:
             tree_description_path_dict = {eval(k): v for k, v in json.load(f).items()}
     else:
-        assert len(description) != 0; "RESTORE is not True, but there is no description information provided."
+        assert len(description) != 0
+        "RESTORE is not True, but there is no description information provided."
         tree_description_path_dict = graph_from_text(description).get_dict_repr()
-    
+
     if DUMP:
         with open(f"{TOP_DIR}saved_dict_repr_file.json", "w") as f:
             json.dump({str(p): v for p, v in tree_description_path_dict.items()}, f, indent=4, sort_keys=True)
-    
-    bg_class = 'odd'
-    
+
+    bg_class = "odd"
+
     for i, (orig_line, node, to_restore_line) in enumerate(zip(lines, tree_repr, lines_restore)):
         node_inner = node
         path_to_node = [node_inner.text]
@@ -71,20 +72,27 @@ def main():
         if path_to_node in tree_description_path_dict:
             desc = tree_description_path_dict[path_to_node]
         else:
-            print(f"{'/'.join(reversed(path_to_node))} found in file tree, but there was no corresponding entry in tree_description.txt.")
+            print(
+                f"{'/'.join(reversed(path_to_node))} found in file tree, but there was no corresponding entry in"
+                " tree_description.txt."
+            )
             # print(f"{path_to_node=}")
-        to_restore_line = (to_restore_line if desc is None else to_restore_line.replace("\n", "") + ";" + desc) if to_restore_line is not None else None
+        to_restore_line = (
+            (to_restore_line if desc is None else to_restore_line.replace("\n", "") + ";" + desc)
+            if to_restore_line is not None
+            else None
+        )
         if desc is not None:
             desc = re.sub(r"¡(.*)¡", "<span class='warn'><i>\\1</i></span>", desc)
-            bg_class = 'odd' if bg_class == 'even' else 'even'
+            bg_class = "odd" if bg_class == "even" else "even"
             orig_line = orig_line.replace("\n", "").replace(" ", " ")
             try:
-                bolded = '' if not node.is_directory else ' class=\"dir\"'
+                bolded = "" if not node.is_directory else ' class="dir"'
                 new_line = (
                     "<code"
                     f" class='no-col'>{''.join(re.findall(r'[│─ ├└]', orig_line))}</code><code{bolded}>{re.findall(r'─ (.*)', orig_line)[0] if orig_line != '.' else '.'}</code>"
                 )
-                
+
                 if i != 0 and tree_repr[i - 1].depth > node.depth:
                     # new_lines[-1] = new_lines[-1].replace("├", "└")
                     pass
@@ -97,7 +105,7 @@ def main():
                 new_lines[-1] += " ▷  " + desc.replace("\n", "")
             else:
                 new_lines[-1] += desc
-            
+
             new_lines[-1] = f"<div style='display:table-row' class={bg_class}>{new_lines[-1]}</div>".replace("└", "├")
         if RESTORE:
             if to_restore_line is not None and lines_restored is not None:
@@ -117,7 +125,7 @@ def main():
 
 
 class GraphFromTextNode:
-    def __init__(self, text: str, depth: int, index_in_list: int, description:Union[str, None]=""):
+    def __init__(self, text: str, depth: int, index_in_list: int, description: Union[str, None] = ""):
         self.children: list[GraphFromTextNode] = []
         self.parent: Union[GraphFromTextNode, None] = None
         self.is_directory: bool = False
@@ -149,7 +157,7 @@ class GraphFromText:
         return ret
 
     def _str_helper(self, node):
-        self._repr_str_build_up.append("  "*node.depth + node.__str__())
+        self._repr_str_build_up.append("  " * node.depth + node.__str__())
         if len(node.children) > 0:
             for child in node.children:
                 self._str_helper(child)
@@ -196,17 +204,19 @@ class GraphFromText:
 
 
 def graph_from_text(lines) -> GraphFromText:
-    def get_depth(string:str) -> int:
-        dont_match = set(['│', r'\s', '└', '├', '──', ' ', ' ', '─'])
+    def get_depth(string: str) -> int:
+        dont_match = set(["│", r"\s", "└", "├", "──", " ", " ", "─"])
         for i, c in enumerate(string):
             if c not in dont_match:
-                return i//4
+                return i // 4
         raise AssertionError("No non-bar characters found in line.")
 
     line_nodes = []
     for i, line in enumerate(lines):
         line_nodes.append(
-            GraphFromTextNode(line.split(";")[0], get_depth(line), i, ";".join(line.split(";")[1:]) if ";" in line else None)
+            GraphFromTextNode(
+                line.split(";")[0], get_depth(line), i, ";".join(line.split(";")[1:]) if ";" in line else None
+            )
         )
 
     cur_node: GraphFromTextNode = line_nodes[0]
@@ -221,7 +231,7 @@ def graph_from_text(lines) -> GraphFromText:
                 break
             if line_nodes[j].depth - 1 == parent.depth:
                 immediate_children.append(line_nodes[j])
-        
+
         if len(immediate_children) > 0:
             parent.is_directory = True
 

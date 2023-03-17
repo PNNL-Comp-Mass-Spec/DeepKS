@@ -115,11 +115,11 @@ def get_input_dataframe_core(
     # decoy = my_pop(all_data, to_pop_inds).reset_index(drop=True)
     target = all_data.copy()
     decoy = all_data.copy()
-    decoy['Class'] = 0
+    decoy["Class"] = 0
 
     for df in [target, decoy]:
-        df['original_kinase'] = target["lab"]
-        df['original_uniprot_id'] = target['uniprot_id']
+        df["original_kinase"] = target["lab"]
+        df["original_uniprot_id"] = target["uniprot_id"]
 
     if os.path.exists(f"{sum(sizes)}.derangement"):
         derangement = json.load(open(f"{sum(sizes)}.derangement"))
@@ -136,7 +136,7 @@ def get_input_dataframe_core(
     print(colored("Status: Done processing derangement.", "green"))
     print(colored("Status: assembling final data.", "green"))
 
-    for col in ['original_kinase', 'original_uniprot_id', 'seq']:
+    for col in ["original_kinase", "original_uniprot_id", "seq"]:
         decoy[col] = decoy[col].loc[derangement].reset_index(drop=True)
 
     for i, r in decoy.iterrows():  # weak version
@@ -167,7 +167,8 @@ def get_input_dataframe_core(
     extra = "" if mode == "no_alin" else "_alin"
     extra += f"_{percentile}"
     all_data_w_seqs = all_data_w_seqs.sort_values(
-        by=["Class", "Kinase Sequence", "Original Kinase Gene Name", "Site Sequence"], ascending=[False, True, True, True]
+        by=["Class", "Kinase Sequence", "Original Kinase Gene Name", "Site Sequence"],
+        ascending=[False, True, True, True],
     )
 
     if write_file:
@@ -185,7 +186,9 @@ def get_input_dataframe_core(
 
 if __name__ == "__main__":
     if mode == "no_alin":
-        kin_seq_file = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/kinase_seq_826.csv"
+        kin_seq_file = (
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/kinase_seq_826.csv"
+        )
     else:
         raise RuntimeError("mode not supported")
 

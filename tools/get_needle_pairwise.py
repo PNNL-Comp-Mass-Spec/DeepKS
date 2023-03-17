@@ -1,5 +1,6 @@
 import itertools, warnings, tqdm, os, re, tempfile, time, pathlib, matplotlib, numpy as np, pandas as pd, subprocess
 from multiprocessing.pool import ThreadPool
+
 matplotlib.rcParams["font.family"] = "monospace"
 
 format_for_needle = (
@@ -10,14 +11,7 @@ format_for_needle = (
     .replace(" ", "---")
     .replace(":", "----")
 )
-eldeen_rof_tamrof = (
-    lambda x: x.replace("_", "|")
-    .replace("----", ":")
-    .replace("---", " ")
-    .replace("--", "/")
-    
-    
-)
+eldeen_rof_tamrof = lambda x: x.replace("_", "|").replace("----", ":").replace("---", " ").replace("--", "/")
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -69,7 +63,10 @@ def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
         with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
             retcode = proc.wait()
     if retcode != 0:
-        raise RuntimeError(f"Error: The `needleall` command for running pairwise alignments did not exit with success. For reference, the failed command was:\n\n{cmd}")
+        raise RuntimeError(
+            "Error: The `needleall` command for running pairwise alignments did not exit with success. For reference,"
+            f" the failed command was:\n\n{cmd}"
+        )
     with open(outfile, "r") as f:
         results = {}
         output_lines = f.read()
@@ -89,7 +86,9 @@ def get_needle_pairwise_mtx(
     fasta: str, outfile: str, subset: int = -1, num_procs: int = 4, restricted_combinations: list = []
 ):
     assert len(restricted_combinations) in [0, 2], "Restricted combinations must be a list of two iterables or empty."
-    if len(restricted_combinations) == 2 and (len(restricted_combinations[0]) == 0 or len(restricted_combinations[1]) == 0):
+    if len(restricted_combinations) == 2 and (
+        len(restricted_combinations[0]) == 0 or len(restricted_combinations[1]) == 0
+    ):
         return pd.DataFrame()
     with open(fasta, "r") as f:
         fasta_all = re.findall(r">.*\n[^>]+", f.read())
@@ -112,7 +111,10 @@ def get_needle_pairwise_mtx(
             strs_a.append(format_for_needle("".join(list(set(fastas_a[i : i + group_size])))))
             strs_b.append(format_for_needle("".join(list(set(fastas_b[i : i + group_size])))))
     else:
-        name_to_seq = {format_for_needle(x.split("\n")[0].split(">")[1].upper()): "\n".join(x.split("\n")[1:]).strip() for x in fastas}
+        name_to_seq = {
+            format_for_needle(x.split("\n")[0].split(">")[1].upper()): "\n".join(x.split("\n")[1:]).strip()
+            for x in fastas
+        }
         fastas_a = [format_for_needle(x) for x in restricted_combinations[0]]
         fastas_b = [format_for_needle(x) for x in restricted_combinations[1]]
         fastas_a = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_a]
@@ -163,7 +165,7 @@ def get_needle_pairwise_mtx(
     ), "Matrix is not square/the right size"
     if pd.isna(df_results.values).any():
         with warnings.catch_warnings():  # TODO: Show warnings if Verbose
-            # warnings.simplefilter("always", RuntimeWarning) 
+            # warnings.simplefilter("always", RuntimeWarning)
             pd.set_option("display.max_rows", 1000)
             pd.set_option("display.max_columns", 1000)
             pd.set_option("display.width", 140)

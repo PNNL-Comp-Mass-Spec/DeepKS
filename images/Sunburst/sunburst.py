@@ -7,27 +7,28 @@ rcParams["font.family"] = "P052-Roman"
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
-def remove_timestamps(bytes: bytes) -> bytes: # So we don't get different versions in git
+
+def remove_timestamps(bytes: bytes) -> bytes:  # So we don't get different versions in git
     """
     Get rid of this garbage in the pdf:
         /CreationDate (D:20230220021238+00'00')
         /ModDate (D:20230220021238+00'00')>>
     """
-    rep_bytes = bytes[:200] # Semi-arbitrary number of bytes to look at when regexing
+    rep_bytes = bytes[:200]  # Semi-arbitrary number of bytes to look at when regexing
     rest_bytes = bytes[200:]
-    rep_bytes = re.sub(r'/CreationDate \(.*\)'.encode("utf-8"), b'/CreationDate (D.00000000000000+00\'+00\')', rep_bytes)
-    rep_bytes = re.sub(r'/ModDate \(.*\)'.encode("utf-8"), b'/ModDate (D.00000000000000+00\'+00\')', rep_bytes)
+    rep_bytes = re.sub(r"/CreationDate \(.*\)".encode("utf-8"), b"/CreationDate (D.00000000000000+00'+00')", rep_bytes)
+    rep_bytes = re.sub(r"/ModDate \(.*\)".encode("utf-8"), b"/ModDate (D.00000000000000+00'+00')", rep_bytes)
     all_bytes = rep_bytes + rest_bytes
     return all_bytes
 
+
 # %% ### DATA FORMATTING ---
 def make_sunburst():
-    #garbage graph
+    # garbage graph
     fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
     fig.write_image(".gitig-garbage-graph.pdf")
     time.sleep(2)
     os.unlink(".gitig-garbage-graph.pdf")
-
 
     kfg = pd.read_csv("../../data/preprocessing/kin_to_fam_to_grp_826.csv")
     kfg["Symbol"] = [re.sub(r"[\(\)\*]", "", x) for x in kfg["Kinase"] + "|" + kfg["Uniprot"]]
@@ -61,11 +62,12 @@ def make_sunburst():
                 r["MLSet"] = label
 
     num_sites_df = pd.read_csv("../../data/raw_data/raw_data_22588.csv").rename({"lab": "Kinase"}, axis="columns")
-    new_df = pd.merge(new_df, num_sites_df, how="left", on="Kinase").drop_duplicates(keep="first").reset_index(drop=True)
+    new_df = (
+        pd.merge(new_df, num_sites_df, how="left", on="Kinase").drop_duplicates(keep="first").reset_index(drop=True)
+    )
     num_sites_df["Symbol"] = num_sites_df["Kinase"] + "|" + num_sites_df["uniprot_id"]
 
     kin_to_num_sites = num_sites_df.set_index("Symbol").to_dict()["num_sites"]
-
 
     def get_sectors(df: pd.DataFrame):
         children = []
@@ -124,7 +126,6 @@ def make_sunburst():
     with open("sunburst.pdf", "wb") as f:
         f.write(remove_timestamps(fig.to_image(format="pdf", height=1000, width=1000)))
 
-
     # %% ### EXPLAINER PLOT ---
     AA = [x for x in "ACDEFGHIKLMNPQRSTVWY"]
     assert len(AA) == 20
@@ -140,7 +141,6 @@ def make_sunburst():
                 fake_kin = next_kins_iterator.__next__()
                 explainer.loc[j] = [fake_kin, "Site", r["id"], 1]  # type: ignore
             explainer.at[i, "val"] = 0
-
 
     sb = go.Sunburst(
         ids=explainer["id"],
@@ -176,6 +176,7 @@ def make_sunburst():
     # fig.show()
     with open("sunburst explainer simple.pdf", "wb") as f:
         f.write(remove_timestamps(fig.to_image(format="pdf", height=1000, width=1000)))
+
 
 # %% ### MAIN ---
 if __name__ == "__main__":

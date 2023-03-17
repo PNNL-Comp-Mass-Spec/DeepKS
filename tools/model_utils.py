@@ -27,7 +27,7 @@ class cNNUtils:
         if len(db) != 0 and config in db["config_str"].values:
             res = db["config_str"][db["config_str"] == config].index[0]
         else:
-            db.loc[len(db), 'config_str'] = config
+            db.loc[len(db), "config_str"] = config
             db.to_csv(db_file, sep="\t", index=True)
             res = len(db) - 1
 
@@ -95,8 +95,8 @@ class cNNUtils:
         desired_height,
         kernel_size=None,
         stride=None,
-        dilation: Union[int, None]=1,
-        pad: Union[int, tuple[int, int]]=0,
+        dilation: Union[int, None] = 1,
+        pad: Union[int, tuple[int, int]] = 0,
         err_message="",
     ):
         if not isinstance(kernel_size, tuple):
@@ -197,7 +197,9 @@ class KSDataset(Dataset):
         self.data = data
         self.target = target
         self.class_ = class_
-        assert (data is None and target is None and class_ is None) or (len(self.data) == len(self.target) == len(self.class_))
+        assert (data is None and target is None and class_ is None) or (
+            len(self.data) == len(self.target) == len(self.class_)
+        )
 
     def __getitem__(self, index):
         return (self.data[index], self.target[index], self.class_[index])

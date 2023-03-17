@@ -1,6 +1,7 @@
 import sys, contextlib
 from tqdm.contrib import DummyTqdmFile
 
+
 @contextlib.contextmanager
 def std_out_err_redirect_tqdm():
     orig_err = sys.stderr
@@ -16,5 +17,6 @@ def std_out_err_redirect_tqdm():
     finally:
         sys.stdout, sys.stderr = orig_out_err
         sys.stderr = orig_err
+
 
 tqdm_global_file_handle = std_out_err_redirect_tqdm()

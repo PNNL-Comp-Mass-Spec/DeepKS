@@ -5,6 +5,7 @@ from termcolor import colored
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
     from ..splash import write_splash
+
     if __name__ == "__main__":
         write_splash.write_splash("main_api")
         print(colored("Status: Loading Modules...", "green"))
@@ -14,26 +15,33 @@ import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, 
 warnings.filterwarnings(action="always", category=UserWarning)
 
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
-API_IMPORT_MODE = "true" in (s := open(str(pathlib.Path(__file__).parent.resolve())+"/../config/API_IMPORT_MODE.json", "r").read())
+
+API_IMPORT_MODE = "true" in (
+    s := open(str(pathlib.Path(__file__).parent.resolve()) + "/../config/API_IMPORT_MODE.json", "r").read()
+)
 
 from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
 
+
 class Capturing(list):
     """https://stackoverflow.com/a/16571630/16158339"""
+
     def __enter__(self):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         sys.stdout = self._stringio = io.StringIO()
         sys.stderr = self._stringio2 = io.StringIO()
         return self
+
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
         self.extend(self._stringio2.getvalue().splitlines())
-        del self._stringio    # free up some memory
-        del self._stringio2    # free up some memory
+        del self._stringio  # free up some memory
+        del self._stringio2  # free up some memory
         sys.stdout = self._stdout
         sys.stderr = self._stderr
+
 
 def make_predictions(
     kinase_seqs: list[str],
@@ -54,7 +62,7 @@ def make_predictions(
     cartesian_product: bool = False,
     group_output: bool = False,
     bypass_group_classifier: list[str] = [],
-    convert_raw_to_prob: bool = True
+    convert_raw_to_prob: bool = True,
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
@@ -85,7 +93,7 @@ def make_predictions(
     @arg dry_run: Whether to run a dry run (make sure input parameters work).
     @arg cartesian_product: Whether to make predictions for all combinations of kinases and sites.
     @arg group_output: Whether to return group predictions.
-    @arg bypass_group_classifier: List of known kinase groups in the same order in which they appear in kinase_seqs. 
+    @arg bypass_group_classifier: List of known kinase groups in the same order in which they appear in kinase_seqs.
                                   See C{./kin-info_file_format.txt} for instructions on how to specify groups.
     @arg convert_raw_to_prob: Whether to convert raw scores to empirical probabilities. The neural network save file's object must have a C{emp_eqn} attribute (i.e., a mapping from raw score to empirical probability).
     """
@@ -116,14 +124,16 @@ def make_predictions(
                 f"Site sequences must only contain letters. The input site at index {i} --- {site_seq[i]} is"
                 " problematic."
             )
-        
+
         print(colored("Info: Inputs are valid!", "blue"))
-        
+
         # Create (load) multi-stage classifier
         print(colored("Status: Loading previously trained models...", "green"))
         with open(pre_trained_gc, "rb") as f:
             group_classifier: SKGroupClassifier = pickle.load(f)
-        individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(pre_trained_nn, target_device=device)
+        individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(
+            pre_trained_nn, target_device=device
+        )
         msc = MultiStageClassifier(group_classifier, individual_classifiers)
         # nn_sample = list(individual_classifiers.interfaces.values())[0]
         # summary_stringio = io.StringIO()
@@ -135,7 +145,6 @@ def make_predictions(
         # summary_string = re.sub(r"=+\nInput size \(MB\):.*\nForward\/backward pass size \(MB\):.*\nParams size \(MB\):.*\nEstimated Total Size \(MB\):.*\n=+", "", summary_string)
         # with open(os.path.abspath("") + "/../architectures/nn_summary.txt", "w") as f:
         #     f.write(summary_string)
-
 
         if dry_run:
             print(colored("Status: Dry run successful!", "green"))
@@ -156,7 +165,7 @@ def make_predictions(
                 cartesian_product=cartesian_product,
                 group_output=group_output,
                 bypass_group_classifier=bypass_group_classifier,
-                convert_raw_to_prob=convert_raw_to_prob
+                convert_raw_to_prob=convert_raw_to_prob,
             )
         except Exception as e:
             informative_exception(e, print_full_tb=True, top_message="Error: Prediction process failed!")
@@ -214,16 +223,16 @@ def parse_api() -> dict[str, typing.Any]:
             return str(action.help) + "\n\t" + f"{f'(Default: {action.default}'})"
 
     ap = argparse.ArgumentParser(prog="python -m DeepKS.api.main", formatter_class=CustomFormatter, exit_on_error=False)
-    
-    def new_exit(status = 0, message = None):
+
+    def new_exit(status=0, message=None):
         # print(f"@@@ {sys.argv=}")
-        if sys.argv[1] in ['-h', '--help'] and len(sys.argv) == 2:
+        if sys.argv[1] in ["-h", "--help"] and len(sys.argv) == 2:
             sys.exit(0)
         raise ValueError()
-    
+
     error_orig = ap.error
     ap.exit = new_exit
-    
+
     def new_err(message):
         output = ""
         try:
@@ -231,7 +240,7 @@ def parse_api() -> dict[str, typing.Any]:
                 error_orig(message)
         except Exception:
             raise argparse.ArgumentError(None, "\t\n".join(output))
-            
+
     ap.error = new_err
 
     k_group = ap.add_mutually_exclusive_group(required=True)
@@ -340,21 +349,21 @@ def parse_api() -> dict[str, typing.Any]:
         required=False,
         metavar="<pre-trained group classifier file>",
     )
-    
+
     def device_eligibility(arg_value):
         try:
-            assert(bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value)))
+            assert bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value))
             if "cuda" in arg_value:
                 if arg_value == "cuda":
                     return arg_value
                 cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
-                assert(0 <= cuda_num <= torch.cuda.device_count())
+                assert 0 <= cuda_num <= torch.cuda.device_count()
         except Exception:
             raise argparse.ArgumentTypeError(
                 f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
                 f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
             )
-        
+
         return arg_value
 
     ap.add_argument(
@@ -388,10 +397,13 @@ def parse_api() -> dict[str, typing.Any]:
     )
     ap.add_argument(
         "--bypass-group-classifier",
-        help="Whether or not to bypass the group classifier (due to having known groups). See C{./kin-info_file_format.txt} for instructions on how to specify groups.",
+        help=(
+            "Whether or not to bypass the group classifier (due to having known groups). See"
+            " C{./kin-info_file_format.txt} for instructions on how to specify groups."
+        ),
         default=False,
         required=False,
-        action="store_true"
+        action="store_true",
     )
 
     ap.add_argument(
@@ -409,13 +421,13 @@ def parse_api() -> dict[str, typing.Any]:
         required=False,
         action="store_true",
     )
-    
+
     try:
         args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
     except Exception as e:
         informative_exception(e, "Issue with arguments provided.", print_full_tb=False)
     args_dict = vars(args)
-    device_eligibility(args_dict['device'])
+    device_eligibility(args_dict["device"])
     ii = ll = None
     if args_dict["k"] is not None:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
@@ -471,7 +483,9 @@ def parse_api() -> dict[str, typing.Any]:
         print(
             colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
         )
-    if not (re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]):
+    if not (
+        re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]
+    ):
         print(
             colored(
                 (
@@ -490,14 +504,20 @@ def parse_api() -> dict[str, typing.Any]:
 
     if args_dict["kin_info"] is None:
         kinase_info_dict = {
-            kinase_seq: {"Gene Name": "?", "Uniprot Accession ID": "?"}
-            for kinase_seq in args_dict["kinase_seqs"]
+            kinase_seq: {"Gene Name": "?", "Uniprot Accession ID": "?"} for kinase_seq in args_dict["kinase_seqs"]
         }
     else:
         with open("../" + args_dict["kin_info"]) as f:
             kinase_info_dict = json.load(f)
             try:
-                jsonschema.validate(kinase_info_dict, schema_validation.KinSchema if not args_dict["bypass_group_classifier"] else schema_validation.KinSchemaBypassGC)
+                jsonschema.validate(
+                    kinase_info_dict,
+                    (
+                        schema_validation.KinSchema
+                        if not args_dict["bypass_group_classifier"]
+                        else schema_validation.KinSchemaBypassGC
+                    ),
+                )
             except jsonschema.exceptions.ValidationError as e:
                 print("", file=sys.stderr)
                 print(colored(f"Error: Kinase information format is incorrect.", "red"), file=sys.stderr)
@@ -506,9 +526,8 @@ def parse_api() -> dict[str, typing.Any]:
                 print(colored("\n\nMore info:\n\n", "magenta"))
                 with open("./kin-info_file_format.txt") as f:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
-                    
-                informative_exception(e, "", False)
 
+                informative_exception(e, "", False)
 
     args_dict["kin_info"] = kinase_info_dict
 
@@ -529,19 +548,25 @@ def parse_api() -> dict[str, typing.Any]:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
                 sys.exit(1)
     args_dict["site_info"] = site_info_dict
-    
+
     try:
         for kinase_seq in args_dict["kinase_seqs"]:
             assert kinase_seq in kinase_info_dict, f"Kinase sequence {kinase_seq} not found in kinase info file."
         for site_seq in args_dict["site_seqs"]:
             assert site_seq in site_info_dict, f"Site sequence {site_seq} not found in site info file."
     except AssertionError as e:
-        if args_dict['bypass_group_classifier'] and re.search(r"Kinase sequence.*not found in kinase info file\.", str(e)):
+        if args_dict["bypass_group_classifier"] and re.search(
+            r"Kinase sequence.*not found in kinase info file\.", str(e)
+        ):
             raise AssertionError(f"{e} (Since `--bypass-group-classifier` was set, this is a fatal error.)")
         else:
             warnings.warn(colored(f"{e} (The output will not contain info for this sequence.)", "yellow"))
 
-    args_dict["bypass_group_classifier"] = [kinase_info_dict[ks]['Known Group'] for ks in args_dict["kinase_seqs"]] if args_dict["bypass_group_classifier"] else []
+    args_dict["bypass_group_classifier"] = (
+        [kinase_info_dict[ks]["Known Group"] for ks in args_dict["kinase_seqs"]]
+        if args_dict["bypass_group_classifier"]
+        else []
+    )
 
     return args_dict
 
@@ -554,6 +579,7 @@ def setup(args: dict[str, typing.Any] = {}):
     """
     global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
     from ..tools.informative_tb import informative_exception
+
     os.chdir(pathlib.Path(__file__).parent.resolve())
     if not isinstance(args, dict) or (hasattr(args, "__len__") and len(args) == 0):
         try:
@@ -569,6 +595,7 @@ def setup(args: dict[str, typing.Any] = {}):
 
     make_predictions(**args)
 
+
 if __name__ == "__main__":
     args = parse_api()
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
@@ -576,6 +603,7 @@ if __name__ == "__main__":
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
+
     make_predictions(**args)
 
 if API_IMPORT_MODE:
@@ -583,5 +611,4 @@ if API_IMPORT_MODE:
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
     from ..models.group_classifier_definitions import SKGroupClassifier
-    from .. import config    
-
+    from .. import config

@@ -24,7 +24,8 @@ os.chdir(where_am_i)
 
 warnings.filterwarnings(action="always", category=UserWarning)
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
 
 def smart_save_gc(individual_classifier: grp_pred.SKGroupClassifier):
     bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
@@ -35,7 +36,8 @@ def smart_save_gc(individual_classifier: grp_pred.SKGroupClassifier):
     save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
     print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
     with open(save_path, "wb") as f:
-        pickle.dump(individual_classifier, f)   
+        pickle.dump(individual_classifier, f)
+
 
 class MultiStageClassifier:
     def __init__(
@@ -53,12 +55,7 @@ class MultiStageClassifier:
         )
 
     def evaluation_preparation(
-        self,
-        addl_args,
-        Xy_formatted_input_file: str,
-        predict_mode=False,
-        bypass_group_classifier={},
-        get_emp_eqn=True
+        self, addl_args, Xy_formatted_input_file: str, predict_mode=False, bypass_group_classifier={}, get_emp_eqn=True
     ):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
@@ -142,7 +139,7 @@ class MultiStageClassifier:
                 pred_grp_dict if not bypass_group_classifier else true_grp_dict,
                 true_groups={},
                 predict_mode=True,
-                get_emp_eqn=get_emp_eqn
+                get_emp_eqn=get_emp_eqn,
             )
 
         return res
@@ -198,12 +195,14 @@ class MultiStageClassifier:
                     f.name,
                     predict_mode=True,
                     bypass_group_classifier=bypass_group_classifier,
-                    get_emp_eqn=convert_raw_to_prob
+                    get_emp_eqn=convert_raw_to_prob,
                 )
             else:
                 efficient_to_csv(data_dict, f.name)
                 # The "meat" of the prediction process.
-                res = self.evaluation_preparation({"test": f.name, "device": device}, f.name, predict_mode=True, get_emp_eqn=convert_raw_to_prob)
+                res = self.evaluation_preparation(
+                    {"test": f.name, "device": device}, f.name, predict_mode=True, get_emp_eqn=convert_raw_to_prob
+                )
             assert isinstance(res, list), "res is not a list"
             assert res is not None, "res is None"
             emp_eqns = [x[1][3] for x in res]
@@ -223,7 +222,7 @@ class MultiStageClassifier:
                     else:
                         warnings.warn(
                             colored(f"No empirical equation found for query {pred_id}. Returning raw score.", "yellow"),
-                            UserWarning
+                            UserWarning,
                         )
                         mapped_numerical_scores.append(x)
             boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
@@ -412,13 +411,20 @@ def main():
         run_args.get("load") is not None or run_args.get("load_include_eval") is not None
     ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
 
-
     train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
-        *([join_first(0, x) for x in ["../data/preprocessing/pairwise_mtx_826.csv",
-        "../data/preprocessing/tr_kins.json",
-        "../data/preprocessing/vl_kins.json",
-        "../data/preprocessing/te_kins.json",
-        "../data/preprocessing/kin_to_fam_to_grp_826.csv"]] + [None, None])
+        *(
+            [
+                join_first(0, x)
+                for x in [
+                    "../data/preprocessing/pairwise_mtx_826.csv",
+                    "../data/preprocessing/tr_kins.json",
+                    "../data/preprocessing/vl_kins.json",
+                    "../data/preprocessing/te_kins.json",
+                    "../data/preprocessing/kin_to_fam_to_grp_826.csv",
+                ]
+            ]
+            + [None, None]
+        )
     )
 
     train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)

@@ -1,6 +1,7 @@
 import tempfile, subprocess, time, re
 
-def os_system_and_get_stdout(cmd, prepend='', shell = 'zsh'):
+
+def os_system_and_get_stdout(cmd, prepend="", shell="zsh"):
     """
     cmd: command to run
 
@@ -21,10 +22,10 @@ def os_system_and_get_stdout(cmd, prepend='', shell = 'zsh'):
                 ol = o.decode("UTF-8").split("\n")
                 for line in ol:
                     if line != "" and TAG not in line:
-                        print(prepend+line, flush=True)
+                        print(prepend + line, flush=True)
                     elif TAG in line:
                         res_out.append(re.sub(f"({TAG})".replace("[", r"\[").replace("]", r"\]"), "", line))
-    
+
     if status:
         print("Status:", status)
         raise Exception(f"Error running system command: {shell_cmd}")

@@ -54,7 +54,7 @@ def get_groups_derangement3(group_lengths):
     graph_new = graph[neworder, :]
     graph_new = graph_new[:, neworder]
 
-    ma = csgraph.maximum_bipartite_matching(csr_matrix(graph_new), perm_type= 'column')
+    ma = csgraph.maximum_bipartite_matching(csr_matrix(graph_new), perm_type="column")
 
     permuted = zip(range(len(ma)), ma)
     pi = lambda p: neworder[p]
@@ -97,10 +97,11 @@ def get_groups_derangement4(
 
     ma = [x if x != -1 else None for x in ma]
     permuted: list[tuple[int, Union[int, None]]] = list(zip(range(len(ma)), ma))
+
     def pi(p: Union[int, None]) -> Union[int, None]:
         return neworder[p] if p is not None else None
 
-    decoded:list[tuple[Union[None,int], Union[None,int]]] = [(pi(x), pi(y)) for x, y in permuted]
+    decoded: list[tuple[Union[None, int], Union[None, int]]] = [(pi(x), pi(y)) for x, y in permuted]
     unscrambled = [x[1] for x in sorted(decoded)]
 
     for i in range(graph.shape[0]):
@@ -111,6 +112,7 @@ def get_groups_derangement4(
             json.dump(unscrambled, f)
     return unscrambled
 
+
 def memory_efficient_np_to_sparse(base: np.ndarray, chunk_multiplier: int = 10):
     assert base.shape[0] == base.shape[1], "The matrix must be square."
     if base.shape[0] % chunk_multiplier != 0:
@@ -118,7 +120,7 @@ def memory_efficient_np_to_sparse(base: np.ndarray, chunk_multiplier: int = 10):
     s = base.shape[0]
     base = base.reshape((s * chunk_multiplier, -1))
     increment = s
-    chunks = [base[i] for i in range(increment*chunk_multiplier)]
+    chunks = [base[i] for i in range(increment * chunk_multiplier)]
     sparse_tiles = [csr_matrix(x) for x in chunks]
     sparse_concatted = vstack(sparse_tiles)
     reshaped = sparse_concatted.reshape((s, s))
@@ -128,10 +130,12 @@ def memory_efficient_np_to_sparse(base: np.ndarray, chunk_multiplier: int = 10):
     del sparse_concatted
     return reshaped
 
+
 def test_mem_eff_np_to_sparse():
     a = np.random.randint(0, 100, (1000, 1000))
     b = memory_efficient_np_to_sparse(a)
     assert np.all(a == b.toarray())
+
 
 if __name__ == "__main__":
     test_mem_eff_np_to_sparse()

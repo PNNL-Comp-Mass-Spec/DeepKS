@@ -3,7 +3,7 @@ import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np
 import tempfile, os, scipy, itertools, warnings, pathlib
 from matplotlib.axes import Axes
 from matplotlib import lines
-from typing import Collection, Iterable, Tuple, Union, Callable, Any # type: ignore
+from typing import Collection, Iterable, Tuple, Union, Callable, Any  # type: ignore
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from matplotlib import pyplot as plt, rcParams
@@ -17,7 +17,8 @@ rcParams["font.family"] = "monospace"
 rcParams["font.size"] = 12
 # rcParams["font.serif"] = ["monospace", "Times", "Times New Roman", "Gentinum", "URW Bookman", "Roman", "Nimbus Roman"]
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
 
 class NNInterface:
     def __init__(
@@ -51,7 +52,7 @@ class NNInterface:
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
                 f.write(str(self))
-                
+
         elif isinstance(self.model_summary_name, io.StringIO):
             self.model_summary_name.write(str(self))
 
@@ -136,21 +137,33 @@ class NNInterface:
                     if metric == "roc":
                         if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
                             try:
-                                score = sklearn.metrics.roc_auc_score(labels.cpu(), torch.sigmoid(outputs.data.cpu()).cpu())
+                                score = sklearn.metrics.roc_auc_score(
+                                    labels.cpu(), torch.sigmoid(outputs.data.cpu()).cpu()
+                                )
                             except ValueError as e:
-                                if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
+                                if (
+                                    "Only one class present in y_true. ROC AUC score is not defined in that case."
+                                    != str(e)
+                                ):
                                     raise e
                                 else:
-                                    warnings.warn("Setting score = 0.0 since there is only one class present in y_true.")
+                                    warnings.warn(
+                                        "Setting score = 0.0 since there is only one class present in y_true."
+                                    )
                                     score = 0.0
                         else:  # AKA isinstance(self.criterion, torch.nn.CrossEntropyLoss):
                             try:
                                 score = sklearn.metrics.roc_auc_score(labels.cpu(), outputs.data.cpu())
                             except ValueError as e:
-                                if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
+                                if (
+                                    "Only one class present in y_true. ROC AUC score is not defined in that case."
+                                    != str(e)
+                                ):
                                     raise e
                                 else:
-                                    warnings.warn("Setting score = 0.0 since there is only one class present in y_true.")
+                                    warnings.warn(
+                                        "Setting score = 0.0 since there is only one class present in y_true."
+                                    )
                                     score = 0.0
                     else:  # AKA metric == "acc":
                         if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
@@ -193,16 +206,24 @@ class NNInterface:
 
             epoch += 1
 
-    def predict(self, dataloader, on_chunk, total_chunks, cutoff=0.5, device="", group="UNKNOWN GROUP") -> Tuple[list, list, list]:
-        assert(device != ""), "Device must be specified."
+    def predict(
+        self, dataloader, on_chunk, total_chunks, cutoff=0.5, device="", group="UNKNOWN GROUP"
+    ) -> Tuple[list, list, list]:
+        assert device != "", "Device must be specified."
         all_outputs = []
         all_predictions = []
-        for *X, labels in tqdm.tqdm(list(dataloader), desc=colored(f"Status: Eval Progress of {group} [Chunk {on_chunk}/{total_chunks}]", 'cyan'), position=0, leave=False, colour = 'cyan'):
+        for *X, labels in tqdm.tqdm(
+            list(dataloader),
+            desc=colored(f"Status: Eval Progress of {group} [Chunk {on_chunk}/{total_chunks}]", "cyan"),
+            position=0,
+            leave=False,
+            colour="cyan",
+        ):
             # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
-            assert torch.equal(labels, torch.Tensor([-1]*len(labels)).to(device)), "Labels must be -1 for prediction."
+            assert torch.equal(labels, torch.Tensor([-1] * len(labels)).to(device)), "Labels must be -1 for prediction."
             X = [x.to(device) for x in X]
             outputs = self.model.forward(*X)
-            
+
             if "cuda" in device:
                 torch.cuda.empty_cache()
             if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
@@ -218,11 +239,13 @@ class NNInterface:
                 tl = outputs.data.cpu().numpy().tolist()
                 all_outputs += [tl] if isinstance(tl, float) else tl
             else:
-                raise ValueError("Criterion must be either BCEWithLogitsLoss or CrossEntropyLoss. In the future, this may be changed.")
+                raise ValueError(
+                    "Criterion must be either BCEWithLogitsLoss or CrossEntropyLoss. In the future, this may be"
+                    " changed."
+                )
         if len(all_predictions) == 0:
             raise AssertionError("No data was passed to the model for prediction.")
-        return [bool(x) for x in all_predictions], all_outputs, [group]*len(all_outputs)
-
+        return [bool(x) for x in all_predictions], all_outputs, [group] * len(all_outputs)
 
     def eval(
         self, dataloader, cutoff=0.5, metric="roc", predict_mode=False
@@ -350,7 +373,7 @@ class NNInterface:
         emp_eqn_kwargs={},
         get_avg_roc_line=True,
         pickle_loc=None,
-        _ic_ref=None
+        _ic_ref=None,
     ) -> Union[None, dict]:
         assert grp_to_loader_true_groups is not None
         if from_loaded is None:
@@ -361,7 +384,15 @@ class NNInterface:
             )
         orig_order = ["CAMK", "AGC", "CMGC", "CK1", "OTHER", "TK", "TKL", "STE", "ATYPICAL", "<UNANNOTATED>"]
         fig = plt.figure(figsize=(12, 12))
-        plt.plot([0, 1], [0, 1], color="black", linestyle="dashed", alpha=1, linewidth=1, label=" Random Model ┆ AUC 0.5   ┆" + " "*25 + "┆ n = ∞")
+        plt.plot(
+            [0, 1],
+            [0, 1],
+            color="black",
+            linestyle="dashed",
+            alpha=1,
+            linewidth=1,
+            label=" Random Model ┆ AUC 0.5   ┆" + " " * 25 + "┆ n = ∞",
+        )
         groups = grp_to_interface.keys() if from_loaded is None else from_loaded.keys()
         true_grp_to_outputs_and_labels = collections.defaultdict(lambda: collections.defaultdict(list))
         grp_to_emp_eqn = {}
@@ -381,17 +412,23 @@ class NNInterface:
             agst = np.argsort(outputs)
             booled_labels = [bool(x) for x in labels]
             if get_emp_eqn:
-                emp_prob_lambda = raw_score_to_probability(sorted(outputs), [booled_labels[i] for i in agst], **emp_eqn_kwargs) # type: ignore
+                emp_prob_lambda = raw_score_to_probability(sorted(outputs), [booled_labels[i] for i in agst], **emp_eqn_kwargs)  # type: ignore
                 grp_to_emp_eqn[grp] = emp_prob_lambda
             else:
-                def emp_prob_lambda(l: list[Union[float,int]]):
-                    raise AssertionError("For some reason, get_emp_eqn was set to False, but the emp_prob_lambda was called.")
+
+                def emp_prob_lambda(l: list[Union[float, int]]):
+                    raise AssertionError(
+                        "For some reason, get_emp_eqn was set to False, but the emp_prob_lambda was called."
+                    )
+
             for i in range(len(grp_to_loader_true_groups[grp])):
                 true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs"].append(outputs[i])
                 true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["labels"].append(labels[i])
                 true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["group_model_used"].append(grp)
                 if get_emp_eqn:
-                    true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs_emp_prob"].append(emp_prob_lambda([outputs[i]])[0])
+                    true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs_emp_prob"].append(
+                        emp_prob_lambda([outputs[i]])[0]
+                    )
 
             assert len(outputs) == len(labels), (
                 "Something is wrong in NNInterface.get_all_rocs_by_group; the length of outputs, the number of labels,"
@@ -407,13 +444,19 @@ class NNInterface:
                     with tempfile.NamedTemporaryFile() as tf:
                         _ic_ref.save_all(_ic_ref, tf.name)
                         print(colored("Info Re-saved Individual Classifiers with empirical equation.", "blue"))
-                    
+
                         with open(_ic_ref.repickle_loc.replace(".pkl", "_with_emp_eqn.pkl"), "wb") as f:
                             f.write(tf.read())
                 except Exception as e:
                     warnings.warn(f"Couldn't repickle Individual Classifiers with empirical equation: {e}", UserWarning)
             else:
-                warnings.warn("No repickle location found for Individual Classifiers. Not repickling; can't save empirical equation.", UserWarning)
+                warnings.warn(
+                    (
+                        "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
+                        " equation."
+                    ),
+                    UserWarning,
+                )
 
         points_fpr = []
         points_tpr = []
@@ -421,20 +464,29 @@ class NNInterface:
         eqn_passthrough = []
         for group in set(all_obs := list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()]))):
             outputs, labels = (
-                true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else 'outputs'] ,
+                true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
                 true_grp_to_outputs_and_labels[group]["labels"],
             )
             orig_i = orig_order.index(group)
-            
+
             plt.ioff()
-            res = NNInterface.roc_core(outputs, labels, orig_i, line_labels=[f"{group}"], linecolor=None, total_obs = len(all_obs), eqn_passthrough=eqn_passthrough, eqn_kwargs=emp_eqn_kwargs)
+            res = NNInterface.roc_core(
+                outputs,
+                labels,
+                orig_i,
+                line_labels=[f"{group}"],
+                linecolor=None,
+                total_obs=len(all_obs),
+                eqn_passthrough=eqn_passthrough,
+                eqn_kwargs=emp_eqn_kwargs,
+            )
             # if group in ['AGC', 'TK', 'CMGC']:
             points_fpr.append(res[0])
             points_tpr.append(res[1])
             aucs.append(res[2])
         if get_avg_roc_line:
             get_avg_roc(points_fpr, points_tpr, aucs, True)
-        
+
         plt.legend(
             loc="lower right",
             title="Legend — 'Solid line' indicates significant (ROC ≠ 0.5) model.)",
@@ -444,7 +496,6 @@ class NNInterface:
 
         if savefile:
             fig.savefig(savefile, bbox_inches="tight")
-
 
     def get_all_rocs_by_group(
         self, loader, kinase_order, savefile="", kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv"
@@ -498,9 +549,9 @@ class NNInterface:
         linecolor=(0.5, 0.5, 0.5),
         line_labels=["Train Set", "Validation Set", "Test Set", f"Held Out Family — {HELD_OUT_FAMILY}"],
         alpha=0.05,
-        total_obs:int=1,
-        eqn_kwargs:dict={},
-        eqn_passthrough:list=[]
+        total_obs: int = 1,
+        eqn_kwargs: dict = {},
+        eqn_passthrough: list = [],
     ):
         assert len(outputs) == len(labels), (
             f"Something is wrong in NNInterface.roc_core; the length of outputs ({len(outputs)}) does not equal the"
@@ -530,12 +581,12 @@ class NNInterface:
         else:
             is_signif = False
             se = diff = quant = float("nan")
-        label=(
-                f"{line_labels[0] if len(line_labels) == 1 else line_labels[i]:>13} ┆ AUC {aucscore:.3f} ┆ {100-int(alpha*100)}% CI ="
-                f" [{max(0, (diff - quant*se + 0.5)):.2f}, {min((diff + quant*se + 0.5), 1):.2f}]"
-                f" {'❋' if is_signif else ' '}"
-                f" ┆ n = {len(labels)} — {len(labels)*100/total_obs:3.2f}%"
-            )
+        label = (
+            f"{line_labels[0] if len(line_labels) == 1 else line_labels[i]:>13} ┆ AUC {aucscore:.3f} ┆"
+            f" {100-int(alpha*100)}% CI = [{max(0, (diff - quant*se + 0.5)):.2f},"
+            f" {min((diff + quant*se + 0.5), 1):.2f}] {'❋' if is_signif else ' '} ┆ n = {len(labels)} —"
+            f" {len(labels)*100/total_obs:3.2f}%"
+        )
         sklearn.metrics.RocCurveDisplay(fpr=roc_data[0], tpr=roc_data[1]).plot(
             color=linecolor,
             linestyle="solid" if is_signif else "dashed",
@@ -560,12 +611,12 @@ class NNInterface:
         #     for i in range(len(eqn_passthrough)):
         #         del eqn_passthrough[i]
         #     eqn_passthrough.append(eqn)
-            
+
         return roc_data[0], roc_data[1], aucscore
 
     @staticmethod
     def inset_auc():
-        ax:plt.Axes = plt.gca()
+        ax: plt.Axes = plt.gca()
         ax_inset = ax.inset_axes([0.65, 0.1, 0.5, 0.5])
         x1, x2, y1, y2 = 0, 0.15, 0.85, 1
         ax_inset.set_xlim(x1, x2)
@@ -576,7 +627,13 @@ class NNInterface:
         ax_inset.set_xticklabels([x1, x2])
         ax_inset.set_yticklabels([y1, y2])
         rel_line: lines.Line2D = ax.lines[-1]
-        ax_inset.plot(rel_line.get_xdata(), rel_line.get_ydata(), linestyle=rel_line.get_linestyle(), linewidth=rel_line.get_linewidth(), color=rel_line.get_color())
+        ax_inset.plot(
+            rel_line.get_xdata(),
+            rel_line.get_ydata(),
+            linestyle=rel_line.get_linestyle(),
+            linewidth=rel_line.get_linewidth(),
+            color=rel_line.get_color(),
+        )
 
     @staticmethod
     def create_random(labels: np.ndarray, outputs: np.ndarray, group=""):
@@ -621,7 +678,13 @@ class NNInterface:
             return [], [], []
 
     def test(
-        self, test_loader, verbose: Union[bool, int] = True, savefile=True, cutoff: Union[float, None]=0.5, text="Test Accuracy of the model", metric="acc"
+        self,
+        test_loader,
+        verbose: Union[bool, int] = True,
+        savefile=True,
+        cutoff: Union[float, None] = 0.5,
+        text="Test Accuracy of the model",
+        metric="acc",
     ) -> None:
         "Verbosity: False = No table of first n predictions, True = Show first n predictions, 2 = `pickle` probabilities and labels"
 
@@ -652,7 +715,7 @@ class NNInterface:
             for i in range(num_rows):
                 tab.add_row([i, labels[i], predictions[i]])
             print(tab, flush=True)
-        if verbose == 2: # FIXME
+        if verbose == 2:  # FIXME
             json.dump(probabilities, open("../bin/probs.pkl", "w"))
             json.dump(labels, open("../bin/labels.pkl", "w"))
 

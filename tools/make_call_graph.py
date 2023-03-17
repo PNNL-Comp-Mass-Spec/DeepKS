@@ -73,14 +73,14 @@ class DeepKSCallGraph:
 if __name__ == "__main__":
     from . import make_call_graph_demonstrator
 
-    DeepKSCallGraph(other_output={'output_file': './demonstrated_call_graph.png'}).make_call_graph(
+    DeepKSCallGraph(other_output={"output_file": "./demonstrated_call_graph.png"}).make_call_graph(
         make_call_graph_demonstrator.dummy_fn,
         [],
     )
 
     from . import custom_tree_maker
 
-    DeepKSCallGraph(other_output={'output_file': './demonstrated_call_graph_tree.png'}).make_call_graph(
+    DeepKSCallGraph(other_output={"output_file": "./demonstrated_call_graph_tree.png"}).make_call_graph(
         custom_tree_maker.main,
         [
             "-f",

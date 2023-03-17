@@ -3,18 +3,19 @@ from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
 
+
 class TestMisc(unittest.TestCase):
     def setUp(self):
         from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
+
         self.smart_save_nn = this_smart_save_nn
         self.IndividualClassifiers = IndividualClassifiers
         self.real_file = "UNITTESTVERSIONdeepks_nn_weights.-1.cornichon"
-        self.parent = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), 'bin')
+        self.parent = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
         # make backup
         assert os.path.exists(os.path.join(self.parent, self.real_file))
         with open(os.path.join(self.parent, self.real_file), "rb") as fl:
             self.bu = fl.read()
-        
 
     # def test_smart_save_nn(self):
     #     self.sample_files = ["UNITTESTVERSIONdeepks_nn_weights.0.cornichon",
@@ -29,14 +30,13 @@ class TestMisc(unittest.TestCase):
 
     #     self.smart_save_nn(self.IndividualClassifiers.load_all(self.real_file))
     #     assert os.path.exists(os.path.join(self.parent, "deepks_nn_weights.6.cornichon"))
-        
+
     # def tearDown(self):
     #     [os.unlink(f) for f in self.sample_files + ["deepks_nn_weights.6.cornichon"]]
     #     os.chdir(self.old_dir)
     #     # restore backup
     #     with open(os.path.join(self.parent, self.real_file), "wb") as restore:
     #         restore.write(self.bu)
-        
 
 
 class TestPreprocessing(unittest.TestCase):
@@ -87,6 +87,7 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
         self.main()
         os.chdir(old_dir)
 
+
 class TestTrainingGroupClassifier(unittest.TestCase):
     def setUp(self):
         from ..models.multi_stage_classifier import main as this_main
@@ -95,6 +96,7 @@ class TestTrainingGroupClassifier(unittest.TestCase):
 
     def test_train_gc_small(self):
         from DeepKS.api.cfg import PRE_TRAINED_NN
+
         sys.argv = [
             "python3 -m DeepKS.models.multi_stage_classifier",
             "--load",
@@ -332,11 +334,14 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             self.main.setup()
             self.assertEqual(ar.exception.code, 0)
 
+
 with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "examples.json")) as f:
     EXAMPLES = json.load(f)
     for ex in EXAMPLES:
         if "DEVICE_PLACEHOLDER" in ex:
             ex[ex.index("DEVICE_PLACEHOLDER")] = DEVICE
+
+
 class TestExamples(unittest.TestCase):
     def setUp(self):
         from ..api import main as this_main

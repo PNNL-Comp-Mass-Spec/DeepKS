@@ -12,17 +12,26 @@ USE_XL_CACHE = False if "USE_XL_CACHE" not in os.environ else True if os.environ
 
 perform_steps = eval(sys.argv[sys.argv.index("--perform-steps") + 1]) if "--perform-steps" in sys.argv else {}
 
+
 def main():
     # FOR DEBUGGING:
-    seq_filename, seq_filename2, kin_fam_grp_filename, data_filename, cur_mtx_file, new_mtx_file, eval_or_train_on_all = (
-            "../raw_data/kinase_seq_826.csv", 
-            "../raw_data/kinase_seq_494.csv",
-            "kin_to_fam_to_grp_826.csv",
-            "../raw_data/raw_data_22588.csv",
-            "./pairwise_mtx_826.csv",
-            "pairwise_mtx_826.csv", 
-            "T"
-        )
+    (
+        seq_filename,
+        seq_filename2,
+        kin_fam_grp_filename,
+        data_filename,
+        cur_mtx_file,
+        new_mtx_file,
+        eval_or_train_on_all,
+    ) = (
+        "../raw_data/kinase_seq_826.csv",
+        "../raw_data/kinase_seq_494.csv",
+        "kin_to_fam_to_grp_826.csv",
+        "../raw_data/raw_data_22588.csv",
+        "./pairwise_mtx_826.csv",
+        "pairwise_mtx_826.csv",
+        "T",
+    )
 
     if (not (DEBUGGING or USE_XL_CACHE)) or 1 in perform_steps:
         print("Step 1: Download most recent version of the PhosphositePlus database.")
@@ -39,7 +48,7 @@ def main():
         print("Step 2b: Running R scripts.")
         print("\n~~~~ R MESSAGES ~~~~\n")
         seq_filename, data_filename = tuple(
-            system_tools.os_system_and_get_stdout("Rscript PreprocessingSteps/ML_data_pipeline.R", prepend = "[R] ")
+            system_tools.os_system_and_get_stdout("Rscript PreprocessingSteps/ML_data_pipeline.R", prepend="[R] ")
         )
         print("\n~~~~ END R MESSAGES ~~~~\n")
 
@@ -49,20 +58,22 @@ def main():
 
     if not DEBUGGING or 4 in perform_steps:
         print(
-            "Step 4: Getting pairwise distance matrix for all sequences to assess similarity and to be used later in the kinase"
-            " group classifier."
+            "Step 4: Getting pairwise distance matrix for all sequences to assess similarity and to be used later in"
+            " the kinase group classifier."
         )
 
         with tf.NamedTemporaryFile() as tmp:
-            cur_mtx_files = sorted([x for x in os.listdir() if re.search(r"^pairwise_mtx_[0-9]+.csv$", x)], reverse=True)
+            cur_mtx_files = sorted(
+                [x for x in os.listdir() if re.search(r"^pairwise_mtx_[0-9]+.csv$", x)], reverse=True
+            )
             new_mtx_file = f"./pairwise_mtx_{re.sub('[^0-9]', '', seq_filename.split('/')[-1])}.csv"
             if len(cur_mtx_files) > 0:
                 try:
                     cur_mtx_file = cur_mtx_files[0]
                     cur_mtx = pd.read_csv(cur_mtx_file, index_col=0)
                     dfs = [pd.read_csv(seq_f) for seq_f in [seq_filename, seq_filename2]]
-                    dfs = [df.drop(columns='symbol') if 'symbol' in df.columns else df for df in dfs]
-                    new_seq_df = pd.concat(dfs, ignore_index=True).drop_duplicates(keep='first').reset_index(drop=True)
+                    dfs = [df.drop(columns="symbol") if "symbol" in df.columns else df for df in dfs]
+                    new_seq_df = pd.concat(dfs, ignore_index=True).drop_duplicates(keep="first").reset_index(drop=True)
                     existing = set(cur_mtx.index)
                     not_existing = set(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]) - existing
                     if len(not_existing) == 0:
@@ -72,7 +83,10 @@ def main():
                     # Get restricted combinations
                     mtx_utils.make_fasta(df_in="temp.csv", fasta_out=tmp.name)
                     thin_mtx = get_pairwise.get_needle_pairwise_mtx(
-                        tmp.name, new_mtx_file, num_procs=8, restricted_combinations=[list(existing), list(not_existing)]
+                        tmp.name,
+                        new_mtx_file,
+                        num_procs=8,
+                        restricted_combinations=[list(existing), list(not_existing)],
                     )
                     with tf.NamedTemporaryFile() as small_fasta:
                         symbols_unk.to_csv(small_fasta.name, index=False)
@@ -80,7 +94,6 @@ def main():
                         with tf.NamedTemporaryFile() as needle_out:
                             square_mtx = get_pairwise.get_needle_pairwise_mtx(small_fasta, needle_out.name, num_procs=8)
                             pass
-                    
 
                     # Put it all together
                     wide = pd.merge(cur_mtx, thin_mtx.T, how="left", left_index=True, right_index=True)
@@ -102,13 +115,13 @@ def main():
                 input_good = True
                 print("Step 5a: Must obtain train/val/test splits.")
                 PS.split_into_sets_individual_deterministic_top_k.split_into_sets(
-                    kin_fam_grp_filename,
-                    data_filename,
-                    tgt=0.3,
-                    get_restart=True,
-                    num_restarts=600
+                    kin_fam_grp_filename, data_filename, tgt=0.3, get_restart=True, num_restarts=600
                 )
-                data_gen_conf = {"held_out_percentile": 95, "train_percentile": 65, "dataframe_generation_mode": "tr-all"}
+                data_gen_conf = {
+                    "held_out_percentile": 95,
+                    "train_percentile": 65,
+                    "dataframe_generation_mode": "tr-all",
+                }
                 print(
                     "\nInfo: Using the following thresholds for similarity: (In the future this will be configurable.)"
                 )  # TODO: Make this configurable
@@ -122,7 +135,7 @@ def main():
                     input_fn=data_filename,
                     kin_seq_file=seq_filename,
                     distance_matrix_file=new_mtx_file,
-                    config=data_gen_conf
+                    config=data_gen_conf,
                 )
             else:
                 print("Bad input. Trying again...")

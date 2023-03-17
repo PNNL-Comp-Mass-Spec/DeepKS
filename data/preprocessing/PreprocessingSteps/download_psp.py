@@ -18,7 +18,7 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
                         " Chrome/91.0.4472.124 Safari/537.36"
                     ),
                 },
-                timeout=10
+                timeout=10,
             )
             if r.status_code == 200:
                 with open("Kinase_Substrate_Dataset.gz", "wb") as f:
@@ -77,7 +77,10 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
                 print("Exiting unsuccessfully.")
                 exit(1)
         except Exception as e:
-            print(f"Error: {e.__class__.__name__}{'' if e.__str__() == '' else f' ({e.__str__()})'}. Retrying after 5 seconds...")
+            print(
+                f"Error: {e.__class__.__name__}{'' if e.__str__() == '' else f' ({e.__str__()})'}. Retrying after 5"
+                " seconds..."
+            )
 
     table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
     print("Info: Number of unique uniprot IDs in PSP: ", len(table["KIN_ACC_ID"].unique()))

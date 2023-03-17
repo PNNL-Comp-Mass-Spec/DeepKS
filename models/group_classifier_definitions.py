@@ -13,14 +13,20 @@ from sklearn.utils.validation import check_is_fitted
 from itertools import chain, combinations
 from termcolor import colored
 
+
 def powerset(iterable):
     s = list(iterable)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
+
 
 # From https://stackoverflow.com/a/5228294/16158339 ---
 from itertools import product
+
+
 def my_product(inp):
     return (dict(zip(inp.keys(), values)) for values in product(*inp.values()))
+
+
 # ---
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -30,23 +36,27 @@ matplotlib.rcParams["font.family"] = "monospace"
 
 MTX = pd.read_csv("../data/preprocessing/pairwise_mtx_918.csv", index_col=0)
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
 
 class AcceptableClassifier(typing.Protocol):
     def fit(self, X, y) -> typing.Any:
         ...
+
     def predict(self, X) -> typing.Any:
         ...
+
     def predict_proba(self, X) -> typing.Any:
         ...
+
     def score(self, X, y) -> typing.Any:
         ...
+
     def __init__(self):
         ...
 
 
 def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier:
-
     """
     def fit_(self, X: list[str], y: list[str]):
         self.training_X = X
@@ -64,6 +74,7 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
         KNeighborsClassifier.fit(X_train, self.training_y)
         return KNeighborsClassifier.score(X_val, y)
     """
+
     class NewClass(acceptable_classifier.__class__):
         def fit(self, X, y) -> typing.Any:
             self.training_X = [x for x in X]
@@ -71,10 +82,12 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
             print(colored("Status: Fitting SKlearn classifier in Factory.", "green"))
             coords = get_coordinates(self.training_X, self.training_X)[0]
             super().fit(coords, self.training_y)
+
         def predict(self, X) -> typing.Any:
             self.predict_called = True
             _, X_val = get_coordinates(self.training_X, X)
             return super().predict(X_val)
+
         def predict_proba(self, X) -> typing.Any:
             if not self.predict_called:
                 _, X_val = get_coordinates(self.training_X, X)
@@ -82,6 +95,7 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
                 X_val = X
             check_is_fitted(self)
             return super().predict_proba(X_val)
+
         def score(self, X, y) -> typing.Any:
             if not self.predict_called:
                 _, X_val = get_coordinates(self.training_X, X)
@@ -95,7 +109,9 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
 
     return acceptable_classifier
 
-# def perform_hyperparameter_tuning_no_k_fold 
+
+# def perform_hyperparameter_tuning_no_k_fold
+
 
 def perform_hyperparameter_tuning(
     X: list,
@@ -152,6 +168,8 @@ recluster = lambda train_symbols, eval_symbols: (
     MTX.loc[train_symbols, train_symbols],
     MTX.loc[eval_symbols, train_symbols],
 )
+
+
 def grid_search_worker(classifier_type, hp_dict, managed_dict, iall, train_kins, train_true, val_kins, val_true, lock):
     model = factory(classifier_type(**hp_dict))
     model.fit(train_kins, train_true)
@@ -164,15 +182,22 @@ def grid_search_worker(classifier_type, hp_dict, managed_dict, iall, train_kins,
     with lock:
         descstr = str(classifier_type.__name__) + " " + f"({hp_dict}) --- {managed_dict['done']} done/{iall}"
         print(descstr, ">>>", KNNGroupClassifier.test(val_true, predictions, pass_through_score), flush=True)
-        if pass_through_score[0] > managed_dict['best_score']:
-            managed_dict['best_score'] = pass_through_score
-            managed_dict['best_descstr'] = descstr
-        managed_dict['done'] += 1
+        if pass_through_score[0] > managed_dict["best_score"]:
+            managed_dict["best_score"] = pass_through_score
+            managed_dict["best_descstr"] = descstr
+        managed_dict["done"] += 1
     # print("end of worker")
     return pass_through_score[0], descstr
 
-def grid_search_no_cv(train_kins, train_true, val_kins, val_true, classifier_types: list[type], hyperparameterses: list[dict[str, list[Union[int, float, str, tuple]]]]):
 
+def grid_search_no_cv(
+    train_kins,
+    train_true,
+    val_kins,
+    val_true,
+    classifier_types: list[type],
+    hyperparameterses: list[dict[str, list[Union[int, float, str, tuple]]]],
+):
     argslist = []
     manager = multiprocessing.Manager()
     managed_dict = {}
@@ -181,11 +206,13 @@ def grid_search_no_cv(train_kins, train_true, val_kins, val_true, classifier_typ
     assert len(classifier_types) == len(hyperparameterses), "classifiers and hyperparameterses must be the same length."
     for classifier_type, hyperparameters in list(zip(classifier_types, hyperparameterses)):
         for _, hp_dict in enumerate(list(my_product(hyperparameters))):
-            argslist.append([classifier_type, hp_dict, managed_dict, train_kins, train_true, val_kins, val_true, managed_lock])
+            argslist.append(
+                [classifier_type, hp_dict, managed_dict, train_kins, train_true, val_kins, val_true, managed_lock]
+            )
 
-    managed_dict['best_score'] = 0
-    managed_dict['best_descstr'] = "No classifier was more than 0% accurate."
-    managed_dict['done'] = 0
+    managed_dict["best_score"] = 0
+    managed_dict["best_descstr"] = "No classifier was more than 0% accurate."
+    managed_dict["done"] = 0
     argslist = [a[:3] + [len(argslist)] + a[3:] for a in argslist]
     with Pool(8):
         for a in argslist:
@@ -198,7 +225,7 @@ def grid_search_no_cv(train_kins, train_true, val_kins, val_true, classifier_typ
 def custom_run():
     kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_826.csv", sep="\t").set_index(["kinase"])
 
-    train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets( # type: ignore
+    train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets(  # type: ignore
         "../tools/pairwise_mtx_826.csv",
         "json/tr.json",
         "json/vl.json",
@@ -213,30 +240,43 @@ def custom_run():
     # ccte = collections.Counter(test_true)
     # print(sorted([(x, np.round(ccte[x]/sum([list(ccte.values())[i] for i in range(len(ccte))]), 2)) for x in ccte]))
 
-    train_kins = train_kins # + val_kins # + test_kins
-    eval_kins = val_kins # val_kins
-    train_true = train_true # + val_true # + test_true
-    eval_true = val_true # test_true
+    train_kins = train_kins  # + val_kins # + test_kins
+    eval_kins = val_kins  # val_kins
+    train_true = train_true  # + val_true # + test_true
+    eval_true = val_true  # test_true
 
-    grid_search_no_cv(train_kins, train_true, eval_kins, eval_true, 
-        [KNeighborsClassifier, MLPClassifier], #, SVC, RandomForestClassifier], 
+    grid_search_no_cv(
+        train_kins,
+        train_true,
+        eval_kins,
+        eval_true,
+        [KNeighborsClassifier, MLPClassifier],  # , SVC, RandomForestClassifier],
         [
-            {"n_neighbors": [1, 2, 3, 4, 5, 6, 7], "metric": ['chebyshev', 'correlation'], "weights": ["uniform"]},
-            #{'activation': ['identity'], 'max_iter': [500], 'learning_rate': ['adaptive'], 'hidden_layer_sizes': [x for x in list(set(list(chain(*[list(permutations(x)) for x in powerset([50, 100, 500, 1000])]))) - set([()])) if len(x) >= 3], 'random_state': [0]}
-            {'activation': ['identity'], 'max_iter': [500], 'learning_rate': ['adaptive'], 'hidden_layer_sizes': [(1000, 500, 100, 50)], 'random_state': [0, 1, 2], 'alpha': [1e-7, 1e-4, 1e-2]}
+            {"n_neighbors": [1, 2, 3, 4, 5, 6, 7], "metric": ["chebyshev", "correlation"], "weights": ["uniform"]},
+            # {'activation': ['identity'], 'max_iter': [500], 'learning_rate': ['adaptive'], 'hidden_layer_sizes': [x for x in list(set(list(chain(*[list(permutations(x)) for x in powerset([50, 100, 500, 1000])]))) - set([()])) if len(x) >= 3], 'random_state': [0]}
+            {
+                "activation": ["identity"],
+                "max_iter": [500],
+                "learning_rate": ["adaptive"],
+                "hidden_layer_sizes": [(1000, 500, 100, 50)],
+                "random_state": [0, 1, 2],
+                "alpha": [1e-7, 1e-4, 1e-2],
+            }
             # {"C": [0.1, 1, 10], "kernel": ["linear", "rbf", "poly"], "gamma": ["scale", "auto"]},
             # {"n_estimators": [100, 500], "max_depth": [50, 100, 250], "min_samples_split": [5, 10]}
-        ])
+        ],
+    )
 
     exit(0)
 
-    model = factory(KNeighborsClassifier(n_neighbors = 3, metric = "cosine"))
+    model = factory(KNeighborsClassifier(n_neighbors=3, metric="cosine"))
     model.fit(train_kins, train_true)
     predictions = model.predict(eval_kins)
     print(KNNGroupClassifier.test(eval_true, predictions))
     # M = KNNGroupClassifier(train_kins, train_true)
     # M.k_fold_evaluation(model, train_kins + eval_kins, train_true + eval_true)
- 
+
+
 def run_hp_tuning():
     kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_826.csv", sep="\t").set_index(["kinase"])
 
@@ -248,11 +288,11 @@ def run_hp_tuning():
         "../data/preprocessing/kin_to_fam_to_grp_817.csv",
         kin_seqs,
     )
-    
+
     all_kins, all_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
     scores = []
     all_kins, all_true = train_kins + val_kins + test_kins, train_true + val_true + test_true
-    splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=10) #, random_state=0)
+    splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=10)  # , random_state=0)
     scores = []
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", "The least populated class in y has only")
@@ -325,7 +365,7 @@ class KNNGroupClassifier:
 
     @staticmethod
     def k_fold_evaluation(model, X, y, k=5):
-        splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k) #, random_state=0)
+        splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k)  # , random_state=0)
         scores = []
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", "The least populated class in y has only")
@@ -345,19 +385,20 @@ class KNNGroupClassifier:
                 raise ValueError("No scores were calculated")
             print(f"Mean Acc: {100*np.mean(scores):.3f} +/-95%CI {(confIntMean(scores)[1] - np.mean(scores))*100:.4f}")
 
-    @staticmethod 
-    def test(true, pred, pass_through = [None]):
+    @staticmethod
+    def test(true, pred, pass_through=[None]):
         assert len(pass_through) == 1, "Length of `pass_through` needs to be 1."
         # print("@@@true", true, len(true))
         # print("\n---------------------------------------------------------------\n")
         # print("@@@pred", pred, len(pred))
         # print()
         # print()
-        pass_through[0] = round(100*np.sum(np.array(pred) == np.array(true))/len(true), 2)
+        pass_through[0] = round(100 * np.sum(np.array(pred) == np.array(true)) / len(true), 2)
         return f"{100*np.sum(np.array(pred, dtype=None) == np.array(true, dtype=None))/len(true):3.2f}%"
 
+
 class SKGroupClassifier:
-    def __init__(self, X_train, y_train, classifier: type[AcceptableClassifier], hyperparameters = {}):
+    def __init__(self, X_train, y_train, classifier: type[AcceptableClassifier], hyperparameters={}):
         self.X_train = X_train
         self.y_train = y_train
         self.model = classifier(**hyperparameters)
@@ -397,7 +438,7 @@ class SKGroupClassifier:
 
     @staticmethod
     def k_fold_evaluation(model, X, y, k=5):
-        splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k) #, random_state=0)
+        splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k)  # , random_state=0)
         scores = []
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", "The least populated class in y has only")
@@ -417,18 +458,16 @@ class SKGroupClassifier:
                 raise ValueError("No scores were calculated")
             print(f"Mean Acc: {100*np.mean(scores):.3f} +/-95%CI {(confIntMean(scores)[1] - np.mean(scores))*100:.4f}")
 
-    @staticmethod 
-    def test(true, pred, pass_through = [None]):
+    @staticmethod
+    def test(true, pred, pass_through=[None]):
         assert len(pass_through) == 1, "Length of `pass_through` needs to be 1."
         # print("@@@true", true, len(true))
         # print("\n---------------------------------------------------------------\n")
         # print("@@@pred", pred, len(pred))
         # print()
         # print()
-        pass_through[0] = round(100*np.sum(np.array(pred) == np.array(true))/len(true), 2)
+        pass_through[0] = round(100 * np.sum(np.array(pred) == np.array(true)) / len(true), 2)
         return f"{100*np.sum(np.array(pred) == np.array(true))/len(true):3.2f}%"
-
-
 
 
 def confIntMean(a, conf=0.95):
@@ -451,4 +490,3 @@ def confIntMean(a, conf=0.95):
 if __name__ == "__main__":
     custom_run()
     # run_hp_tuning()
-    

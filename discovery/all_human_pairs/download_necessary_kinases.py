@@ -2,14 +2,15 @@
 import pandas as pd, os, re, collections, asyncio, pathlib, warnings
 from ..discovery_preparation import seq_request
 
+
 async def main():
-# %%
+    # %%
     os.chdir(pathlib.Path(__file__).parent.resolve())
 
     PSP_symbols = pd.read_csv("../data/raw_data/raw_data_22588.csv")
     PSP_symbols = PSP_symbols[PSP_symbols["organism"] == "HUMAN"]
     PSP_symbols = sorted((PSP_symbols["Kinase Sequence"] + "|" + PSP_symbols["uniprot_id"]).unique().tolist())
-    PSP_exclusion_dict = { # True means keep, False means remove
+    PSP_exclusion_dict = {  # True means keep, False means remove
         "BCKDK|O14874": True,
         "BCR/ABL FUSION|A9UF07": True,
         "BLVRA|P53004": False,
@@ -21,7 +22,7 @@ async def main():
         "CSNK2B|P67870": True,
         "ENPP3|O14638": False,
         "GSK3B|P49841-2": False,
-        "GTF2F1|P35269": True, # Ask
+        "GTF2F1|P35269": True,  # Ask
         "HSPA5|P11021": False,
         "JMJD6|Q6NYC1": False,
         "MAPK8|P45983-2": False,
@@ -30,7 +31,7 @@ async def main():
         "MKNK1|Q9BUB5-2": False,
         "NME1|P15531": True,
         "NME2|P22392": True,
-        "PCK1|P35558": True, # Ask
+        "PCK1|P35558": True,  # Ask
         "PDK1|Q15118": True,
         "PDK2|Q15119": True,
         "PDK3|Q15120": True,
@@ -54,10 +55,12 @@ async def main():
         "RPS6KB1|P23443-2": False,
         "TGM2|P21980": False,
         "VRK2|Q86Y07-2": False,
-        "VRK3|Q8IV63": False
+        "VRK3|Q8IV63": False,
     }
     print(f"{len(PSP_symbols)=}")
-    PSP_filtered = [x for x in PSP_symbols if not re.search(r".*\|[0-9A-Z]+-[0-9]+", x)] # Remove All Remaining Isoforms
+    PSP_filtered = [
+        x for x in PSP_symbols if not re.search(r".*\|[0-9A-Z]+-[0-9]+", x)
+    ]  # Remove All Remaining Isoforms
     print(f"{len(PSP_filtered)=}")
     PSP_filtered = [x for x in PSP_symbols if x not in PSP_exclusion_dict or PSP_exclusion_dict[x]]
     print(f"{len(PSP_filtered)=}")
@@ -65,14 +68,19 @@ async def main():
 
     # %%
     with warnings.catch_warnings():
-        warnings.filterwarnings(action='ignore', category=UserWarning, message="Workbook contains no default style")
-        with open ("../images/Kinase Overlap/Uniprot_ST_Kinases.xlsx", "rb") as st:
+        warnings.filterwarnings(action="ignore", category=UserWarning, message="Workbook contains no default style")
+        with open("../images/Kinase Overlap/Uniprot_ST_Kinases.xlsx", "rb") as st:
             st_kinases = pd.read_excel(st)
-        with open ("../images/Kinase Overlap/Uniprot_Y_Kinases.xlsx", "rb") as y:
+        with open("../images/Kinase Overlap/Uniprot_Y_Kinases.xlsx", "rb") as y:
             y_kinases = pd.read_excel(y)
-    all_uniprot = pd.concat([st_kinases, y_kinases], ignore_index=True).sort_values(by = ["Entry Name", "Gene Names (primary)"])[['Entry', 'Entry Name', 'Gene Names (primary)']].rename(columns={'Entry': 'Uniprot ID', 'Gene Names (primary)': 'Gene Name'}).reset_index(drop=True)
-    all_uniprot['Symbol'] = all_uniprot['Gene Name'] + "|" + all_uniprot['Uniprot ID']
-    Uniprot_symbols = sorted(all_uniprot['Symbol'].unique().tolist())
+    all_uniprot = (
+        pd.concat([st_kinases, y_kinases], ignore_index=True)
+        .sort_values(by=["Entry Name", "Gene Names (primary)"])[["Entry", "Entry Name", "Gene Names (primary)"]]
+        .rename(columns={"Entry": "Uniprot ID", "Gene Names (primary)": "Gene Name"})
+        .reset_index(drop=True)
+    )
+    all_uniprot["Symbol"] = all_uniprot["Gene Name"] + "|" + all_uniprot["Uniprot ID"]
+    Uniprot_symbols = sorted(all_uniprot["Symbol"].unique().tolist())
 
     # %%
     all_symbols_set = set.union(set(Uniprot_symbols), set(PSP_symbols))
@@ -94,18 +102,27 @@ async def main():
     # %%
     df_new = await seq_request(uniprot_ids=[str(x).split("|")[1] for x in need_sequences])
 
-
     # %%
     assert isinstance(df_new, pd.DataFrame)
     # Gene Name,Sequence,Uniprot ID,Name,Symbol
-    new_raw_data = pd.DataFrame({'kinase': df_new['Uniprot ID'], 'kinase_seq': df_new['Sequence'], 'gene_name': df_new['Gene Name']})
-    all_df = pd.concat([existing_symbol_to_seq_df[existing_symbol_to_seq_df['symbol'].isin(all_symbols)], new_raw_data], ignore_index=True).sort_values(by = ["gene_name", "kinase"]).reset_index(drop=True)
+    new_raw_data = pd.DataFrame(
+        {"kinase": df_new["Uniprot ID"], "kinase_seq": df_new["Sequence"], "gene_name": df_new["Gene Name"]}
+    )
+    all_df = (
+        pd.concat(
+            [existing_symbol_to_seq_df[existing_symbol_to_seq_df["symbol"].isin(all_symbols)], new_raw_data],
+            ignore_index=True,
+        )
+        .sort_values(by=["gene_name", "kinase"])
+        .reset_index(drop=True)
+    )
 
     # %%
-    assert(len(all_df)) == len(all_symbols_set), f"{len(all_df)} != {len(all_symbols_set)}"
+    assert (len(all_df)) == len(all_symbols_set), f"{len(all_df)} != {len(all_symbols_set)}"
 
     # %%
     all_df.to_csv(f"../data/raw_data/kinase_seq_{len(all_df)}.csv", index=False)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

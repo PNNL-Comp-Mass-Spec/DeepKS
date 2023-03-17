@@ -7,6 +7,7 @@ from numpy.ma import core as np_ma_core
 # newstream = open("debug_non_det.log", "a")
 np.set_printoptions(linewidth=240)
 
+
 def ma_from_inds(base_ar, inds):
     initial = np.ma.MaskedArray([base_ar[i] if not np.ma.is_masked(i) else np_ma_core.MaskedConstant() for i in inds])
     post_processing = lambda x: x.astype(base_ar.dtype) if isinstance(base_ar, np.ndarray) else x
@@ -83,7 +84,8 @@ def split_into_sets(
     num_sites_join = pd.merge(kin_fam_grp, raw, how="left", on="Uniprot")
     assert len(num_sites_join["Kinase Sequence"]) == len(num_sites_join["Uniprot"]) == len(num_sites_join["num_sites"])
     kin_to_num_seq = {
-        f"{l}|{u}": n for l, u, n in zip(num_sites_join["Kinase Sequence"], num_sites_join["Uniprot"], num_sites_join["num_sites"])
+        f"{l}|{u}": n
+        for l, u, n in zip(num_sites_join["Kinase Sequence"], num_sites_join["Uniprot"], num_sites_join["num_sites"])
     }
     fam_to_num_seq = collections.defaultdict(int)
     kin_to_num_seq_new = {}
@@ -143,7 +145,9 @@ def split_into_sets(
     def algorithm4(tgt, group, verbose=True, num_restarts=100, top_k=5):
         scores = []
         states = []
-        for r in tqdm(range(1, num_restarts + 1), position=0, leave=True, desc="Group Restart Progress: ", colour = 'cyan'):
+        for r in tqdm(
+            range(1, num_restarts + 1), position=0, leave=True, desc="Group Restart Progress: ", colour="cyan"
+        ):
             present = core_ai(tgt, r, group)
             states.append(present[0])
             scores.append(present[1])
@@ -171,7 +175,7 @@ def split_into_sets(
         group_sd = []
         group_states = {}
         for _, group in enumerate(
-            tq := tqdm(sorted(list(grp_to_num_sites.keys())), position=0, leave=True, colour = 'cyan')
+            tq := tqdm(sorted(list(grp_to_num_sites.keys())), position=0, leave=True, colour="cyan")
         ):
             tq.set_description(f"Processing Group {group}")
             group_result = algorithm4(tgt, group, verbose, num_restarts=num_restarts)
@@ -208,18 +212,20 @@ def split_into_sets(
                     # print(f"Diff for group {g} is {diff}")
                     true_acc += diff
 
-            print(f"Unsquared Score (Seed Rank {seed_rank}) = {true_acc} ({true_acc/sum(grp_to_num_sites.values())*100:2.2f}%)")
-            tks[f'seed rank {seed_rank}'] = tk
-            vks[f'seed rank {seed_rank}'] = vk
-            teks[f'seed rank {seed_rank}'] = tek
+            print(
+                f"Unsquared Score (Seed Rank {seed_rank}) ="
+                f" {true_acc} ({true_acc/sum(grp_to_num_sites.values())*100:2.2f}%)"
+            )
+            tks[f"seed rank {seed_rank}"] = tk
+            vks[f"seed rank {seed_rank}"] = vk
+            teks[f"seed rank {seed_rank}"] = tek
 
         json.dump(tks, open("../tr_kins_large.json", "w"), indent=4)
         json.dump(vks, open("../vl_kins_large.json", "w"), indent=4)
         json.dump(teks, open("../te_kins_large.json", "w"), indent=4)
-        json.dump(tks[f'seed rank {0}'], open("../tr_kins.json", "w"), indent=4)
-        json.dump(vks[f'seed rank {0}'], open("../vl_kins.json", "w"), indent=4)
-        json.dump(teks[f'seed rank {0}'], open("../te_kins.json", "w"), indent=4)
-
+        json.dump(tks[f"seed rank {0}"], open("../tr_kins.json", "w"), indent=4)
+        json.dump(vks[f"seed rank {0}"], open("../vl_kins.json", "w"), indent=4)
+        json.dump(teks[f"seed rank {0}"], open("../te_kins.json", "w"), indent=4)
 
 
 def hill_climbing_score(state, **kwargs):

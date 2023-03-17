@@ -1,1 +1,1 @@
-from . import cfg # type: ignore
+from . import cfg  # type: ignore

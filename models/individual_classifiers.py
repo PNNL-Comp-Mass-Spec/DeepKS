@@ -30,7 +30,8 @@ MAX_SIZE_DS = 4128
 memory_multiplier = 2**6
 EVAL_BATCH_SIZE = 0
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."]*levels, x)
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
 
 def RAISE_ASSERTION_ERROR(x):
     raise AssertionError(x)
@@ -88,18 +89,16 @@ class IndividualClassifiers:
             loss_fns.append(l)
 
         self.interfaces = {
-            grp: (
-                NNInterface(
-                    model_to_train=self.individual_classifiers[grp],
-                    loss_fn=loss_fns[i](),
-                    optim=optims[i](
-                        self.individual_classifiers[grp].parameters(), lr=self.grp_to_interface_args[grp]["lr"]
-                    ),
-                    inp_size=None,
-                    inp_types=None,
-                    model_summary_name=None,
-                    device=self.device,
-                )
+            grp: NNInterface(
+                model_to_train=self.individual_classifiers[grp],
+                loss_fn=loss_fns[i](),
+                optim=optims[i](
+                    self.individual_classifiers[grp].parameters(), lr=self.grp_to_interface_args[grp]["lr"]
+                ),
+                inp_size=None,
+                inp_types=None,
+                model_summary_name=None,
+                device=self.device,
             )
             for i, grp in enumerate(gia)
         }
@@ -272,9 +271,9 @@ class IndividualClassifiers:
             Xy_formatted_input_file,
             pred_groups=pred_groups,
             tqdm_passthrough=tqdm_passthrough,  # type: ignore
-            cartesian_product=evaluation_kwargs["cartesian_product"]
-            if "cartesian_product" in evaluation_kwargs
-            else False,
+            cartesian_product=(
+                evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False
+            ),
         )
         count = 0
         for group_te, partial_group_df_te in gen_te:
@@ -291,14 +290,16 @@ class IndividualClassifiers:
                 tef=1,
                 tokdict=self.default_tok_dict,
                 n_gram=ng,
-                device=self.device
-                if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]
-                else evaluation_kwargs["device"],
+                device=(
+                    self.device
+                    if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]
+                    else evaluation_kwargs["device"]
+                ),
                 maxsize=MAX_SIZE_DS,
                 eval_batch_size=1,
-                cartesian_product=evaluation_kwargs["cartesian_product"]
-                if "cartesian_product" in evaluation_kwargs
-                else False,
+                cartesian_product=(
+                    evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False
+                ),
                 tqdm_passthrough=tqdm_passthrough,
             ):
                 info_dict_passthrough[group_te] = info_dict
@@ -427,9 +428,7 @@ class IndividualClassifiers:
                                 jumbled_predictions[0][i],
                                 jumbled_predictions[1][i],
                                 jumbled_predictions[2][i],
-                                self.__dict__["grp_to_emp_eqn"].get(grp)
-                                if get_emp_eqn
-                                else None,
+                                self.__dict__["grp_to_emp_eqn"].get(grp) if get_emp_eqn else None,
                             )
                             for pair_id, i in zip(new_info, range(len(new_info)))
                         }
@@ -444,7 +443,7 @@ class IndividualClassifiers:
                     ) from None
             key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
             pred_items = sorted(all_predictions_outputs.items(), key=key_lambda)  # Pair # {i}
-            if self.args.get('s'):
+            if self.args.get("s"):
                 smart_save_nn(self)
             return pred_items
 
@@ -488,7 +487,7 @@ class IndividualClassifiers:
                     + ".pkl",
                     from_loaded=self.evaluations,
                 )
-            if self.args.get('s'):
+            if self.args.get("s"):
                 smart_save_nn(self)
 
 
@@ -537,7 +536,11 @@ def main():
         )
         print("Progress: About to Train")
         assert val_filename is not None
-        fat_model.train(which_groups=groups, Xy_formatted_train_file=join_first(1, train_filename), Xy_formatted_val_file=join_first(1, val_filename))
+        fat_model.train(
+            which_groups=groups,
+            Xy_formatted_train_file=join_first(1, train_filename),
+            Xy_formatted_val_file=join_first(1, val_filename),
+        )
     else:  # AKA, loading from file
         fat_model = IndividualClassifiers.load_all(
             args["load"] if args["load_include_eval"] is None else args["load_include_eval"]

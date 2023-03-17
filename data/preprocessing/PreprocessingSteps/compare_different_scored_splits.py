@@ -1,5 +1,6 @@
 import json, itertools, pandas as pd, random
 
+
 def my_jaccard(x: set, y: set):
     if len(x.union(y)) == 0:
         return 0
@@ -26,7 +27,8 @@ def main(tr_file, vl_file, te_file):
             mtx.loc[c, r] = mtx.loc[r, c]
             mtx.loc[r, r] = 100
             mtx.loc[c, c] = 100
-        print(mtx, '\n')
+        print(mtx, "\n")
+
 
 def empirical_expected_value(size, fraction):
     all = list(range(size))
@@ -34,7 +36,6 @@ def empirical_expected_value(size, fraction):
     part_b = set(random.sample(all, int(size * fraction)))
     # print(f"Jaccard Sim for {int(size * fraction)} samples of a pool of size {size}: {my_jaccard(part_a, part_b)}")
     return my_jaccard(part_a, part_b)
-
 
 
 if __name__ == "__main__":

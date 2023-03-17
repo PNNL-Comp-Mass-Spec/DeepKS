@@ -48,7 +48,11 @@ def raw_score_to_probability(
             midpoints = [0, midpoints[0], 1]
             probs = [0, probs[0], 1]
     try:
-        base_fn = lambda x, c, d: [0.5 + (1/math.pi)*math.atan(c*(x0-d)) for x0 in x] if isinstance(x, Iterable) else 0.5 + (1/math.pi)*math.atan(c*(x-d))
+        base_fn = lambda x, c, d: (
+            [0.5 + (1 / math.pi) * math.atan(c * (x0 - d)) for x0 in x]
+            if isinstance(x, Iterable)
+            else 0.5 + (1 / math.pi) * math.atan(c * (x - d))
+        )
         (c, d), *_ = params, *_ = scipy.optimize.curve_fit(base_fn, midpoints, probs, maxfev=1000000, xtol=1e-6)
     except Exception as e:
         print(f"Failed to fit curve to data: {e}")

@@ -135,6 +135,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
     held_out_df.to_csv(f"../kin_to_fam_to_grp_{len(held_out_df)}.csv", index=False)
     return fn
 
+
 if __name__ == "__main__":
     get_kin_to_fam_to_grp("../../raw_data/kinase_seq_822.txt")
     print("(<kinase>) - Kinase with inferred family.")

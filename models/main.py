@@ -515,5 +515,5 @@ if __name__ == "__main__":
         "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
         "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
     }
-    assert args['device'] is not None
+    assert args["device"] is not None
     perform_k_fold(cf, display_within_train=True, process_device=args["device"])

@@ -2,7 +2,7 @@ import os, re, pathlib
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
-os.chdir("../../")
+os.chdir("../../")             
 
 def main():
     to_del = []

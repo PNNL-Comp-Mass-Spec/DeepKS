@@ -4,23 +4,27 @@ from ..tools.nice_printer import nice_printer
 from termcolor import colored
 
 
-
 FAKE_TERM_WIDTH = 90
+
+
 class Capturing(list):
     """https://stackoverflow.com/a/16571630/16158339"""
+
     def __enter__(self):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
         sys.stdout = self._stringio = io.StringIO()
         sys.stderr = self._stringio2 = io.StringIO()
         return self
+
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
         self.extend(self._stringio2.getvalue().splitlines())
-        del self._stringio    # free up some memory
-        del self._stringio2    # free up some memory
+        del self._stringio  # free up some memory
+        del self._stringio2  # free up some memory
         sys.stdout = self._stdout
         sys.stderr = self._stderr
+
 
 def informative_exception(
     e: Exception,
@@ -55,10 +59,20 @@ def informative_exception(
     extr = traceback.extract_tb(traceback_)
     print("\n", file=sys.stderr)
     print(colored(f"{top_message}\n", "red"), file=sys.stderr)
-    print(colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"), file=sys.stderr)
+    print(
+        colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"),
+        file=sys.stderr,
+    )
     print(
         colored(
-            textwrap.fill(f"  * Error Type: {e.__class__.__name__} (Description: {get_exception_description(e.__class__.__name__)})", width=int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), subsequent_indent=" "*8),
+            textwrap.fill(
+                (
+                    f"  * Error Type: {e.__class__.__name__} (Description:"
+                    f" {get_exception_description(e.__class__.__name__)})"
+                ),
+                width=int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH),
+                subsequent_indent=" " * 8,
+            ),
             "magenta",
         ),
         file=sys.stderr,
@@ -81,14 +95,17 @@ def informative_exception(
     while tb:
         tb_locals = tb.tb_frame.f_locals
         tb = tb.tb_next
-    
+
     tb_locals = dict(collections.OrderedDict(sorted(tb_locals.items())))
 
     local_variable_nice_io = io.StringIO()
     nice_printer(tb_locals, file=local_variable_nice_io, initial_indent=6)
     local_variable_nice_io.seek(0)
     print(colored(f"  * Local Variables:\n{local_variable_nice_io.read()}", "magenta"), file=sys.stderr)
-    print(colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"), file=sys.stderr)
+    print(
+        colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"),
+        file=sys.stderr,
+    )
     print()
 
     # with Capturing():
@@ -98,7 +115,7 @@ def informative_exception(
 
 def get_exception_description(exception_type: str):
     cached = str(pathlib.Path(__file__).parent.resolve()) + "/cached_docs.json"
-    if not os.path.exists(cached) or 'REDOWNLOAD' in os.environ:
+    if not os.path.exists(cached) or "REDOWNLOAD" in os.environ:
         base_url = "https://docs.python.org/3/library/exceptions.html"
         r = requests.get(base_url)
         try:
@@ -117,11 +134,13 @@ def get_exception_description(exception_type: str):
         assert len(finds) > 0, "Failed to find any exceptions in the Python docs."
         error_type_to_description = dict(finds)
         for key in error_type_to_description:
-            error_type_to_description[key] = re.sub(r"\[(`|)(.*?)(`|)]\((.|\n)*?\)", r"\2", error_type_to_description[key])
-            error_type_to_description[key] = re.sub('\u00e2\u0080\u0099', r"'", error_type_to_description[key])
-            error_type_to_description[key] = re.sub('\u00e2\u0080\u009c', "\"", error_type_to_description[key])
-            error_type_to_description[key] = re.sub('\u00e2\u0080\u009d', "\"", error_type_to_description[key])
-            error_type_to_description[key] = re.sub('`', r"", error_type_to_description[key])
+            error_type_to_description[key] = re.sub(
+                r"\[(`|)(.*?)(`|)]\((.|\n)*?\)", r"\2", error_type_to_description[key]
+            )
+            error_type_to_description[key] = re.sub("\u00e2\u0080\u0099", r"'", error_type_to_description[key])
+            error_type_to_description[key] = re.sub("\u00e2\u0080\u009c", '"', error_type_to_description[key])
+            error_type_to_description[key] = re.sub("\u00e2\u0080\u009d", '"', error_type_to_description[key])
+            error_type_to_description[key] = re.sub("`", r"", error_type_to_description[key])
         doc_dict = error_type_to_description
         json.dump(doc_dict, open(cached, "w"), indent=3)
     else:
@@ -136,21 +155,19 @@ def get_exception_description(exception_type: str):
 
 
 if __name__ == "__main__":
+
     def fn_a():
         fn_b()
-
 
     def fn_b():
         fn_c()
 
-
     def fn_c():
         fn_d()
 
-
     def fn_d():
         raise RuntimeError("This is a test exception!")
-    
+
     try:
         fn_a()
     except Exception as e:

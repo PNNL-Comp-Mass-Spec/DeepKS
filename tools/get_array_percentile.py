@@ -2,25 +2,28 @@ from typing import Union
 from collections.abc import Collection
 import numpy as np
 
+
 def get_array_percentile(
-        arr: np.ndarray, percentile: Union[Union[int, float], Collection[Union[int, float]]],
-        axes: Union[int, Collection[int]],
-        tf: Collection = (1, 0)) -> np.ndarray:
-    """Gets np.array of numbers of the same shape as an input depending on whether or not each 
+    arr: np.ndarray,
+    percentile: Union[Union[int, float], Collection[Union[int, float]]],
+    axes: Union[int, Collection[int]],
+    tf: Collection = (1, 0),
+) -> np.ndarray:
+    """Gets np.array of numbers of the same shape as an input depending on whether or not each
         element in the input array satisfies axiswise percentile
 
     Args:
         arr (np.array): The input array
-        percentile (number or iterable of number (length 2)): The percentile threshold. 
-                    *  If float, inserts elements from `tf` into result array where 
+        percentile (number or iterable of number (length 2)): The percentile threshold.
+                    *  If float, inserts elements from `tf` into result array where
                         elements of `arr` are < `percentile` along the provided axe(s).
-                    *  If float, inserts elements from `tf` into result array where 
+                    *  If float, inserts elements from `tf` into result array where
                         elements of `arr` are < `percentile[1]` and >= than `percentile[0]` along the provided axe(s).
         axes (int or iterable of ints): The axe(s) along which to compute percentiles.
-        tf (iterable): [Default = (1, 0)] `tf[0]` is object to insert 
+        tf (iterable): [Default = (1, 0)] `tf[0]` is object to insert
             if the percentile condition is met, and `tf[1]` is the object to insert otherwise.
 
-    Returns: 
+    Returns:
         (np.array): np.array based on percentile and arr
     """
 
@@ -32,7 +35,7 @@ def get_array_percentile(
         new_percentile = (0, percentile)
     else:
         new_percentile = np.asarray(percentile).tolist()
-    
+
     assert len(new_percentile) == 2, "Percentile tuple must be of length two, of the form (lower %, upper %)."
     lower = new_percentile[0]
     upper = new_percentile[1]
@@ -43,7 +46,7 @@ def get_array_percentile(
         axes_to_expand_into = [i for i in range(arr.ndim) if i in axes]
 
     if upper == 100:
-        pctls_upper = np.array(float('inf')).reshape([1 for _ in range(arr.ndim - 1)])
+        pctls_upper = np.array(float("inf")).reshape([1 for _ in range(arr.ndim - 1)])
     else:
         pctls_upper = np.percentile(arr, upper, axis=[x for x in axes])
 

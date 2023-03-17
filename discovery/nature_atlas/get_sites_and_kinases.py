@@ -42,7 +42,8 @@ def main():
     for k, v in uniprot_id_to_known_group.items():
         if isinstance(v, tuple) and v[1] is None:
             warnings.warn(
-                f"For kinase {k}, got \"known\" group annotation of {v}, which is not recognized. Coercing it to <UNKNOWN>."
+                f'For kinase {k}, got "known" group annotation of {v}, which is not recognized. Coercing it to'
+                " <UNKNOWN>."
             )
             uniprot_id_to_known_group[k] = "<UNKNOWN>"
 
@@ -58,9 +59,11 @@ def main():
 
     # %% GET SAMPLED KINASES ---
     sampled_kin_to_seq = {
-        k: uni_to_seq[matrix_name_to_uniprot_id[k]]
-        if k in matrix_name_to_uniprot_id and matrix_name_to_uniprot_id[k] in uni_to_seq
-        else None
+        k: (
+            uni_to_seq[matrix_name_to_uniprot_id[k]]
+            if k in matrix_name_to_uniprot_id and matrix_name_to_uniprot_id[k] in uni_to_seq
+            else None
+        )
         for k in kins_sample
     }
     assert all([x is not None for x in sampled_kin_to_seq.values()])

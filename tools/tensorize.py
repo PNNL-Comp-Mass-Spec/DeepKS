@@ -3,6 +3,7 @@ from typing import Generator, Union
 from ..tools import model_utils
 from termcolor import colored
 
+
 def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):
     tok_dict = {}
     tok_occurrence = collections.Counter()
@@ -59,7 +60,7 @@ def gather_data(
     device=torch.device("cpu"),
     eval_batch_size=None,
     cartesian_product=False,
-    tqdm_passthrough=[None]
+    tqdm_passthrough=[None],
 ) -> Generator:
     """
     input_t: target set filename
@@ -77,9 +78,9 @@ def gather_data(
         if tq is not None:
             tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
     assert abs(sum([trf, vf, tuf, tef, -1]) < 1e-16)
-    
+
     # ===== #
-    def package(desired_length = None, desired_chunk_pos = None):
+    def package(desired_length=None, desired_chunk_pos=None):
         nonlocal eval_batch_size, X_train, X_train_kin, y_train, X_val, X_val_kin, y_val, X_tune, X_tune_kin, y_tune, X_test, X_test_kin, y_test, device
         if trf > 0:
             train_loader = torch.utils.data.DataLoader(
@@ -99,7 +100,13 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = max([len(X) // (1 if 'cuda' in str(device) else (9 if len(X) % 10 != 0 else 10)) for X in [X_val, X_tune, X_test]] + [1])
+        eval_batch_size = max(
+            [
+                len(X) // (1 if "cuda" in str(device) else (9 if len(X) % 10 != 0 else 10))
+                for X in [X_val, X_tune, X_test]
+            ]
+            + [1]
+        )
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
@@ -132,9 +139,21 @@ def gather_data(
                     "test": data.loc[test_ids]["Original Kinase Gene Name"].to_list(),
                 },
                 "PairIDs": {
-                    "train": data.loc[train_ids]["pair_id"].to_list() if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data)) else [f"N/A # {i}" for i in range(len(train_ids))],
-                    "val": data.loc[val_ids]["pair_id"].to_list() if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data)) else [f"N/A # {i}" for i in range(len(val_ids))],
-                    "test": data.loc[test_ids]["pair_id"].to_list() if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data)) else [f"N/A # {i}" for i in range(len(test_ids))]
+                    "train": (
+                        data.loc[train_ids]["pair_id"].to_list()
+                        if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
+                        else [f"N/A # {i}" for i in range(len(train_ids))]
+                    ),
+                    "val": (
+                        data.loc[val_ids]["pair_id"].to_list()
+                        if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
+                        else [f"N/A # {i}" for i in range(len(val_ids))]
+                    ),
+                    "test": (
+                        data.loc[test_ids]["pair_id"].to_list()
+                        if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
+                        else [f"N/A # {i}" for i in range(len(test_ids))]
+                    ),
                 },
             }
         else:
@@ -142,33 +161,46 @@ def gather_data(
             desired_chunk_pos = 0 if desired_chunk_pos is None else desired_chunk_pos
             ret_info_dict = {
                 "kin_orders": {
-                    "train": ["N/A"], # CHECK -- may not be correct in non-predict mode
+                    "train": ["N/A"],  # CHECK -- may not be correct in non-predict mode
                     "val": ["N/A"],
                     "test": ["N/A"],
                 },
                 "orig_symbols_order": {
-                    "train": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in train_ids][desired_length*desired_chunk_pos:desired_length*(desired_chunk_pos+1)],
-                    "val": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in val_ids][desired_length*desired_chunk_pos:desired_length*(desired_chunk_pos+1)],
-                    "test": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in test_ids][desired_length*desired_chunk_pos:desired_length*(desired_chunk_pos+1)],
+                    "train": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in train_ids][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
+                    "val": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in val_ids][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
+                    "test": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in test_ids][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
                 },
                 "PairIDs": {  # FIXME!
-                    "train": data["pair_id"][desired_length*desired_chunk_pos:desired_length*(desired_chunk_pos+1)],
-                    "val": data["pair_id"][desired_length*desired_chunk_pos:desired_length*(desired_chunk_pos+1)],
-                    "test": data["pair_id"][desired_length*desired_chunk_pos:desired_length*(desired_chunk_pos+1)],
+                    "train": data["pair_id"][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
+                    "val": data["pair_id"][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
+                    "test": data["pair_id"][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
                 },
             }
         update_dict = {
-                "classes": classes,
-                "class_labels": class_labels,
-                "remapping_class_label_dict_inv": remapping_class_label_dict_inv,
-                "maxsize": max_kin_length,
-                "tok_dict": tok_dict,
-                "on_chunk": desired_chunk_pos,
-                "total_chunks": num_partitions
-            }
+            "classes": classes,
+            "class_labels": class_labels,
+            "remapping_class_label_dict_inv": remapping_class_label_dict_inv,
+            "maxsize": max_kin_length,
+            "tok_dict": tok_dict,
+            "on_chunk": desired_chunk_pos,
+            "total_chunks": num_partitions,
+        }
         ret_info_dict.update(update_dict)
 
         return (train_loader, val_loader, tune_loader, test_loader), ret_info_dict
+
     # ===== #
 
     if isinstance(input_t, str):
@@ -224,7 +256,9 @@ def gather_data(
         remapping_class_label_dict = {0: 0, 1: 1}
         remapping_class_label_dict_inv = {0: "Decoy", 1: "Real"}
         remapping_class_label_dict_inv = remapping_class_label_dict_inv
-        assert all(isinstance(x, int) for x in class_labels) or all(isinstance(x, str) and x.isdigit() for x in class_labels), f"Class labels must be integers ({class_labels[:10]=})"
+        assert all(isinstance(x, int) for x in class_labels) or all(
+            isinstance(x, str) and x.isdigit() for x in class_labels
+        ), f"Class labels must be integers ({class_labels[:10]=})"
         data[class_col] = [remapping_class_label_dict[int(x)] for x in data[class_col]]
     elif set(class_labels) != {-1}:  # I.e., not predict mode
         remapping_class_label_dict = {class_labels[i]: i for i in range(len(class_labels))}
@@ -263,44 +297,56 @@ def gather_data(
         assert all([isinstance(x, str) for x in data["Kinase Sequence"]]), "All kinase seqs must be strings"
         assert all([isinstance(x, str) for x in data["Site Sequence"]]), "All site seqs must be strings"
         kinase_seq_to_tensor_data: dict[str, torch.IntTensor] = {
-            str(ks): torch.IntTensor(pad(encode_seq(str(ks), tok_dict), max_len=max_kin_length, map_dict=tok_dict)) for ks in data["Kinase Sequence"]
+            str(ks): torch.IntTensor(pad(encode_seq(str(ks), tok_dict), max_len=max_kin_length, map_dict=tok_dict))
+            for ks in data["Kinase Sequence"]
         }
         site_seq_to_tensor_data: dict[str, torch.IntTensor] = {
             str(ss): torch.IntTensor(encode_seq(str(ss), tok_dict)) for ss in data["Site Sequence"]
         }
-    
+
     assert all(isinstance(x, str) for x in data["Kinase Sequence"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
     BYTES_PER_PAIR = 1.4e6  # The approximate size of one kinase-site pair in bytes + forward pass size.
-    BYTES_PER_PAIR_MULTIPLIER = 1 # Optionally pretend data is larger than the original data
+    BYTES_PER_PAIR_MULTIPLIER = 1  # Optionally pretend data is larger than the original data
     BYTES_PER_PAIR *= BYTES_PER_PAIR_MULTIPLIER
 
-    if str(device) == str(torch.device('cpu')):
-        free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free)/1.25
+    if str(device) == str(torch.device("cpu")):
+        free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) / 1.25
         # print(colored(f"{psutil.virtual_memory().available=}{psutil.swap_memory().free=}", "yellow"))
     else:
-        assert 'cuda' in str(device), "Device must be either 'cpu' or a cuda device."
+        assert "cuda" in str(device), "Device must be either 'cpu' or a cuda device."
         free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]
-    
+
     num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / BYTES_PER_PAIR)
 
-    assert len(data['Kinase Sequence']) == len(data['Site Sequence']) or cartesian_product, "Length of kinase and site lists must be equal."
+    assert (
+        len(data["Kinase Sequence"]) == len(data["Site Sequence"]) or cartesian_product
+    ), "Length of kinase and site lists must be equal."
 
-    assert num_pairs_can_be_stored_per_dl > 0, "Can't fit one pair in memory. Check system memory usage."     
-    num_partitions = max([int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]] + [1])
+    assert num_pairs_can_be_stored_per_dl > 0, "Can't fit one pair in memory. Check system memory usage."
+    num_partitions = max(
+        [int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]] + [1]
+    )
     assert num_partitions > 0, "num_partitions <= 0. Something went wrong."
     # assert num_partitions <= len(data['Kinase Sequence'), f"{num_partitions=} > {len(data['Kinase Sequence')=}. Something went wrong."
 
     # tqdm_passthrough[0].write(colored(f"Status: Partitioning data into {num_partitions} partitions", "green"))
-    partition_size = min(num_pairs_can_be_stored_per_dl, len(data['Kinase Sequence'])*len(data['Site Sequence']) if cartesian_product else len(data['Kinase Sequence']))
+    partition_size = min(
+        num_pairs_can_be_stored_per_dl,
+        (
+            len(data["Kinase Sequence"]) * len(data["Site Sequence"])
+            if cartesian_product
+            else len(data["Kinase Sequence"])
+        ),
+    )
     for partition_id in range(int(num_partitions)):
         final_kin_tensor_chunks = []
         final_site_tensor_chunks = []
         final_class_chunks = []
         # print(colored(f"Status: Writing Tensor Data to RAM", "green"))
-        begin_idx = partition_size*partition_id
-        end_idx = partition_size*(partition_id+1)
+        begin_idx = partition_size * partition_id
+        end_idx = partition_size * (partition_id + 1)
         train_ids_subset = train_ids[begin_idx:end_idx]
         val_ids_subset = val_ids[begin_idx:end_idx]
         tune_ids_subset = tune_ids[begin_idx:end_idx]
@@ -323,7 +369,10 @@ def gather_data(
                 X_train_kin, X_val_kin, X_tune_kin, X_test_kin = tuple(
                     [
                         torch.IntTensor(
-                            [pad(encode_seq(x, tok_dict), max_kin_length, tok_dict) for x in d_set["Kinase Sequence"].values]
+                            [
+                                pad(encode_seq(x, tok_dict), max_kin_length, tok_dict)
+                                for x in d_set["Kinase Sequence"].values
+                            ]
                         ).to(device)
                         for d_set in [data_train, data_val, data_tune, data_test]
                     ]
@@ -350,14 +399,20 @@ def gather_data(
 
                     kin_tensor, site_tensor = (
                         kinase_seq_to_tensor_data[str(data["Kinase Sequence"][kin_tensor_idx])],
-                        site_seq_to_tensor_data[str(data["Site Sequence"][site_tensor_idx])]
+                        site_seq_to_tensor_data[str(data["Site Sequence"][site_tensor_idx])],
                     )
                     kin_tensor_data.append(kin_tensor)
                     site_tensor_data.append(site_tensor)
                     class_tensor_data.append(torch.IntTensor([-1]))  # CHECK -- May not be right for non-predict mode.
-                stacked_kin_tensors = torch.stack(kin_tensor_data).to(device) if len(kin_tensor_data) > 0 else torch.IntTensor()
-                stacked_site_tensors = torch.stack(site_tensor_data).to(device) if len(site_tensor_data) > 0 else torch.IntTensor()
-                stacked_class_tensors = torch.cat(class_tensor_data).to(device) if len(class_tensor_data) > 0 else torch.IntTensor()
+                stacked_kin_tensors = (
+                    torch.stack(kin_tensor_data).to(device) if len(kin_tensor_data) > 0 else torch.IntTensor()
+                )
+                stacked_site_tensors = (
+                    torch.stack(site_tensor_data).to(device) if len(site_tensor_data) > 0 else torch.IntTensor()
+                )
+                stacked_class_tensors = (
+                    torch.cat(class_tensor_data).to(device) if len(class_tensor_data) > 0 else torch.IntTensor()
+                )
                 final_kin_tensor_chunks.append(stacked_kin_tensors)
                 final_site_tensor_chunks.append(stacked_site_tensors)
                 final_class_chunks.append(stacked_class_tensors)
@@ -366,6 +421,7 @@ def gather_data(
             X_train, X_val, X_tune, X_test = tuple(final_site_tensor_chunks)
             y_train, y_val, y_tune, y_test = tuple(final_class_chunks)
         yield package(actual_partition_size, partition_id)
+
 
 def pad(tok_list: list[int], max_len: int, map_dict: dict[str, int]) -> list[int]:
     return tok_list + [map_dict["<PADDING>"] for _ in range(max_len - len(tok_list))]

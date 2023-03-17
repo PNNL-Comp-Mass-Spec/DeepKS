@@ -11,6 +11,7 @@ with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "tests/examples.
         if "DEVICE_PLACEHOLDER" in ex:
             ex[ex.index("DEVICE_PLACEHOLDER")] = DEVICE
 
+
 def _main():
     os.chdir(pathlib.Path(__file__).parent.resolve())
 
@@ -23,7 +24,7 @@ def _main():
             "blue",
         )
     )
-    
+
     inds = range(len(EXAMPLES)) if "--ex-list" not in sys.argv else eval(sys.argv[sys.argv.index("--ex-list") + 1])
 
     for i, example in zip(inds, [EXAMPLES[i] for i in inds]):
@@ -40,6 +41,7 @@ def _main():
             main.setup()
 
     print(colored("Info: All Examples Complete.", "blue"))
+
 
 if __name__ == "__main__":
     _main()

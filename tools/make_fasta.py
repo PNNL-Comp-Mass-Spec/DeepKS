@@ -8,12 +8,8 @@ format_for_needle = (
     .replace(" ", "---")
     .replace(":", "----")
 )
-eldeen_rof_tamrof = (
-    lambda x: x.replace("_", "|")
-    .replace("--", "/")
-    .replace("---", " ")
-    .replace("----", ":")
-)
+eldeen_rof_tamrof = lambda x: x.replace("_", "|").replace("--", "/").replace("---", " ").replace("----", ":")
+
 
 def make_fasta(df_in: str, fasta_out: str) -> str:
     with open(df_in, "r") as f:
@@ -25,10 +21,10 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
     rows = []
     for _ in df[df["gene_name"].isna()].index:
         raise RuntimeError("NA for gene_name!")
-    df['kinase'] = df['kinase'].replace(float('NaN'), "")
+    df["kinase"] = df["kinase"].replace(float("NaN"), "")
 
     for _, r in df.iterrows():
-        rows.append(format_for_needle(">" + r["gene_name"] + ("|" if r['kinase'] != "" else "") + r["kinase"]))
+        rows.append(format_for_needle(">" + r["gene_name"] + ("|" if r["kinase"] != "" else "") + r["kinase"]))
         rows.append("\n")
         rows.append(tw.fill(r["kinase_seq"]))
         rows.append("\n")
@@ -36,4 +32,3 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
         tfa.write("".join(rows))
 
     return fasta_out
-
