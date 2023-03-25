@@ -1,22 +1,26 @@
-import sys, os, argparse, unittest, pathlib, json
+import sys, os, argparse, unittest, pathlib, json, inspect
 from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
 
+class UsesR():
+    pass
 
 class TestMisc(unittest.TestCase):
-    def setUp(self):
-        from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
+    # def setUp(self):
+    #     from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
 
-        self.smart_save_nn = this_smart_save_nn
-        self.IndividualClassifiers = IndividualClassifiers
-        self.real_file = "UNITTESTVERSIONdeepks_nn_weights.-1.cornichon"
-        self.parent = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
-        # make backup
-        assert os.path.exists(os.path.join(self.parent, self.real_file))
-        with open(os.path.join(self.parent, self.real_file), "rb") as fl:
-            self.bu = fl.read()
+    #     self.smart_save_nn = this_smart_save_nn
+    #     self.IndividualClassifiers = IndividualClassifiers
+    #     self.real_file = "UNITTESTVERSIONdeepks_nn_weights.-1.cornichon"
+    #     self.parent = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
+    #     # make backup
+    #     assert os.path.exists(os.path.join(self.parent, self.real_file))
+    #     with open(os.path.join(self.parent, self.real_file), "rb") as fl:
+    #         self.bu = fl.read()
 
+    def test_identity_placeholder(self):
+        assert True, "Identity"
     # def test_smart_save_nn(self):
     #     self.sample_files = ["UNITTESTVERSIONdeepks_nn_weights.0.cornichon",
     #                     "UNITTESTVERSIONdeepks_nn_weights.2.cornichon",
@@ -39,7 +43,7 @@ class TestMisc(unittest.TestCase):
     #         restore.write(self.bu)
 
 
-class TestPreprocessing(unittest.TestCase):
+class TestPreprocessing(unittest.TestCase, UsesR):
     def setUp(self):
         global main
         from ..data.preprocessing import main as this_main
@@ -357,22 +361,35 @@ class TestExamples(unittest.TestCase):
 
 
 api_suite = unittest.TestSuite()
+training_suite = unittest.TestSuite()
+non_r_suite = unittest.TestSuite()
+
+testloader = unittest.TestLoader()
+
 api_suite.addTests(
     [
-        unittest.TestLoader().loadTestsFromTestCase(TestExamples),
-        unittest.TestLoader().loadTestsFromTestCase(TestMainAPIFromCMDL),
+        testloader.loadTestsFromTestCase(TestExamples),
+        testloader.loadTestsFromTestCase(TestMainAPIFromCMDL),
     ]
 )
 
-training_suite = unittest.TestSuite()
 training_suite.addTests(
     [
-        unittest.TestLoader().loadTestsFromTestCase(TestTrainingIndividualClassifiers),
-        unittest.TestLoader().loadTestsFromTestCase(TestTrainingGroupClassifier),
+        testloader.loadTestsFromTestCase(TestTrainingIndividualClassifiers),
+        testloader.loadTestsFromTestCase(TestTrainingGroupClassifier),
     ]
 )
 
-# if __name__ == '__main__':
-#     runner = unittest.TextTestRunner()
-#     tmapifcmdl = unittest.TestLoader().loadTestsFromTestCase(TestMainAPIFromCMDL)
-#     runner.run(tmapifcmdl)
+is_non_r_test = lambda x: isinstance(x, type) and issubclass(x, unittest.TestCase) and not issubclass(x, UsesR)
+
+non_r_tests = [obj_type for _, obj_type in inspect.getmembers(sys.modules[__name__]) if is_non_r_test(obj_type)]
+
+if any('.non_r_tests' in a for a in sys.argv):
+    print(f"Running the following non-r-tests:")
+    for test in non_r_tests:
+        print(f"  * {test.__name__}")
+
+non_r_suite.addTests([testloader.loadTestsFromTestCase(test) for test in non_r_tests])
+
+pass
+pass
