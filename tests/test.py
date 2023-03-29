@@ -62,7 +62,7 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
 
         self.main = this_main
 
-    def test_train_nn_small(self):
+    def test_a_train_nn_small(self):
         sys.argv = [
             "python3 -m DeepKS.models.individual_classifiers",
             "--train",
@@ -75,7 +75,20 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
         ]
         self.main()
 
-    def test_train_nn_small_from_another_dir(self):
+    def test_b_test_nn_small(self):
+        sys.argv = [
+            "python3 -m DeepKS.models.multi_state_classifier",
+            "--test",
+            "tests/sample_inputs/small_train.csv", # TODO may want to change this in future
+            "--load",
+            "/home/dockeruser/DeepKS/bin/deepks_nn_weights.1.cornichon", # TODO Fix quick stop-gap
+            "--device",
+            "cpu",
+            "-s",
+        ]
+        self.main()
+
+    def test_c_train_nn_small_from_another_dir(self):
         old_dir = os.getcwd()
         os.chdir(pathlib.Path(__file__).parent.parent.parent.resolve())
         sys.argv = [
@@ -126,6 +139,28 @@ class TestMainAPIFromCMDL(unittest.TestCase):
         from ..api import main as this_main
 
         self.main = this_main
+
+    def test_convert_raw_to_prob(self):
+        sys.argv = [
+            "python3 -m DeepKS.api.main",
+            "-kf",
+            "tests/sample_inputs/kins.txt",
+            "-sf",
+            "tests/sample_inputs/sites-prod.txt",
+            "-p",
+            "csv",
+            "--kin-info",
+            "tests/sample_inputs/kin-info-known-groups.json",
+            "--site-info",
+            "tests/sample_inputs/site-info.json",
+            "--scores",
+            "--cartesian-product",
+            "--groups",
+            "--convert-raw-to-prob",
+            "--device", 
+            DEVICE
+        ]
+        self.main.setup()
 
     def test_dict(self):
         sys.argv = [
