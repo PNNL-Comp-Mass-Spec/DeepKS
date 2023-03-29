@@ -1,1 +1,2 @@
 *.cornichon
+!deepks_nn_weights.-1.cornichon
