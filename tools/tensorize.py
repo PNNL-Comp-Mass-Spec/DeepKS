@@ -61,6 +61,7 @@ def gather_data(
     eval_batch_size=None,
     cartesian_product=False,
     tqdm_passthrough=[None],
+    kin_seq_to_group: dict = {},
 ) -> Generator:
     """
     input_t: target set filename
@@ -249,7 +250,10 @@ def gather_data(
         clust_dict = final_clust_dict
         data["Kinase Sequence"] = [clust_dict[x] for x in data["Kinase Sequence"]]
 
-    class_col = "Kinase Sequence" if mc else "Class"
+    if kin_seq_to_group:
+        data["Group"] = [kin_seq_to_group[x] for x in data["Kinase Sequence"]]
+        data = data[data["Group"] != "<UNANNOTATED>"]
+    class_col = ("Kinase Sequence" if mc else "Class") if not kin_seq_to_group else "Group"
     class_labels = list(set(data[class_col]))
     classes = len(class_labels)
     if set(class_labels) in [{0, 1}, {1}, {0}]:

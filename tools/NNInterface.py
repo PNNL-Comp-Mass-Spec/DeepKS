@@ -51,7 +51,8 @@ class NNInterface:
         self.model_summary_name = join_first(0, self.model_summary_name)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
-                f.write(str(self))
+                str_rep = str(self)
+                f.write(str_rep)
 
         elif isinstance(self.model_summary_name, io.StringIO):
             self.model_summary_name.write(str(self))
