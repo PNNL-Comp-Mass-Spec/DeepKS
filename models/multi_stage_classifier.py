@@ -90,6 +90,7 @@ class MultiStageClassifier:
         ### Perform Real Accuracy
         groups_prediction = self.group_classifier.predict(unq_symbols)
         pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
+        self.pred_grp_dict = pred_grp_dict
         true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
         ### Perform Simulated 100% Accuracy
         # sim_ac = 1
@@ -405,72 +406,76 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def main():
+def main(load_gc = True):
     run_args = parsing()
     assert (
         run_args.get("load") is not None or run_args.get("load_include_eval") is not None
     ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
 
-    train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
-        *(
-            [
-                join_first(0, x)
-                for x in [
-                    "../data/preprocessing/pairwise_mtx_826.csv",
-                    "../data/preprocessing/tr_kins.json",
-                    "../data/preprocessing/vl_kins.json",
-                    "../data/preprocessing/te_kins.json",
-                    "../data/preprocessing/kin_to_fam_to_grp_826.csv",
-                ]
-            ]
-            + [None, None]
-        )
-    )
-
-    train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
-
-    # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
-
-    # train_kins = np.asarray(
-    #     pd.read_csv(
-    #         "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
-    #     )["Original Kinase Gene Name"]
-    #     .drop_duplicates(keep="first")
-    #     .values
-    # ).tolist()
-    # train_true = ["CMGC" for _ in range(len(train_kins))]
-
-    group_classifier = grp_pred.SKGroupClassifier(
-        X_train=train_kins,
-        y_train=train_true,
-        classifier=MLPClassifier,
-        hyperparameters={
-            "activation": "identity",
-            "max_iter": 500,
-            "learning_rate": "adaptive",
-            "hidden_layer_sizes": (1000, 500, 100, 50),
-            "random_state": 42,
-            "alpha": 1e-7,
-        },
-    )
-
-    ### Use KNN instead
-    # group_classifier = grp_pred.SKGroupClassifier(
-    #     X_train=train_kins,
-    #     y_train=train_true,
-    #     classifier=KNeighborsClassifier,
-    #     hyperparameters={"metric": "chebyshev", "n_neighbors": 1},
-    # )
-    assert run_args["device"] is not None, "Somehow, device is not set."
-
     individual_classifiers_ = IndividualClassifiers.load_all(
-        run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
-        run_args["device"],
+            run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
+            run_args["device"],
     )
-    if run_args["c"]:
-        check_is_fitted(group_classifier.model)
-        smart_save_gc(group_classifier)
-        return
+    if not load_gc:
+        train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
+            *(
+                [
+                    join_first(0, x)
+                    for x in [
+                        "../data/preprocessing/pairwise_mtx_826.csv",
+                        "../data/preprocessing/tr_kins.json",
+                        "../data/preprocessing/vl_kins.json",
+                        "../data/preprocessing/te_kins.json",
+                        "../data/preprocessing/kin_to_fam_to_grp_826.csv",
+                    ]
+                ]
+                + [None, None]
+            )
+        )
+
+        train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
+
+        # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
+
+        # train_kins = np.asarray(
+        #     pd.read_csv(
+        #         "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
+        #     )["Original Kinase Gene Name"]
+        #     .drop_duplicates(keep="first")
+        #     .values
+        # ).tolist()
+        # train_true = ["CMGC" for _ in range(len(train_kins))]
+
+        group_classifier = grp_pred.SKGroupClassifier(
+            X_train=train_kins,
+            y_train=train_true,
+            classifier=MLPClassifier,
+            hyperparameters={
+                "activation": "identity",
+                "max_iter": 500,
+                "learning_rate": "adaptive",
+                "hidden_layer_sizes": (1000, 500, 100, 50),
+                "random_state": 42,
+                "alpha": 1e-7,
+            },
+        )
+
+        ### Use KNN instead
+        # group_classifier = grp_pred.SKGroupClassifier(
+        #     X_train=train_kins,
+        #     y_train=train_true,
+        #     classifier=KNeighborsClassifier,
+        #     hyperparameters={"metric": "chebyshev", "n_neighbors": 1},
+        # )
+        assert run_args["device"] is not None, "Somehow, device is not set."
+
+
+        if run_args["c"]:
+            check_is_fitted(group_classifier.model)
+            smart_save_gc(group_classifier)
+            return
+    else:
+        group_classifier = pickle.load(open("/home/dockeruser/DeepKS/bin/deepks_gc_weights.-1.cornichon", "rb"))
 
     assert run_args["test"] is not None, "Must provide test set for evaluating."
 
