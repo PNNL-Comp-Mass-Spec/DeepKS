@@ -1,36 +1,90 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
-import tempfile, os, scipy, itertools, warnings, pathlib
-from matplotlib.axes import Axes
-from matplotlib import lines
-from typing import Collection, Iterable, Tuple, Union, Callable, Any  # type: ignore
+import tempfile, os, scipy, itertools, warnings, pathlib, typing
+from matplotlib import ArrayLike, lines, pyplot as plt, rcParams
+from typing import Collection, Tuple, Union, Callable, Literal, Sequence
 from prettytable import PrettyTable
 from torchinfo_modified import summary
-from matplotlib import pyplot as plt, rcParams
 from roc_comparison_modified.auc_delong import delong_roc_test
-from .roc_lambda import get_avg_roc
 from termcolor import colored
+from sklearn.metrics import roc_auc_score
+
+from .roc_lambda import get_avg_roc
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 from ..tools.raw_score_to_prob import raw_score_to_probability
+from ..tools.model_utils import KSDataset
 
 rcParams["font.family"] = "monospace"
 rcParams["font.size"] = 12
 # rcParams["font.serif"] = ["monospace", "Times", "Times New Roman", "Gentinum", "URW Bookman", "Roman", "Nimbus Roman"]
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+heaviside_cutoff = lambda outputs, cutoff: torch.heaviside(
+    torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
+)
+expand_metric = lambda met: "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
+
+
+def protected_roc_auc_score(y_true: ArrayLike, y_score: ArrayLike, *args, **kwargs) -> float:
+    """Wrapper for sklearn.metrics.roc_auc_score that handles edge cases
+
+    Args:
+        @arg y_true: Iterable of (integer) true labels
+        @arg y_score: Iterable of predicted scores
+        @arg *args: Additional arguments to pass to roc_auc_score
+        @arg **kwargs: Additional keyword arguments to pass to roc_auc_score
+
+    Raises:
+        e: Error that is not a multi class error or single class present error
+
+    Returns:
+        float: The roc_auc_score
+    """
+    try:
+        return float(roc_auc_score(y_true, y_score, *args, **kwargs))
+    except Exception as e:
+        match str(e):
+            case "Only one class present in y_true. ROC AUC score is not defined in that case.":
+                warnings.warn(f"Setting roc_auc_score to 0.0 since there is only one class present in y_true.")
+                return 0.0
+            case "multi_class must be in ('ovo', 'ovr')":
+                # softmax in case of multi-class
+                y_score = torch.nn.functional.softmax(torch.as_tensor(y_score), dim=1)
+                return protected_roc_auc_score(
+                    y_true,
+                    y_score,
+                    *args,
+                    **({"multi_class": "ovo", "average": "macro", "labels": list(range(y_score.shape[-1]))} | kwargs),
+                )
+            case _:
+                raise e
 
 
 class NNInterface:
     def __init__(
         self,
-        model_to_train,
-        loss_fn,
-        optim,
+        model_to_train: torch.nn.Module,
+        loss_fn: torch.nn.modules.loss._Loss,
+        optim: torch.optim.Optimizer,
         inp_size=None,
         inp_types=None,
         model_summary_name=None,
         device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
     ):
+        """Initializes the NNInterface class
+
+        Args:
+            @arg model_to_train: The model to train
+            @arg loss_fn: The loss function to use
+            @arg optim: The optimizer to use
+            @arg inp_size: The input size of the model
+            @arg inp_types: The input types of the model
+            @arg model_summary_name: The name of the file to write the model summary to
+            @arg device: The device to use for training
+
+        Raises:
+            AssertionError: If the loss function is not `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`
+        """
         self.model: torch.nn.Module = model_to_train
         self.criterion = loss_fn
         assert type(self.criterion) in [
@@ -48,6 +102,7 @@ class NNInterface:
             self.write_model_summary()
 
     def write_model_summary(self):
+        print(colored(f"Info: Writing model summary to file {self.model_summary_name}.", "blue"))
         self.model_summary_name = join_first(0, self.model_summary_name)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
@@ -84,6 +139,12 @@ class NNInterface:
             raise
         return self.representation
 
+    def report_progress(self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric):
+        print(colored(f"{f'{paradigm} Info:':20}", "blue"), end="")
+        print(colored(f"Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
+        print(colored(f"Batch [{batch_num + 1}/{total_step}], ", "blue"), end="")
+        print(colored(f"{paradigm} Loss: {loss:.4f}, {paradigm} {expand_metric(metric)}: {score:.2f}", "blue"))
+
     def train(
         self,
         train_loader,
@@ -92,214 +153,203 @@ class NNInterface:
         lr_decay_freq=1,
         threshold=None,
         val_dl=None,
-        verbose=1,
-        roc=False,
-        savefile=False,
         cutoff=0.5,
-        metric="acc",
+        metric: Literal["roc", "acc"] = "roc",
         extra_description="",
     ):
-        assert metric.lower().strip() in ["roc", "acc"], "Scoring `metric` needs to be one of `roc` or `acc`."
-        train_scores = []
-        if verbose:
-            print(f"Progress: Training {extra_description}{'' if extra_description == '' else ' '}---", flush=True)
+        print_every = 1  # max(len(train_loader) // 10, 1)
+        assert isinstance(cutoff, (int, float)), "Cutoff needs to be a number."
+        assert (
+            type(self.criterion) == torch.nn.BCEWithLogitsLoss or type(self.criterion) == torch.nn.CrossEntropyLoss
+        ), "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
+
+        print(
+            colored(f"Status: Training{extra_description}{'' if extra_description == '' else ' '}." + "\n", "green"),
+            flush=True,
+        )
+
         lowest_loss = float("inf")
+        threshold = threshold if threshold is not None else float("inf")
         epoch = 0
-        if threshold is None:
-            threshold = float("inf")
+
+        # While loop to train the model
         while not ((lowest_loss < threshold and epoch >= num_epochs) or epoch >= 2 * num_epochs):
+            train_scores = []
             self.model.train()
-            total_step = len(train_loader.dataset)
+
+            # Decrease learning rate, if so desired
             if epoch % lr_decay_freq == 0 and epoch > 0:
                 for param in self.optimizer.param_groups:
                     param["lr"] *= lr_decay_amount
-            b = 0
-            for b, (*X, labels) in enumerate(list(train_loader)):
+
+            # Batch loop
+            batch_num = 0
+            for batch_num, (*X, labels) in enumerate(list(train_loader)):
+                total_step = len(train_loader)
                 X = [x.to(self.device) for x in X]
                 labels = labels.to(self.device)
 
                 # Forward pass
+                print(colored(f"{'Train Status:':20}Step A - Forward pass.", "green"), flush=True, end="\r")
                 outputs = self.model.forward(*X)
-                if outputs.size() == torch.Size([]):
-                    outputs = outputs.reshape([1])
+                outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
                 torch.cuda.empty_cache()
-                if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                    loss: torch.Tensor = self.criterion.__call__(outputs, labels.long())
-                else:  # AKA isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                    loss: torch.Tensor = self.criterion.__call__(outputs, labels.float())
+
+                # Compute loss
+                print(colored(f"{'Train Status:':20}Step B - Computing loss.", "green"), flush=True, end="\r")
+                loss: torch.Tensor
+                match self.criterion:
+                    case torch.nn.CrossEntropyLoss():
+                        loss = self.criterion.__call__(outputs, labels.long())
+                    case torch.nn.BCEWithLogitsLoss():
+                        loss = self.criterion.__call__(outputs, labels.float())
 
                 # Backward and optimize
                 self.optimizer.zero_grad()
+                print(colored(f"{'Train Status:':20}Step C - Computing gradients.", "green"), flush=True, end="\r")
                 loss.backward()
+                print(
+                    colored(f"{'Train Status:':20}Step D - Stepping in the direction of the gradient.", "green"),
+                    flush=True,
+                    end="\r",
+                )
                 self.optimizer.step()
 
-                print_every = max(len(train_loader) // 2, 1)
-                if (b + 1) % print_every == 0 and verbose:
-                    if metric == "roc":
-                        if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                            try:
-                                score = sklearn.metrics.roc_auc_score(
-                                    labels.cpu(), torch.sigmoid(outputs.data.cpu()).cpu()
-                                )
-                            except ValueError as e:
-                                if (
-                                    "Only one class present in y_true. ROC AUC score is not defined in that case."
-                                    != str(e)
-                                ):
-                                    raise e
-                                else:
-                                    warnings.warn(
-                                        "Setting score = 0.0 since there is only one class present in y_true."
-                                    )
-                                    score = 0.0
-                        else:  # AKA isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                            try:
-                                score = sklearn.metrics.roc_auc_score(labels.cpu(), outputs.data.cpu())
-                            except ValueError as e:
-                                if (
-                                    "Only one class present in y_true. ROC AUC score is not defined in that case."
-                                    != str(e)
-                                ):
-                                    raise e
-                                else:
-                                    warnings.warn(
-                                        "Setting score = 0.0 since there is only one class present in y_true."
-                                    )
-                                    score = 0.0
-                    else:  # AKA metric == "acc":
-                        if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                            score = sklearn.metrics.accuracy_score(
-                                labels.cpu(),
-                                torch.heaviside(
-                                    torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
-                                ).cpu(),
-                            )
-                        else:  # AKA isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                            score = sklearn.metrics.accuracy_score(
-                                labels.cpu(), torch.argmax(outputs.data.cpu(), dim=1).cpu()
-                            )
-                    train_scores += [score] * len(labels)
-                    if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                        print(
-                            "\t\tEpoch [{}/{}], Batch [{}/{}], Train Loss: {:.4f}, Train {}: {:.2f}".format(
-                                epoch + 1, num_epochs, b + 1, total_step, loss.item(), metric, score
-                            )
-                        )
-                    elif isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                        print(
-                            "\t\tEpoch [{}/{}], Batch [{}/{}], Train Loss: {:.4f}, Train {}: {:.2f}".format(
-                                epoch + 1, num_epochs, b + 1, total_step, loss.item(), metric, score
-                            )
-                        )
+                # Report Progress
+                score = -1.0
+                if (batch_num) % print_every == 0:
+                    score, train_loss, _, _, _, _ = self.eval(
+                        torch.utils.data.DataLoader(KSDataset(X[0], X[1], labels), batch_size=len(labels)),
+                        cutoff,
+                        metric,
+                        display_pb=False,
+                    )
+                    self.report_progress("Train", epoch, num_epochs, batch_num, total_step, train_loss, score, metric)
 
                 lowest_loss = min(lowest_loss, loss.item())
+                train_scores.append(score)
 
-            print(f"\tOverall Train {metric} for Epoch [{epoch}] was {sum(train_scores)/len(train_scores):.3f}")
+            print(colored(f"{'Train Info:':20}Mean Train {expand_metric(metric)} ", "blue"), end="", flush=True)
+            print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
+            print(colored(f"{sum(train_scores)/len(train_scores):.3f}", "blue"), flush=True)
+
+            # Validate
             if val_dl is not None:
                 total_step = len(val_dl)
-                if verbose:
-                    accuracy, val_loss, _, _, _, _ = self.eval(val_dl, cutoff, metric)
-                    print(
-                        "\tVAL Epoch [{}/{}], Batch [{}/{}], Val Loss: {:.4f}, Val {}: {:.2f} <<<".format(
-                            epoch + 1, num_epochs, b + 1, total_step, val_loss, metric, accuracy
-                        )
-                    )
+                score, val_loss, _, _, _, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
+                self.report_progress("Validation", epoch, num_epochs, 0, 1, val_loss, score, metric)
 
+            print(colored(f"Status: ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n", "green"), flush=True)
             epoch += 1
 
     def predict(
-        self, dataloader, on_chunk, total_chunks, cutoff=0.5, device="", group="UNKNOWN GROUP"
-    ) -> Tuple[list, list, list]:
-        assert device != "", "Device must be specified."
-        all_outputs = []
-        all_predictions = []
-        for *X, labels in tqdm.tqdm(
-            list(dataloader),
-            desc=colored(f"Status: Eval Progress of {group} [Chunk {on_chunk}/{total_chunks}]", "cyan"),
-            position=0,
-            leave=False,
-            colour="cyan",
-        ):
-            # assert len(ld) == 1, "Only one batch should be predicted at a time. In the future, this may be changed."
-            assert torch.equal(labels, torch.Tensor([-1] * len(labels)).to(device)), "Labels must be -1 for prediction."
-            X = [x.to(device) for x in X]
-            outputs = self.model.forward(*X)
+        self,
+        dataloader,
+        on_chunk,
+        total_chunks,
+        cutoff=0.5,
+        group="UNKNOWN GROUP",
+        report_performance_test_mode=False,
+        show_sample_output_test_mode=False,
+        metric: Literal["roc", "acc"] = "roc",
+    ) -> Tuple[list, list, list, list]:
+        """
+        Returns a list of predictions, a list of outputs, a list of groups, and a list of labels.
+        """
 
-            if "cuda" in device:
-                torch.cuda.empty_cache()
-            if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
-                all_predictions += predictions.data.cpu().numpy().tolist()
+        metadata = {"group": group, "on_chunk": on_chunk, "total_chunks": total_chunks}
+        performance, _, outputs, labels, predictions, _ = self.eval(
+            dataloader, cutoff, metric, predict_mode=not report_performance_test_mode, metadata=metadata
+        )
 
-            elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                predictions = torch.heaviside(
-                    torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
-                )
-                outputs = torch.sigmoid(outputs.data.cpu())
-                all_predictions += predictions.data.cpu().numpy().tolist()
-                tl = outputs.data.cpu().numpy().tolist()
-                all_outputs += [tl] if isinstance(tl, float) else tl
-            else:
-                raise ValueError(
-                    "Criterion must be either BCEWithLogitsLoss or CrossEntropyLoss. In the future, this may be"
-                    " changed."
-                )
-        if len(all_predictions) == 0:
-            raise AssertionError("No data was passed to the model for prediction.")
-        return [bool(x) for x in all_predictions], all_outputs, [group] * len(all_outputs)
+        print(colored(f"Info: Test {expand_metric(metric)} ({group}): {performance:.3f} %\n", "blue"))
+
+        if show_sample_output_test_mode:
+            tab = PrettyTable(["Index", "Label", "Prediction"], min_width=20)
+            num_rows = min(10, len(labels))
+            tab.title = f"Info: First {num_rows} labels mapped to predictions"
+            for i in range(num_rows):
+                tab.add_row([i, labels[i], predictions[i]])
+            print(colored(str(tab), color="blue"), flush=True)
+
+        return [bool(x) for x in predictions], outputs, [group] * len(outputs), labels
 
     def eval(
-        self, dataloader, cutoff=0.5, metric="roc", predict_mode=False
+        self,
+        dataloader,
+        cutoff=0.5,
+        metric: typing.Literal["roc", "acc"] = "roc",
+        predict_mode=False,
+        expected_input_tuple_len=3,
+        metadata={"group": "<?>", "on_chunk": 1, "total_chunks": 1},
+        display_pb=True,
     ) -> Tuple[float, float, list[float], list[int], list[float], list[float]]:
-        assert metric.lower().strip() in ["roc", "acc"], "Scoring `metric` needs to be one of `roc` or `acc`."
+        """
+        Returns:
+            (mean performance, mean loss, all outputs, all labels, all predictions, all outputs--sigmoided)
+        """
+        group = metadata.get("group", "<?>")
+        on_chunk = metadata.get("on_chunk", -1)
+        total_chunks = metadata.get("total_chunks", -1)
+        assert (
+            type(self.criterion) == torch.nn.BCEWithLogitsLoss or type(self.criterion) == torch.nn.CrossEntropyLoss
+        ), "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
 
-        all_labels = []
-        all_outputs = []
-        all_preds = []
-        avg_perf = []
-        avg_loss = []
+        all_labels, all_outputs, all_preds, avg_perf, avg_loss = [], [], [], [], []
         self.model.eval()
         outputs = torch.Tensor([-1])
         # if self.device == torch.device('cpu'):
-        #     input("!!! Warning: About to evaluate using CPU. This may be lengthy and/or crash your computer (due to high RAM use). Press any key to continue anyway (ctrl+c to abort): ")
+        #     input("!!! Warning: About to evaluate using CPU."
+        #           "This may be lengthy and/or crash your computer (due to high RAM use)."
+        #           "Press any key to continue anyway (ctrl+c to abort): ")
+        dll = list(dataloader)
+        for x in dll:
+            assert (
+                len(x) == expected_input_tuple_len
+            ), f"Input tuple length {len(x)} was not what was expected {expected_input_tuple_len}."
+
+        if not display_pb:
+            ible = dll
+        else:
+            description = (
+                f"Status: Eval Progress of {group} " + f"[Chunk {on_chunk}/{total_chunks}]"
+                if on_chunk == total_chunks == 0
+                else ""
+            )
+            ible = tqdm.tqdm(dll, desc=colored(description, "cyan"), position=0, leave=False, colour="cyan")
 
         with torch.no_grad():
-            for *X, labels in list(dataloader):
+            for *X, labels in ible:
+                if predict_mode:
+                    assert torch.equal(
+                        labels, torch.Tensor([-1] * len(labels)).to(self.device)
+                    ), "Labels must be -1 for prediction."
                 X = [x.to(self.device) for x in X]
+
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)
-                torch.cuda.empty_cache()
-                if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                    labels = labels.long()
-                elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                    labels = labels.float()
 
-                if outputs.dim() == 0:
-                    outputs = outputs.unsqueeze(0)
+                match self.criterion:
+                    case torch.nn.CrossEntropyLoss():
+                        labels = labels.long()
+                        predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
+                    case torch.nn.BCEWithLogitsLoss():
+                        labels = labels.float()
+                        predictions = heaviside_cutoff(outputs, cutoff)
+                        outputs = torch.sigmoid(outputs.data.cpu())
+
+                outputs = outputs.unsqueeze(0) if outputs.dim() == 0 else outputs
                 loss = self.criterion(outputs, labels)
 
-                predictions = torch.Tensor([-1])
-                performance = -1
-                if isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                    predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
+                if "cuda" in str(self.device):
+                    torch.cuda.empty_cache()
 
-                elif isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                    predictions = torch.heaviside(
-                        torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
-                    )
-                    outputs = torch.sigmoid(outputs.data.cpu())
-
-                if metric == "acc":
-                    performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
-                elif metric == "roc":
-                    scores = outputs.data.cpu()
-                    try:
-                        performance = sklearn.metrics.roc_auc_score(labels.cpu(), scores)
-                    except ValueError as e:
-                        if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
-                            raise e
-                        else:
-                            performance = 0.0
+                match metric:
+                    case "acc":
+                        performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
+                    case "roc":
+                        scores = outputs.data.cpu()
+                        performance = protected_roc_auc_score(labels.cpu(), scores)
 
                 all_labels += labels.cpu().numpy().tolist()
                 all_outputs += outputs.data.cpu().numpy().tolist()
@@ -307,60 +357,11 @@ class NNInterface:
                 avg_perf += [performance] * len(labels)
                 avg_loss += [loss.item()] * len(labels)
 
-            return (
-                sum(avg_perf) / len(avg_perf) if len(avg_perf) > 0 else 0.0,
-                sum(avg_loss) / len(avg_loss) if len(avg_loss) > 0 else 0.0,
-                all_outputs,
-                all_labels,
-                all_preds,
-                torch.sigmoid(torch.Tensor(all_outputs)).data.cpu().numpy().tolist(),
-            )
+            avg_perf = sum(avg_perf) / len(avg_perf) if len(avg_perf) > 0 else 0.0
+            avg_loss = sum(avg_loss) / len(avg_loss) if len(avg_loss) > 0 else 0.0
+            sigmoided = torch.sigmoid(torch.Tensor(all_outputs)).data.cpu().numpy().tolist()
 
-    def get_all_conf_mats(self, *loaders, savefile="", cutoffs=None, metric="roc", cm_labels=None):
-        assert metric.lower().strip() in ["roc", "acc"], "Scoring `metric` needs to be one of `roc` or `acc`."
-        set_labels = ["Train", "Validation", "Test", f"Held Out Family — {HELD_OUT_FAMILY}"]
-        for li, l in enumerate([*loaders]):
-            preds = []
-            eval_res = self.eval(dataloader=l, metric=metric)
-            outputs = [x if not isinstance(x, list) else x[0] for x in eval_res[2]]
-            labels = eval_res[3]
-
-            if cutoffs is not None:
-                for cutoff in cutoffs:
-                    preds.append([1 if x > cutoff else 0 for x in outputs])
-            else:
-                cutoffs = list(range(len(loaders)))
-                preds = [eval_res[4]]
-
-            nr = int(max(1, len(cutoffs) ** 1 / 2))
-            nc = int(max(1, (len(cutoffs) / nr)))
-
-            # fig: Figure
-            # axs: list[list[Axes]]
-
-            fig, axs = plt.subplots(nrows=nr, ncols=nc, figsize=(12, 12))
-
-            axes_list: list[Axes] = np.array(axs).ravel().tolist()
-            for i, fp in enumerate(preds):
-                cur_ax = axes_list[i]
-                plt.sca(cur_ax)
-                kwa = {"display_labels": sorted(list(cm_labels.values()))} if cm_labels is not None else {}
-                cm = sklearn.metrics.confusion_matrix(labels, fp)
-                sklearn.metrics.ConfusionMatrixDisplay(cm, **kwa).plot(
-                    ax=cur_ax,
-                    im_kw={
-                        "vmin": 0,
-                        "vmax": int(
-                            np.ceil(np.max(cm) / 10 ** int(np.log10(np.max(cm)))) * 10 ** int(np.log10(np.max(cm)))
-                        ),
-                    },
-                    cmap="Blues",
-                )
-                plt.xticks(plt.xticks()[0], plt.xticks()[1], rotation=45, ha="right", va="top")  # type: ignore
-                # plt.xticks(f"Cutoff = {cutoffs[i]} | Acc = {(cm[0, 0] + cm[1, 1])/sum(cm.ravel()):3.3f}")
-
-            if savefile:
-                fig.savefig(savefile + "_" + set_labels[li] + ".pdf", bbox_inches="tight")
+            return avg_perf, avg_loss, all_outputs, all_labels, all_preds, sigmoided
 
     @staticmethod
     def get_combined_rocs_from_individual_models(
@@ -373,7 +374,6 @@ class NNInterface:
         get_emp_eqn=True,
         emp_eqn_kwargs={},
         get_avg_roc_line=True,
-        pickle_loc=None,
         _ic_ref=None,
     ) -> Union[None, dict]:
         assert grp_to_loader_true_groups is not None
@@ -384,7 +384,7 @@ class NNInterface:
                 f" Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
             )
         orig_order = ["CAMK", "AGC", "CMGC", "CK1", "OTHER", "TK", "TKL", "STE", "ATYPICAL", "<UNANNOTATED>"]
-        fig = plt.figure(figsize=(12, 12))
+        fig = plt.figure(figsize=(24, 24))
         plt.plot(
             [0, 1],
             [0, 1],
@@ -462,7 +462,6 @@ class NNInterface:
         points_fpr = []
         points_tpr = []
         aucs = []
-        eqn_passthrough = []
         for group in set(all_obs := list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()]))):
             outputs, labels = (
                 true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
@@ -478,8 +477,6 @@ class NNInterface:
                 line_labels=[f"{group}"],
                 linecolor=None,
                 total_obs=len(all_obs),
-                eqn_passthrough=eqn_passthrough,
-                eqn_kwargs=emp_eqn_kwargs,
             )
             # if group in ['AGC', 'TK', 'CMGC']:
             points_fpr.append(res[0])
@@ -498,61 +495,15 @@ class NNInterface:
         if savefile:
             fig.savefig(savefile, bbox_inches="tight")
 
-    def get_all_rocs_by_group(
-        self, loader, kinase_order, savefile="", kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv"
-    ):
-        kin_to_grp = pd.read_csv(kin_fam_grp_file).applymap(lambda c: re.sub(r"[\(\)\*]", "", c))
-        kin_to_grp["Kinase"] = [f"{r['Kinase']}|{r['Uniprot']}" for _, r in kin_to_grp.iterrows()]
-        kin_to_grp = kin_to_grp.set_index("Kinase").to_dict()["Group"]
-        fig = plt.figure(figsize=(12, 12))
-        plt.plot([0, 1], [0, 1], color="r", linestyle="--", alpha=0.5, linewidth=0.5, label="Random Model")
-        eval_res = self.eval(dataloader=loader)
-        outputs: list[float] = eval_res[-1]
-        labels: list[int] = eval_res[3]
-        assert len(outputs) == len(labels) == len(kinase_order), (
-            "Something is wrong in NNInterface.get_all_rocs_by_group; the length of outputs, the number of labels, and"
-            f" the number of kinases in `kinase_order` are not equal. (Respectively, {len(outputs)}, {len(labels)},"
-            f" {len(kinase_order)}.)"
-        )
-        grp_to_indices = collections.defaultdict(list[int])
-        for i in range(len(outputs)):
-            grp_to_indices[kin_to_grp[kinase_order[i]]].append(i)
-
-        outputs_dd = collections.defaultdict(list[float])
-        labels_dd = collections.defaultdict(list[int])
-        for g, inds in grp_to_indices.items():
-            outputs_dd[g] = [outputs[i] for i in inds]
-            labels_dd[g] = [labels[i] for i in inds]
-
-        for i, g in enumerate(grp_to_indices):
-            self.roc_core(outputs_dd[g], labels_dd[g], i, line_labels=[g], linecolor=None)
-
-        if savefile:
-            fig.savefig(savefile + "_" + str(len(outputs_dd)) + ".pdf", bbox_inches="tight")
-
-    def get_all_rocs(self, tl, vl, tel, ho, savefile=""):
-        fig = plt.figure(figsize=(12, 12))
-        ii = 0
-        for i, loader in enumerate([tl, vl, tel, ho]):
-            eval_res = self.eval(dataloader=loader)
-            outputs = eval_res[2]
-            labels = eval_res[3]
-            self.roc_core(outputs, labels, i, linecolor=None)
-            ii = i
-        if savefile:
-            fig.savefig(savefile + "_" + str(ii + 1) + ".pdf", bbox_inches="tight")
-
     @staticmethod
     def roc_core(
-        outputs: Collection[float],
+        outputs: Sequence[float],
         labels,
         i,
         linecolor=(0.5, 0.5, 0.5),
         line_labels=["Train Set", "Validation Set", "Test Set", f"Held Out Family — {HELD_OUT_FAMILY}"],
         alpha=0.05,
         total_obs: int = 1,
-        eqn_kwargs: dict = {},
-        eqn_passthrough: list = [],
     ):
         assert len(outputs) == len(labels), (
             f"Something is wrong in NNInterface.roc_core; the length of outputs ({len(outputs)}) does not equal the"
@@ -562,19 +513,14 @@ class NNInterface:
         if linecolor is None:
             linecolor = plt.rcParams["axes.prop_cycle"].by_key()["color"][i]
 
-        roc_data = sklearn.metrics.roc_curve(labels, outputs)
-        try:
-            aucscore = sklearn.metrics.roc_auc_score(labels, outputs)
-        except ValueError as e:
-            if "Only one class present in y_true. ROC AUC score is not defined in that case." != str(e):
-                raise e
-            else:
-                aucscore = 0.0
+        roc_data = sklearn.metrics.roc_curve(labels, np.asarray(outputs))
+        aucscore = protected_roc_auc_score(labels, outputs)
+
         labels, outputs, rand_outputs = NNInterface.create_random(
             np.array(labels), np.array(outputs), group=line_labels[0].split(" ")[0]
-        )
+        )  # type: ignore
         if len(labels):
-            random_auc = sklearn.metrics.roc_auc_score(labels, rand_outputs)
+            random_auc = protected_roc_auc_score(labels, rand_outputs)
             assert abs(random_auc - 0.5) < 1e-16, f"Random ROC not equal to 0.5! (Was {random_auc})"
             _, se, diff = delong_roc_test(labels, rand_outputs, outputs)
             quant = -scipy.stats.norm.ppf(alpha / 2)
@@ -597,21 +543,11 @@ class NNInterface:
             alpha=1 if is_signif else 0.25,
         )
         plt.gca().set_aspect(1)
-        if aucscore > 0.98:
+        if aucscore > 1:
             NNInterface.inset_auc()
         plt.title("ROC Curves (with DeLong Test 95% confidence intervals)")
         plt.xticks([x / 100 for x in range(0, 110, 10)])
         plt.yticks([x / 100 for x in range(0, 110, 10)])
-
-        # if len(labels):
-        #     sorted_output_order = np.argsort(np.asarray(outputs))
-        #     sorted_outputs = np.asarray(outputs)[sorted_output_order].tolist()
-        #     sorted_labels = [bool(x) for x in np.asarray(labels)[sorted_output_order].tolist()]
-        #     eqn = raw_score_to_probability(sorted_outputs, sorted_labels, **eqn_kwargs)
-
-        #     for i in range(len(eqn_passthrough)):
-        #         del eqn_passthrough[i]
-        #     eqn_passthrough.append(eqn)
 
         return roc_data[0], roc_data[1], aucscore
 
@@ -681,44 +617,26 @@ class NNInterface:
     def test(
         self,
         test_loader,
-        verbose: Union[bool, int] = True,
-        savefile=True,
-        cutoff: Union[float, None] = 0.5,
-        text="Test Accuracy of the model",
-        metric="acc",
-    ) -> None:
-        "Verbosity: False = No table of first n predictions, True = Show first n predictions, 2 = `pickle` probabilities and labels"
-
-        if cutoff is None:
-            cutoff = 0.5
-            performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, cutoff, metric)
-            for i in range(5, 95 + 1, 5):
-                cutoff = i / 100
-                print(
-                    f"Info: Cutoff {cutoff} accuracy:",
-                    sklearn.metrics.accuracy_score(
-                        labels,
-                        torch.heaviside(
-                            torch.sigmoid(torch.FloatTensor(outputs)).cpu() - cutoff, values=torch.tensor([0.0])
-                        ),
-                    ),
-                )
-        else:
-            performance, _, outputs, labels, predictions, probabilities = self.eval(test_loader, cutoff, metric)
-        print("i: # outputs =", len(outputs))
-
-        print("Info: {}: {:.3f} %\n".format(text, performance))
-
-        if verbose:
-            tab = PrettyTable(["Index", "Label", "Prediction"])
-            num_rows = min(25, len(labels))
-            tab.title = f"First {num_rows} labels mapped to predictions"
-            for i in range(num_rows):
-                tab.add_row([i, labels[i], predictions[i]])
-            print(tab, flush=True)
-        if verbose == 2:  # FIXME
-            json.dump(probabilities, open("../bin/probs.pkl", "w"))
-            json.dump(labels, open("../bin/labels.pkl", "w"))
+        print_sample_outputs: bool = True,
+        cutoff: float = 0.5,
+        metric: Literal["roc", "acc"] = "roc",
+        group: str = "Test Set",
+    ) -> Tuple[list, list, list]:
+        """
+        Returns: list of predictions, list of outputs, list of ground-truth labels
+        """
+        print(colored("Status: Testing", "green"))
+        predictions, outputs, _, labels = self.predict(
+            test_loader,
+            1,
+            1,
+            cutoff=cutoff,
+            group=group,
+            report_performance_test_mode=True,
+            show_sample_output_test_mode=print_sample_outputs,
+            metric=metric,
+        )
+        return predictions, outputs, labels
 
     def save_model(self, path):
         torch.save(self.model.state_dict(), open(path, "wb"))

@@ -4,7 +4,6 @@ if __name__ == "__main__":
 
     write_splash("main_gc_trainer")
     print(colored("Progress: Loading Modules", "green"), flush=True)
-from lib2to3.pytree import convert
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings, itertools
 from typing import Callable
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
@@ -406,15 +405,16 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def main(load_gc = True):
+def main(load_gc=True):
     run_args = parsing()
     assert (
         run_args.get("load") is not None or run_args.get("load_include_eval") is not None
     ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
 
+    assert run_args["device"] is not None
     individual_classifiers_ = IndividualClassifiers.load_all(
-            run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
-            run_args["device"],
+        run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
+        str(run_args["device"]),
     )
     if not load_gc:
         train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
@@ -430,10 +430,13 @@ def main(load_gc = True):
                     ]
                 ]
                 + [None, None]
-            )
+            ),
+            verbose=False,
         )
 
-        train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(train_true + val_true + test_true)
+        train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(
+            train_true + val_true + test_true
+        )
 
         # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
 
@@ -469,13 +472,17 @@ def main(load_gc = True):
         # )
         assert run_args["device"] is not None, "Somehow, device is not set."
 
-
         if run_args["c"]:
             check_is_fitted(group_classifier.model)
             smart_save_gc(group_classifier)
             return
     else:
-        group_classifier = pickle.load(open("/home/dockeruser/DeepKS/bin/deepks_gc_weights.-1.cornichon", "rb"))
+        group_classifier = pickle.load(
+            open(
+                "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_gc_weights.7.cornichon",
+                "rb",
+            )
+        )
 
     assert run_args["test"] is not None, "Must provide test set for evaluating."
 

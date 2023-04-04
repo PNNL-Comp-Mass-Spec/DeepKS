@@ -3,7 +3,7 @@
 # If any command fails, exit immediately with that command's exit status
 set -eo pipefail
 
-black -v --line-length 120 --experimental-string-processing **/*.py
+black -v --line-length 120 --preview **/*.py
 
 # # Find all changed files for this commit
 # # Compute the diff only once to save a small amount of time.

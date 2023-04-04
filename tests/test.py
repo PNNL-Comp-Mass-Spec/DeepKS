@@ -3,8 +3,10 @@ from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
 
-class UsesR():
+
+class UsesR:
     pass
+
 
 class TestMisc(unittest.TestCase):
     # def setUp(self):
@@ -21,6 +23,7 @@ class TestMisc(unittest.TestCase):
 
     def test_identity_placeholder(self):
         assert True, "Identity"
+
     # def test_smart_save_nn(self):
     #     self.sample_files = ["UNITTESTVERSIONdeepks_nn_weights.0.cornichon",
     #                     "UNITTESTVERSIONdeepks_nn_weights.2.cornichon",
@@ -79,9 +82,9 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
         sys.argv = [
             "python3 -m DeepKS.models.multi_state_classifier",
             "--test",
-            "tests/sample_inputs/small_train.csv", # TODO may want to change this in future
+            "tests/sample_inputs/small_train.csv",  # TODO may want to change this in future
             "--load",
-            "/home/dockeruser/DeepKS/bin/deepks_nn_weights.1.cornichon", # TODO Fix quick stop-gap
+            "/home/dockeruser/DeepKS/bin/deepks_nn_weights.1.cornichon",  # TODO Fix quick stop-gap
             "--device",
             "cpu",
             "-s",
@@ -157,8 +160,8 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--cartesian-product",
             "--groups",
             "--convert-raw-to-prob",
-            "--device", 
-            DEVICE
+            "--device",
+            DEVICE,
         ]
         self.main.setup()
 
@@ -419,7 +422,7 @@ is_non_r_test = lambda x: isinstance(x, type) and issubclass(x, unittest.TestCas
 
 non_r_tests = [obj_type for _, obj_type in inspect.getmembers(sys.modules[__name__]) if is_non_r_test(obj_type)]
 
-if any('.non_r_tests' in a for a in sys.argv):
+if any(".non_r_tests" in a for a in sys.argv):
     print(f"Running the following non-r-tests:")
     for test in non_r_tests:
         print(f"  * {test.__name__}")

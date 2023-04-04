@@ -307,9 +307,7 @@ class IndividualClassifiers:
                 info_dict_passthrough["total_chunks"] = info_dict["total_chunks"]
                 assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
                 if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
-                    self.interfaces[group_te].test(
-                        test_loader, text=f"Test Accuracy of the model (Group = {group_te})", **evaluation_kwargs
-                    )
+                    self.interfaces[group_te].test(test_loader, group=group_te, **evaluation_kwargs)
                 assert test_loader is not None
                 count += 1
                 yield group_te, test_loader
@@ -336,14 +334,9 @@ class IndividualClassifiers:
         with open(path, "rb") as f:
             if "cuda" in target_device:
                 ic: IndividualClassifiers = pickle.load(f)
-                ic.individual_classifiers = {k: v.to(target_device) for k, v in ic.individual_classifiers.items()}
-                ic.args = {}
-                setattr(ic, "repickle_loc", path)
-                return ic
             elif (
                 target_device == "cpu"
             ):  # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
-                assert target_device == "cpu"
 
                 class CPU_Unpickler(dill.Unpickler):
                     def find_class(self, module, name):
@@ -353,12 +346,18 @@ class IndividualClassifiers:
                         else:
                             return super().find_class(module, name)
 
-                ret = CPU_Unpickler(f).load()
-                ret.args = {}
-                setattr(ret, "repickle_loc", path)
-                return ret
+                ic = CPU_Unpickler(f).load()
             else:
                 raise NotImplementedError("Invalid `target_device`")
+
+            assert isinstance(ic, IndividualClassifiers)
+            ic.individual_classifiers = {k: v.to(target_device) for k, v in ic.individual_classifiers.items()}
+            ic.args = {}
+            setattr(ic, "repickle_loc", path)
+            ic.device = target_device
+            for interface in ic.interfaces:
+                ic.interfaces[interface].device = torch.device(target_device)
+            return ic
 
     def evaluation(
         self,
@@ -413,7 +412,6 @@ class IndividualClassifiers:
                     int(info_dict_passthrough["on_chunk"] + 1),
                     int(info_dict_passthrough["total_chunks"]),
                     cutoff=0.5,
-                    device=addl_args["device"],
                     group=grp,
                 )  # TODO: Make adjustable cutoff
                 # jumbled_predictions = list[predictions], list[output scores], list[group]

@@ -1,14 +1,26 @@
 # Imports
-import torch, torch.nn as nn, pandas as pd, numpy as np, sys
+import torch, torch.nn as nn, pandas as pd, numpy as np, sys, pathlib, os
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
+
+join_first = (
+    lambda levels, x: x
+    if os.path.isabs(x)
+    else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+)
 
 # Constants
 KIN_GROUPS = ["AGC", "ATYPICAL", "CK1", "CAMK", "CMGC", "OTHER", "STE", "TK", "TKL"]
 NUM_KIN_GROUPS = len(KIN_GROUPS)
 NUM_TOK = 22
 PADDED_SIZE = 4128
+
 PAD_IDX = None
+
+
+def set_pad_idx(pad_idx):
+    global PAD_IDX
+    PAD_IDX = pad_idx
 
 
 class SeqGC(nn.Module):
@@ -24,7 +36,8 @@ class SeqGC(nn.Module):
                             * num_features (int): the number of features for each amino acid token
                             * hidden_features (int): the number of hidden state features
                             * num_recur (int): the number of recurrent layers
-                            * linear_layer_sizes (list[int]): list of sizes of additional linear layers between output of LSTM and final output vector
+                            * linear_layer_sizes (list[int]): list of sizes of additional linear layers between output
+                                                                of LSTM and final output vector
         """
         super().__init__()
         # Hyperparameters
@@ -41,7 +54,11 @@ class SeqGC(nn.Module):
         # Create linear layers
         self.linear_layer_sizes.insert(0, self.hidden_features)
         self.linear_layer_sizes.append(NUM_KIN_GROUPS)
+        # At this point, the linear layer (input, output) shapes will be
+        # (hidden_features, X), (X, Y), (Y, Z), (Z, NUM_KIN_GROUPS),
+        # if X,Y, and Z are specified.
 
+        # Put linear layers into Sequential module
         lls = []
         for i in range(len(self.linear_layer_sizes) - 1):
             lls.append(nn.Linear(self.linear_layer_sizes[i], self.linear_layer_sizes[i + 1]))
@@ -53,7 +70,8 @@ class SeqGC(nn.Module):
 
         Args:
             _ (torch.LongTensor): placeholder for site sequence, which is not used in this model
-            kin_seq_input (torch.LongTensor): Tensor of kinase sequence inputs of shape (batch_size, padded_seq_len, num_emb_features)
+            kin_seq_input (torch.LongTensor): Tensor of kinase sequence inputs of shape
+                                                (batch_size, padded_seq_len, num_emb_features)
 
         Returns:
             torch.LongTensor: Output tensor of scores of shape (batch_size, num_kin_groups)
@@ -91,75 +109,37 @@ def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64):
         df.drop_duplicates(subset=["Kinase Sequence"], inplace=True, keep="first")
         dfs.append(df)
 
-    kstg = get_kin_seq_to_group_dict(
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/kinase_seq_826.csv",
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv",
+    kin_seq_to_group_dict = get_kin_seq_to_group_dict(
+        join_first(1, "data/raw_data/kinase_seq_826.csv"),
+        join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
     )
+    common_args = {
+        "tuf": 0,
+        "train_batch_size": batch_size,
+        "n_gram": 1,
+        "maxsize": PADDED_SIZE,
+        "kin_seq_to_group": kin_seq_to_group_dict,
+        # "subsample_num": 100,  # Can make dataset smaller here
+    }
+    (train_loader, _, _, _), train_info = list(gather_data(dfs[0], trf=1, vf=0, tef=0, **common_args))[0]
+    (_, val_loader, _, _), _ = list(gather_data(dfs[1], trf=0, vf=1, tef=0, **common_args))[0]
+    (_, _, _, test_loader), _ = list(gather_data(dfs[2], trf=0, vf=0, tef=1, **common_args))[0]
 
-    (train_loader, _, _, _), train_info = list(
-        gather_data(
-            dfs[0],
-            trf=1,
-            vf=0,
-            tuf=0,
-            tef=0,
-            train_batch_size=batch_size,
-            n_gram=1,
-            maxsize=PADDED_SIZE,
-            kin_seq_to_group=kstg,
-            subsample_num=float("inf"),
-        )
-    )[0]
-    (_, val_loader, _, _), _ = list(
-        gather_data(
-            dfs[1],
-            trf=0,
-            vf=1,
-            tuf=0,
-            tef=0,
-            train_batch_size=batch_size,
-            n_gram=1,
-            maxsize=PADDED_SIZE,
-            kin_seq_to_group=kstg,
-        )
-    )[0]
-    (_, _, _, test_loader), _ = list(
-        gather_data(
-            dfs[2],
-            trf=0,
-            vf=0,
-            tuf=0,
-            tef=1,
-            train_batch_size=batch_size,
-            n_gram=1,
-            maxsize=PADDED_SIZE,
-            kin_seq_to_group=kstg,
-        )
-    )[0]
-
-    PAD_IDX = train_info["tok_dict"]["<PADDING>"]
+    set_pad_idx(train_info["tok_dict"]["<PADDING>"])
 
     return train_loader, val_loader, test_loader
 
 
-def main():
-    # Setup
-    hps = {"num_features": 128, "hidden_features": 42, "num_recur": 5, "linear_layer_sizes": [30, 15]}
-    train_hps = {"num_epochs": 100}
-    batch_size = 64
+def get_NNInterface(model, batch_size):
+    """Obtain Neural Network Training/Val/Test Interface and write model summary
 
-    train_loader, val_loader, test_loader = get_relevant_data_loaders(
-        [
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv",
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6500_formatted_95_5698.csv",
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv",
-        ]
-    )
+    Args:
+        model (torch.nn.Module): The NN model in question
+        batch_size (int): batch size for training
 
-    # Initialize Model
-    model = SeqGC(**hps)
-
-    # Initilize Training/Testing Interface and create model summary diagram
+    Returns:
+        DeepKS.Tools.NNInterface.NNInterface: object that allows for training, validation, and testing
+    """
     inp_size = [(batch_size, 15), (batch_size, PADDED_SIZE)]
     inp_types = [torch.long, torch.long]
     interface = NNInterface(
@@ -172,9 +152,32 @@ def main():
         torch.device("cpu"),
     )
     interface.write_model_summary()
+    return interface
 
-    # Train and test
-    interface.train(train_loader, val_dl=val_loader, **train_hps)
+
+def main():
+    # Setup hyperparameters
+    model_HPs = {"num_features": 32, "hidden_features": 64, "num_recur": 10, "linear_layer_sizes": [30, 24, 15]}
+    train_options = {"num_epochs": 20}
+    batch_size = 128
+
+    # Obtain dataloaders
+    train_loader, val_loader, test_loader = get_relevant_data_loaders(
+        [
+            join_first(1, "data/raw_data_31834_formatted_65_26610.csv"),
+            join_first(1, "data/raw_data_6500_formatted_95_5698.csv"),
+            join_first(1, "data/raw_data_6406_formatted_95_5616.csv"),
+        ]
+    )
+
+    # Initialize Model
+    model = SeqGC(**model_HPs)
+
+    # Initialize Training/Testing Interface and create model summary diagram
+    interface = get_NNInterface(model, batch_size)
+
+    # Train, test, and create roc_curve
+    interface.train(train_loader, val_dl=val_loader, **train_options)
     interface.test(test_loader)
 
 

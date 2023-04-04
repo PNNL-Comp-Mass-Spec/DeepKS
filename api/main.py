@@ -16,6 +16,12 @@ warnings.filterwarnings(action="always", category=UserWarning)
 
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
+join_first = (
+    lambda levels, x: x
+    if os.path.isabs(x)
+    else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+)
+
 API_IMPORT_MODE = "true" in (
     s := open(str(pathlib.Path(__file__).parent.resolve()) + "/../config/API_IMPORT_MODE.json", "r").read()
 )
@@ -433,7 +439,7 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
         del args_dict["kf"]
     elif "kf" in args_dict:
-        with open("../" + args_dict["kf"]) as f:
+        with open(join_first(1, args_dict["kf"])) as f:
             args_dict["kinase_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
@@ -453,7 +459,7 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict["site_seqs"] = args_dict.pop("s").split(",")
         del args_dict["sf"]
     elif "sf" in args_dict:
-        with open("../" + args_dict["sf"]) as f:
+        with open(join_first(1, args_dict["sf"])) as f:
             args_dict["site_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
@@ -507,7 +513,7 @@ def parse_api() -> dict[str, typing.Any]:
             kinase_seq: {"Gene Name": "?", "Uniprot Accession ID": "?"} for kinase_seq in args_dict["kinase_seqs"]
         }
     else:
-        with open("../" + args_dict["kin_info"]) as f:
+        with open(join_first(1, args_dict["kin_info"])) as f:
             kinase_info_dict = json.load(f)
             try:
                 jsonschema.validate(
@@ -524,7 +530,7 @@ def parse_api() -> dict[str, typing.Any]:
                 print(colored("\nFor reference, the jsonschema.exceptions.ValidationError was:", "magenta"))
                 print(colored(str(e), "magenta"))
                 print(colored("\n\nMore info:\n\n", "magenta"))
-                with open("./kin-info_file_format.txt") as f:
+                with open(join_first(0, "kin-info_file_format.txt")) as f:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
 
                 informative_exception(e, "", False)
@@ -537,14 +543,14 @@ def parse_api() -> dict[str, typing.Any]:
             for site_seq in args_dict["site_seqs"]
         }
     else:
-        with open("../" + args_dict["site_info"]) as f:
+        with open(join_first(1, args_dict["site_info"])) as f:
             site_info_dict = json.load(f)
             try:
                 jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
             except jsonschema.exceptions.ValidationError:
                 print("", file=sys.stderr)
                 print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
-                with open("./site-info_file_format.txt") as f:
+                with open(join_first(0, "./site-info_file_format.txt")) as f:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
                 sys.exit(1)
     args_dict["site_info"] = site_info_dict

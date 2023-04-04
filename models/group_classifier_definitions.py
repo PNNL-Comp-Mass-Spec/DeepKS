@@ -2,32 +2,27 @@ import typing, multiprocessing, warnings, scipy, pandas as pd, json, re, os, pat
 import sklearn.model_selection, matplotlib, matplotlib.pyplot as plt
 from concurrent.futures import ProcessPoolExecutor as Pool
 from random import seed, shuffle
+from typing import Union
 from sklearn.pipeline import Pipeline
 from sklearn.neural_network import MLPClassifier
-from typing import Union
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve
-from pprint import pprint  # type: ignore
-from sklearn.utils.validation import check_is_fitted
+from sklearn.exceptions import NotFittedError
+from pprint import pprint
 from itertools import chain, combinations
 from termcolor import colored
+from itertools import product
 
 
-def powerset(iterable):
+def powerset(iterable):  # From https://stackoverflow.com/a/5228294/16158339 ---
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
-
-
-# From https://stackoverflow.com/a/5228294/16158339 ---
-from itertools import product
 
 
 def my_product(inp):
     return (dict(zip(inp.keys(), values)) for values in product(*inp.values()))
 
-
-# ---
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -54,6 +49,12 @@ class AcceptableClassifier(typing.Protocol):
 
     def __init__(self):
         ...
+
+
+def check_is_fitted(estimator: AcceptableClassifier):
+    fitted = [v for v in vars(estimator) if v.endswith("_") and not v.startswith("__")]
+    if not fitted:
+        raise NotFittedError("Factory AcceptableClassifier not fitted.")
 
 
 def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier:
@@ -225,7 +226,7 @@ def grid_search_no_cv(
 def custom_run():
     kin_seqs = pd.read_csv("../data/raw_data/kinase_seq_826.csv", sep="\t").set_index(["kinase"])
 
-    train_kins, val_kins, test_kins, train_true, val_true, test_true = get_ML_sets(  # type: ignore
+    train_kins, val_kins, _, train_true, val_true, _ = get_ML_sets(
         "../tools/pairwise_mtx_826.csv",
         "json/tr.json",
         "json/vl.json",
