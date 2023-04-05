@@ -84,7 +84,7 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "--test",
             "tests/sample_inputs/small_train.csv",  # TODO may want to change this in future
             "--load",
-            "/home/dockeruser/DeepKS/bin/deepks_nn_weights.1.cornichon",  # TODO Fix quick stop-gap
+            "bin/deepks_nn_weights.-1.cornichon",  # TODO Fix quick stop-gap
             "--device",
             "cpu",
             "-s",
@@ -160,6 +160,8 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--cartesian-product",
             "--groups",
             "--convert-raw-to-prob",
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
             "--device",
             DEVICE,
         ]

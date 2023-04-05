@@ -3,10 +3,8 @@ import torch, torch.nn as nn, pandas as pd, numpy as np, sys, pathlib, os
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 
-join_first = (
-    lambda levels, x: x
-    if os.path.isabs(x)
-    else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+join_first = lambda levels, x: (
+    x if os.path.isabs(x) else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 )
 
 # Constants

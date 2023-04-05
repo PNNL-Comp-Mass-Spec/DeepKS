@@ -1,7 +1,8 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
 import tempfile, os, scipy, itertools, warnings, pathlib, typing
-from matplotlib import ArrayLike, lines, pyplot as plt, rcParams
+from numpy.typing import ArrayLike
+from matplotlib import lines, pyplot as plt, rcParams
 from typing import Collection, Tuple, Union, Callable, Literal, Sequence
 from prettytable import PrettyTable
 from torchinfo_modified import summary
@@ -621,6 +622,7 @@ class NNInterface:
         cutoff: float = 0.5,
         metric: Literal["roc", "acc"] = "roc",
         group: str = "Test Set",
+        **extra_kwargs,
     ) -> Tuple[list, list, list]:
         """
         Returns: list of predictions, list of outputs, list of ground-truth labels

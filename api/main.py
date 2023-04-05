@@ -16,10 +16,8 @@ warnings.filterwarnings(action="always", category=UserWarning)
 
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
-join_first = (
-    lambda levels, x: x
-    if os.path.isabs(x)
-    else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+join_first = lambda levels, x: (
+    x if os.path.isabs(x) else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 )
 
 API_IMPORT_MODE = "true" in (

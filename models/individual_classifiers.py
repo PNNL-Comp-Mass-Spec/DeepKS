@@ -331,7 +331,7 @@ class IndividualClassifiers:
     def load_all(path, target_device="cpu") -> IndividualClassifiers:
         if not isinstance(target_device, str):
             target_device = str(target_device)
-        with open(path, "rb") as f:
+        with open(join_first(1, path), "rb") as f:
             if "cuda" in target_device:
                 ic: IndividualClassifiers = pickle.load(f)
             elif (
@@ -350,7 +350,9 @@ class IndividualClassifiers:
             else:
                 raise NotImplementedError("Invalid `target_device`")
 
-            assert isinstance(ic, IndividualClassifiers)
+            assert (
+                ic.__class__.__name__ == "IndividualClassifiers"
+            ), f"Loaded object must be an `IndividualClassifiers` object. It is a {type(ic)}"
             ic.individual_classifiers = {k: v.to(target_device) for k, v in ic.individual_classifiers.items()}
             ic.args = {}
             setattr(ic, "repickle_loc", path)

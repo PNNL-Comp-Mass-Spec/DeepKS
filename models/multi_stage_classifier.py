@@ -4,18 +4,17 @@ if __name__ == "__main__":
 
     write_splash("main_gc_trainer")
     print(colored("Progress: Loading Modules", "green"), flush=True)
-import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings, itertools
+import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
 from typing import Callable
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
+from .group_classifier_definitions import check_is_fitted
 from . import individual_classifiers
 from ..tools.parse import parsing
 from ..tools.file_names import get as get_file_name
 from ..tools import make_fasta as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
-from ..api.cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
-from sklearn.utils.validation import check_is_fitted
 from termcolor import colored
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -405,7 +404,7 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def main(load_gc=True):
+def main(load_gc=False):
     run_args = parsing()
     assert (
         run_args.get("load") is not None or run_args.get("load_include_eval") is not None
@@ -429,7 +428,7 @@ def main(load_gc=True):
                         "../data/preprocessing/kin_to_fam_to_grp_826.csv",
                     ]
                 ]
-                + [None, None]
+                + [None]
             ),
             verbose=False,
         )
@@ -478,11 +477,8 @@ def main(load_gc=True):
             return
     else:
         group_classifier = pickle.load(
-            open(
-                "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_gc_weights.7.cornichon",
-                "rb",
-            )
-        )
+            open(join_first(1, "bin/deepks_gc_weights.7.cornichon"), "rb")
+        )  # FIXME Not general enough
 
     assert run_args["test"] is not None, "Must provide test set for evaluating."
 

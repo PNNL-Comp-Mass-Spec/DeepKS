@@ -65,7 +65,6 @@ def parsing() -> dict[str, Union[str, None]]:
         test_filename = args["test"]
         if args["load"] is not None:
             load_filename = args["load"]
-            assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."
             assert all(
                 [args[x] is None for x in ["train", "val"]]
             ), "If specifying --load argument, cannot specify --train and --val arguments."
