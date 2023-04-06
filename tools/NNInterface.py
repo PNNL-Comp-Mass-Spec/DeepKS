@@ -217,18 +217,21 @@ class NNInterface:
                 self.optimizer.step()
 
                 # Report Progress
-                score = -1.0
                 if (batch_num) % print_every == 0:
-                    score, train_loss, _, _, _, _ = self.eval(
-                        torch.utils.data.DataLoader(KSDataset(X[0], X[1], labels), batch_size=len(labels)),
-                        cutoff,
+                    performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
+                    self.report_progress(
+                        "Train",
+                        epoch,
+                        num_epochs,
+                        batch_num,
+                        total_step,
+                        torch.mean(loss).item(),
+                        performance_score,
                         metric,
-                        display_pb=False,
                     )
-                    self.report_progress("Train", epoch, num_epochs, batch_num, total_step, train_loss, score, metric)
 
                 lowest_loss = min(lowest_loss, loss.item())
-                train_scores.append(score)
+                train_scores.append(outputs)
 
             print(colored(f"{'Train Info:':20}Mean Train {expand_metric(metric)} ", "blue"), end="", flush=True)
             print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
@@ -274,6 +277,26 @@ class NNInterface:
             print(colored(str(tab), color="blue"), flush=True)
 
         return [bool(x) for x in predictions], outputs, [group] * len(outputs), labels
+
+    def _get_acc_or_auc_and_predictions(
+        self, outputs: torch.Tensor, labels: torch.Tensor, metric: Literal["acc", "roc"], cutoff=0.5
+    ):
+        match self.criterion:
+            case torch.nn.CrossEntropyLoss():
+                predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
+            case torch.nn.BCEWithLogitsLoss():
+                outputs = torch.sigmoid(outputs.data.cpu())
+                predictions = heaviside_cutoff(outputs, cutoff)
+            case _:
+                raise NotImplementedError(f"Loss function {self.criterion} not implemented.")
+        match metric:
+            case "acc":
+                performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
+            case "roc":
+                scores = outputs.data.cpu()
+                performance = protected_roc_auc_score(labels.cpu(), scores)
+
+        return performance, predictions
 
     def eval(
         self,
@@ -329,28 +352,20 @@ class NNInterface:
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)
+                outputs = outputs.unsqueeze(0) if outputs.dim() == 0 else outputs
 
                 match self.criterion:
                     case torch.nn.CrossEntropyLoss():
                         labels = labels.long()
-                        predictions = torch.argmax(outputs.data.cpu(), dim=1).cpu()
                     case torch.nn.BCEWithLogitsLoss():
                         labels = labels.float()
-                        predictions = heaviside_cutoff(outputs, cutoff)
-                        outputs = torch.sigmoid(outputs.data.cpu())
 
-                outputs = outputs.unsqueeze(0) if outputs.dim() == 0 else outputs
                 loss = self.criterion(outputs, labels)
 
                 if "cuda" in str(self.device):
                     torch.cuda.empty_cache()
 
-                match metric:
-                    case "acc":
-                        performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
-                    case "roc":
-                        scores = outputs.data.cpu()
-                        performance = protected_roc_auc_score(labels.cpu(), scores)
+                performance, predictions = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
 
                 all_labels += labels.cpu().numpy().tolist()
                 all_outputs += outputs.data.cpu().numpy().tolist()

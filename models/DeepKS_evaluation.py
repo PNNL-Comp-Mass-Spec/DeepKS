@@ -12,18 +12,6 @@ import random
 random.seed(42)
 
 
-class AnnotationHandler(HandlerBase):
-    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
-        # Get the text from the original handle (the annotation)
-        text = orig_handle.get_text()
-
-        # Create a new text object to use in the legend
-        # Add an example of the annotation to the legend text
-        label_text = f"{text} (example)"
-        label = Text(xdescent, ydescent, label_text, fontsize=fontsize, ha="left", va="center", transform=trans)
-        return [label]
-
-
 class ROC(ABC):
     def __init__(self, fig_kwargs={"figsize": (10, 10)}) -> None:
         self._roc_is_made = False
@@ -176,13 +164,6 @@ class SplitIntoKinasesROC(ROC):
                 tax.set_ylim(0, 1.1)
                 tax.yaxis.label.set_color(cut_col)
                 tax.tick_params(axis="y", colors=cut_col)
-            if show_acc:
-                taxacc = ax.twinx()
-                taxacc.spines.right.set_position(("axes", 1.15))
-                taxacc.set_ylabel("Accuracy")
-                taxacc.yaxis.label.set_color(acc_col)
-                taxacc.tick_params(axis="y", colors=acc_col)
-                taxacc.set_ylim(0, 1)
 
             tax_handle_list = []
             roc_handle_list = []
@@ -280,6 +261,13 @@ class SplitIntoKinasesROC(ROC):
                         acc = (correctly_predicted_actual_pos + correctly_predicted_actual_neg) / len(data)
                         accs.append(acc)
 
+                    taxacc = ax.twinx()
+                    taxacc.spines.right.set_position(("axes", 1.15))
+                    taxacc.set_ylabel("Accuracy")
+                    taxacc.yaxis.label.set_color(acc_col)
+                    taxacc.tick_params(axis="y", colors=acc_col)
+                    taxacc.set_ylim(-0.05, 1.05)
+
                     (taxacc_plot_handle,) = taxacc.plot(
                         jitter(fpr),
                         accs,
@@ -292,7 +280,19 @@ class SplitIntoKinasesROC(ROC):
                         alpha=alp / 2 if not unif else 1,
                     )
                     taxacc_handle_list.append(taxacc_plot_handle)
+                    if show_zones:
+                        pat = ptch.Rectangle((fpr[np.argmax(accs)] - 0.01, -1), 0.02, 3, color="#f0f0f030", linewidth=0)
+                        pat2 = ptch.Rectangle(
+                            (-1, np.max(accs) - 0.01), 3, 0.02, color="#f0f0f030", linewidth=0, label="Best Accuracy"
+                        )
+                        collect = clct.PatchCollection([pat, pat2], match_original=True, zorder=-10)
+                        ax.add_collection(collect)  # type: ignore
                 if show_cutoff:
+                    tax = ax.twinx()
+                    tax.set_ylabel("Cutoff")
+                    tax.set_ylim(0, 1.1)
+                    tax.yaxis.label.set_color(cut_col)
+                    tax.tick_params(axis="y", colors=cut_col)
                     (tax_plot_handle,) = tax.plot(
                         jitter(fpr),
                         thrr,
@@ -305,14 +305,7 @@ class SplitIntoKinasesROC(ROC):
                         alpha=alp / 2 if not unif else 1,
                     )
                     tax_handle_list.append(tax_plot_handle)
-
-                if show_zones and show_acc:
-                    pat = ptch.Rectangle((fpr[np.argmax(accs)] - 0.01, -1), 0.02, 3, color="#f0f0f030", linewidth=0)
-                    pat2 = ptch.Rectangle(
-                        (-1, np.max(accs) - 0.01), 3, 0.02, color="#f0f0f030", linewidth=0, label="Best Accuracy"
-                    )
-                    collect = clct.PatchCollection([pat, pat2], match_original=True, zorder=-10)
-                    ax.add_collection(collect)  # type: ignore
+                    tax.set_ylim(-0.05, 1.05)
 
             (hand,) = ax.plot([0, 1], [0, 1], color="black", lw=0.4, linestyle="--", label="Random Model")
             roc_handle_list.append(hand)
@@ -328,11 +321,9 @@ class SplitIntoKinasesROC(ROC):
             #     loc=(0.7, 0.05),
             # )
             # ax.legend(handles=roc_handle_list, labels=roc_labels_list, loc=(0.15, 0.05))
-            for a in [ax] + ([tax] if show_cutoff else []) + ([taxacc] if show_acc else []):
-                a.set_xlim(-0.05, 1.05)
-                a.set_ylim(-0.05, 1.05)
 
-            ax.legend(loc="best", handler_map={tuple: AnnotationHandler()})
+            ax.legend(loc="best")
+            ax.set_ylim(-0.05, 1.05)
             self.fig = fig
 
         all_datas = pd.DataFrame(
@@ -345,7 +336,7 @@ class SplitIntoKinasesROC(ROC):
 
         for data in datas:
             if set(data["Kinase Label"]) == {"ABL1|P00519"}:
-                print(data)
+                data.to_csv("sanity_check_abl1.csv", index=False)
             fpr, tpr, threshold = sklearn.metrics.roc_curve(data["Class"], data["Score"])
             fprs.append(fpr)
             tprs.append(tpr)

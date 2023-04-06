@@ -324,7 +324,8 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         out = self.intermediate(out)
         out = self.activation(out)
         out = self.dropout(out)
-        return self.final.forward(out).squeeze()
+        out = self.final.forward(out).squeeze()
+        return out
 
 
 def perform_k_fold(config, display_within_train=False, process_device="cpu"):
