@@ -20,7 +20,8 @@ from ..tools import file_names
 from typing import Callable, Generator, Union, Tuple
 from pprint import pprint  # type: ignore
 from termcolor import colored
-
+from . import DeepKS_evaluation
+from ..tools.file_names import get as get_file_name
 
 torch.use_deterministic_algorithms(True)
 torch.manual_seed(42)
@@ -187,7 +188,7 @@ class IndividualClassifiers:
                 which_groups_ordered,
                 leave=True,
                 position=1,
-                desc=colored(f"Overall Group Evaluation Progress", "cyan"),
+                desc=colored(f"Yielding dataframes progress", "cyan"),
                 colour="cyan",
             )
         ):  # Do only if Verbose
@@ -306,8 +307,8 @@ class IndividualClassifiers:
                 info_dict_passthrough["on_chunk"] = info_dict["on_chunk"]
                 info_dict_passthrough["total_chunks"] = info_dict["total_chunks"]
                 assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
-                if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
-                    self.interfaces[group_te].test(test_loader, group=group_te, **evaluation_kwargs)
+                # if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
+                #     self.interfaces[group_te].test(test_loader, group=group_te, **evaluation_kwargs)
                 assert test_loader is not None
                 count += 1
                 yield group_te, test_loader
@@ -478,6 +479,34 @@ class IndividualClassifiers:
                     emp_eqn_kwargs=emp_eqn_kwargs,
                     _ic_ref=self,
                 )
+                pick_out_kinase = "HIPK2|Q9H2X6"
+                # assert pick_out_kinase in true_groups
+                # pick_out_group = true_groups[pick_out_kinase]
+                pick_out_group = "CMGC"
+                if pick_out_kinase == "ABL1|P00519":
+                    assert pick_out_group == "TK"
+                if pick_out_kinase == "HIPK2|Q9H2X6":
+                    assert pick_out_group == "CMGC"
+                print(colored(f"Status: Creating ROC curves stratified by kinase family {pick_out_group}.", "green"))
+                roc = DeepKS_evaluation.SplitIntoKinasesROC()
+                scores = self.evaluations[pick_out_group]["test"]["outputs"]
+                labels = self.evaluations[pick_out_group]["test"]["labels"]
+                kinase_identities = grp_to_info_pass_through_info_dict[pick_out_group]["orig_symbols_order"]["test"]
+                # assert pick_out_kinase in kinase_identities
+                roc.make_roc(
+                    scores,
+                    labels,
+                    kinase_identities,
+                    pick_out_group,
+                    plotting_kwargs={
+                        "plot_markers": True,
+                        "plot_unified_line": True,
+                        "jitter_amount": 0,
+                        "diff_by_color": False,
+                        "diff_by_opacity": True,
+                    },
+                )
+                roc.save_roc(get_file_name(f"ROC_{pick_out_group}", "pdf"))
 
             else:  # Eval already completed
                 print("Progress: ROC")

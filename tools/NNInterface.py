@@ -403,7 +403,7 @@ class NNInterface:
                 interface = grp_to_interface[grp]
                 loader = grp_to_loader[grp]
                 eval_res = interface.eval(loader)
-                outputs: list[float] = eval_res[-1]
+                outputs: list[float] = eval_res[-1]  # CHECK: This is the sigmoided outputs
                 labels: list[int] = eval_res[3]
                 if retain_evals is not None:
                     # Group -> Tr/Vl/Te -> outputs/labels -> list

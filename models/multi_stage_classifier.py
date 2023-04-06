@@ -404,7 +404,7 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def main(load_gc=False):
+def main(load_gc=True):
     run_args = parsing()
     assert (
         run_args.get("load") is not None or run_args.get("load_include_eval") is not None

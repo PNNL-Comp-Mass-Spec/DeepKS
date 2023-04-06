@@ -66,6 +66,8 @@ data/preprocessing/PreprocessingSteps/complex_organism_phospho.json
 data/preprocessing/PreprocessingSteps/fam_to_num_seq.csv
 images/Group Distributions/fam_to_num_seq.csv
 images/Excel Matrix/excel_art_formatted.csv
+images/Evaluation and Results/
+models/*.pdf
 !**/*_reprod.svg
 **/*.tar.gz
 **/*.tar.bz2
@@ -90,3 +92,4 @@ data/raw_data/small_emp_kin-info_1.json
 data/raw_data/small_emp_kins_1.csv
 data/raw_data/small_emp_sites_104.csv
 tools/RNN-GC-arch.txt
+**/*roc-cache*.*
