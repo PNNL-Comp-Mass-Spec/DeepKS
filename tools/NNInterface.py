@@ -86,7 +86,7 @@ class NNInterface:
         Raises:
             AssertionError: If the loss function is not `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`
         """
-        self.model: torch.nn.Module = model_to_train
+        self.model: torch.nn.Module = model_to_train.to(device)
         self.criterion = loss_fn
         assert type(self.criterion) in [
             torch.nn.BCEWithLogitsLoss,
@@ -165,7 +165,7 @@ class NNInterface:
         ), "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
 
         print(
-            colored(f"Status: Training{extra_description}{'' if extra_description == '' else ' '}." + "\n", "green"),
+            colored(f"Status: Training{extra_description}{'' if extra_description == '' else ' '}.", "green"),
             flush=True,
         )
 
@@ -191,13 +191,19 @@ class NNInterface:
                 labels = labels.to(self.device)
 
                 # Forward pass
-                print(colored(f"{'Train Status:':20}Step A - Forward pass.", "green"), flush=True, end="\r")
+                print(
+                    colored(f"{'Train Status:':20}Step A - Forward propogating." + " " * 20, "green"),
+                    flush=True,
+                    end="\r",
+                )
                 outputs = self.model.forward(*X)
                 outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
                 torch.cuda.empty_cache()
 
                 # Compute loss
-                print(colored(f"{'Train Status:':20}Step B - Computing loss.", "green"), flush=True, end="\r")
+                print(
+                    colored(f"{'Train Status:':20}Step B - Computing loss." + " " * 20, "green"), flush=True, end="\r"
+                )
                 loss: torch.Tensor
                 match self.criterion:
                     case torch.nn.CrossEntropyLoss():
@@ -207,16 +213,19 @@ class NNInterface:
 
                 # Backward and optimize
                 self.optimizer.zero_grad()
-                print(colored(f"{'Train Status:':20}Step C - Computing gradients.", "green"), flush=True, end="\r")
+                print(
+                    colored(f"{'Train Status:':20}Step C - Backpropogating." + " " * 20, "green"), flush=True, end="\r"
+                )
                 loss.backward()
                 print(
-                    colored(f"{'Train Status:':20}Step D - Stepping in the direction of the gradient.", "green"),
+                    colored(f"{'Train Status:':20}Step D - Stepping in ∇'s direction." + " " * 20, "green"),
                     flush=True,
                     end="\r",
                 )
                 self.optimizer.step()
 
                 # Report Progress
+                performance_score = None
                 if (batch_num) % print_every == 0:
                     performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
                     self.report_progress(
@@ -231,7 +240,7 @@ class NNInterface:
                     )
 
                 lowest_loss = min(lowest_loss, loss.item())
-                train_scores.append(outputs)
+                train_scores.append(performance_score)
 
             print(colored(f"{'Train Info:':20}Mean Train {expand_metric(metric)} ", "blue"), end="", flush=True)
             print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
@@ -239,6 +248,8 @@ class NNInterface:
 
             # Validate
             if val_dl is not None:
+                print(" " * os.get_terminal_size().columns, end="\r")
+                print(colored("Status: Validating", "green"))
                 total_step = len(val_dl)
                 score, val_loss, _, _, _, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
                 self.report_progress("Validation", epoch, num_epochs, 0, 1, val_loss, score, metric)
@@ -253,8 +264,6 @@ class NNInterface:
         total_chunks,
         cutoff=0.5,
         group="UNKNOWN GROUP",
-        report_performance_test_mode=False,
-        show_sample_output_test_mode=False,
         metric: Literal["roc", "acc"] = "roc",
     ) -> Tuple[list, list, list, list]:
         """
@@ -262,19 +271,9 @@ class NNInterface:
         """
 
         metadata = {"group": group, "on_chunk": on_chunk, "total_chunks": total_chunks}
-        performance, _, outputs, labels, predictions, _ = self.eval(
-            dataloader, cutoff, metric, predict_mode=not report_performance_test_mode, metadata=metadata
+        _, _, outputs, labels, predictions, _ = self.eval(
+            dataloader, cutoff, metric, predict_mode=True, metadata=metadata, display_pb=True
         )
-
-        print(colored(f"Info: Test {expand_metric(metric)} ({group}): {performance:.3f} %\n", "blue"))
-
-        if show_sample_output_test_mode:
-            tab = PrettyTable(["Index", "Label", "Prediction"], min_width=20)
-            num_rows = min(10, len(labels))
-            tab.title = f"Info: First {num_rows} labels mapped to predictions"
-            for i in range(num_rows):
-                tab.add_row([i, labels[i], predictions[i]])
-            print(colored(str(tab), color="blue"), flush=True)
 
         return [bool(x) for x in predictions], outputs, [group] * len(outputs), labels
 
@@ -307,7 +306,7 @@ class NNInterface:
         expected_input_tuple_len=3,
         metadata={"group": "<?>", "on_chunk": 1, "total_chunks": 1},
         display_pb=True,
-    ) -> Tuple[float, float, list[float], list[int], list[float], list[float]]:
+    ) -> Tuple[float, float, list[float], list[int], list[int], list[float]]:
         """
         Returns:
             (mean performance, mean loss, all outputs, all labels, all predictions, all outputs--sigmoided)
@@ -332,9 +331,8 @@ class NNInterface:
                 len(x) == expected_input_tuple_len
             ), f"Input tuple length {len(x)} was not what was expected {expected_input_tuple_len}."
 
-        if not display_pb:
-            ible = dll
-        else:
+        ible = dll
+        if display_pb:
             description = (
                 f"Status: Eval Progress of {group} " + f"[Chunk {on_chunk}/{total_chunks}]"
                 if on_chunk == total_chunks == 0
@@ -343,12 +341,19 @@ class NNInterface:
             ible = tqdm.tqdm(dll, desc=colored(description, "cyan"), position=0, leave=False, colour="cyan")
 
         with torch.no_grad():
-            for *X, labels in ible:
+            for b, (*X, labels) in enumerate(ible):
                 if predict_mode:
                     assert torch.equal(
                         labels, torch.Tensor([-1] * len(labels)).to(self.device)
                     ), "Labels must be -1 for prediction."
                 X = [x.to(self.device) for x in X]
+
+                if not isinstance(ible, tqdm.tqdm):
+                    print(
+                        colored(f"Status: Forward propogating through NN -- Batch [{b + 1}/{len(dll)}]", "green"),
+                        end="\r",
+                        flush=True,
+                    )
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)
@@ -369,7 +374,7 @@ class NNInterface:
 
                 all_labels += labels.cpu().numpy().tolist()
                 all_outputs += outputs.data.cpu().numpy().tolist()
-                all_preds += predictions.cpu().numpy().tolist()
+                all_preds += predictions.long().cpu().numpy().tolist()
                 avg_perf += [performance] * len(labels)
                 avg_loss += [loss.item()] * len(labels)
 
@@ -633,26 +638,37 @@ class NNInterface:
     def test(
         self,
         test_loader,
-        print_sample_outputs: bool = True,
+        print_sample_predictions: bool = False,
         cutoff: float = 0.5,
         metric: Literal["roc", "acc"] = "roc",
-        group: str = "Test Set",
-        **extra_kwargs,
+        int_label_to_str_label: dict[int, str] = {},
     ) -> Tuple[list, list, list]:
         """
         Returns: list of predictions, list of outputs, list of ground-truth labels
         """
-        print(colored("Status: Testing", "green"))
-        predictions, outputs, _, labels = self.predict(
-            test_loader,
-            1,
-            1,
-            cutoff=cutoff,
-            group=group,
-            report_performance_test_mode=True,
-            show_sample_output_test_mode=print_sample_outputs,
-            metric=metric,
+
+        performance, _, outputs, labels, predictions, _ = self.eval(
+            test_loader, cutoff, metric, predict_mode=False, display_pb=False
         )
+        print(" " * os.get_terminal_size().columns, end="\r")
+        print(colored("Status: Testing", "green"))
+        print(
+            colored(
+                f"""{f"Test Info: {expand_metric(metric)}: {performance:.3f} {'%' if metric == 'acc' else ''}"}""",
+                "blue",
+            )
+        )
+
+        if print_sample_predictions:
+            tab = PrettyTable(["Input Index", "Ground Truth Label", "Prediction"], min_width=20)
+            num_rows = min(10, len(labels))
+            tab.title = f"Info: First {num_rows} labels mapped to predictions"
+            for i in range(num_rows):
+                pred_print = predictions[i] if not int_label_to_str_label else int_label_to_str_label[predictions[i]]
+                lab_print = labels[i] if not int_label_to_str_label else int_label_to_str_label[labels[i]]
+                tab.add_row([i, lab_print, pred_print])
+            print(colored(str(tab), color="blue"), flush=True)
+
         return predictions, outputs, labels
 
     def save_model(self, path):

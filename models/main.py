@@ -439,7 +439,7 @@ def perform_k_fold(config, display_within_train=False, process_device="cpu"):
 
     the_nn.test(
         test_loader,
-        print_sample_outputs=False,
+        print_sample_predictions=False,
         cutoff=cutoff,
         metric=metric,
     )

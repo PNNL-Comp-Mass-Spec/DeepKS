@@ -17,6 +17,7 @@ PAD_IDX = None
 
 
 def set_pad_idx(pad_idx):
+    """Small helper function"""
     global PAD_IDX
     PAD_IDX = pad_idx
 
@@ -47,7 +48,7 @@ class SeqGC(nn.Module):
         # Layers
         self.lstm = nn.LSTM(self.num_features, self.hidden_features, self.num_recur, batch_first=True)
         self.emb = nn.Embedding(NUM_TOK, self.num_features, padding_idx=PAD_IDX)
-        self.fltn = nn.Flatten()
+        self.activation = nn.ELU()
 
         # Create linear layers
         self.linear_layer_sizes.insert(0, self.hidden_features)
@@ -60,6 +61,7 @@ class SeqGC(nn.Module):
         lls = []
         for i in range(len(self.linear_layer_sizes) - 1):
             lls.append(nn.Linear(self.linear_layer_sizes[i], self.linear_layer_sizes[i + 1]))
+            lls.append(self.activation)
 
         self.linears = nn.Sequential(*lls)
 
@@ -75,9 +77,26 @@ class SeqGC(nn.Module):
             torch.LongTensor: Output tensor of scores of shape (batch_size, num_kin_groups)
         """
         kin_seq = self.emb(kin_seq_input)  # Embed kinase sequence
-        _, (_, c_out) = self.lstm(kin_seq)  # Run embedded sequence through LSTM
+        kin_seq = self.activation(kin_seq)  # Pass through activation function
+
+        __, (_, c_out) = self.lstm(
+            kin_seq
+        )  # Run embedded sequence through LSTM, get cell output, throw other stuff away
+        c_out = self.activation(c_out)  # Pass cell output through activation function
+
         out = self.linears(c_out[-1])  # Pass cell output of last cell to the linear layer(s)
+
+        # This does not change any of the tensors, but it is a workaround for a bug in PyTorch,
+        # if the device is an MPS device (e.g. Apple M1)
+        if "mps" in str(self.parameters().__next__().device):
+            out = _mps_workaround(__, out)
+
         return out
+
+
+def _mps_workaround(__, out):
+    zeroed = __.zero_()
+    return out + torch.sum(zeroed)
 
 
 def get_kin_seq_to_group_dict(seq_and_uniprot_df, uniprot_and_group_df) -> dict:
@@ -99,7 +118,7 @@ def get_kin_seq_to_group_dict(seq_and_uniprot_df, uniprot_and_group_df) -> dict:
     return seq_to_group
 
 
-def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64):
+def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64, device=torch.device("cpu")):
     # Get dataloaders
     dfs = []
     for df_filename in df_filenames:
@@ -117,6 +136,7 @@ def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64):
         "n_gram": 1,
         "maxsize": PADDED_SIZE,
         "kin_seq_to_group": kin_seq_to_group_dict,
+        "device": device
         # "subsample_num": 100,  # Can make dataset smaller here
     }
     (train_loader, _, _, _), train_info = list(gather_data(dfs[0], trf=1, vf=0, tef=0, **common_args))[0]
@@ -128,12 +148,14 @@ def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64):
     return train_loader, val_loader, test_loader
 
 
-def get_NNInterface(model, batch_size):
+def get_NNInterface(model, batch_size, device=torch.device("cpu"), lr=0.1):
     """Obtain Neural Network Training/Val/Test Interface and write model summary
 
     Args:
         model (torch.nn.Module): The NN model in question
         batch_size (int): batch size for training
+        device (torch.device): device to train on
+        lr (float): learning rate
 
     Returns:
         DeepKS.Tools.NNInterface.NNInterface: object that allows for training, validation, and testing
@@ -143,21 +165,23 @@ def get_NNInterface(model, batch_size):
     interface = NNInterface(
         model,
         nn.CrossEntropyLoss(),
-        torch.optim.Adam(model.parameters()),
+        torch.optim.Adam(model.parameters(), lr=lr),
         inp_size,
         inp_types,
         "RNN-GC-arch.txt",
-        torch.device("cpu"),
+        device,
     )
     interface.write_model_summary()
     return interface
 
 
 def main():
-    # Setup hyperparameters
-    model_HPs = {"num_features": 32, "hidden_features": 64, "num_recur": 10, "linear_layer_sizes": [30, 24, 15]}
-    train_options = {"num_epochs": 20}
-    batch_size = 128
+    torch.manual_seed(42)
+    torch.use_deterministic_algorithms(True)
+    DEVICE = torch.device("mps")
+    model_HPs = {"num_features": 8, "hidden_features": 8, "num_recur": 8, "linear_layer_sizes": [32, 16, 8]}
+    train_options = {"num_epochs": 8, "metric": "acc"}
+    batch_size = 64
 
     # Obtain dataloaders
     train_loader, val_loader, test_loader = get_relevant_data_loaders(
@@ -165,18 +189,20 @@ def main():
             join_first(1, "data/raw_data_31834_formatted_65_26610.csv"),
             join_first(1, "data/raw_data_6500_formatted_95_5698.csv"),
             join_first(1, "data/raw_data_6406_formatted_95_5616.csv"),
-        ]
+        ],
+        device=DEVICE,
+        batch_size=batch_size,
     )
 
     # Initialize Model
     model = SeqGC(**model_HPs)
 
     # Initialize Training/Testing Interface and create model summary diagram
-    interface = get_NNInterface(model, batch_size)
+    interface = get_NNInterface(model, batch_size, device=DEVICE, lr=0.01)
 
-    # Train, test, and create roc_curve
+    # Train and test
     interface.train(train_loader, val_dl=val_loader, **train_options)
-    interface.test(test_loader)
+    interface.test(test_loader, print_sample_predictions=True, metric="acc")
 
 
 if __name__ == "__main__":

@@ -204,6 +204,7 @@ def gather_data(
 
     # ===== #
 
+    data: Union[pd.DataFrame, dict[str, Union[list[str], list[int]]]]
     if isinstance(input_t, str):
         if input_d == "":
             data = pd.read_csv(input_t)
@@ -213,7 +214,6 @@ def gather_data(
             data = pd.concat([data_t, data_d], axis=0)
     else:
         data = input_t
-
     if subsample_num is not None and isinstance(data, pd.DataFrame):  # TODO Could improve this
         try:
             subsample_num = int(subsample_num)
@@ -252,7 +252,15 @@ def gather_data(
 
     if kin_seq_to_group:
         data["Group"] = [kin_seq_to_group[x] for x in data["Kinase Sequence"]]
-        data = data[data["Group"] != "<UNANNOTATED>"]
+        if isinstance(data, pd.DataFrame):
+            data = data[data["Group"] != "<UNANNOTATED>"]
+        else:
+            data_DFed = pd.DataFrame(data)
+            data_DFed = data_DFed[data_DFed["Group"] != "<UNANNOTATED>"]
+            data_intermediary = data_DFed.to_dict("list")
+            data_intermediary = {str(k): v for k, v in data_intermediary.items()}
+            data = data_intermediary
+
     class_col = ("Kinase Sequence" if mc else "Class") if not kin_seq_to_group else "Group"
     class_labels = list(set(data[class_col]))
     classes = len(class_labels)
@@ -315,7 +323,7 @@ def gather_data(
     BYTES_PER_PAIR_MULTIPLIER = 1  # Optionally pretend data is larger than the original data
     BYTES_PER_PAIR *= BYTES_PER_PAIR_MULTIPLIER
 
-    if str(device) == str(torch.device("cpu")):
+    if str(device) == str(torch.device("cpu")) or "mps" in str(device):
         free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) / 1.25
         # print(colored(f"{psutil.virtual_memory().available=}{psutil.swap_memory().free=}", "yellow"))
     else:
