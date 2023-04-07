@@ -645,11 +645,11 @@ class NNInterface:
         Returns: list of predictions, list of outputs, list of ground-truth labels
         """
 
+        print(" " * os.get_terminal_size().columns, end="\r")
+        print(colored("Status: Testing", "green"))
         performance, _, outputs, labels, predictions, _ = self.eval(
             test_loader, cutoff, metric, predict_mode=False, display_pb=False
         )
-        print(" " * os.get_terminal_size().columns, end="\r")
-        print(colored("Status: Testing", "green"))
         print(
             colored(
                 f"""{f"Test Info: {expand_metric(metric)}: {performance:.3f} {'%' if metric == 'acc' else ''}"}""",

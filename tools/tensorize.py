@@ -262,7 +262,7 @@ def gather_data(
             data = data_intermediary
 
     class_col = ("Kinase Sequence" if mc else "Class") if not kin_seq_to_group else "Group"
-    class_labels = list(set(data[class_col]))
+    class_labels = sorted(list(set(data[class_col])))
     classes = len(class_labels)
     if set(class_labels) in [{0, 1}, {1}, {0}]:
         remapping_class_label_dict = {0: 0, 1: 1}

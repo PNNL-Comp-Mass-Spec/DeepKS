@@ -217,6 +217,8 @@ def main():
         batch_size=batch_size,
     )
 
+    print(hash(tuple(train_loader.dataset.target.data.numpy().ravel().tolist())))
+
     # Initialize Model
     model = SeqGC(**model_HPs)
 
