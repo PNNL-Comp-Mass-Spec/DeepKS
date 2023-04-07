@@ -199,9 +199,9 @@ def get_NNInterface(model, batch_size, device=torch.device("cpu"), lr=0.1):
 ### MAIN ENTRY POINT ----
 def main():
     """Main entry point for training, validation, and testing"""
+    DEVICE = torch.device("cpu")
     torch.manual_seed(42)
     torch.use_deterministic_algorithms(True)
-    DEVICE = torch.device("cpu")
     model_HPs = {"num_features": 8, "hidden_features": 8, "num_recur": 8, "linear_layer_sizes": [32, 16, 8]}
     train_options = {"num_epochs": 8, "metric": "acc"}
     batch_size = 64
