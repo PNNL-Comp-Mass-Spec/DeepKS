@@ -492,10 +492,8 @@ def parse_api() -> dict[str, typing.Any]:
     ):
         print(
             colored(
-                (
-                    "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                    " json/csv/sqlite."
-                ),
+                "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
+                " json/csv/sqlite.",
                 "blue",
             )
         )

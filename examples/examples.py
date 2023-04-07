@@ -17,10 +17,8 @@ def _main():
 
     print(
         colored(
-            (
-                "Info: This is an example script for DeepKS. To inspect the sample input files, check the"
-                " 'DeepKS/tests/sample_inputs/' directory."
-            ),
+            "Info: This is an example script for DeepKS. To inspect the sample input files, check the"
+            " 'DeepKS/tests/sample_inputs/' directory.",
             "blue",
         )
     )

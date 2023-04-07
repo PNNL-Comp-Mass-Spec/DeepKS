@@ -1,4 +1,8 @@
+### SETUP ----
 # Imports
+from termcolor import colored
+
+print(colored("Status: Importing libraries...", "green"))
 import torch, torch.nn as nn, pandas as pd, numpy as np, sys, pathlib, os
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -22,10 +26,9 @@ def set_pad_idx(pad_idx):
     PAD_IDX = pad_idx
 
 
+### RNN DEFINITION ----
 class SeqGC(nn.Module):
-    """
-    RNN to classify kinases into groups based on sequence
-    """
+    """RNN to classify kinases into groups based on sequence"""
 
     def __init__(self, num_features=NUM_TOK, hidden_features=NUM_TOK * 4, num_recur=3, linear_layer_sizes=[]) -> None:
         """Initialize RNN
@@ -94,7 +97,14 @@ class SeqGC(nn.Module):
         return out
 
 
+### HELPER FUNCTIONS ----
 def _mps_workaround(__, out):
+    """Workaround function for a bug in PyTorch, when using metal performance shaders (e.g. Apple M1)
+
+    Args:
+        __ (torch.Tensor): "Output" (what PyTorch calls "output") of LSTM
+        out (torch.Tensor): Final cell state of LSTM
+    """
     zeroed = __.zero_()
     return out + torch.sum(zeroed)
 
@@ -119,6 +129,17 @@ def get_kin_seq_to_group_dict(seq_and_uniprot_df, uniprot_and_group_df) -> dict:
 
 
 def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64, device=torch.device("cpu")):
+    """Get dataloaders for training, validation, and test sets
+
+    Args:
+        df_filenames (list[str]): List of dataframes to turn into dataloaders
+        batch_size (int): Training batch size.
+        device (torch.device): NN device.
+
+    Returns:
+        tuple[dataloader, dataloader, dataloader]: Train, val, and test dataloaders
+    """
+
     # Get dataloaders
     dfs = []
     for df_filename in df_filenames:
@@ -175,10 +196,12 @@ def get_NNInterface(model, batch_size, device=torch.device("cpu"), lr=0.1):
     return interface
 
 
+### MAIN ENTRY POINT ----
 def main():
+    """Main entry point for training, validation, and testing"""
     torch.manual_seed(42)
     torch.use_deterministic_algorithms(True)
-    DEVICE = torch.device("mps")
+    DEVICE = torch.device("cpu")
     model_HPs = {"num_features": 8, "hidden_features": 8, "num_recur": 8, "linear_layer_sizes": [32, 16, 8]}
     train_options = {"num_epochs": 8, "metric": "acc"}
     batch_size = 64

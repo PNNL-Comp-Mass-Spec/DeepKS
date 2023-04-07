@@ -171,12 +171,10 @@ def get_needle_pairwise_mtx(
             pd.set_option("display.width", 140)
             warnings.formatwarning = warning_on_one_line
             warnings.warn(
-                (
-                    "There are NA values in the results matrix. This may simply mean that some sequences had zero"
-                    " overlap. Replacing these instances with 0.0. To enable checking, printing a subset of the matrix"
-                    " with"
-                    f" NAs:\n{df_results[df_results.isna().any(axis=1)][df_results.isna().any(axis=0).index[df_results.isna().any(axis=0)]]}\n"
-                ),
+                "There are NA values in the results matrix. This may simply mean that some sequences had zero"
+                " overlap. Replacing these instances with 0.0. To enable checking, printing a subset of the matrix"
+                " with"
+                f" NAs:\n{df_results[df_results.isna().any(axis=1)][df_results.isna().any(axis=0).index[df_results.isna().any(axis=0)]]}\n",
                 RuntimeWarning,
             )
             df_results = df_results.fillna(0.0)

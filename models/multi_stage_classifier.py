@@ -110,11 +110,9 @@ class MultiStageClassifier:
         if predict_mode is False or bypass_group_classifier:
             print(
                 colored(
-                    (
-                        "Info: Group Classifier Accuracy"
-                        f" {'(since we have known groups) ' if bypass_group_classifier else ''}—"
-                        f" {self.group_classifier.test(groups_true, groups_prediction)}"
-                    ),
+                    "Info: Group Classifier Accuracy"
+                    f" {'(since we have known groups) ' if bypass_group_classifier else ''}—"
+                    f" {self.group_classifier.test(groups_true, groups_prediction)}",
                     "blue",
                 )
             )
@@ -126,10 +124,8 @@ class MultiStageClassifier:
             addl_args["test" if "test_json" not in addl_args else "test_json"] = Xy_formatted_input_file
             print(
                 colored(
-                    (
-                        "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
-                        " step [1/2]"
-                    ),
+                    "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
+                    " step [1/2]",
                     "green",
                 )
             )

@@ -473,10 +473,8 @@ class NNInterface:
                     warnings.warn(f"Couldn't repickle Individual Classifiers with empirical equation: {e}", UserWarning)
             else:
                 warnings.warn(
-                    (
-                        "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
-                        " equation."
-                    ),
+                    "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
+                    " equation.",
                     UserWarning,
                 )
 
