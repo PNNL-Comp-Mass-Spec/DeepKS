@@ -535,7 +535,7 @@ def main():
         default_grp_to_model_args = {
             "ll1_size": 50,
             "ll2_size": 25,
-            "emb_dim": 22,
+            "emb_dim": 44,
             "num_conv_layers": 1,
             "dropout_pr": 0.4,
             "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
