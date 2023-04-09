@@ -1,48 +1,38 @@
-import os, pathlib, json, torch, numpy as np, torch.nn as nn
-
-from ..tools.tensorize import gather_data
-from ..tools.NNInterface import NNInterface
-from ..tools import file_names
-from matplotlib import rcParams
+import os, pathlib, torch, torch.nn as nn
 from ..tools.formal_layers import Concatenation, Multiply, Transpose
-from ..tools.SimpleTuner import SimpleTuner
-from ..tools.model_utils import cNNUtils as U
-from ..config.cfg import get_mode
-from ..tools.parse import parsing
+from ..tools.model_utils import cNNUtils as cNNUtils
+from typing import Literal, Union
+
+torch.use_deterministic_algorithms(True)
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
-
-rcParams["font.family"] = "serif"
-rcParams["font.size"] = 13
-
-NUM_EMBS = 22
-SITE_LEN = 15
 
 
 def batch_dot(x, y):
     return torch.einsum("ij,ij->i", x, y)
 
 
-class Attention(nn.Module):
-    def __init__(self, in_features, out_features):
+class DotAttention(nn.Module):
+    def __init__(self, in_features_kin, in_features_site, out_features_dot_len):
         super().__init__()
-        self.attn = nn.Linear(in_features, out_features)
+        self.attn_site = nn.Linear(in_features_site, out_features_dot_len)
+        self.attn_kin = nn.Linear(in_features_kin, out_features_dot_len)
 
-    def forward(self, *X):
-        x_a = self.attn(X[0])
-        y_a = self.attn(X[1])
+    def forward(self, site, kin):
+        x_a = self.attn_site(site)
+        y_a = self.attn_kin(kin)
         weights = torch.tanh(batch_dot(x_a, y_a)).unsqueeze(1)
         return weights
 
 
-class CNN(nn.Module):
+class MultipleCNN(nn.Module):
     def __init__(
         self,
         out_channels,
         conv_kernel_size,
         pool_kernel_size,
-        in_channels=NUM_EMBS,
+        in_channels,
         do_flatten=False,
         do_transpose=False,
     ):
@@ -76,449 +66,146 @@ class CNN(nn.Module):
 class KinaseSubstrateRelationshipNN(nn.Module):
     def __init__(
         self,
-        inp_size=None,
-        num_classes=1,
-        ll1_size=200,
-        ll2_size=200,
-        emb_dim=30,
-        num_conv_layers=1,
+        num_classes: int = 1,
+        linear_layer_sizes: list[int] = [],
+        emb_dim: int = 30,
+        attn_out_features: Union[Literal["auto"], int] = 32,
         site_param_dict={"kernels": [4], "out_lengths": [12], "out_channels": [11]},
         kin_param_dict={"kernels": [10], "out_lengths": [12], "out_channels": [11]},
-        dropout_pr=0.3,
+        dropout_pr: float = 0.3,
+        site_len: int = 15,
+        kin_len: int = 4128,
+        num_aa: int = 22,  # 20 + X + padding
     ):
         super().__init__()
+
         site_param_vals = site_param_dict.values()
         kinase_param_vals = kin_param_dict.values()
-        assert all(
-            num_conv_layers == len(x) for x in list(site_param_vals) + list(kinase_param_vals)
-        ), "Layer parameter lists do not all equal `num_conv_layers`"
-        self.inp_size = inp_size
+        num_conv = len(site_param_dict["kernels"])
+        assert all(num_conv == len(x) for x in site_param_vals), "# of site CNN params do not all equal `num_conv`."
+        assert all(num_conv == len(x) for x in kinase_param_vals), "# of kinase CNN params do not all equal `num_conv`."
+        self.num_conv = num_conv
 
-        self.emb_site = nn.Embedding(NUM_EMBS, emb_dim)
-        self.emb_kin = nn.Embedding(NUM_EMBS, emb_dim)
+        self.emb_site = nn.Embedding(num_aa, emb_dim)
+        self.emb_kin = nn.Embedding(num_aa, emb_dim)
         self.site_param_dict = site_param_dict
         self.kin_param_dict = kin_param_dict
+        self.site_len = site_len
+        self.kin_len = kin_len
 
-        try:
-            (
-                calculated_pools_site,
-                calculated_pools_kin,
-                calculated_in_channels_site,
-                calculated_in_channels_kin,
-                calculated_do_flatten_site,
-                calculated_do_flatten_kin,
-                calculated_do_transpose_site,
-                calculated_do_transpose_kin,
-            ) = self.calculate_cNN_params(num_conv_layers)
-        except RuntimeError as e:
-            raise AssertionError(str(e) + "\n" + "S - {} K - {}".format(site_param_dict, kin_param_dict))
+        pools_site, in_channels_site, do_flatten_site, do_transpose_site = self.calculate_cNN_params("site")
+        pools_kin, in_channels_kin, do_flatten_kin, do_transpose_kin = self.calculate_cNN_params("kin")
 
-        self.site_cnns = nn.ModuleList(
-            [
-                CNN(
+        site_cnn_list = []
+        kin_cnn_list = []
+        for i in range(self.num_conv):
+            site_cnn_list.append(
+                MultipleCNN(
                     site_param_dict["out_channels"][i],
                     site_param_dict["kernels"][i],
-                    calculated_pools_site[i],
-                    calculated_in_channels_site[i],
-                    calculated_do_flatten_site[i],
-                    calculated_do_transpose_site[i],
+                    pools_site[i],
+                    in_channels_site[i],
+                    do_flatten_site[i],
+                    do_transpose_site[i],
                 )
-                for i in range(num_conv_layers)
-            ]
-        )
-        self.kin_cnns = nn.ModuleList(
-            [
-                CNN(
+            )
+            kin_cnn_list.append(
+                MultipleCNN(
                     kin_param_dict["out_channels"][i],
                     kin_param_dict["kernels"][i],
-                    calculated_pools_kin[i],
-                    calculated_in_channels_kin[i],
-                    calculated_do_flatten_kin[i],
-                    calculated_do_transpose_kin[i],
+                    pools_kin[i],
+                    in_channels_kin[i],
+                    do_flatten_kin[i],
+                    do_transpose_kin[i],
                 )
-                for i in range(num_conv_layers)
-            ]
-        )
+            )
 
-        linear_size_sum, linear_size = self.get_size()
+        self.site_cnns = nn.Sequential(*site_cnn_list)
+        self.kin_cnns = nn.Sequential(*kin_cnn_list)
 
-        self.attn = Attention(linear_size[0], linear_size[0])
+        flat_site_size, flat_kin_size = self.get_flat_size()
+        combined_flat_size = flat_site_size + flat_kin_size
+
+        self.attn = DotAttention(flat_site_size, flat_kin_size, attn_out_features)
         self.mult = Multiply()
         self.cat = Concatenation()
 
-        self.linear = nn.Linear(linear_size_sum, ll1_size)
-
-        self.activation = nn.ELU()  # nn.Tanh()
+        self.activation = nn.ELU()
         self.dropout = nn.Dropout(dropout_pr)
-        self.intermediate = nn.Linear(ll1_size, ll2_size)
-        self.final = nn.Linear(ll2_size, num_classes)
 
-    def calculate_cNN_params(self, num_conv_layers):
-        calculated_pools_site = []
-        calculated_pools_kin = []
-        calculated_in_channels_site = []
-        calculated_in_channels_kin = []
-        calculated_do_flatten_site = []
-        calculated_do_flatten_kin = []
-        calculated_do_transpose_site = []
-        calculated_do_transpose_kin = []
+        self.linear_layer_sizes: list[int] = linear_layer_sizes
 
-        for i in range(num_conv_layers):
-            if num_conv_layers == 1:
-                calculated_pools_site.append(
-                    U.desired_conv_then_pool_shape(
-                        SITE_LEN,
-                        None,
-                        self.site_param_dict["out_lengths"][i],
-                        None,
-                        self.site_param_dict["kernels"][i],
-                        err_message="S",
-                    )[0]
-                )
-                calculated_pools_kin.append(
-                    U.desired_conv_then_pool_shape(
-                        KIN_LEN,
-                        None,
-                        self.kin_param_dict["out_lengths"][i],
-                        None,
-                        self.kin_param_dict["kernels"][i],
-                        err_message="K",
-                    )[0]
-                )
-                calculated_in_channels_site.append(NUM_EMBS)
-                calculated_in_channels_kin.append(NUM_EMBS)
-                calculated_do_flatten_site.append(True)
-                calculated_do_flatten_kin.append(True)
-                calculated_do_transpose_site.append(True)
-                calculated_do_transpose_kin.append(True)
-            else:
-                if i == 0:
-                    calculated_pools_site.append(
-                        U.desired_conv_then_pool_shape(
-                            SITE_LEN,
-                            None,
-                            self.site_param_dict["out_lengths"][i],
-                            None,
-                            self.site_param_dict["kernels"][i],
-                            err_message="S",
-                        )[0]
-                    )
-                    calculated_pools_kin.append(
-                        U.desired_conv_then_pool_shape(
-                            KIN_LEN,
-                            None,
-                            self.kin_param_dict["out_lengths"][i],
-                            None,
-                            self.kin_param_dict["kernels"][i],
-                            err_message="K",
-                        )[0]
-                    )
-                    calculated_in_channels_site.append(NUM_EMBS)
-                    calculated_in_channels_kin.append(NUM_EMBS)
-                    calculated_do_flatten_site.append(False)
-                    calculated_do_flatten_kin.append(False)
-                    calculated_do_transpose_site.append(True)
-                    calculated_do_transpose_kin.append(True)
-                if num_conv_layers - 1 > i > 0:
-                    calculated_pools_site.append(
-                        U.desired_conv_then_pool_shape(
-                            self.site_param_dict["out_lengths"][i - 1],
-                            None,
-                            self.site_param_dict["out_lengths"][i],
-                            None,
-                            self.site_param_dict["kernels"][i],
-                            err_message="S",
-                        )[0]
-                    )
-                    calculated_pools_kin.append(
-                        U.desired_conv_then_pool_shape(
-                            self.kin_param_dict["out_lengths"][i - 1],
-                            None,
-                            self.kin_param_dict["out_lengths"][i],
-                            None,
-                            self.kin_param_dict["kernels"][i],
-                            err_message="K",
-                        )[0]
-                    )
-                    calculated_in_channels_kin.append(self.kin_param_dict["out_channels"][i - 1])
-                    calculated_in_channels_site.append(self.site_param_dict["out_channels"][i - 1])
-                    calculated_do_flatten_site.append(False)
-                    calculated_do_flatten_kin.append(False)
-                    calculated_do_transpose_site.append(False)
-                    calculated_do_transpose_kin.append(False)
-                if i == num_conv_layers - 1:
-                    calculated_pools_site.append(
-                        U.desired_conv_then_pool_shape(
-                            self.site_param_dict["out_lengths"][i - 1],
-                            None,
-                            self.site_param_dict["out_lengths"][i],
-                            None,
-                            self.site_param_dict["kernels"][i],
-                            err_message="S",
-                        )[0]
-                    )
-                    calculated_pools_kin.append(
-                        U.desired_conv_then_pool_shape(
-                            self.kin_param_dict["out_lengths"][i - 1],
-                            None,
-                            self.kin_param_dict["out_lengths"][i],
-                            None,
-                            self.kin_param_dict["kernels"][i],
-                            err_message="K",
-                        )[0]
-                    )
-                    calculated_in_channels_kin.append(self.kin_param_dict["out_channels"][i - 1])
-                    calculated_in_channels_site.append(self.site_param_dict["out_channels"][i - 1])
-                    calculated_do_flatten_site.append(True)
-                    calculated_do_flatten_kin.append(True)
-                    calculated_do_transpose_site.append(False)
-                    calculated_do_transpose_kin.append(False)
+        # Create linear layers
+        self.linear_layer_sizes.insert(0, combined_flat_size)
+        self.linear_layer_sizes.append(num_classes)
+
+        # Put linear layers into Sequential module
+        lls = []
+        for i in range(len(self.linear_layer_sizes) - 1):
+            lls.append(nn.Linear(self.linear_layer_sizes[i], self.linear_layer_sizes[i + 1]))
+            lls.append(self.activation)
+            lls.append(self.dropout)
+
+        self.linears = nn.Sequential(*lls)
+
+    def get_flat_size(self):
+        flat_site_size = self.site_param_dict["out_channels"][-1] * self.site_param_dict["out_lengths"][-1]
+        flat_kin_size = self.kin_param_dict["out_channels"][-1] * self.kin_param_dict["out_lengths"][-1]
+
+        return flat_site_size, flat_kin_size
+
+    def calculate_cNN_params(self, kin_or_site: Literal["kin", "site"]) -> tuple[list, list, list, list]:
+        if kin_or_site == "kin":
+            param = self.kin_param_dict
+            emb = self.emb_kin
+            first_width = self.kin_len
+        elif kin_or_site == "site":
+            param = self.site_param_dict
+            emb = self.emb_site
+            first_width = self.site_len
+        else:
+            raise ValueError("kin_or_site must be 'kin' or 'site'")
+
+        calculated_pools = []
+        calculated_in_channels = []
+        calculated_do_flatten = []
+        calculated_do_transpose = []
+
+        num_conv = self.num_conv
+
+        for i in range(num_conv):
+            calculated_do_transpose.append(i == 0)
+            calculated_do_flatten.append(i == num_conv - 1)
+            calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
+            input_width = first_width if i == 0 else param["out_widths"][i - 1]
+
+            calculated_pools.append(
+                cNNUtils.desired_conv_then_pool_shape(
+                    input_width, None, param["out_lengths"][i], None, param["kernels"][i], err_message="Site CNNs"
+                )[0]
+            )
 
         return (
-            calculated_pools_site,
-            calculated_pools_kin,
-            calculated_in_channels_site,
-            calculated_in_channels_kin,
-            calculated_do_flatten_site,
-            calculated_do_flatten_kin,
-            calculated_do_transpose_site,
-            calculated_do_transpose_kin,
+            calculated_pools,
+            calculated_in_channels,
+            calculated_do_flatten,
+            calculated_do_transpose,
         )
 
-    def get_size(self):
-        return (
-            self.site_param_dict["out_channels"][-1] * self.site_param_dict["out_lengths"][-1]
-            + self.kin_param_dict["out_channels"][-1] * self.kin_param_dict["out_lengths"][-1]
-        ), [
-            self.site_param_dict["out_channels"][-1] * self.site_param_dict["out_lengths"][-1],
-            self.kin_param_dict["out_channels"][-1] * self.kin_param_dict["out_lengths"][-1],
-        ]
-
-    def forward(self, site_seq, kin_seq, ret_size=False):
+    def forward(self, site_seq, kin_seq):
         emb_site = self.emb_site.forward(site_seq)
         emb_kin = self.emb_kin.forward(kin_seq)
 
-        out_site = emb_site
-        out_kin = emb_kin
-        for cnn in self.site_cnns:
-            out_site = cnn.forward(out_site)
-        for cnn in self.kin_cnns:
-            out_kin = cnn.forward(out_kin)
-
-        if ret_size:
-            return (
-                np.sum([np.array(out_site.size()), np.array(out_kin.size())], axis=0)[-1],
-                np.array([np.array(out_site.size()), np.array(out_kin.size())])[:, -1],
-            )
+        out_site = self.site_cnns.forward(emb_site)
+        out_kin = self.kin_cnns.forward(emb_kin)
 
         weights = self.attn.forward(out_site, out_kin)
         weights = torch.softmax(weights / out_site.size(-1) ** (0.5), dim=-1)
-        out_site = self.mult.forward(out_site, weights)
-        out_kin = self.mult.forward(out_kin, weights)
 
-        out = self.cat.forward(out_site, out_kin)
+        weighted_out_site = self.mult.forward(out_site, weights)
+        weighted_out_kin = self.mult.forward(out_kin, weights)
 
-        out = self.linear.forward(out)
-        out = self.activation(out)
-        out = self.dropout(out)
-        out = self.intermediate(out)
-        out = self.activation(out)
-        out = self.dropout(out)
-        out = self.final.forward(out).squeeze()
+        out = self.cat.forward(weighted_out_site, weighted_out_kin)
+        out = self.linears.forward(out)
+
         return out
-
-
-def perform_k_fold(config, display_within_train=False, process_device="cpu"):
-    print(f"Using Device > {process_device} <")
-    global NUM_EMBS
-
-    # Hyperparameters
-    for x in config:
-        exec(f"{x} = {config[x]}")
-
-    tokdict = json.load(open("json/tok_dict.json", "rb"))
-    tokdict["-"] = tokdict["<PADDING>"]
-    assert train_filename is not None
-    (train_loader, _, _, _), info_dict_tr = gather_data(
-        train_filename,
-        trf=1,
-        vf=0,
-        tuf=0,
-        tef=0,
-        train_batch_size=config["batch_size"],
-        n_gram=config["n_gram"],
-        tokdict=tokdict,
-        device=torch.device(process_device),
-        maxsize=KIN_LEN,
-    )
-    assert val_filename is not None
-    (_, val_loader, _, _), info_dict_vl = gather_data(
-        val_filename,
-        trf=0,
-        vf=1,
-        tuf=0,
-        tef=0,
-        train_batch_size=config["batch_size"],
-        n_gram=config["n_gram"],
-        tokdict=tokdict,
-        device=torch.device(process_device),
-        maxsize=KIN_LEN,
-    )
-    NUM_EMBS = 22
-
-    results = []
-    assert test_filename is not None
-    (_, _, _, test_loader), info_dict_te = gather_data(
-        test_filename,
-        trf=0,
-        vf=0,
-        tuf=0,
-        tef=1,
-        n_gram=config["n_gram"],
-        tokdict=tokdict,
-        device=torch.device(process_device),
-        maxsize=KIN_LEN,
-    )
-
-    kinase_order = [
-        info_dict_tr["kin_orders"]["train"],
-        info_dict_vl["kin_orders"]["val"],
-        info_dict_te["kin_orders"]["test"],
-    ]
-
-    crit = torch.nn.BCEWithLogitsLoss()
-    if isinstance(crit, torch.nn.BCEWithLogitsLoss):
-        num_classes = 1
-    elif isinstance(crit, torch.nn.CrossEntropyLoss):
-        num_classes = 2
-    else:
-        raise RuntimeError("Don't know how many classes to output.")
-
-    torch.manual_seed(3)
-    model = KinaseSubstrateRelationshipNN(
-        num_classes=num_classes,
-        inp_size=NNInterface.get_input_size(train_loader),
-        ll1_size=config["ll1_size"],
-        ll2_size=config["ll2_size"],
-        emb_dim=config["emb_dim"],
-        num_conv_layers=config["num_conv_layers"],
-        site_param_dict=config["site_param_dict"],
-        kin_param_dict=config["kin_param_dict"],
-        dropout_pr=config["dropout_pr"],
-    ).to(process_device)
-    the_nn = NNInterface(
-        model,
-        crit,
-        torch.optim.Adam(model.parameters(), lr=config["learning_rate"]),
-        inp_size=NNInterface.get_input_size(train_loader),
-        inp_types=NNInterface.get_input_types(train_loader),
-        model_summary_name="../architectures/architecture (id-%d).txt" % (U.id_params(config)),
-        device=torch.device(process_device),
-    )
-
-    cutoff = 0.4
-    metric = "roc"
-
-    if process_device == "cpu":
-        input(
-            "WARNING: Running without CUDA. Are you sure you want to proceed? Press any key to proceed. (ctrl + c to"
-            " quit)\n"
-        )
-
-    results.append(
-        the_nn.train(
-            train_loader,
-            lr_decay_amount=config["lr_decay_amt"],
-            lr_decay_freq=config["lr_decay_freq"],
-            num_epochs=config["num_epochs"],
-            val_dl=val_loader,
-            cutoff=cutoff,
-            metric=metric,
-        )
-    )
-
-    the_nn.test(
-        test_loader,
-        print_sample_predictions=False,
-        cutoff=cutoff,
-        metric=metric,
-    )
-
-    the_nn.save_model(f"../bin/saved_state_dicts/{(fn := file_names.get())}.pkl")
-    the_nn.save_eval_results(test_loader, f"../res/{fn}.json", kin_order=kinase_order[2])
-    # Legacy
-    # the_nn.get_all_rocs(
-    #     train_loader,
-    #     val_loader,
-    #     test_loader,
-    #     test_loader,
-    #     savefile="../images/Evaluation and Results/ROC/Preliminary_ROC_Test",
-    # )
-    # the_nn.get_all_rocs_by_group(
-    #     test_loader,
-    #     kinase_order[2],
-    #     savefile="../images/Evaluation and Results/ROC/ROC_by_group",
-    #     kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_817.csv",
-    # )
-    # the_nn.get_all_conf_mats(
-    #     train_loader,
-    #     val_loader,
-    #     test_loader,
-    #     test_loader,
-    #     savefile="../images/Evaluation and Results/ROC/CM_",
-    #     cutoffs=[0.3, 0.4, 0.5, 0.6],
-    # )
-
-    del model, the_nn
-    torch.cuda.empty_cache()
-
-    results = np.array(results)
-    if display_within_train:
-        SimpleTuner.table_intermediates(
-            config,
-            results[:, 0].tolist(),
-            np.mean(results[:, 0]),
-            np.mean(results[:, 1]),
-            np.std(results[:, 0]),
-            np.std(results[:, 1]),
-        )
-    return (
-        results[:, 0].tolist(),
-        np.mean(results[:, 0]),
-        np.mean(results[:, 1]),
-        np.std(results[:, 0]),
-        np.std(results[:, 1]),
-    )  # accuracy, loss, acc_std, loss_std
-
-
-mode = get_mode()
-torch.use_deterministic_algorithms(True)
-if mode == "no_alin":
-    KIN_LEN = 4128
-else:
-    KIN_LEN = 9264
-
-
-if __name__ == "__main__":
-    args = parsing()
-    train_filename = args["train"]
-    val_filename = args["val"]
-    test_filename = args["test"]
-
-    cf = {
-        "learning_rate": 0.003,
-        "batch_size": 64,
-        "ll1_size": 50,
-        "ll2_size": 25,
-        "emb_dim": 22,
-        "num_epochs": 1,
-        "n_gram": 1,
-        "lr_decay_amt": 0.35,
-        "lr_decay_freq": 3,
-        "num_conv_layers": 1,
-        "dropout_pr": 0.4,
-        "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
-        "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
-    }
-    assert args["device"] is not None
-    perform_k_fold(cf, display_within_train=True, process_device=args["device"])
