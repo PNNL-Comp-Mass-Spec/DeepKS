@@ -12,7 +12,7 @@ if __name__ == "__main__":
 # pr.enable()
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings, dill, inspect
 import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats, pathlib, os  # type: ignore
-from .main import KinaseSubstrateRelationshipNN
+from .KinaseSubstrateRelationship import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 from ..tools.parse import parsing
@@ -22,6 +22,7 @@ from pprint import pprint  # type: ignore
 from termcolor import colored
 from . import DeepKS_evaluation
 from ..tools.file_names import get as get_file_name
+from copy import deepcopy
 
 torch.use_deterministic_algorithms(True)
 torch.manual_seed(42)
@@ -521,7 +522,7 @@ class IndividualClassifiers:
 
 
 def main():
-    print("Progress: Parsing Args")
+    print(colored("Progress: Parsing Args", "green"))
     args = parsing()
     if args["train"] is not None:  # AKA, not loading from pickle
         print("Progress: Preparing Training Data")
@@ -532,74 +533,64 @@ def main():
         groups: list[str] = (
             pd.read_csv(join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"))["Group"].unique().tolist()
         )  # FIXME - all - make them configurable
-        default_grp_to_model_args = {
-            "ll1_size": 50,
-            "ll2_size": 25,
-            "emb_dim": 44,
-            "num_conv_layers": 1,
-            "dropout_pr": 0.4,
-            "site_param_dict": {"kernels": [8], "out_lengths": [8], "out_channels": [20]},
-            "kin_param_dict": {"kernels": [100], "out_lengths": [8], "out_channels": [20]},
-        }
 
-        default_grp_to_interface_args: dict[str, Union[type, str, float, int]] = {
-            "loss_fn": torch.nn.BCEWithLogitsLoss,
-            "optim": torch.optim.Adam,
-            "model_summary_name": "../architectures/architecture (IC-XX).txt",
-            "lr": 0.003,
-            "batch_size": 64,
-            device: device,
-            "n_gram": 1,
-        }
+        with open(join_first(0, "KSR_params.json")) as f:
+            default_grp_to_model_args = json.load(f)
+        with open(join_first(0, "NNI_params.json")) as f:
+            default_grp_to_interface_args = json.load(f)
+            default_grp_to_interface_args["loss_fn"] = eval(str(default_grp_to_interface_args["loss_fn"]))
+            default_grp_to_interface_args["optim"] = eval(str(default_grp_to_interface_args["optim"]))
+            default_grp_to_interface_args["device"] = device
+        with open(join_first(0, "KSR_training_params.json")) as f:
+            default_training_args = json.load(f)
 
-        default_training_args = {"lr_decay_amount": 0.7, "lr_decay_freq": 3, "num_epochs": 5, "metric": "roc"}
-        assert device is not None
-        fat_model = IndividualClassifiers(
-            grp_to_model_args={group: default_grp_to_model_args for group in groups},
-            grp_to_interface_args={group: default_grp_to_interface_args for group in groups},  # type: ignore # FIXME
-            grp_to_training_args={group: default_training_args for group in groups},
+        classifier = IndividualClassifiers(
+            grp_to_model_args={group: deepcopy(default_grp_to_model_args) for group in groups},
+            grp_to_interface_args={group: deepcopy(default_grp_to_interface_args) for group in groups},
+            grp_to_training_args={group: deepcopy(default_training_args) for group in groups},
             device=device,
             args=args,
             groups=groups,
             kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
         )
-        print("Progress: About to Train")
+
+        print(colored("Status: About to Train", "green"))
         assert val_filename is not None
-        fat_model.train(
+        classifier.train(
             which_groups=groups,
             Xy_formatted_train_file=join_first(1, train_filename),
             Xy_formatted_val_file=join_first(1, val_filename),
         )
     else:  # AKA, loading from file
-        fat_model = IndividualClassifiers.load_all(
+        classifier = IndividualClassifiers.load_all(
             args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
         )
-        groups = list(fat_model.interfaces.keys())
+        groups = list(classifier.interfaces.keys())
     if args["load_include_eval"] is None and args["train"] is None:
         assert (test_file := args.get("test")) is not None
-        assert "pred_grp_dict" in fat_model.__dict__
+        assert "pred_grp_dict" in classifier.__dict__
         grp_to_loaders = {
             grp: loader
-            for grp, loader in fat_model.obtain_group_and_loader(
-                which_groups=groups, Xy_formatted_input_file=test_file, pred_groups=fat_model.pred_grp_dict  # type: ignore
+            for grp, loader in classifier.obtain_group_and_loader(
+                which_groups=groups, Xy_formatted_input_file=test_file, pred_groups=classifier.pred_grp_dict  # type: ignore
             )
         }
 
         print("Progress: ROC")
         NNInterface.get_combined_rocs_from_individual_models(
-            fat_model.interfaces,
+            classifier.interfaces,
             grp_to_loaders,
             f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
-            retain_evals=fat_model.evaluations,
+            retain_evals=classifier.evaluations,
         )
     elif args["train"] is None:
         print("Progress: ROC")
         NNInterface.get_combined_rocs_from_individual_models(
             savefile=f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
-            from_loaded=fat_model.evaluations,
+            from_loaded=classifier.evaluations,
         )
     if args["s"]:
-        smart_save_nn(fat_model)
+        smart_save_nn(classifier)
 
 
 if __name__ == "__main__":

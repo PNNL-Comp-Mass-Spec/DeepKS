@@ -6,7 +6,7 @@ from math import floor, ceil
 from numpy import logspace
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from termcolor import colored
-from typing import Union
+from typing import Literal, Union
 
 
 rcParams["font.family"] = "monospace"
@@ -20,6 +20,7 @@ class dataUtils:
 
 
 class cNNUtils:
+    @staticmethod
     @staticmethod
     def id_params(config, db_file="../architectures/HP_config_DB.tsv", index_column=0):
         db = pd.read_csv(db_file, sep="\t")
@@ -164,7 +165,11 @@ class cNNUtils:
                     and stride_range[1][i] != int(stride_range[1][i])
                 ):
                     raise RuntimeError(
-                        f"There is no stride for which the output shape equals the desired shape ({err_message}).",
+                        (
+                            "There is no stride for which the output shape equals the desired shape --"
+                            f" ({(values_to_check_w[0], values_to_check_h[0])}) with the given kernel ({kernel_size})"
+                            f" ({err_message})."
+                        ),
                         RuntimeWarning,
                     )
                     return None, None

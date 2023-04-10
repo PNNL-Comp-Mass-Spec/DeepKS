@@ -1,0 +1,8 @@
+{
+    "loss_fn": "torch.nn.BCEWithLogitsLoss",
+    "optim": "torch.optim.Adam",
+    "model_summary_name": "../architectures/architecture (IC-XX).txt",
+    "lr": 0.003,
+    "batch_size": 64,
+    "n_gram": 1
+}
