@@ -239,7 +239,7 @@ class NNInterface:
                         torch.mean(loss).item(),
                         performance_score,
                         metric,
-                        print_every=5
+                        print_every=5,
                     )
 
                 lowest_loss = min(lowest_loss, loss.item())
@@ -370,6 +370,7 @@ class NNInterface:
                         labels = labels.float()
 
                 loss = self.criterion(outputs, labels)
+                outputs = torch.sigmoid(outputs)
 
                 if "cuda" in str(self.device):
                     torch.cuda.empty_cache()
@@ -399,6 +400,7 @@ class NNInterface:
         emp_eqn_kwargs={},
         get_avg_roc_line=True,
         _ic_ref=None,
+        grp_to_idents=[],
     ) -> Union[None, dict]:
         assert grp_to_loader_true_groups is not None
         if from_loaded is None:
@@ -425,7 +427,9 @@ class NNInterface:
             if from_loaded is None:
                 interface = grp_to_interface[grp]
                 loader = grp_to_loader[grp]
-                _, outputs, _, labels = interface.predict(loader, 1, 1)
+                _, _, outputs, labels, _ = interface.eval(
+                    loader, cutoff=0.5, metric="roc", predict_mode=False, display_pb=False
+                )
                 if retain_evals is not None:
                     # Group -> Tr/Vl/Te -> outputs/labels -> list
                     retain_evals.update({grp: {"test": {"outputs": outputs, "labels": labels}}})

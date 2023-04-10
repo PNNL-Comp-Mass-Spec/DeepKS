@@ -3,6 +3,7 @@ from typing import Union
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
+
 def parsing() -> dict[str, Union[str, None]]:
     print("Progress: Parsing Arguments")
     global train_filename, val_filename, test_filename

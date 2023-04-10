@@ -1,6 +1,7 @@
 """Contains functions that are an interface to the DeepKS project.
 """
 import sys
+from nbformat import convert
 from termcolor import colored
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:

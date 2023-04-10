@@ -142,16 +142,16 @@ class IndividualClassifiers:
                 Xy = json.load(f)
         if pred_groups is None:  # Training
             print("Warning: Using ground truth groups. (Normal for training)")
-            Xy["Group"] = [symbol_to_grp_dict[x] for x in Xy["Original Kinase Gene Name"].apply(DEL_DECOR)]
+            Xy["Group"] = [symbol_to_grp_dict[x] for x in Xy["Gene Name of Provided Kin Seq"].apply(DEL_DECOR)]
         else:  # Evaluation CHECK
             if (
-                "Original Kinase Gene Name" in Xy.columns
+                "Gene Name of Provided Kin Seq" in Xy.columns
                 if isinstance(Xy, pd.DataFrame)
-                else "Original Kinase Gene Name" in Xy.keys()
+                else "Gene Name of Provided Kin Seq" in Xy.keys()
             ):  # Test
-                Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Original Kinase Gene Name"]]]
+                Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Gene Name of Provided Kin Seq"]]]
             else:  # Prediction
-                Xy["Group"] = [pred_groups[x] for x in Xy["Kinase Gene Name (Possibly Deranged)"].apply(DEL_DECOR)]
+                Xy["Group"] = [pred_groups[x] for x in Xy["Gene Name of Provided Kin Seq"].apply(DEL_DECOR)]
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
             assert isinstance(Xy, pd.DataFrame)
@@ -167,9 +167,9 @@ class IndividualClassifiers:
                 group_df_inner = {}
                 put_in_indices = [i for i, x in enumerate(Xy["Group"]) if x == group]
 
-                group_df_inner["Kinase Gene Name (Possibly Deranged)"] = Xy["Kinase Gene Name (Possibly Deranged)"]
-                group_df_inner["Original Kinase Gene Name"] = [
-                    Xy["Original Kinase Gene Name"][i] for i in put_in_indices
+                group_df_inner["Gene Name of Provided Kin Seq"] = Xy["Gene Name of Provided Kin Seq"]
+                group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = [
+                    Xy["Gene Name of Kin Corring to Provided Sub Seq"][i] for i in put_in_indices
                 ]
                 group_df_inner["Kinase Sequence"] = [Xy["Kinase Sequence"][i] for i in put_in_indices]
                 group_df_inner["Site Sequence"] = Xy["Site Sequence"]
@@ -195,7 +195,9 @@ class IndividualClassifiers:
     ):
         gen_train = self._run_dl_core(which_groups, Xy_formatted_train_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
         gen_val = self._run_dl_core(which_groups, Xy_formatted_val_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
-        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in tqdm.tqdm(zip(gen_train, gen_val), desc="Training Group Progress", total = len(set(which_groups))):
+        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in tqdm.tqdm(
+            zip(gen_train, gen_val), desc="Training Group Progress", total=len(set(which_groups))
+        ):
             assert group_tr == group_vl, "Group mismatch: %s != %s" % (group_tr, group_vl)
             b = self.grp_to_interface_args[group_tr]["batch_size"]
             ng = self.grp_to_interface_args[group_tr]["n_gram"]
@@ -468,6 +470,10 @@ class IndividualClassifiers:
                     get_emp_eqn=get_emp_eqn,
                     emp_eqn_kwargs=emp_eqn_kwargs,
                     _ic_ref=self,
+                    grp_to_idents={
+                        grp: grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]
+                        for grp in grp_to_loaders
+                    },
                 )
                 pick_out_kinase = "HIPK2|Q9H2X6"
                 # assert pick_out_kinase in true_groups

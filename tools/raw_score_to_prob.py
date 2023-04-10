@@ -21,14 +21,20 @@ def raw_score_to_probability(
     assert sorted(scores) == scores, f"`{inspect.stack()[0][3]}` requires sorted scores as input."
     assert len(scores) == len(truths), f"`{inspect.stack()[0][3]}` requires equal length of scores and truths."
 
+    def ident_func(x):
+        return x
+
     def fit_curve_to_data(scores, truths):
         lr = LogisticRegression(penalty=None)
         try:
             lr.fit(np.array(scores).reshape(-1, 1), truths)
         except Exception as e:
-            msg = f"Failed to fit curve to data: {e}. May need to adjust logistic regression learning parameters."
-            err = RuntimeError(msg)
-            raise RuntimeWarning(err) from None
+            msg = (
+                f"Failed to fit curve to data: {e}. May need to adjust logistic regression learning parameters."
+                " Returning identity function instead."
+            )
+            warnings.warn(msg, RuntimeWarning)
+            return ident_func
 
         m = -lr.coef_[0, 0]
         b = -lr.intercept_[0]
@@ -49,7 +55,8 @@ def raw_score_to_probability(
         return underlying_sigmoid
 
     convert_fn = fit_curve_to_data(scores, truths)
-
+    if convert_fn is ident_func:
+        return convert_fn
     if plot_emp_eqn:
         old_ax = plt.gca()
         plt.figure()

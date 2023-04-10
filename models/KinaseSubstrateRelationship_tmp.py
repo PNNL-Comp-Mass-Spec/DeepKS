@@ -1,5 +1,5 @@
 import os, pathlib, torch, torch.nn as nn
-from ..tools.formal_layers import Concatenation, Multiply, Transpose, Squeeze
+from ..tools.formal_layers import Concatenation, Multiply, Transpose
 from ..tools.model_utils import cNNUtils as cNNUtils
 from typing import Literal, Union
 
@@ -67,10 +67,9 @@ class KinaseSubstrateRelationshipNN(nn.Module):
     def __init__(
         self,
         num_classes: int = 1,
-        linear_layer_sizes: Union[list[int], None] = None,
-        emb_dim_site: int = 22,
-        emb_dim_kin: int = 22,
-        attn_out_features: Union[Literal["auto"], int] = 160,
+        linear_layer_sizes: list[int] = [],
+        emb_dim: int = 30,
+        attn_out_features: Union[Literal["auto"], int] = 32,
         site_param_dict={"kernels": [4], "out_lengths": [12], "out_channels": [11]},
         kin_param_dict={"kernels": [10], "out_lengths": [12], "out_channels": [11]},
         dropout_pr: float = 0.3,
@@ -86,16 +85,13 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         assert all(num_conv == len(x) for x in site_param_vals), "# of site CNN params do not all equal `num_conv`."
         assert all(num_conv == len(x) for x in kinase_param_vals), "# of kinase CNN params do not all equal `num_conv`."
         self.num_conv = num_conv
-        self.emb_dim_site = emb_dim_site
-        self.emb_dim_kin = emb_dim_kin
 
-        self.emb_site = nn.Embedding(num_aa, self.emb_dim_site)
-        self.emb_kin = nn.Embedding(num_aa, self.emb_dim_kin)
+        self.emb_site = nn.Embedding(num_aa, emb_dim)
+        self.emb_kin = nn.Embedding(num_aa, emb_dim)
         self.site_param_dict = site_param_dict
         self.kin_param_dict = kin_param_dict
         self.site_len = site_len
         self.kin_len = kin_len
-        self.squeeze = Squeeze(1)
 
         pools_site, in_channels_site, do_flatten_site, do_transpose_site = self.calculate_cNN_params("site")
         pools_kin, in_channels_kin, do_flatten_kin, do_transpose_kin = self.calculate_cNN_params("kin")
@@ -130,14 +126,14 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         flat_site_size, flat_kin_size = self.get_flat_size()
         combined_flat_size = flat_site_size + flat_kin_size
 
-        self.attn = DotAttention(flat_kin_size, flat_site_size, attn_out_features)
+        self.attn = DotAttention(flat_site_size, flat_kin_size, attn_out_features)
         self.mult = Multiply()
         self.cat = Concatenation()
 
         self.activation = nn.ELU()
         self.dropout = nn.Dropout(dropout_pr)
 
-        self.linear_layer_sizes: list[int] = linear_layer_sizes if linear_layer_sizes is not None else []
+        self.linear_layer_sizes: list[int] = linear_layer_sizes
 
         # Create linear layers
         self.linear_layer_sizes.insert(0, combined_flat_size)
@@ -161,11 +157,11 @@ class KinaseSubstrateRelationshipNN(nn.Module):
     def calculate_cNN_params(self, kin_or_site: Literal["kin", "site"]) -> tuple[list, list, list, list]:
         if kin_or_site == "kin":
             param = self.kin_param_dict
-            emb = self.emb_dim_kin
+            emb = self.emb_kin
             first_width = self.kin_len
         elif kin_or_site == "site":
             param = self.site_param_dict
-            emb = self.emb_dim_site
+            emb = self.emb_site
             first_width = self.site_len
         else:
             raise ValueError("kin_or_site must be 'kin' or 'site'")
@@ -182,14 +178,10 @@ class KinaseSubstrateRelationshipNN(nn.Module):
             calculated_do_flatten.append(i == num_conv - 1)
             calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
             input_width = first_width if i == 0 else param["out_widths"][i - 1]
+
             calculated_pools.append(
                 cNNUtils.desired_conv_then_pool_shape(
-                    input_width,
-                    None,
-                    param["out_lengths"][i],
-                    None,
-                    kernel_size=param["kernels"][i],
-                    err_message=f"{kin_or_site} CNNs",
+                    input_width, None, param["out_lengths"][i], None, param["kernels"][i], err_message="Site CNNs"
                 )[0]
             )
 
@@ -201,20 +193,19 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         )
 
     def forward(self, site_seq, kin_seq):
-        emb_site = self.emb_site(site_seq)
-        emb_kin = self.emb_kin(kin_seq)
+        emb_site = self.emb_site.forward(site_seq)
+        emb_kin = self.emb_kin.forward(kin_seq)
 
-        out_site = self.site_cnns(emb_site)
-        out_kin = self.kin_cnns(emb_kin)
+        out_site = self.site_cnns.forward(emb_site)
+        out_kin = self.kin_cnns.forward(emb_kin)
 
-        weights = self.attn(out_site, out_kin)
+        weights = self.attn.forward(out_site, out_kin)
         weights = torch.softmax(weights / out_site.size(-1) ** (0.5), dim=-1)
 
-        weighted_out_site = self.mult(out_site, weights)
-        weighted_out_kin = self.mult(out_kin, weights)
+        weighted_out_site = self.mult.forward(out_site, weights)
+        weighted_out_kin = self.mult.forward(out_kin, weights)
 
-        out = self.cat(weighted_out_site, weighted_out_kin)
-        out = self.linears(out)
-        out = self.squeeze(out)
+        out = self.cat.forward(weighted_out_site, weighted_out_kin)
+        out = self.linears.forward(out)
 
         return out

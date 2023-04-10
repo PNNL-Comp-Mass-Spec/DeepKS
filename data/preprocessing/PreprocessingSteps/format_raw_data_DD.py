@@ -155,8 +155,8 @@ def get_input_dataframe_core(
 
     all_data_w_seqs = pd.DataFrame(
         {
-            "Original Kinase Gene Name": all_data["original_kinase"] + "|" + all_data["original_uniprot_id"],
-            "Kinase Gene Name (Possibly Deranged)": all_data["lab"] + "|" + all_data["uniprot_id"],
+            "Gene Name of Kin Corring to Provided Sub Seq": all_data["original_kinase"] + "|" + all_data["original_uniprot_id"],
+            "Gene Name of Provided Kin Seq": all_data["lab"] + "|" + all_data["uniprot_id"],
             "Num Seqs in Orig Kin": all_data["num_sites"],
             "Class": all_data["Class"],
             "Site Sequence": all_data["seq"],
@@ -167,7 +167,7 @@ def get_input_dataframe_core(
     extra = "" if mode == "no_alin" else "_alin"
     extra += f"_{percentile}"
     all_data_w_seqs = all_data_w_seqs.sort_values(
-        by=["Class", "Kinase Sequence", "Original Kinase Gene Name", "Site Sequence"],
+        by=["Class", "Kinase Sequence", "Gene Name of Kin Corring to Provided Sub Seq", "Site Sequence"],
         ascending=[False, True, True, True],
     )
 

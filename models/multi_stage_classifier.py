@@ -72,7 +72,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["Original Kinase Gene Name"].drop_duplicates()
+        unq_symbols = input_file["Gene Name of Provided Kin Seq"].drop_duplicates()
         unq_symbols_inds = unq_symbols.index.tolist()
         unq_symbols = unq_symbols.tolist()
 
@@ -165,8 +165,8 @@ class MultiStageClassifier:
         assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
 
         data_dict = {
-            "Kinase Gene Name (Possibly Deranged)": ["N/A"],
-            "Original Kinase Gene Name": [seq_to_id[k] for k in kinase_seqs],
+            "Gene Name of Provided Kin Seq": ["N/A"],
+            "Gene Name of Kin Corring to Provided Sub Seq": [seq_to_id[k] for k in kinase_seqs],
             "Kinase Sequence": kinase_seqs,
             "Site Sequence": site_seqs,
             "pair_id": [
@@ -442,7 +442,7 @@ def main(load_gc=True):
         # train_kins = np.asarray(
         #     pd.read_csv(
         #         "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
-        #     )["Original Kinase Gene Name"]
+        #     )["Gene Name of Kin Corring to Provided Sub Seq"]
         #     .drop_duplicates(keep="first")
         #     .values
         # ).tolist()
@@ -477,7 +477,7 @@ def main(load_gc=True):
             return
     else:
         group_classifier = pickle.load(
-            open(join_first(1, "bin/deepks_gc_weights.7.cornichon"), "rb")
+            open(join_first(1, "bin/deepks_gc_weights.-1.cornichon"), "rb")
         )  # FIXME Not general enough
 
     assert run_args["test"] is not None, "Must provide test set for evaluating."

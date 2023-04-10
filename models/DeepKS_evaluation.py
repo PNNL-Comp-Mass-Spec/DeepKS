@@ -244,7 +244,7 @@ class SplitIntoKinasesROC(ROC):
                                 verticalalignment="center",
                                 rotation=text_angle_degrees,
                                 rotation_mode="anchor",
-                                **dict(label="Kinase|Uniprot Label") if i == 0 else {},
+                                # **dict(label="Kinase|Uniprot Label") if i == 0 else {},
                             )
                 roc_handle_list.append(hand)
                 if show_acc:

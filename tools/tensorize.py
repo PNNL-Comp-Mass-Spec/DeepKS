@@ -130,14 +130,14 @@ def gather_data(
         if isinstance(data, pd.DataFrame):
             ret_info_dict = {
                 "kin_orders": {
-                    "train": data.loc[train_ids]["Kinase Gene Name (Possibly Deranged)"].to_list(),
-                    "val": data.loc[val_ids]["Kinase Gene Name (Possibly Deranged)"].to_list(),
-                    "test": data.loc[test_ids]["Kinase Gene Name (Possibly Deranged)"].to_list(),
+                    "train": data.loc[train_ids]["Gene Name of Provided Kin Seq"].to_list(),
+                    "val": data.loc[val_ids]["Gene Name of Provided Kin Seq"].to_list(),
+                    "test": data.loc[test_ids]["Gene Name of Provided Kin Seq"].to_list(),
                 },
                 "orig_symbols_order": {
-                    "train": data.loc[train_ids]["Original Kinase Gene Name"].to_list(),
-                    "val": data.loc[val_ids]["Original Kinase Gene Name"].to_list(),
-                    "test": data.loc[test_ids]["Original Kinase Gene Name"].to_list(),
+                    "train": data.loc[train_ids]["Gene Name of Provided Kin Seq"].to_list(),
+                    "val": data.loc[val_ids]["Gene Name of Provided Kin Seq"].to_list(),
+                    "test": data.loc[test_ids]["Gene Name of Provided Kin Seq"].to_list(),
                 },
                 "PairIDs": {
                     "train": (
@@ -167,13 +167,13 @@ def gather_data(
                     "test": ["N/A"],
                 },
                 "orig_symbols_order": {
-                    "train": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in train_ids][
+                    "train": [
+                        data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in train_ids
+                    ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
+                    "val": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in val_ids][
                         desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
                     ],
-                    "val": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in val_ids][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                    "test": [data["Original Kinase Gene Name"][i // len(data["Site Sequence"])] for i in test_ids][
+                    "test": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in test_ids][
                         desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
                     ],
                 },
