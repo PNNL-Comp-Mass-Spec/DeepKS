@@ -184,19 +184,8 @@ class IndividualClassifiers:
                 group_df_inner["Num Seqs in Orig Kin"] = ["N/A"]
                 group_df[group] = group_df_inner
 
-        for group in (
-            pb := tqdm.tqdm(
-                which_groups_ordered,
-                leave=True,
-                position=1,
-                desc=colored(f"Yielding dataframes progress", "cyan"),
-                colour="cyan",
-            )
-        ):  # Do only if Verbose
-            if len(tqdm_passthrough) == 1:
-                tqdm_passthrough[0] = pb
+        for group in which_groups_ordered:
             yield group, group_df[group]
-        print("\r", end="\r")
 
     def train(
         self,
@@ -206,7 +195,7 @@ class IndividualClassifiers:
     ):
         gen_train = self._run_dl_core(which_groups, Xy_formatted_train_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
         gen_val = self._run_dl_core(which_groups, Xy_formatted_val_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
-        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in zip(gen_train, gen_val):
+        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in tqdm.tqdm(zip(gen_train, gen_val), desc="Training Group Progress", total = len(set(which_groups))):
             assert group_tr == group_vl, "Group mismatch: %s != %s" % (group_tr, group_vl)
             b = self.grp_to_interface_args[group_tr]["batch_size"]
             ng = self.grp_to_interface_args[group_tr]["n_gram"]

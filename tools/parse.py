@@ -1,6 +1,7 @@
 import argparse, re, os, torch, pathlib, warnings
 from typing import Union
 
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 def parsing() -> dict[str, Union[str, None]]:
     print("Progress: Parsing Arguments")
@@ -83,9 +84,7 @@ def parsing() -> dict[str, Union[str, None]]:
                     pass
                 except AssertionError as e:
                     warnings.warn(str(e), UserWarning)
-                assert os.path.exists(
-                    os.path.join(pathlib.Path(__file__).parent.resolve().parent.resolve(), os.path.expanduser(f))
-                ), f"Input file '{f}' does not exist."
+                assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
     else:
         load_filename = args["load_include_eval"]
         assert os.path.exists(load_filename), f"Load file '{load_filename}' does not exist."

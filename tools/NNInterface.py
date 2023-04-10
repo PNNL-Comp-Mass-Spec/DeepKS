@@ -140,7 +140,9 @@ class NNInterface:
             raise
         return self.representation
 
-    def report_progress(self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric):
+    def report_progress(self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric, print_every=1):
+        if batch_num % print_every != 0:
+            return
         print(colored(f"{f'{paradigm} Info:':20}", "blue"), end="")
         print(colored(f"Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
         print(colored(f"Batch [{batch_num + 1}/{total_step}], ", "blue"), end="")
@@ -237,6 +239,7 @@ class NNInterface:
                         torch.mean(loss).item(),
                         performance_score,
                         metric,
+                        print_every=5
                     )
 
                 lowest_loss = min(lowest_loss, loss.item())
