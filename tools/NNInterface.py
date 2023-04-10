@@ -251,7 +251,7 @@ class NNInterface:
                 print(" " * os.get_terminal_size().columns, end="\r")
                 print(colored("Status: Validating", "green"))
                 total_step = len(val_dl)
-                score, val_loss, _, _, _, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
+                score, val_loss, _, _, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
                 self.report_progress("Validation", epoch, num_epochs, 0, 1, val_loss, score, metric)
 
             print(colored(f"Status: ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n", "green"), flush=True)
@@ -265,14 +265,15 @@ class NNInterface:
         cutoff=0.5,
         group="UNKNOWN GROUP",
         metric: Literal["roc", "acc"] = "roc",
+        display_pb: bool = False,
     ) -> Tuple[list, list, list, list]:
         """
         Returns a list of predictions, a list of outputs, a list of groups, and a list of labels.
         """
 
         metadata = {"group": group, "on_chunk": on_chunk, "total_chunks": total_chunks}
-        _, _, outputs, labels, predictions, _ = self.eval(
-            dataloader, cutoff, metric, predict_mode=True, metadata=metadata, display_pb=True
+        _, _, outputs, labels, predictions = self.eval(
+            dataloader, cutoff, metric, predict_mode=True, metadata=metadata, display_pb=display_pb
         )
 
         return [bool(x) for x in predictions], outputs, [group] * len(outputs), labels
@@ -306,7 +307,7 @@ class NNInterface:
         expected_input_tuple_len=3,
         metadata={"group": "<?>", "on_chunk": 1, "total_chunks": 1},
         display_pb=True,
-    ) -> Tuple[float, float, list[float], list[int], list[int], list[float]]:
+    ) -> Tuple[float, float, list[float], list[int], list[int]]:
         """
         Returns:
             (mean performance, mean loss, all outputs, all labels, all predictions, all outputs--sigmoided)
@@ -380,9 +381,8 @@ class NNInterface:
 
             avg_perf = sum(avg_perf) / len(avg_perf) if len(avg_perf) > 0 else 0.0
             avg_loss = sum(avg_loss) / len(avg_loss) if len(avg_loss) > 0 else 0.0
-            sigmoided = torch.sigmoid(torch.Tensor(all_outputs)).data.cpu().numpy().tolist()
 
-            return avg_perf, avg_loss, all_outputs, all_labels, all_preds, sigmoided
+            return avg_perf, avg_loss, all_outputs, all_labels, all_preds
 
     @staticmethod
     def get_combined_rocs_from_individual_models(
@@ -422,9 +422,7 @@ class NNInterface:
             if from_loaded is None:
                 interface = grp_to_interface[grp]
                 loader = grp_to_loader[grp]
-                eval_res = interface.eval(loader)
-                outputs: list[float] = eval_res[-1]  # CHECK: This is the sigmoided outputs
-                labels: list[int] = eval_res[3]
+                _, outputs, _, labels = interface.predict(loader, 1, 1)
                 if retain_evals is not None:
                     # Group -> Tr/Vl/Te -> outputs/labels -> list
                     retain_evals.update({grp: {"test": {"outputs": outputs, "labels": labels}}})
@@ -649,7 +647,7 @@ class NNInterface:
 
         print(" " * os.get_terminal_size().columns, end="\r")
         print(colored("Status: Testing", "green"))
-        performance, _, outputs, labels, predictions, _ = self.eval(
+        performance, _, outputs, labels, predictions = self.eval(
             test_loader, cutoff, metric, predict_mode=False, display_pb=False
         )
         print(

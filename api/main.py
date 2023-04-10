@@ -20,9 +20,8 @@ join_first = lambda levels, x: (
     x if os.path.isabs(x) else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 )
 
-API_IMPORT_MODE = "true" in (
-    s := open(str(pathlib.Path(__file__).parent.resolve()) + "/../config/API_IMPORT_MODE.json", "r").read()
-)
+with open(str(pathlib.Path(__file__).parent.resolve()) + "/../config/API_IMPORT_MODE.json", "r") as apiim:
+    API_IMPORT_MODE = "true" in apiim.read()
 
 from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
