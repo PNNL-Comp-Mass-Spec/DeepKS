@@ -89,11 +89,19 @@ class cNNUtils:
         )
 
     @staticmethod
-    def close_by_out_sizes(numerator, x):
-        close = numerator / x
-        close_works = int(close)
-        base = numerator // close_works
-        return (base - 2, base - 1, base, base + 1, base + 2)
+    def close_by_out_sizes(base_len, desired_out):
+        possible = set()
+        spread = 10
+        upper = desired_out + spread
+        lower = desired_out - spread
+        while lower >= 1 and upper <= base_len and len(possible) < 3:
+            print(lower, upper)
+            for i in range(lower, upper + 1):
+                if int(base_len / i) != int(base_len / (i + 1 - 1e-6)):
+                    possible.add(i)
+            upper += spread
+            lower -= spread
+        return sorted(list(possible))
 
     @staticmethod
     def desired_output_shape(
@@ -173,8 +181,9 @@ class cNNUtils:
                 ):
                     raise ValueError(
                         "There is no stride for which the output shape equals the desired shape --"
-                        f" {(values_to_check_w[0], values_to_check_h[0])} with the given kernel {kernel_size}"
-                        f" ({err_message})."  # Some close by alternative output lengths are: {self.close_by_out_sizes(numerator=input_width, x=desired_width)}"
+                        f" {(values_to_check_w[0], values_to_check_h[0])} with the given kernel"
+                        f" {kernel_size} ({err_message}). Some close by alternative output lengths are:"
+                        f" {cNNUtils.close_by_out_sizes(input_width, desired_width)}"
                     )
 
                 else:

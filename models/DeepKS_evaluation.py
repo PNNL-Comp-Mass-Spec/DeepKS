@@ -198,9 +198,7 @@ class SplitIntoKinasesROC(ROC):
                     **(
                         dict(label=f"ROC curve of Kinase in {kinase_group}")
                         if i == 0
-                        else dict(label=f"ROC curve of all kinases {kinase_group}")
-                        if unif
-                        else {}
+                        else dict(label=f"ROC curve of all kinases {kinase_group}") if unif else {}
                     ),
                 )
                 if is_focus:

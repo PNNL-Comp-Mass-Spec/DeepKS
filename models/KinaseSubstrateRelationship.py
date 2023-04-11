@@ -82,10 +82,16 @@ class KinaseSubstrateRelationshipNN(nn.Module):
 
         site_param_vals = site_param_dict.values()
         kinase_param_vals = kin_param_dict.values()
-        num_conv = len(site_param_dict["kernels"])
-        assert all(num_conv == len(x) for x in site_param_vals), "# of site CNN params do not all equal `num_conv`."
-        assert all(num_conv == len(x) for x in kinase_param_vals), "# of kinase CNN params do not all equal `num_conv`."
-        self.num_conv = num_conv
+        num_conv_site = len(site_param_dict["kernels"])
+        num_conv_kin = len(kin_param_dict["kernels"])
+        assert all(
+            num_conv_site == len(x) for x in site_param_vals
+        ), "# of site CNN params do not all equal `num_conv`."
+        assert all(
+            num_conv_kin == len(x) for x in kinase_param_vals
+        ), "# of kinase CNN params do not all equal `num_conv`."
+        self.num_conv_site = num_conv_site
+        self.num_conv_kin = num_conv_kin
         self.emb_dim_site = emb_dim_site
         self.emb_dim_kin = emb_dim_kin
 
@@ -102,7 +108,7 @@ class KinaseSubstrateRelationshipNN(nn.Module):
 
         site_cnn_list = []
         kin_cnn_list = []
-        for i in range(self.num_conv):
+        for i in range(self.num_conv_site):
             site_cnn_list.append(
                 MultipleCNN(
                     site_param_dict["out_channels"][i],
@@ -113,6 +119,7 @@ class KinaseSubstrateRelationshipNN(nn.Module):
                     do_transpose_site[i],
                 )
             )
+        for i in range(self.num_conv_kin):
             kin_cnn_list.append(
                 MultipleCNN(
                     kin_param_dict["out_channels"][i],
@@ -163,10 +170,12 @@ class KinaseSubstrateRelationshipNN(nn.Module):
             param = self.kin_param_dict
             emb = self.emb_dim_kin
             first_width = self.kin_len
+            num_conv = self.num_conv_kin
         elif kin_or_site == "site":
             param = self.site_param_dict
             emb = self.emb_dim_site
             first_width = self.site_len
+            num_conv = self.num_conv_site
         else:
             raise ValueError("kin_or_site must be 'kin' or 'site'")
 
@@ -175,13 +184,11 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         calculated_do_flatten = []
         calculated_do_transpose = []
 
-        num_conv = self.num_conv
-
         for i in range(num_conv):
             calculated_do_transpose.append(i == 0)
             calculated_do_flatten.append(i == num_conv - 1)
             calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
-            input_width = first_width if i == 0 else param["out_widths"][i - 1]
+            input_width = first_width if i == 0 else param["out_lengths"][i - 1]
             calculated_pools.append(
                 cNNUtils.desired_conv_then_pool_shape(
                     input_width,

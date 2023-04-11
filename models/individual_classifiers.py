@@ -104,9 +104,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         (
             self.default_tok_dict,
@@ -173,9 +173,9 @@ class IndividualClassifiers:
                 ]
                 group_df_inner["Kinase Sequence"] = [Xy["Kinase Sequence"][i] for i in put_in_indices]
                 group_df_inner["Site Sequence"] = Xy["Site Sequence"]
-                group_df_inner[
-                    "pair_id"
-                ] = []  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
+                group_df_inner["pair_id"] = (
+                    []
+                )  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
                 for i in put_in_indices:
                     group_df_inner["pair_id"] += Xy["pair_id"][
                         i * len(Xy["Site Sequence"]) : (i + 1) * len(Xy["Site Sequence"])
@@ -193,8 +193,10 @@ class IndividualClassifiers:
         Xy_formatted_train_file: str,
         Xy_formatted_val_file: str,
     ):
+        pass_through_scores = []
         gen_train = self._run_dl_core(which_groups, Xy_formatted_train_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
         gen_val = self._run_dl_core(which_groups, Xy_formatted_val_file, symbol_to_grp_dict=self.symbol_to_grp_dict)
+        group_tr = "TK"
         for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in tqdm.tqdm(
             zip(gen_train, gen_val), desc="Training Group Progress", total=len(set(which_groups))
         ):
@@ -242,12 +244,23 @@ class IndividualClassifiers:
                     val_dl=val_loader,
                     **self.grp_to_training_args[group_tr],
                     extra_description="(Group: %s)" % group_tr.upper(),
+                    pass_through_scores=pass_through_scores,
                 )
             else:
                 warnings.warn(
                     f"No data for group {group_tr}, skipping training for this group. Neural network weights will be"
                     " random."
                 )
+        weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
+        print(
+            colored(
+                (
+                    f"Train/Validation Info: Overall Weighted {self.grp_to_training_args[group_tr]['metric']} ---"
+                    f" {weighted:3.4f}"
+                ),
+                "blue",
+            )
+        )
 
     def obtain_group_and_loader(
         self,

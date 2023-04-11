@@ -140,13 +140,20 @@ class NNInterface:
             raise
         return self.representation
 
-    def report_progress(self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric, print_every=1):
+    def report_progress(
+        self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric, print_every=1, retain=False
+    ):
         if batch_num % print_every != 0:
             return
         print(colored(f"{f'{paradigm} Info:':20}", "blue"), end="")
         print(colored(f"Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
         print(colored(f"Batch [{batch_num + 1}/{total_step}], ", "blue"), end="")
-        print(colored(f"{paradigm} Loss: {loss:.4f}, {paradigm} {expand_metric(metric)}: {score:.2f}", "blue"))
+        print(
+            colored(f"{paradigm} Loss: {loss:.4f}, {paradigm} {expand_metric(metric)}: {score:.2f}", "blue"),
+            end="\n" if retain else "\r",
+        )
+        if not retain:
+            print(" " * os.get_terminal_size().columns, end="\r")
 
     def train(
         self,
@@ -159,6 +166,7 @@ class NNInterface:
         cutoff=0.5,
         metric: Literal["roc", "acc"] = "roc",
         extra_description="",
+        pass_through_scores=None,
     ):
         print_every = 1  # max(len(train_loader) // 10, 1)
         assert isinstance(cutoff, (int, float)), "Cutoff needs to be a number."
@@ -240,6 +248,7 @@ class NNInterface:
                         performance_score,
                         metric,
                         print_every=5,
+                        retain=False,
                     )
 
                 lowest_loss = min(lowest_loss, loss.item())
@@ -249,16 +258,19 @@ class NNInterface:
             print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
             print(colored(f"{sum(train_scores)/len(train_scores):.3f}", "blue"), flush=True)
 
+            score, all_outputs = -1, [-1]
             # Validate
             if val_dl is not None:
                 print(" " * os.get_terminal_size().columns, end="\r")
                 print(colored("Status: Validating", "green"))
                 total_step = len(val_dl)
-                score, val_loss, _, _, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
-                self.report_progress("Validation", epoch, num_epochs, 0, 1, val_loss, score, metric)
+                score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
+                self.report_progress("Validation", epoch, num_epochs, 0, 1, val_loss, score, metric, retain=True)
 
             print(colored(f"Status: ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n", "green"), flush=True)
             epoch += 1
+            if pass_through_scores is not None and val_dl is not None:
+                pass_through_scores.append((score, len(all_outputs)))
 
     def predict(
         self,
