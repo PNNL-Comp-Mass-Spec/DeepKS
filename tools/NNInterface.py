@@ -9,6 +9,7 @@ from torchinfo_modified import summary
 from roc_comparison_modified.auc_delong import delong_roc_test
 from termcolor import colored
 from sklearn.metrics import roc_auc_score
+from ..models.DeepKS_evaluation import protected_roc_auc_score
 
 from .roc_lambda import get_avg_roc
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
@@ -24,41 +25,6 @@ heaviside_cutoff = lambda outputs, cutoff: torch.heaviside(
     torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
 )
 expand_metric = lambda met: "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
-
-
-def protected_roc_auc_score(y_true: ArrayLike, y_score: ArrayLike, *args, **kwargs) -> float:
-    """Wrapper for sklearn.metrics.roc_auc_score that handles edge cases
-
-    Args:
-        @arg y_true: Iterable of (integer) true labels
-        @arg y_score: Iterable of predicted scores
-        @arg *args: Additional arguments to pass to roc_auc_score
-        @arg **kwargs: Additional keyword arguments to pass to roc_auc_score
-
-    Raises:
-        e: Error that is not a multi class error or single class present error
-
-    Returns:
-        float: The roc_auc_score
-    """
-    try:
-        return float(roc_auc_score(y_true, y_score, *args, **kwargs))
-    except Exception as e:
-        match str(e):
-            case "Only one class present in y_true. ROC AUC score is not defined in that case.":
-                warnings.warn(f"Setting roc_auc_score to 0.0 since there is only one class present in y_true.")
-                return 0.0
-            case "multi_class must be in ('ovo', 'ovr')":
-                # softmax in case of multi-class
-                y_score = torch.nn.functional.softmax(torch.as_tensor(y_score), dim=1)
-                return protected_roc_auc_score(
-                    y_true,
-                    y_score,
-                    *args,
-                    **({"multi_class": "ovo", "average": "macro", "labels": list(range(y_score.shape[-1]))} | kwargs),
-                )
-            case _:
-                raise e
 
 
 class NNInterface:
