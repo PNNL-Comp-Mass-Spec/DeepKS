@@ -98,9 +98,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         (
             self.default_tok_dict,
@@ -135,7 +135,7 @@ class IndividualClassifiers:
             with open(Xy_formatted_input_file, "r") as f:
                 Xy = json.load(f)
         if pred_groups is None:  # Training
-            print(colored("Warning: Using ground truth groups. (Normal for training)", "yellow"))
+            print(colored("Warning: Using ground truth groups. (Normal for training/val)", "yellow"))
             Xy["Group"] = [
                 symbol_to_grp_dict[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
             ]
@@ -175,9 +175,9 @@ class IndividualClassifiers:
                 ]
                 group_df_inner["Kinase Sequence"] = [Xy["Kinase Sequence"][i] for i in put_in_indices]
                 group_df_inner["Site Sequence"] = Xy["Site Sequence"]
-                group_df_inner[
-                    "pair_id"
-                ] = []  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
+                group_df_inner["pair_id"] = (
+                    []
+                )  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
                 for i in put_in_indices:
                     group_df_inner["pair_id"] += Xy["pair_id"][
                         i * len(Xy["Site Sequence"]) : (i + 1) * len(Xy["Site Sequence"])
