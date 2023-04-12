@@ -5,7 +5,8 @@ if __name__ == "__main__":
     write_splash("main_gc_trainer")
     print(colored("Progress: Loading Modules", "green"), flush=True)
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
-from typing import Callable
+import torch, argparse, socket
+from typing import Callable, Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
@@ -16,6 +17,7 @@ from ..tools.file_names import get as get_file_name
 from ..tools import make_fasta as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
 from termcolor import colored
+from .site_classifier import SiteClassifier
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -72,7 +74,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["Gene Name of Provided Kin Seq"].drop_duplicates()
+        unq_symbols = input_file["Site Sequences"].drop_duplicates()
         unq_symbols_inds = unq_symbols.index.tolist()
         unq_symbols = unq_symbols.tolist()
 
@@ -90,6 +92,7 @@ class MultiStageClassifier:
         pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
         self.pred_grp_dict = pred_grp_dict
         true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
+
         ### Perform Simulated 100% Accuracy
         # sim_ac = 1
         # wrong_inds = set()
@@ -143,89 +146,21 @@ class MultiStageClassifier:
 
         return res
 
-    def predict(
-        self,
-        kinase_seqs: list[str],
-        kin_info: dict,
-        site_seqs: list[str],
-        site_info: dict,
-        predictions_output_format: str = "inorder",
-        suppress_seqs_in_output: bool = False,
-        device: str = "cpu",
-        scores: bool = False,
-        normalize_scores: bool = False,
-        cartesian_product: bool = False,
-        group_output: bool = False,
-        bypass_group_classifier: list[str] = [],
-        convert_raw_to_prob=True,
+    @staticmethod
+    def _package_results(
+        predictions_output_format,
+        kin_info,
+        site_info,
+        kinase_seqs,
+        site_seqs,
+        cartesian_product,
+        boolean_predictions,
+        numerical_scores,
+        group_predictions,
+        scores,
+        group_output,
+        suppress_seqs_in_output,
     ):
-        temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first").reset_index()
-        seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
-        id_to_seq = {v: k for k, v in seq_to_id.items()}
-        assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
-
-        data_dict = {
-            "Gene Name of Provided Kin Seq": ["N/A"],
-            "Gene Name of Kin Corring to Provided Sub Seq": [seq_to_id[k] for k in kinase_seqs],
-            "Kinase Sequence": kinase_seqs,
-            "Site Sequence": site_seqs,
-            "pair_id": [
-                f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))
-            ],
-            "Class": [-1],
-            "Num Seqs in Orig Kin": ["N/A"],
-        }
-
-        data_dict = (data_dict | {"known_groups": bypass_group_classifier}) if bypass_group_classifier else data_dict
-
-        with tf.NamedTemporaryFile("w") as f:
-            print(
-                colored("Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).", "green")
-            )
-            self.align_novel_kin_seqs(
-                id_to_seq
-            )  # existing_seqs = pd.read_csv("../data/raw_data/kinase_seqs_494.csv").index.tolist()
-            print(colored("Status: Done Aligning Novel Kinase Sequences.", "green"))
-            if cartesian_product:
-                with open(f.name, "w") as f2:
-                    f2.write(json.dumps(data_dict, indent=3))
-                res = self.evaluation_preparation(
-                    {"test_json": f.name, "device": device},
-                    f.name,
-                    predict_mode=True,
-                    bypass_group_classifier=bypass_group_classifier,
-                    get_emp_eqn=convert_raw_to_prob,
-                )
-            else:
-                efficient_to_csv(data_dict, f.name)
-                # The "meat" of the prediction process.
-                res = self.evaluation_preparation(
-                    {"test": f.name, "device": device}, f.name, predict_mode=True, get_emp_eqn=convert_raw_to_prob
-                )
-            assert isinstance(res, list), "res is not a list"
-            assert res is not None, "res is None"
-            emp_eqns = [x[1][3] for x in res]
-            group_predictions = [x[1][2] for x in res]
-            numerical_scores = [x[1][1] for x in res]
-            pred_ids = [x[0] for x in res]
-            if normalize_scores:
-                max_ = max(numerical_scores)
-                min_ = min(numerical_scores)
-                numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
-            if convert_raw_to_prob:
-                assert len(emp_eqns) == len(numerical_scores), "emp_eqns and numerical_scores are not the same length"
-                mapped_numerical_scores = []
-                for pred_id, x, emp_eqn in zip(pred_ids, numerical_scores, emp_eqns):
-                    if isinstance(emp_eqn, Callable):
-                        mapped_numerical_scores.append(emp_eqn([x])[0])
-                    else:
-                        warnings.warn(
-                            colored(f"No empirical equation found for query {pred_id}. Returning raw score.", "yellow"),
-                            UserWarning,
-                        )
-                        mapped_numerical_scores.append(x)
-            boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
-        print(colored("Status: Predictions Complete!", "green"))
         if "dict" in predictions_output_format or re.search(r"(sqlite|csv)", predictions_output_format):
             print(colored("Status: Copying Results to Dictionary.", "green"))
 
@@ -346,6 +281,96 @@ class MultiStageClassifier:
         else:
             return ret
 
+    def predict(
+        self,
+        kinase_seqs: list[str],
+        kin_info: dict,
+        site_seqs: list[str],
+        site_info: dict,
+        predictions_output_format: str = "inorder",
+        suppress_seqs_in_output: bool = False,
+        device: str = "cpu",
+        scores: bool = False,
+        normalize_scores: bool = False,
+        cartesian_product: bool = False,
+        group_output: bool = False,
+        bypass_group_classifier: list[str] = [],
+        convert_raw_to_prob=True,
+    ):
+        temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first").reset_index()
+        seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
+        id_to_seq = {v: k for k, v in seq_to_id.items()}
+        assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
+
+        data_dict = {
+            "Gene Name of Provided Kin Seq": [seq_to_id[k] for k in kinase_seqs],
+            "Gene Name of Kin Corring to Provided Sub Seq": ["N/A"],
+            "Kinase Sequence": kinase_seqs,
+            "Site Sequence": site_seqs,
+            "pair_id": [
+                f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))
+            ],
+            "Class": [-1],
+            "Num Seqs in Orig Kin": ["N/A"],
+        }
+
+        data_dict = (data_dict | {"known_groups": bypass_group_classifier}) if bypass_group_classifier else data_dict
+
+        with tf.NamedTemporaryFile("w") as f:
+            if cartesian_product:
+                with open(f.name, "w") as f2:
+                    f2.write(json.dumps(data_dict, indent=3))
+            else:
+                efficient_to_csv(data_dict, f.name)
+
+            # The "meat" of the prediction process.
+            res = self.evaluation_preparation(
+                {"test": f.name, "device": device},
+                f.name,
+                predict_mode=True,
+                bypass_group_classifier=bypass_group_classifier,
+                get_emp_eqn=convert_raw_to_prob,
+            )
+
+            assert isinstance(res, list), "res is not a list"
+            assert res is not None, "res is None"
+            emp_eqns = [x[1][3] for x in res]
+            group_predictions = [x[1][2] for x in res]
+            numerical_scores = [x[1][1] for x in res]
+            pred_ids = [x[0] for x in res]
+            if normalize_scores:
+                max_ = max(numerical_scores)
+                min_ = min(numerical_scores)
+                numerical_scores = [(x - min_) / (max_ - min_) for x in numerical_scores]
+            if convert_raw_to_prob:
+                assert len(emp_eqns) == len(numerical_scores), "emp_eqns and numerical_scores are not the same length"
+                mapped_numerical_scores = []
+                for pred_id, x, emp_eqn in zip(pred_ids, numerical_scores, emp_eqns):
+                    if isinstance(emp_eqn, Callable):
+                        mapped_numerical_scores.append(emp_eqn([x])[0])
+                    else:
+                        warnings.warn(
+                            colored(f"No empirical equation found for query {pred_id}. Returning raw score.", "yellow"),
+                            UserWarning,
+                        )
+                        mapped_numerical_scores.append(x)
+            boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
+        print(colored("Status: Predictions Complete!", "green"))
+        return self._package_results(
+            predictions_output_format,
+            kin_info,
+            site_info,
+            kinase_seqs,
+            site_seqs,
+            cartesian_product,
+            boolean_predictions,
+            numerical_scores,
+            group_predictions,
+            scores,
+            group_output,
+            suppress_seqs_in_output,
+        )
+
     def align_novel_kin_seqs(
         self,
         kin_id_to_seq: dict[str, str],
@@ -404,7 +429,116 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def main(load_gc=True):
+def get_group_classifier():
+    args = parse_args()
+    with open(str(args["gc_params"]), "r") as f:
+        hps = json.load(f)
+    gc = SiteClassifier.get_group_classifier(join_first(1, args["train"]), join_first(1, args["kin_fam_grp"]), {}, hps)
+    if args.get("val"):
+        (vl,) = SiteClassifier.format_data(join_first(1, args["val"]), kin_fam_grp=args["kin_fam_grp"])
+        print(colored(f"Val Info: Val Performance of GC: {SiteClassifier.performance(gc, *vl)}", "blue"))
+    if args.get("s"):
+        smart_save_gc(gc)
+    return gc
+
+
+def device_eligibility(arg_value):
+    try:
+        assert bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value))
+        if "cuda" in arg_value:
+            if arg_value == "cuda":
+                return arg_value
+            cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
+            assert 0 <= cuda_num <= torch.cuda.device_count()
+    except Exception:
+        raise argparse.ArgumentTypeError(
+            f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
+            f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
+        )
+
+
+def parse_args() -> dict[str, Union[str, None]]:
+    print(colored("Progress: Parsing Arguments", "green"))
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--device",
+        type=str,
+        help=(
+            "Specify device. Choices are"
+            f" {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
+        ),
+        metavar="<device>",
+        default="cuda:0" if torch.cuda.is_available() else "cpu",
+    )
+    parser.add_argument(
+        "--train", type=str, help="Specify train file name", required=True, metavar="<train_file_name.csv>"
+    )
+    parser.add_argument(
+        "--val", type=str, help="Specify validation file name", required=False, metavar="<val_file_name.csv>"
+    )
+
+    parser.add_argument(
+        "--gc-params",
+        type=str,
+        help="Specify Group Classifier and its hyperparameters file name",
+        required=False,
+        default=join_first(0, "GC_params.json"),
+        metavar="gc_params.json>",
+    )
+
+    # parser.add_argument(
+    #     "--gc-training-params",
+    #     type=str,
+    #     help="Specify Kinase Substrate Relationship training options file name",
+    #     required=False,
+    #     default=join_first(0, "KSR_training_params.json"),
+    #     metavar="<gc_params.json>",
+    # )
+
+    # parser.add_argument(
+    #     "--nni-params",
+    #     type=str,
+    #     help="Specify Nerual Net Interface options file name",
+    #     required=False,
+    #     default=join_first(0, "NNI_params.json"),
+    #     metavar="<gc_params.json>",
+    # )
+
+    parser.add_argument(
+        "--kin-fam-grp",
+        type=str,
+        help="Specify Kinase-Family-Group file name",
+        required=False,
+        default=join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+        metavar="<kin_fam_grp.csv>",
+    )
+
+    parser.add_argument("-s", action="store_true", help="Include to save state", required=False)
+
+    try:
+        args = vars(parser.parse_args())
+    except Exception as e:
+        print(e)
+        exit(1)
+
+    device_eligibility(args["device"])
+    extra_files = (["val"] if args.get("val") else []) + (["gc_params"] if args.get("gc_params") else [])
+    for fn in ["train", "kin_fam_grp"] + extra_files:
+        f = str(args[fn])
+        try:
+            assert "formatted" in f or f.endswith(
+                ".json"
+            ), "'formatted' is not in the train or filename. Did you select the correct file?"
+        except AssertionError as e:
+            warnings.warn(str(e), UserWarning)
+        assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
+
+    return args
+
+
+def get_multi_stage_classifier(load_gc=True):
     run_args = parsing()
     assert (
         run_args.get("load") is not None or run_args.get("load_include_eval") is not None
@@ -511,4 +645,4 @@ def efficient_to_csv(data_dict, outfile):
 
 
 if __name__ == "__main__":
-    main()
+    get_group_classifier()

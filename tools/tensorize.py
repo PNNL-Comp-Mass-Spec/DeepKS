@@ -130,14 +130,14 @@ def gather_data(
         if isinstance(data, pd.DataFrame):
             ret_info_dict = {
                 "kin_orders": {
-                    "train": data.loc[train_ids]["Gene Name of Provided Kin Seq"].to_list(),
-                    "val": data.loc[val_ids]["Gene Name of Provided Kin Seq"].to_list(),
-                    "test": data.loc[test_ids]["Gene Name of Provided Kin Seq"].to_list(),
+                    "train": data.loc[train_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+                    "val": data.loc[val_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+                    "test": data.loc[test_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
                 },
                 "orig_symbols_order": {
-                    "train": data.loc[train_ids]["Gene Name of Provided Kin Seq"].to_list(),
-                    "val": data.loc[val_ids]["Gene Name of Provided Kin Seq"].to_list(),
-                    "test": data.loc[test_ids]["Gene Name of Provided Kin Seq"].to_list(),
+                    "train": data.loc[train_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+                    "val": data.loc[val_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+                    "test": data.loc[test_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
                 },
                 "PairIDs": {
                     "train": (
@@ -168,14 +168,17 @@ def gather_data(
                 },
                 "orig_symbols_order": {
                     "train": [
-                        data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in train_ids
+                        data["Gene Name of Kin Corring to Provided Sub Seq"][i // len(data["Site Sequence"])]
+                        for i in train_ids
                     ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
-                    "val": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in val_ids][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                    "test": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in test_ids][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
+                    "val": [
+                        data["Gene Name of Kin Corring to Provided Sub Seq"][i // len(data["Site Sequence"])]
+                        for i in val_ids
+                    ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
+                    "test": [
+                        data["Gene Name of Kin Corring to Provided Sub Seq"][i // len(data["Site Sequence"])]
+                        for i in test_ids
+                    ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
                 },
                 "PairIDs": {  # FIXME!
                     "train": data["pair_id"][

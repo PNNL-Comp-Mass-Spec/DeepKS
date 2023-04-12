@@ -9,7 +9,9 @@ from torchinfo_modified import summary
 from roc_comparison_modified.auc_delong import delong_roc_test
 from termcolor import colored
 from sklearn.metrics import roc_auc_score
-from ..models.DeepKS_evaluation import protected_roc_auc_score
+from .roc_helpers import ROCHelpers
+
+protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 
 from .roc_lambda import get_avg_roc
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY

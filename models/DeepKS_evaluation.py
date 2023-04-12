@@ -1,12 +1,14 @@
 import warnings, matplotlib, numpy as np, pandas as pd, json, traceback, sys, itertools, scipy, scipy.special, os
-import sklearn, sklearn.metrics
-import random
+import sklearn, sklearn.metrics, tempfile, collections, random, cloudpickle as pickle
+from ..tools.roc_helpers import ROCHelpers
 
 random.seed(42)
 from abc import ABC, abstractmethod
 from roc_comparison_modified.auc_delong import delong_roc_variance
 from matplotlib import pyplot as plt, patches as ptch, collections as clct
 from matplotlib import colormaps  # type: ignore
+from typing import Union
+from termcolor import colored
 
 get_cmap = colormaps.get_cmap
 from pydash import _
@@ -26,123 +28,6 @@ def warning_handler(message, category, filename, lineno, file=None, line=None):
 
 
 warnings.showwarning = warning_handler
-
-
-class ROCHelpers:
-    @staticmethod
-    def get_avg_roc(fprs, tprs, aucs=None):
-        total_n = len(list(itertools.chain(*fprs))) + 1
-        X = np.linspace(0, 1, num=total_n, endpoint=False).tolist()
-        X = [X[i // 2] for i in range(len(X) * 2)]
-        Y = [ROCHelpers.get_tpr(fprs, tprs, x) for x in X]
-        micro_avg = 0
-        if aucs is not None:
-            for i, a in enumerate(aucs):
-                micro_avg += a * len(fprs[i]) / total_n
-
-        return X, Y, micro_avg
-
-    @staticmethod
-    def get_tpr(fprs, tprs, fpr_x, weighted=True):
-        assert len(fprs) == len(tprs)
-        total_n = len(list(itertools.chain(*fprs)))
-        running_sum = 0
-        for i in range(len(fprs)):
-            rel_weight = len(fprs[i]) / total_n if weighted else 1 / len(fprs)
-            tpr = -1
-            for j in range(len(fprs[i])):
-                if fpr_x == 0:
-                    tpr = 0
-                    break
-                if fprs[i][j] < fpr_x:
-                    continue
-                if fprs[i][j] == fpr_x:
-                    above = tprs[i][j + 1]
-                    below = tprs[i][j]
-                    tpr = (above + below) / 2
-                    break
-                if fprs[i][j] > fpr_x:
-                    if not np.allclose(
-                        [tprs[i][j]], [tprs[i][j - 1]]
-                    ):  # and not np.allclose([fprs[i][j]], [fprs[i][j - 1]]):
-                        tpr = tprs[i][j - 1] + (tprs[i][j] - tprs[i][j - 1]) / (fprs[i][j] - fprs[i][j - 1]) * (
-                            fpr_x - fprs[i][j - 1]
-                        )
-                    else:
-                        tpr = tprs[i][j]
-                    break
-            assert tpr != -1
-            running_sum += tpr * rel_weight
-        assert 0 <= running_sum <= 1 or np.isnan(
-            running_sum
-        ), "Avg. ROC cannot be lower than 0 or higher than 1. Alternatively, it must be NaN."
-        return running_sum
-
-    @staticmethod
-    def protected_roc_auc_score(y_true: ArrayLike, y_score: ArrayLike, *args, **kwargs) -> float:
-        """Wrapper for sklearn.metrics.roc_auc_score that handles edge cases
-
-        Args:
-            @arg y_true: Iterable of (integer) true labels
-            @arg y_score: Iterable of predicted scores
-            @arg *args: Additional arguments to pass to roc_auc_score
-            @arg **kwargs: Additional keyword arguments to pass to roc_auc_score
-
-        Raises:
-            e: Error that is not a multi class error or single class present error
-
-        Returns:
-            float: The roc_auc_score
-        """
-        try:
-            return float(sklearn.metrics.roc_auc_score(y_true, y_score, *args, **kwargs))
-        except Exception as e:
-            match str(e):
-                case "Only one class present in y_true. ROC AUC score is not defined in that case.":
-                    warnings.warn(f"Setting roc_auc_score to 0.0 since there is only one class present in y_true.")
-                    return 0.0
-                case "multi_class must be in ('ovo', 'ovr')":
-                    # softmax in case of multi-class
-                    y_score = np.asarray(scipy.special.softmax(y_score, 1))
-                    return ROCHelpers.protected_roc_auc_score(
-                        y_true,
-                        y_score,
-                        *args,
-                        **(
-                            {"multi_class": "ovo", "average": "macro", "labels": list(range(y_score.shape[-1]))}
-                            | kwargs
-                        ),
-                    )
-                case _:
-                    raise e
-
-    @staticmethod
-    def auc_confidence_interval(truths, pred_scores, alpha=0.05) -> tuple[tuple[float, float], float]:
-        """Based off of https://gist.github.com/RaulSanchezVazquez/d338c271ace3e218d83e3cb6400a769c"""
-        auc, auc_covariance = delong_roc_variance(truths, pred_scores)
-        # auc, auc_covariance = 0.8, (10**random.uniform(-1, 0))**2  # For testing purposes only
-        auc_std = auc_covariance**0.5
-        quant = -scipy.stats.norm.ppf(alpha / 2)
-        half_width = quant * auc_std
-        ci = (max(0, auc - half_width), min(1, auc + half_width))
-        p_val = 2 - 2 * scipy.stats.norm.cdf(abs(auc - 0.5) / auc_std)
-        return ci, p_val
-
-    @staticmethod
-    def get_p_stars(p_val):
-        if np.isnan(p_val):
-            return "?"
-        assert p_val >= 0 and p_val <= 1, p_val
-        if p_val < 0.001:
-            return "***"
-        elif p_val < 0.01:
-            return "**"
-        elif p_val < 0.05:
-            return "*"
-        if p_val < 0.1:
-            return "."
-        else:
-            return ""
 
 
 class PerformancePlot(ABC):  # ABC = Abstract Base Class
@@ -520,31 +405,58 @@ class SplitIntoGroupsROC(ROC):
     def make_roc(self, scores, labels):
         return super().make_plot(scores, labels)
 
-    def _make_plot_core(self, *args, **kwargs):
-        assert grp_to_loader_true_groups is not None
-        if from_loaded is None:
-            grp_to_interface = {k: grp_to_interface[k] for k in grp_to_loader}
-            assert grp_to_interface.keys() == grp_to_loader.keys(), (
-                "The groups for the provided models are not equal to the groups for the provided loaders."
-                f" Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
+    @staticmethod
+    def compute_test_evaluations(test_filename: str, multi_stage_classifier, resave_loc: str):
+        from ..models.multi_stage_classifier import MultiStageClassifier
+
+        assert isinstance(
+            multi_stage_classifier, MultiStageClassifier
+        ), "`multi_stage_classifier` must be a MultiStageClassifier"
+        grp_to_interface = multi_stage_classifier.individual_classifiers.interfaces
+        grp_to_info_pass_through_info_dict = {}
+        groups = list(grp_to_interface.keys())
+        loaders = list(
+            multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
+                which_groups=groups,
+                Xy_formatted_input_file=test_filename,
+                pred_groups=getattr(multi_stage_classifier, "pred_grp_dict"),
+                info_dict_passthrough=grp_to_info_pass_through_info_dict,
             )
+        )
+        try:
+            assert len(loaders) == len(groups), "The number of loaders must be equal to the number of groups"
+        except AssertionError as e:
+            raise NotImplementedError(str(e)) from None
+        grp_to_loader = dict(zip(groups, loaders))
+
+        grp_to_interface = {k: grp_to_interface[k] for k in grp_to_loader}
+        assert grp_to_interface.keys() == grp_to_loader.keys(), (
+            "The groups for the provided models are not equal to the groups for the provided loaders."
+            f" Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
+        )
+
+        for grp in groups:
+            interface = grp_to_interface[grp]
+            loader = grp_to_loader[grp]
+            _, _, outputs, labels, _ = interface.eval(
+                loader, cutoff=0.5, metric="roc", predict_mode=False, display_pb=False
+            )
+            # Group -> Tr/Vl/Te -> outputs/labels -> list
+            setattr(interface, "completed_test_evaluations", {grp: {"test": {"outputs": outputs, "labels": labels}}})
+
+        with open(resave_loc, "wb") as f:
+            pickle.dump(grp_to_interface, f)
+
+    def _make_plot_core(self, grp_to_loader_true_groups, from_loaded, _ic_ref, plotting_kwargs):
+        get_emp_eqn = plotting_kwargs.get("get_emp_eqn", False)
+        assert grp_to_loader_true_groups is not None
         orig_order = ["CAMK", "AGC", "CMGC", "CK1", "OTHER", "TK", "TKL", "STE", "ATYPICAL", "<UNANNOTATED>"]
-        groups = grp_to_interface.keys() if from_loaded is None else from_loaded.keys()
+        groups = from_loaded.keys()
         true_grp_to_outputs_and_labels = collections.defaultdict(lambda: collections.defaultdict(list))
         grp_to_emp_eqn = {}
         for grp in groups:
-            if from_loaded is None:
-                interface = grp_to_interface[grp]
-                loader = grp_to_loader[grp]
-                _, _, outputs, labels, _ = interface.eval(
-                    loader, cutoff=0.5, metric="roc", predict_mode=False, display_pb=False
-                )
-                if retain_evals is not None:
-                    # Group -> Tr/Vl/Te -> outputs/labels -> list
-                    retain_evals.update({grp: {"test": {"outputs": outputs, "labels": labels}}})
-            else:
-                outputs = from_loaded[grp]["test"]["outputs"]
-                labels = from_loaded[grp]["test"]["labels"]
+            outputs = from_loaded[grp]["test"]["outputs"]
+            labels = from_loaded[grp]["test"]["labels"]
             agst = np.argsort(outputs)
             booled_labels = [bool(x) for x in labels]
             if get_emp_eqn:
@@ -593,12 +505,51 @@ class SplitIntoGroupsROC(ROC):
                     ),
                     UserWarning,
                 )
-        for group in set(all_obs := list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()]))):
+
+        if plotting_kwargs.get("plot_with_orig_order", False):
+            groups = orig_order
+        else:
+            groups = sorted(list(set(list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()])))))
+        fprs, tprs, thresholds, datas = [], [], [], []
+        for group in groups:
             outputs, labels = (
                 true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
                 true_grp_to_outputs_and_labels[group]["labels"],
             )
-            orig_i = orig_order.index(group)
+            fpr, tpr, threshold = sklearn.metrics.roc_curve(labels, outputs)
+            data = pd.DataFrame({"Class": labels, "Score": outputs})
+
+            fprs.append(fpr)
+            tprs.append(tpr)
+            thresholds.append(threshold)
+            datas.append(data)
+
+        self._roc_core_components(fprs, tprs, thresholds, datas, groups, plotting_kwargs)
+
+
+def eval_and_roc_workflow(multi_stage_classifier, test_filename, resave_loc):
+    roc = SplitIntoGroupsROC()
+    if hasattr(multi_stage_classifier, "completed_test_evaluations"):
+        print(colored("Info: Using pre-computed test evaluations.", "blue"))
+    else:
+        print(colored("Info: Computing test evaluations.", "blue"))
+        roc.compute_test_evaluations(test_filename, multi_stage_classifier, resave_loc)
+
+    roc.make_plot(
+        multi_stage_classifier.completed_test_evaluations["test"]["outputs"],
+        multi_stage_classifier.completed_test_evaluations["test"]["labels"],
+        multi_stage_classifier.completed_test_evaluations["test"]["kinase_order"],
+        "TESTGRP",
+        plotting_kwargs={
+            "plot_pointer_labels": False,
+            "legend_all_lines": True,
+            "plot_unified_line": True,
+            "diff_by_opacity": False,
+            "focus_on": "Kin-B",
+            "plot_mean_value_line": False,
+        },
+    )
+    roc.display_plot()
 
 
 def test():
@@ -624,7 +575,7 @@ def test():
     # the_roc.save_plot("test_roc.pdf", save_fig_kwargs={"bbox_inches": "tight", "dpi": 300})
 
 
-def main():
+def get_multi_stage_classifier():
     if os.path.exists("roc-cache.json"):
         with open("roc-cache.json", "r") as f:
             cache: dict = json.load(f)

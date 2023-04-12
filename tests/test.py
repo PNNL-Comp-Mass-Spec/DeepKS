@@ -110,7 +110,7 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
 
 class TestTrainingGroupClassifier(unittest.TestCase):
     def setUp(self):
-        from ..models.multi_stage_classifier import main as this_main
+        from ..models.multi_stage_classifier import get_multi_stage_classifier as this_main
 
         self.main = this_main
 

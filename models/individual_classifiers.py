@@ -1,5 +1,4 @@
 from __future__ import annotations
-import collections
 
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
@@ -7,20 +6,15 @@ if __name__ == "__main__":
     write_splash("main_nn_trainer")
     print("Progress: Loading Modules", flush=True)
 
-# import cProfile
-# pr = cProfile.Profile()
-# pr.enable()
-import pandas as pd, json, re, torch, tqdm, torch.utils, io, psutil, numpy as np, warnings, dill, inspect
-import torch.utils.data, cloudpickle as pickle, pickle as orig_pickle, pstats, pathlib, os  # type: ignore
+import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data
+import cloudpickle as pickle, socket, pathlib, os
 from .KinaseSubstrateRelationship import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
-from ..tools.parse import parsing
 from ..tools import file_names
 from typing import Callable, Generator, Union, Tuple
 from pprint import pprint  # type: ignore
 from termcolor import colored
-from . import DeepKS_evaluation
 from ..tools.file_names import get as get_file_name
 from copy import deepcopy
 
@@ -59,7 +53,7 @@ class IndividualClassifiers:
         device: str,
         args: dict[str, Union[str, None]],
         groups: list[str],
-        kin_fam_grp_file: str = "../data/preprocessing/kin_to_fam_to_grp_826.csv",
+        kin_fam_grp_file: str,
     ):
         for group in grp_to_model_args:
             assert group in grp_to_interface_args, "No interface args for group %s" % group
@@ -141,17 +135,23 @@ class IndividualClassifiers:
             with open(Xy_formatted_input_file, "r") as f:
                 Xy = json.load(f)
         if pred_groups is None:  # Training
-            print("Warning: Using ground truth groups. (Normal for training)")
-            Xy["Group"] = [symbol_to_grp_dict[x] for x in Xy["Gene Name of Provided Kin Seq"].apply(DEL_DECOR)]
+            print(colored("Warning: Using ground truth groups. (Normal for training)", "yellow"))
+            Xy["Group"] = [
+                symbol_to_grp_dict[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
+            ]
         else:  # Evaluation CHECK
             if (
-                "Gene Name of Provided Kin Seq" in Xy.columns
+                "Gene Name of Kin Corring to Provided Sub Seq" in Xy.columns
                 if isinstance(Xy, pd.DataFrame)
-                else "Gene Name of Provided Kin Seq" in Xy.keys()
+                else "Gene Name of Kin Corring to Provided Sub Seq" in Xy.keys()
             ):  # Test
-                Xy["Group"] = [pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Gene Name of Provided Kin Seq"]]]
+                Xy["Group"] = [
+                    pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                ]
             else:  # Prediction
-                Xy["Group"] = [pred_groups[x] for x in Xy["Gene Name of Provided Kin Seq"].apply(DEL_DECOR)]
+                Xy["Group"] = [
+                    pred_groups[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
+                ]
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
             assert isinstance(Xy, pd.DataFrame)
@@ -167,7 +167,9 @@ class IndividualClassifiers:
                 group_df_inner = {}
                 put_in_indices = [i for i, x in enumerate(Xy["Group"]) if x == group]
 
-                group_df_inner["Gene Name of Provided Kin Seq"] = Xy["Gene Name of Provided Kin Seq"]
+                group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = Xy[
+                    "Gene Name of Kin Corring to Provided Sub Seq"
+                ]
                 group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = [
                     Xy["Gene Name of Kin Corring to Provided Sub Seq"][i] for i in put_in_indices
                 ]
@@ -312,14 +314,9 @@ class IndividualClassifiers:
                 info_dict_passthrough["on_chunk"] = info_dict["on_chunk"]
                 info_dict_passthrough["total_chunks"] = info_dict["total_chunks"]
                 assert "text" not in evaluation_kwargs, "Should not specify `text` output text in `evaluation_kwargs`."
-                # if "predict_mode" not in evaluation_kwargs or not evaluation_kwargs["predict_mode"]:
-                #     self.interfaces[group_te].test(test_loader, group=group_te, **evaluation_kwargs)
                 assert test_loader is not None
                 count += 1
                 yield group_te, test_loader
-                # if len(tqdm_passthrough) == 1:
-                #     assert isinstance(tqdm_passthrough[0], tqdm.tqdm)
-                #     tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
         if count > 0:
             pass
         else:
@@ -488,117 +485,182 @@ class IndividualClassifiers:
                         for grp in grp_to_loaders
                     },
                 )
-                pick_out_kinase = "HIPK2|Q9H2X6"
-                # assert pick_out_kinase in true_groups
-                # pick_out_group = true_groups[pick_out_kinase]
-                pick_out_group = "CMGC"
-                if pick_out_kinase == "ABL1|P00519":
-                    assert pick_out_group == "TK"
-                if pick_out_kinase == "HIPK2|Q9H2X6":
-                    assert pick_out_group == "CMGC"
-                print(colored(f"Status: Creating ROC curves stratified by kinase family {pick_out_group}.", "green"))
-                roc = DeepKS_evaluation.SplitIntoKinasesROC()
-                scores = self.evaluations[pick_out_group]["test"]["outputs"]
-                labels = self.evaluations[pick_out_group]["test"]["labels"]
-                kinase_identities = grp_to_info_pass_through_info_dict[pick_out_group]["orig_symbols_order"]["test"]
-                # assert pick_out_kinase in kinase_identities
-                roc.make_roc(
-                    scores,
-                    labels,
-                    kinase_identities,
-                    pick_out_group,
-                    plotting_kwargs={
-                        "plot_markers": True,
-                        "plot_unified_line": True,
-                        "jitter_amount": 0,
-                        "diff_by_color": False,
-                        "diff_by_opacity": True,
-                    },
-                )
-                roc.save_roc(get_file_name(f"ROC_{pick_out_group}", "pdf"))
+            #     pick_out_kinase = "HIPK2|Q9H2X6"
+            #     # assert pick_out_kinase in true_groups
+            #     # pick_out_group = true_groups[pick_out_kinase]
+            #     pick_out_group = "CMGC"
+            #     if pick_out_kinase == "ABL1|P00519":
+            #         assert pick_out_group == "TK"
+            #     if pick_out_kinase == "HIPK2|Q9H2X6":
+            #         assert pick_out_group == "CMGC"
+            #     print(colored(f"Status: Creating ROC curves stratified by kinase family {pick_out_group}.", "green"))
+            #     roc = DeepKS_evaluation.SplitIntoKinasesROC()
+            #     scores = self.evaluations[pick_out_group]["test"]["outputs"]
+            #     labels = self.evaluations[pick_out_group]["test"]["labels"]
+            #     kinase_identities = grp_to_info_pass_through_info_dict[pick_out_group]["orig_symbols_order"]["test"]
+            #     # assert pick_out_kinase in kinase_identities
+            #     roc.make_plot(
+            #         scores,
+            #         labels,
+            #         kinase_identities,
+            #         pick_out_group,
+            #         plotting_kwargs={
+            #             "plot_markers": True,
+            #             "plot_unified_line": True,
+            #             "jitter_amount": 0,
+            #             "diff_by_color": False,
+            #             "diff_by_opacity": True,
+            #         },
+            #     )
+            #     roc.save_plot(get_file_name(f"ROC_{pick_out_group}", "pdf"))
 
-            else:  # Eval already completed
-                print("Progress: ROC")
-                NNInterface.get_combined_rocs_from_individual_models(
-                    savefile=f"../bin/saved_state_dicts/individual_classifiers_{file_names.get()}"
-                    + file_names.get()
-                    + ".pkl",
-                    from_loaded=self.evaluations,
-                )
+            # else:  # Eval already completed
+            #     print("Progress: ROC")
+            #     NNInterface.get_combined_rocs_from_individual_models(
+            #         savefile=f"../bin/saved_state_dicts/individual_classifiers_{file_names.get()}"
+            #         + file_names.get()
+            #         + ".pkl",
+            #         from_loaded=self.evaluations,
+            #     )
             if self.args.get("s"):
                 smart_save_nn(self)
 
 
 def main():
     print(colored("Progress: Parsing Args", "green"))
-    args = parsing()
-    if args["train"] is not None:  # AKA, not loading from pickle
-        print("Progress: Preparing Training Data")
-        train_filename = args["train"]
-        val_filename = args["val"]
-        device = args["device"]
-        assert device is not None
-        groups: list[str] = (
-            pd.read_csv(join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"))["Group"].unique().tolist()
-        )  # FIXME - all - make them configurable
+    args = parse_args()
+    print(colored("Progress: Preparing Training Data", "green"))
+    train_filename = args["train"]
+    val_filename = args["val"]
+    device = args["device"]
+    kin_fam_grp = pd.read_csv(kfg_file := join_first(1, args["kin_fam_grp"]))
+    groups: list[str] = kin_fam_grp["Group"].unique().tolist()  # FIXME - all - make them configurable
 
-        with open(join_first(0, "KSR_params.json")) as f:
-            default_grp_to_model_args = json.load(f)
-        with open(join_first(0, "NNI_params.json")) as f:
-            default_grp_to_interface_args = json.load(f)
-            default_grp_to_interface_args["loss_fn"] = eval(str(default_grp_to_interface_args["loss_fn"]))
-            default_grp_to_interface_args["optim"] = eval(str(default_grp_to_interface_args["optim"]))
-            default_grp_to_interface_args["device"] = device
-        with open(join_first(0, "KSR_training_params.json")) as f:
-            default_training_args = json.load(f)
+    assert device is not None
 
-        classifier = IndividualClassifiers(
-            grp_to_model_args={group: deepcopy(default_grp_to_model_args) for group in groups},
-            grp_to_interface_args={group: deepcopy(default_grp_to_interface_args) for group in groups},
-            grp_to_training_args={group: deepcopy(default_training_args) for group in groups},
-            device=device,
-            args=args,
-            groups=groups,
-            kin_fam_grp_file="../data/preprocessing/kin_to_fam_to_grp_826.csv",
-        )
+    with open(join_first(0, args["ksr_params"])) as f:
+        default_grp_to_model_args = json.load(f)
+    with open(join_first(0, args["nni_params"])) as f:
+        default_grp_to_interface_args = json.load(f)
+        default_grp_to_interface_args["loss_fn"] = eval(str(default_grp_to_interface_args["loss_fn"]))
+        default_grp_to_interface_args["optim"] = eval(str(default_grp_to_interface_args["optim"]))
+        default_grp_to_interface_args["device"] = device
+    with open(join_first(0, args["ksr_training_params"])) as f:
+        default_training_args = json.load(f)
 
-        print(colored("Status: About to Train", "green"))
-        assert val_filename is not None
-        classifier.train(
-            which_groups=groups,
-            Xy_formatted_train_file=join_first(1, train_filename),
-            Xy_formatted_val_file=join_first(1, val_filename),
-        )
-    else:  # AKA, loading from file
-        classifier = IndividualClassifiers.load_all(
-            args["load"] if args["load_include_eval"] is None else args["load_include_eval"]
-        )
-        groups = list(classifier.interfaces.keys())
-    if args["load_include_eval"] is None and args["train"] is None:
-        assert (test_file := args.get("test")) is not None
-        assert "pred_grp_dict" in classifier.__dict__
-        grp_to_loaders = {
-            grp: loader
-            for grp, loader in classifier.obtain_group_and_loader(
-                which_groups=groups, Xy_formatted_input_file=test_file, pred_groups=classifier.pred_grp_dict  # type: ignore
-            )
-        }
+    classifier = IndividualClassifiers(
+        grp_to_model_args={group: deepcopy(default_grp_to_model_args) for group in groups},
+        grp_to_interface_args={group: deepcopy(default_grp_to_interface_args) for group in groups},
+        grp_to_training_args={group: deepcopy(default_training_args) for group in groups},
+        device=device,
+        args=args,
+        groups=groups,
+        kin_fam_grp_file=kfg_file,
+    )
 
-        print("Progress: ROC")
-        NNInterface.get_combined_rocs_from_individual_models(
-            classifier.interfaces,
-            grp_to_loaders,
-            f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
-            retain_evals=classifier.evaluations,
-        )
-    elif args["train"] is None:
-        print("Progress: ROC")
-        NNInterface.get_combined_rocs_from_individual_models(
-            savefile=f"../images/Evaluation and Results/ROC_indiv_{file_names.get()}",
-            from_loaded=classifier.evaluations,
-        )
+    print(colored("Status: About to Train", "green"))
+    assert val_filename is not None
+    classifier.train(
+        which_groups=groups,
+        Xy_formatted_train_file=join_first(1, train_filename),
+        Xy_formatted_val_file=join_first(1, val_filename),
+    )
+
     if args["s"]:
         smart_save_nn(classifier)
+
+
+def device_eligibility(arg_value):
+    try:
+        assert bool(re.search("^cuda(:|)[0-9]*$", arg_value)) or bool(re.search("^cpu$", arg_value))
+        if "cuda" in arg_value:
+            if arg_value == "cuda":
+                return arg_value
+            cuda_num = int(re.findall("([0-9]+)", arg_value)[0])
+            assert 0 <= cuda_num <= torch.cuda.device_count()
+    except Exception:
+        raise argparse.ArgumentTypeError(
+            f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
+            f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
+        )
+
+
+def parse_args() -> dict[str, Union[str, None]]:
+    print(colored("Progress: Parsing Arguments", "green"))
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--device",
+        type=str,
+        help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.",
+        metavar="<device>",
+        default="cuda:0" if torch.cuda.is_available() else "cpu",
+    )
+    parser.add_argument(
+        "--train", type=str, help="Specify train file name", required=True, metavar="<train_file_name.csv>"
+    )
+    parser.add_argument(
+        "--val", type=str, help="Specify validation file name", required=True, metavar="<val_file_name.csv>"
+    )
+
+    parser.add_argument(
+        "--ksr-params",
+        type=str,
+        help="Specify Kinase Substrate Relationship hyperparameters file name",
+        required=False,
+        default=join_first(0, "KSR_params.json"),
+        metavar="<ksr_params.json>",
+    )
+
+    parser.add_argument(
+        "--ksr-training-params",
+        type=str,
+        help="Specify Kinase Substrate Relationship training options file name",
+        required=False,
+        default=join_first(0, "KSR_training_params.json"),
+        metavar="<ksr_params.json>",
+    )
+
+    parser.add_argument(
+        "--nni-params",
+        type=str,
+        help="Specify Nerual Net Interface options file name",
+        required=False,
+        default=join_first(0, "NNI_params.json"),
+        metavar="<ksr_params.json>",
+    )
+
+    parser.add_argument(
+        "--kin-fam-grp",
+        type=str,
+        help="Specify Kinase-Family-Group file name",
+        required=False,
+        default=join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+        metavar="<kin_fam_grp.csv>",
+    )
+
+    parser.add_argument("-s", action="store_true", help="Include to save state", required=False)
+
+    try:
+        args = vars(parser.parse_args())
+    except Exception as e:
+        print(e)
+        exit(1)
+
+    device_eligibility(args["device"])
+
+    for fn in ["train", "val", "ksr_params", "ksr_training_params", "nni_params"]:
+        f = str(args[fn])
+        try:
+            assert "formatted" in f or f.endswith(
+                ".json"
+            ), "'formatted' is not in the train or filename. Did you select the correct file?"
+        except AssertionError as e:
+            warnings.warn(str(e), UserWarning)
+        assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
+
+    return args
 
 
 if __name__ == "__main__":

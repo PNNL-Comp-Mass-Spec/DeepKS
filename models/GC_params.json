@@ -1,0 +1,5 @@
+{
+    "base_classifier": "ensemble.RandomForestClassifier",
+    "n_estimators": 10000,
+    "max_depth": 3
+}
