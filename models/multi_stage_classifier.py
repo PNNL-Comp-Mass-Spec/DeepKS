@@ -27,16 +27,16 @@ warnings.filterwarnings(action="always", category=UserWarning)
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-def smart_save_gc(individual_classifier: grp_pred.SKGroupClassifier):
+def smart_save_gc(group_classifier: grp_pred.SKGroupClassifier):
     bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
-    max_version = -1
+    max_version = 0
     for file in os.listdir(bin_):
         if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(2)) + 1)
     save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
     print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
     with open(save_path, "wb") as f:
-        pickle.dump(individual_classifier, f)
+        pickle.dump(group_classifier, f)
 
 
 class MultiStageClassifier:
@@ -55,17 +55,23 @@ class MultiStageClassifier:
         )
 
     def evaluation_preparation(
-        self, addl_args, Xy_formatted_input_file: str, predict_mode=False, bypass_group_classifier={}, get_emp_eqn=True
+        self,
+        addl_args,
+        Xy_formatted_input_file: str,
+        predict_mode=False,
+        bypass_group_classifier={},
+        get_emp_eqn=True,
+        cartesian_product=False,
     ):
         print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
         # Open XY_formatted_input_file
         Xy_formatted_input_file = join_first(1, Xy_formatted_input_file)
-        if "test_json" in addl_args:
-            with open(Xy_formatted_input_file) as f:
-                input_file = json.load(f)
-            input_file = {k: pd.Series(v) for k, v in input_file.items()}
-        else:
+        with open(Xy_formatted_input_file) as f:
+            XY_chars = f.read()
+        try:
             input_file = pd.read_csv(Xy_formatted_input_file)
+        except pd.errors.ParserError:
+            input_file = {k: pd.Series([x for x in v]) for k, v in json.loads(XY_chars).items()}
         if not predict_mode:
             _, _, true_symbol_to_grp_dict = individual_classifiers.IndividualClassifiers.get_symbol_to_grp_dict(
                 "../data/preprocessing/kin_to_fam_to_grp_826.csv"
@@ -74,7 +80,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["Site Sequences"].drop_duplicates()
+        unq_symbols = input_file["Site Sequence"].drop_duplicates()
         unq_symbols_inds = unq_symbols.index.tolist()
         unq_symbols = unq_symbols.tolist()
 
@@ -88,7 +94,8 @@ class MultiStageClassifier:
             groups_true = [None for _ in unq_symbols]
 
         ### Perform Real Accuracy
-        groups_prediction = self.group_classifier.predict(unq_symbols)
+        embedded_unq_symbols = [SiteClassifier.one_hot_aa_embedding(s) for s in unq_symbols]
+        groups_prediction = self.group_classifier.predict(embedded_unq_symbols)
         pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
         self.pred_grp_dict = pred_grp_dict
         true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
@@ -110,19 +117,16 @@ class MultiStageClassifier:
         # Report performance
         res = {}
         self.individual_classifiers.evaluations = {}
-        if predict_mode is False or bypass_group_classifier:
+        if bypass_group_classifier:
             print(
                 colored(
                     (
                         "Info: Group Classifier Accuracy"
                         f" {'(since we have known groups) ' if bypass_group_classifier else ''}—"
-                        f" {self.group_classifier.test(groups_true, groups_prediction)}"
+                        # f" {self.group_classifier.test(groups_true, groups_prediction)}"
                     ),
                     "blue",
                 )
-            )
-            self.individual_classifiers.evaluation(
-                addl_args, pred_grp_dict, true_grp_dict, predict_mode, get_emp_eqn=get_emp_eqn
             )
             # assert isinstance(emp_eqn, Callable)
         if predict_mode:
@@ -142,6 +146,7 @@ class MultiStageClassifier:
                 true_groups={},
                 predict_mode=True,
                 get_emp_eqn=get_emp_eqn,
+                cartesian_product=cartesian_product,
             )
 
         return res
@@ -304,7 +309,7 @@ class MultiStageClassifier:
 
         data_dict = {
             "Gene Name of Provided Kin Seq": [seq_to_id[k] for k in kinase_seqs],
-            "Gene Name of Kin Corring to Provided Sub Seq": ["N/A"],
+            "Gene Name of Kin Corring to Provided Sub Seq": ["?" for _ in range(len(site_seqs))],
             "Kinase Sequence": kinase_seqs,
             "Site Sequence": site_seqs,
             "pair_id": [
@@ -330,6 +335,7 @@ class MultiStageClassifier:
                 predict_mode=True,
                 bypass_group_classifier=bypass_group_classifier,
                 get_emp_eqn=convert_raw_to_prob,
+                cartesian_product=cartesian_product,
             )
 
             assert isinstance(res, list), "res is not a list"
@@ -429,6 +435,11 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
+def save_msc(msc: SiteClassifier):
+    with open(msc.save_path, "wb") as f:
+        pickle.dump(msc, f)
+
+
 def get_group_classifier():
     args = parse_args()
     with open(str(args["gc_params"]), "r") as f:
@@ -485,7 +496,7 @@ def parse_args() -> dict[str, Union[str, None]]:
         help="Specify Group Classifier and its hyperparameters file name",
         required=False,
         default=join_first(0, "GC_params.json"),
-        metavar="gc_params.json>",
+        metavar="<gc_params.json>",
     )
 
     # parser.add_argument(
@@ -536,6 +547,22 @@ def parse_args() -> dict[str, Union[str, None]]:
         assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
 
     return args
+
+
+def smart_save_msc(msc: MultiStageClassifier):
+    bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
+    max_version = 0
+    for file in os.listdir(bin_):
+        if v := re.search(r"(UNITTESTVERSION|)deepks_msc_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(2)) + 1)
+    save_path = os.path.join(bin_, f"deepks_msc_weights.{max_version}.cornichon")
+    print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
+    with open(save_path, "wb") as f:
+        pickle.dump(msc, f)
+
+
+def combine_ic_and_gc(nn: IndividualClassifiers, gc: SiteClassifier) -> MultiStageClassifier:
+    return MultiStageClassifier(gc, nn)
 
 
 def get_multi_stage_classifier(load_gc=True):
@@ -645,4 +672,14 @@ def efficient_to_csv(data_dict, outfile):
 
 
 if __name__ == "__main__":
-    get_group_classifier()
+    import jsonpickle
+
+    # get_group_classifier()
+    os.chdir("/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS")
+
+    with open("models/json-serialized-kmeans-model-train-dat-only.json", "rb") as f2:
+        s = f2.read()
+        gc = jsonpickle.decode(s)
+
+    nn = IndividualClassifiers.load_all("bin/deepks_nn_weights.0.cornichon")
+    smart_save_msc(combine_ic_and_gc(nn, gc))

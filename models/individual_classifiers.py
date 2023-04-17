@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import numpy as np
+
+from DeepKS.models import site_classifier
+
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
@@ -7,7 +11,7 @@ if __name__ == "__main__":
     print("Progress: Loading Modules", flush=True)
 
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data
-import cloudpickle as pickle, socket, pathlib, os
+import cloudpickle as pickle, socket, pathlib, os, itertools
 from .KinaseSubstrateRelationship import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -53,7 +57,7 @@ class IndividualClassifiers:
         device: str,
         args: dict[str, Union[str, None]],
         groups: list[str],
-        kin_fam_grp_file: str,
+        group_file: str,
     ):
         for group in grp_to_model_args:
             assert group in grp_to_interface_args, "No interface args for group %s" % group
@@ -98,15 +102,20 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
-            {}
-        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[
+            str, dict[str, dict[str, list[Union[int, float]]]]
+        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
-        (
-            self.default_tok_dict,
-            self.kin_symbol_to_grp,
-            self.symbol_to_grp_dict,
-        ) = IndividualClassifiers.get_symbol_to_grp_dict(kin_fam_grp_file)
+        try:
+            (
+                self.default_tok_dict,
+                self.kin_symbol_to_grp,
+                self.symbol_to_grp_dict,
+            ) = IndividualClassifiers.get_symbol_to_grp_dict(group_file)
+        except Exception:
+            self.default_tok_dict = None
+            self.kin_symbol_to_grp = None
+            self.symbol_to_grp_dict = group_file
 
     @staticmethod
     def get_symbol_to_grp_dict(kin_fam_grp_file: str):
@@ -121,8 +130,7 @@ class IndividualClassifiers:
     def _run_dl_core(
         which_groups: list[str],
         Xy_formatted_input_file: str,
-        pred_groups: Union[None, dict[str, str]] = None,
-        tqdm_passthrough: list[tqdm.tqdm] = [],
+        group_classifier=None,
         cartesian_product: bool = False,
         symbol_to_grp_dict: dict = {},
     ):
@@ -134,26 +142,27 @@ class IndividualClassifiers:
         else:
             with open(Xy_formatted_input_file, "r") as f:
                 Xy = json.load(f)
-        if pred_groups is None:  # Training
-            print(colored("Warning: Using ground truth groups. (Normal for training/val)", "yellow"))
-            Xy["Group"] = [
-                symbol_to_grp_dict[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
-            ]
-        else:  # Evaluation CHECK
-            if (
-                "Gene Name of Kin Corring to Provided Sub Seq" in Xy.columns
-                if isinstance(Xy, pd.DataFrame)
-                else "Gene Name of Kin Corring to Provided Sub Seq" in Xy.keys()
-            ):  # Test
+        if group_classifier is None or symbol_to_grp_dict:  # Training
+            warnings.warn(colored("Warning: Using ground truth groups. (Normal for training/val)", "yellow"))
+            try:
+                gene_names = [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                Xy["Group"] = [symbol_to_grp_dict[x] for x in gene_names]
+            except Exception:
+                site_names = [DEL_DECOR(x) for x in Xy["Site Sequence"]]
                 Xy["Group"] = [
-                    pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                    symbol_to_grp_dict[x] if x in symbol_to_grp_dict else "New-Grp-5-TK-<UNANNOTATED>"
+                    for x in site_names
                 ]
-            else:  # Prediction
-                Xy["Group"] = [
-                    pred_groups[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
-                ]
+        else:  # Testing
+            X = np.array([site_classifier.SiteClassifier.one_hot_aa_embedding(s) for s in Xy["Site Sequence"]])
+            if isinstance(group_classifier, dict):
+                Xy["Group"] = [group_classifier[x] for x in Xy["Site Sequence"]]
+            else:
+                Xy["Group"] = group_classifier.predict(X)
+            pass
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
+            Xy["pair_id"] = [f"Pair # {i}" for i in range(len(Xy))]
             assert isinstance(Xy, pd.DataFrame)
             group_df = {group: Xy[Xy["Group"] == group] for group in which_groups_ordered}
         else:
@@ -167,21 +176,21 @@ class IndividualClassifiers:
                 group_df_inner = {}
                 put_in_indices = [i for i, x in enumerate(Xy["Group"]) if x == group]
 
-                group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = Xy[
-                    "Gene Name of Kin Corring to Provided Sub Seq"
-                ]
+                group_df_inner["Gene Name of Provided Kin Seq"] = Xy["Gene Name of Provided Kin Seq"]
                 group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = [
                     Xy["Gene Name of Kin Corring to Provided Sub Seq"][i] for i in put_in_indices
                 ]
-                group_df_inner["Kinase Sequence"] = [Xy["Kinase Sequence"][i] for i in put_in_indices]
-                group_df_inner["Site Sequence"] = Xy["Site Sequence"]
-                group_df_inner["pair_id"] = (
-                    []
-                )  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
-                for i in put_in_indices:
-                    group_df_inner["pair_id"] += Xy["pair_id"][
-                        i * len(Xy["Site Sequence"]) : (i + 1) * len(Xy["Site Sequence"])
-                    ]
+                group_df_inner["Kinase Sequence"] = Xy[
+                    "Kinase Sequence"
+                ]  # [Xy["Kinase Sequence"][i] for i in put_in_indices]
+                group_df_inner["Site Sequence"] = [Xy["Site Sequence"][i] for i in put_in_indices]
+                group_df_inner["pair_id"] = [
+                    Xy["pair_id"][i] for i in put_in_indices
+                ]  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
+                # for i in put_in_indices:
+                #     group_df_inner["pair_id"] += Xy["pair_id"][
+                #         i * len(Xy["Site Sequence"]) : (i + 1) * len(Xy["Site Sequence"])
+                #     ]
                 group_df_inner["Class"] = Xy["Class"]
                 group_df_inner["Num Seqs in Orig Kin"] = ["N/A"]
                 group_df[group] = group_df_inner
@@ -269,19 +278,26 @@ class IndividualClassifiers:
         which_groups: list[str],
         Xy_formatted_input_file: str,
         evaluation_kwargs={"verbose": False, "savefile": False, "metric": "acc"},
-        pred_groups: Union[None, dict[str, str]] = None,
+        group_classifier=None,
         info_dict_passthrough={},
+        seen_groups_passthrough=[],
+        bypass_gc={},
+        cartesian_product=False,
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
         assert len(info_dict_passthrough) == 0, "Info dict passthrough must be empty for passing in"
-        tqdm_passthrough = [None]
         gen_te = self._run_dl_core(
             which_groups,
             Xy_formatted_input_file,
-            pred_groups=pred_groups,
-            tqdm_passthrough=tqdm_passthrough,  # type: ignore
-            cartesian_product=(
-                evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False
+            group_classifier=group_classifier,
+            cartesian_product=bool(
+                sum(
+                    [
+                        evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False,
+                        cartesian_product,
+                    ]
+                )
             ),
+            symbol_to_grp_dict=bypass_gc,
         )
         count = 0
         for group_te, partial_group_df_te in gen_te:
@@ -290,6 +306,7 @@ class IndividualClassifiers:
                 continue
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
+            seen_groups_passthrough.append(group_te)
             for (_, _, _, test_loader), info_dict in gather_data(
                 partial_group_df_te,
                 trf=0,
@@ -305,10 +322,16 @@ class IndividualClassifiers:
                 ),
                 maxsize=MAX_SIZE_DS,
                 eval_batch_size=1,
-                cartesian_product=(
-                    evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False
+                cartesian_product=bool(
+                    sum(
+                        [
+                            evaluation_kwargs["cartesian_product"]
+                            if "cartesian_product" in evaluation_kwargs
+                            else False,
+                            cartesian_product,
+                        ]
+                    )
                 ),
-                tqdm_passthrough=tqdm_passthrough,
             ):
                 info_dict_passthrough[group_te] = info_dict
                 info_dict_passthrough["on_chunk"] = info_dict["on_chunk"]
@@ -372,6 +395,7 @@ class IndividualClassifiers:
         predict_mode: bool,
         get_emp_eqn: bool = True,
         emp_eqn_kwargs: dict = {"plot_emp_eqn": True, "print_emp_eqn": True},
+        cartesian_product: bool = False,
     ) -> Union[None, list, Callable]:
         """Get predictions or ROC curves from model
 
@@ -403,13 +427,14 @@ class IndividualClassifiers:
             for grp, loader in self.obtain_group_and_loader(
                 which_groups=list(pred_groups.values()),
                 Xy_formatted_input_file=test_filename,
-                pred_groups=pred_groups,
+                group_classifier=pred_groups,
                 evaluation_kwargs={
                     "predict_mode": True,
                     "device": addl_args["device"],
                     "cartesian_product": "test_json" in addl_args,
                 },
                 info_dict_passthrough=info_dict_passthrough,
+                cartesian_product=cartesian_product,
             ):
                 # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
                 jumbled_predictions = self.interfaces[grp].predict(
@@ -431,6 +456,7 @@ class IndividualClassifiers:
                                 jumbled_predictions[0][i],
                                 jumbled_predictions[1][i],
                                 jumbled_predictions[2][i],
+                                jumbled_predictions[3][i],
                                 self.__dict__["grp_to_emp_eqn"].get(grp) if get_emp_eqn else None,
                             )
                             for pair_id, i in zip(new_info, range(len(new_info)))
@@ -458,7 +484,7 @@ class IndividualClassifiers:
                     for grp, loader in self.obtain_group_and_loader(
                         which_groups=self.groups,
                         Xy_formatted_input_file=test_filename,
-                        pred_groups=pred_groups,
+                        group_classifier=pred_groups,
                         info_dict_passthrough=grp_to_info_pass_through_info_dict,
                     )
                 }
@@ -533,8 +559,23 @@ def main():
     train_filename = args["train"]
     val_filename = args["val"]
     device = args["device"]
-    kin_fam_grp = pd.read_csv(kfg_file := join_first(1, args["kin_fam_grp"]))
-    groups: list[str] = kin_fam_grp["Group"].unique().tolist()  # FIXME - all - make them configurable
+
+    groups_defs: Union[dict, pd.DataFrame]
+    group_file = join_first(1, args["group_file"])
+    if group_file.endswith(".csv"):
+        groups_defs = pd.read_csv(group_file)
+    elif group_file.endswith(".json"):
+        with open(group_file) as gf:
+            groups_defs = json.load(gf)
+    else:
+        raise ValueError(
+            f"Please have the --group-file end with either .csv or .json so its parsing strategy can be determined."
+        )
+
+    if isinstance(groups_defs, pd.DataFrame):
+        groups: list[str] = groups_defs["Group"].unique().tolist()  # FIXME - all - make them configurable
+    else:
+        groups = sorted(list(set(list(groups_defs.values()))))
 
     assert device is not None
 
@@ -555,7 +596,7 @@ def main():
         device=device,
         args=args,
         groups=groups,
-        kin_fam_grp_file=kfg_file,
+        group_file=groups_defs,
     )
 
     print(colored("Status: About to Train", "green"))
@@ -632,12 +673,12 @@ def parse_args() -> dict[str, Union[str, None]]:
     )
 
     parser.add_argument(
-        "--kin-fam-grp",
+        "--group-file",
         type=str,
         help="Specify Kinase-Family-Group file name",
         required=False,
         default=join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
-        metavar="<kin_fam_grp.csv>",
+        metavar="<group_file.csv>",
     )
 
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)

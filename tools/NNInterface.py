@@ -215,8 +215,8 @@ class NNInterface:
                         torch.mean(loss).item(),
                         performance_score,
                         metric,
-                        print_every=5,
-                        retain=False,
+                        print_every=1000,
+                        retain=True,
                     )
 
                 lowest_loss = min(lowest_loss, loss.item())
@@ -310,10 +310,10 @@ class NNInterface:
         #           "This may be lengthy and/or crash your computer (due to high RAM use)."
         #           "Press any key to continue anyway (ctrl+c to abort): ")
         dll = list(dataloader)
-        for x in dll:
-            assert (
-                len(x) == expected_input_tuple_len
-            ), f"Input tuple length {len(x)} was not what was expected {expected_input_tuple_len}."
+        # for x in dll:
+        #     assert (
+        #         len(x) == expected_input_tuple_len
+        #     ), f"Input tuple length {len(x)} was not what was expected ({expected_input_tuple_len})."
 
         ible = dll
         if display_pb:
@@ -326,10 +326,10 @@ class NNInterface:
 
         with torch.no_grad():
             for b, (*X, labels) in enumerate(ible):
-                if predict_mode:
-                    assert torch.equal(
-                        labels, torch.Tensor([-1] * len(labels)).to(self.device)
-                    ), "Labels must be -1 for prediction."
+                # if predict_mode:
+                #     assert torch.equal(
+                #         labels, torch.Tensor([-1] * len(labels)).to(self.device)
+                #     ), "Labels must be -1 for prediction."
                 X = [x.to(self.device) for x in X]
 
                 if not isinstance(ible, tqdm.tqdm):

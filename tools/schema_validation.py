@@ -33,12 +33,12 @@ SiteSchema["patternProperties"] = site_pattern_properties
 bypass_gc = {
     "Known Group": {
         "type": "string",
-        "enum": ["<UNANNOTATED>", "ATYPICAL", "AGC", "CAMK", "CK1", "CMGC", "OTHER", "STE", "TK", "TKL"],
+        # "enum": ["<UNANNOTATED>", "ATYPICAL", "AGC", "CAMK", "CK1", "CMGC", "OTHER", "STE", "TK", "TKL"],
     }
 }
 
-KinSchemaBypassGC = deepcopy(KinSchema)
-KinSchemaBypassGC["patternProperties"]["^.+$"]["properties"].update(bypass_gc)
+SiteSchemaBypassGC = deepcopy(SiteSchema)
+SiteSchemaBypassGC["patternProperties"]["^.+$"]["properties"].update(bypass_gc)
 
 if __name__ == "__main__":
     sample = {

@@ -1,6 +1,7 @@
 import warnings, matplotlib, numpy as np, pandas as pd, json, traceback, sys, itertools, scipy, scipy.special, os
-import sklearn, sklearn.metrics, tempfile, collections, random, cloudpickle as pickle
+import sklearn, sklearn.metrics, tempfile, collections, random, cloudpickle as pickle, re, torch
 from ..tools.roc_helpers import ROCHelpers
+from ..models.multi_stage_classifier import MultiStageClassifier
 
 random.seed(42)
 from abc import ABC, abstractmethod
@@ -41,8 +42,8 @@ class PerformancePlot(ABC):  # ABC = Abstract Base Class
             " first."
         )
 
-    def make_plot(self, scores, labels, *args, **kwargs):
-        self._make_plot_core(scores, labels, *args, **kwargs)
+    def make_plot(self, *args, **kwargs):
+        self._make_plot_core(*args, **kwargs)
         self._is_made = True
 
     def display_plot(self):
@@ -180,12 +181,14 @@ class ROC(PerformancePlot, ABC):
                 roc_style_kwargs.update(dict(label=roc_labels_list[i]))
 
             truths, scores = data["Class"].values, data["Score"].values
-            aucscore = sklearn.metrics.roc_auc_score(truths, scores)
+            aucscore = ROCHelpers.protected_roc_auc_score(truths, scores)
+            alpha_level = plotting_kwargs.get("alpha_level", 0.05)
             if fancy_legend:
                 alpha = 0.05
-                ci, p = ROCHelpers.auc_confidence_interval(
-                    truths, scores, alpha_level := plotting_kwargs.get("alpha_level", 0.05)
-                )
+                if len(set([x for x in truths])) == 1:
+                    ci, p = (0, 1), 1
+                else:
+                    ci, p = ROCHelpers.auc_confidence_interval(truths.astype(int), scores, alpha_level)
                 is_signif = p < alpha_level
 
                 pct_mult = 2 if len(datas[-1]) == sum([len(d) for d in datas[:-1]]) else 1
@@ -402,61 +405,112 @@ class SplitIntoGroupsROC(ROC):
     def __init__(self, fig_kwargs={"figsize": (10, 10)}) -> None:
         super().__init__(fig_kwargs=fig_kwargs)
 
-    def make_roc(self, scores, labels):
-        return super().make_plot(scores, labels)
+    def make_plot(self, evaluations, _ic_ref, plotting_kwargs):
+        return super().make_plot(evaluations, _ic_ref, plotting_kwargs)
 
     @staticmethod
-    def compute_test_evaluations(test_filename: str, multi_stage_classifier, resave_loc: str):
-        from ..models.multi_stage_classifier import MultiStageClassifier
-
-        assert isinstance(
-            multi_stage_classifier, MultiStageClassifier
-        ), "`multi_stage_classifier` must be a MultiStageClassifier"
+    def compute_test_evaluations(
+        test_filename: str,
+        multi_stage_classifier: MultiStageClassifier,
+        resave_loc: str,
+        kin_to_fam_to_grp_file: str,
+        get_emp_eqn=False,
+        device="cpu",
+        cartesian_product=False,
+        bypass_gc=False,
+    ):
+        assert multi_stage_classifier.__class__.__name__ == "MultiStageClassifier"
+        kin_to_grp = pd.read_csv(kin_to_fam_to_grp_file)[["Kinase", "Uniprot", "Group"]]
+        kin_to_grp["Symbol"] = (
+            kin_to_grp["Kinase"].apply(lambda x: re.sub(r"[\(\)\*]", "", x)) + "|" + kin_to_grp["Uniprot"]
+        )
+        kin_to_grp = kin_to_grp.set_index("Symbol").to_dict()["Group"]
+        gene_order = pd.read_csv(test_filename)["Gene Name of Kin Corring to Provided Sub Seq"]
+        true_grps = [kin_to_grp[x] for x in gene_order]
         grp_to_interface = multi_stage_classifier.individual_classifiers.interfaces
-        grp_to_info_pass_through_info_dict = {}
         groups = list(grp_to_interface.keys())
-        loaders = list(
-            multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
-                which_groups=groups,
-                Xy_formatted_input_file=test_filename,
-                pred_groups=getattr(multi_stage_classifier, "pred_grp_dict"),
-                info_dict_passthrough=grp_to_info_pass_through_info_dict,
-            )
+        seen_groups = []
+        all_predictions_outputs = {}
+        info_dict_passthrough = {}
+        pred_items = ()
+        simulated_bypass_acc = 1
+        random.seed(42)
+        kin_to_grp_simulated_acc = {
+            k: v if random.random() < simulated_bypass_acc or v == "TK" else "CMGC" for k, v in kin_to_grp.items()
+        }
+        for grp, loader in multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
+            which_groups=groups,
+            Xy_formatted_input_file=test_filename,
+            group_classifier=multi_stage_classifier.group_classifier,
+            info_dict_passthrough=info_dict_passthrough,
+            seen_groups_passthrough=seen_groups,
+            evaluation_kwargs={
+                "predict_mode": True,
+                "device": device,
+                "cartesian_product": cartesian_product,
+            },
+            **({"bypass_gc": kin_to_grp_simulated_acc} if bypass_gc else {}),
+        ):
+            jumbled_predictions = multi_stage_classifier.individual_classifiers.interfaces[grp].predict(
+                loader,
+                int(info_dict_passthrough["on_chunk"] + 1),
+                int(info_dict_passthrough["total_chunks"]),
+                cutoff=0.5,
+                group=grp,
+            )  # TODO: Make adjustable cutoff
+            # jumbled_predictions = list[predictions], list[output scores], list[group]
+            del loader
+            if "cuda" in str(device):
+                torch.cuda.empty_cache()
+            new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
+            try:
+                all_predictions_outputs.update(
+                    {
+                        pair_id: (
+                            jumbled_predictions[0][i],
+                            jumbled_predictions[1][i],
+                            jumbled_predictions[2][i],
+                            jumbled_predictions[3][i],
+                            multi_stage_classifier.individual_classifiers.__dict__["grp_to_emp_eqn"].get(grp)
+                            if get_emp_eqn
+                            else None,
+                        )
+                        for pair_id, i in zip(new_info, range(len(new_info)))
+                    }
+                )
+            except KeyError:
+                raise AttributeError(
+                    "`--convert-raw-to-prob` was set but the attribute `grp_to_emp_eqn` (aka a"
+                    " dictionary that maps a kinase group to a function capible of converting raw"
+                    " scores to empirical probabilities) was not found in the pretrained neural"
+                    " network file. (To change the neural network file, use the `--pre-trained-nn`"
+                    " command line option.)"
+                ) from None
+        key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
+        pred_items = sorted(all_predictions_outputs.items(), key=key_lambda)  # Pair # {i}
+        pred_items = dict(
+            ground_truth_labels=[x[1][3] for x in pred_items],
+            scores=[x[1][1] for x in pred_items],
+            ground_truth_groups=true_grps,
         )
-        try:
-            assert len(loaders) == len(groups), "The number of loaders must be equal to the number of groups"
-        except AssertionError as e:
-            raise NotImplementedError(str(e)) from None
-        grp_to_loader = dict(zip(groups, loaders))
 
-        grp_to_interface = {k: grp_to_interface[k] for k in grp_to_loader}
-        assert grp_to_interface.keys() == grp_to_loader.keys(), (
-            "The groups for the provided models are not equal to the groups for the provided loaders."
-            f" Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
-        )
-
-        for grp in groups:
-            interface = grp_to_interface[grp]
-            loader = grp_to_loader[grp]
-            _, _, outputs, labels, _ = interface.eval(
-                loader, cutoff=0.5, metric="roc", predict_mode=False, display_pb=False
-            )
-            # Group -> Tr/Vl/Te -> outputs/labels -> list
-            setattr(interface, "completed_test_evaluations", {grp: {"test": {"outputs": outputs, "labels": labels}}})
-
+        assert len(pred_items) != 0
+        setattr(multi_stage_classifier, "completed_test_evaluations", pred_items)
         with open(resave_loc, "wb") as f:
-            pickle.dump(grp_to_interface, f)
+            pickle.dump(multi_stage_classifier, f)
 
-    def _make_plot_core(self, grp_to_loader_true_groups, from_loaded, _ic_ref, plotting_kwargs):
+    def _make_plot_core(self, evaluations, _ic_ref, plotting_kwargs):
         get_emp_eqn = plotting_kwargs.get("get_emp_eqn", False)
-        assert grp_to_loader_true_groups is not None
         orig_order = ["CAMK", "AGC", "CMGC", "CK1", "OTHER", "TK", "TKL", "STE", "ATYPICAL", "<UNANNOTATED>"]
-        groups = from_loaded.keys()
-        true_grp_to_outputs_and_labels = collections.defaultdict(lambda: collections.defaultdict(list))
+        groups = sorted(list(set(evaluations["ground_truth_groups"])))
         grp_to_emp_eqn = {}
+        ground_truth_groups_to_outputs_labels = collections.defaultdict(lambda: collections.defaultdict(list))
+        for gtl, o, gtg in zip(*evaluations.values()):
+            ground_truth_groups_to_outputs_labels[gtg]["outputs"].append(o)
+            ground_truth_groups_to_outputs_labels[gtg]["labels"].append(gtl)
         for grp in groups:
-            outputs = from_loaded[grp]["test"]["outputs"]
-            labels = from_loaded[grp]["test"]["labels"]
+            outputs = ground_truth_groups_to_outputs_labels[grp]["outputs"]
+            labels = ground_truth_groups_to_outputs_labels[grp]["labels"]
             agst = np.argsort(outputs)
             booled_labels = [bool(x) for x in labels]
             if get_emp_eqn:
@@ -469,17 +523,17 @@ class SplitIntoGroupsROC(ROC):
                         "For some reason, get_emp_eqn was set to False, but the emp_prob_lambda was called."
                     )
 
-            for i in range(len(grp_to_loader_true_groups[grp])):
-                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs"].append(outputs[i])
-                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["labels"].append(labels[i])
-                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["group_model_used"].append(grp)
-                if get_emp_eqn:
-                    true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs_emp_prob"].append(
-                        emp_prob_lambda([outputs[i]])[0]
-                    )
+            # for i in range(len(true_group_to_results[grp])):
+            #     true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["outputs"].append(outputs[i])
+            #     true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["labels"].append(labels[i])
+            #     true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["group_model_used"].append(grp)
+            #     if get_emp_eqn:
+            #         true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["outputs_emp_prob"].append(
+            #             emp_prob_lambda([outputs[i]])[0]
+            #         )
 
             assert len(outputs) == len(labels), (
-                "Something is wrong in NNInterface.get_all_rocs_by_group; the length of outputs, the number of labels,"
+                "Something is wrong in DeepKS_evaluation --- the length of outputs, the number of labels,"
                 f" and the number of kinases in `kinase_order` are not equal. (Respectively, {len(outputs)},"
                 f" {len(labels)}"
             )
@@ -509,12 +563,12 @@ class SplitIntoGroupsROC(ROC):
         if plotting_kwargs.get("plot_with_orig_order", False):
             groups = orig_order
         else:
-            groups = sorted(list(set(list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()])))))
+            groups = sorted(groups)
         fprs, tprs, thresholds, datas = [], [], [], []
         for group in groups:
             outputs, labels = (
-                true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
-                true_grp_to_outputs_and_labels[group]["labels"],
+                ground_truth_groups_to_outputs_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
+                ground_truth_groups_to_outputs_labels[group]["labels"],
             )
             fpr, tpr, threshold = sklearn.metrics.roc_curve(labels, outputs)
             data = pd.DataFrame({"Class": labels, "Score": outputs})
@@ -527,26 +581,26 @@ class SplitIntoGroupsROC(ROC):
         self._roc_core_components(fprs, tprs, thresholds, datas, groups, plotting_kwargs)
 
 
-def eval_and_roc_workflow(multi_stage_classifier, test_filename, resave_loc):
+def eval_and_roc_workflow(multi_stage_classifier, kin_to_fam_to_grp_file, test_filename, resave_loc):
     roc = SplitIntoGroupsROC()
     if hasattr(multi_stage_classifier, "completed_test_evaluations"):
         print(colored("Info: Using pre-computed test evaluations.", "blue"))
     else:
         print(colored("Info: Computing test evaluations.", "blue"))
-        roc.compute_test_evaluations(test_filename, multi_stage_classifier, resave_loc)
+        roc.compute_test_evaluations(
+            test_filename, multi_stage_classifier, resave_loc, kin_to_fam_to_grp_file, bypass_gc=True
+        )
 
     roc.make_plot(
-        multi_stage_classifier.completed_test_evaluations["test"]["outputs"],
-        multi_stage_classifier.completed_test_evaluations["test"]["labels"],
-        multi_stage_classifier.completed_test_evaluations["test"]["kinase_order"],
-        "TESTGRP",
+        multi_stage_classifier.completed_test_evaluations,
+        multi_stage_classifier.individual_classifiers,
         plotting_kwargs={
             "plot_pointer_labels": False,
             "legend_all_lines": True,
             "plot_unified_line": True,
             "diff_by_opacity": False,
-            "focus_on": "Kin-B",
-            "plot_mean_value_line": False,
+            "focus_on": None,
+            "plot_mean_value_line": True,
         },
     )
     roc.display_plot()
@@ -598,5 +652,18 @@ def get_multi_stage_classifier():
 
 
 if __name__ == "__main__":
+    import cloudpickle
+
     # main()
-    test()
+    # test()
+    with open(
+        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_msc_weights.0.cornichon",
+        "rb",
+    ) as mscfp:
+        msc = cloudpickle.load(mscfp)
+        eval_and_roc_workflow(
+            msc,
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv",
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv",
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_msc_weights_sim_80.0.cornichon",
+        )

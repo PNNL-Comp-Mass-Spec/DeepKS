@@ -516,11 +516,7 @@ def parse_api() -> dict[str, typing.Any]:
             try:
                 jsonschema.validate(
                     kinase_info_dict,
-                    (
-                        schema_validation.KinSchema
-                        if not args_dict["bypass_group_classifier"]
-                        else schema_validation.KinSchemaBypassGC
-                    ),
+                    (schema_validation.KinSchema),
                 )
             except jsonschema.exceptions.ValidationError as e:
                 print("", file=sys.stderr)
@@ -544,7 +540,12 @@ def parse_api() -> dict[str, typing.Any]:
         with open(join_first(1, args_dict["site_info"])) as f:
             site_info_dict = json.load(f)
             try:
-                jsonschema.validate(site_info_dict, schema_validation.SiteSchema)
+                jsonschema.validate(
+                    site_info_dict,
+                    schema_validation.SiteSchema
+                    if not args_dict["bypass_group_classifier"]
+                    else schema_validation.SiteSchemaBypassGC,
+                )
             except jsonschema.exceptions.ValidationError:
                 print("", file=sys.stderr)
                 print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
@@ -567,7 +568,7 @@ def parse_api() -> dict[str, typing.Any]:
             warnings.warn(colored(f"{e} (The output will not contain info for this sequence.)", "yellow"))
 
     args_dict["bypass_group_classifier"] = (
-        [kinase_info_dict[ks]["Known Group"] for ks in args_dict["kinase_seqs"]]
+        [site_info_dict[ss]["Known Group"] for ss in args_dict["site_seqs"]]
         if args_dict["bypass_group_classifier"]
         else []
     )

@@ -101,13 +101,13 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = max(
-            [
-                len(X) // (1 if "cuda" in str(device) else (9 if len(X) % 10 != 0 else 10))
-                for X in [X_val, X_tune, X_test]
-            ]
-            + [1]
-        )
+        eval_batch_size = 100  # max(
+        #     [
+        #         len(X) // (1 if "cuda" in str(device) else (9 if len(X) % 10 != 0 else 10))
+        #         for X in [X_val, X_tune, X_test]
+        #     ]
+        #     + [1]
+        # )
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
@@ -264,6 +264,7 @@ def gather_data(
             data_intermediary = {str(k): v for k, v in data_intermediary.items()}
             data = data_intermediary
 
+    data = data.copy()
     class_col = ("Kinase Sequence" if mc else "Class") if not kin_seq_to_group else "Group"
     class_labels = sorted(list(set(data[class_col])))
     classes = len(class_labels)
