@@ -147,9 +147,17 @@ def make_predictions(
                 )
             )
 
+        change_attr = lambda obj: (setattr(obj, "device", device), obj)[1]
+
         if pre_trained_msc:
             with open(join_first(1, pre_trained_msc), "rb") as f:
                 msc: MultiStageClassifier = dill.load(f, ignore=False)
+                msc.individual_classifiers.individual_classifiers = {
+                    k: v.to(device) for k, v in msc.individual_classifiers.individual_classifiers.items()
+                }
+                msc.individual_classifiers.interfaces = {
+                    k: change_attr(v) for k, v in msc.individual_classifiers.interfaces.items()
+                }
         else:
             with open(join_first(1, pre_trained_gc), "rb") as f:
                 group_classifier: SKGroupClassifier = pickle.load(f)

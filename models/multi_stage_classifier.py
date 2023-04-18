@@ -377,22 +377,6 @@ class MultiStageClassifier:
         else:
             return ret
 
-        print(colored("Status: Predictions Complete!", "green"))
-        return MultiStageClassifier._package_results(
-            predictions_output_format,
-            kin_info,
-            site_info,
-            kinase_seqs,
-            site_seqs,
-            cartesian_product,
-            boolean_predictions,
-            numerical_scores,
-            group_predictions,
-            scores,
-            group_output,
-            suppress_seqs_in_output,
-        )
-
     def align_novel_kin_seqs(
         self,
         kin_id_to_seq: dict[str, str],

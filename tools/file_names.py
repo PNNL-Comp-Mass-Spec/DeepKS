@@ -1,7 +1,7 @@
 import re, datetime, dateutil.tz, os
 
 
-def get(directory="", prefix="", suffix="", prefix_sep="_", suffix_sep=".", win_compat=True):
+def get(prefix="", suffix="", prefix_sep="_", suffix_sep=".", win_compat=True, directory=""):
     if prefix == "":
         prefix_sep = ""
     if suffix == "":

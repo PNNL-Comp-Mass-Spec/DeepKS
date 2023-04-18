@@ -348,11 +348,17 @@ class NNInterface:
 
                 if not isinstance(ible, tqdm.tqdm):
                     print(
-                        colored(f"Status: Forward propogating through NN -- Batch [{b + 1}/{len(dll)}]", "green"),
-                        end="\r",
+                        colored(
+                            (
+                                f"Status: Forward propogating through NN with device {self.device} -- Batch"
+                                f" [{b + 1}/{len(dll)}]"
+                            ),
+                            "green",
+                        ),
+                        end="\n",
                         flush=True,
                     )
-                    print(" " * os.get_terminal_size().columns, end="\r", flush=True)
+                    # print(" " * os.get_terminal_size().columns, end="\r", flush=True)
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)
