@@ -11,7 +11,8 @@ if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"])
         write_splash.write_splash("main_api")
         print(colored("Status: Loading Modules...", "green"))
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch, dill
+from typing import Union
 
 warnings.filterwarnings(action="always", category=UserWarning)
 
@@ -59,6 +60,7 @@ def make_predictions(
     verbose: bool = True,
     pre_trained_gc: str = PRE_TRAINED_GC,
     pre_trained_nn: str = PRE_TRAINED_NN,
+    pre_trained_msc: Union[str, None] = None,
     device: str = "cpu",
     scores: bool = False,
     normalize_scores: bool = False,
@@ -133,12 +135,28 @@ def make_predictions(
 
         # Create (load) multi-stage classifier
         print(colored("Status: Loading previously trained models...", "green"))
-        with open(pre_trained_gc, "rb") as f:
-            group_classifier: SKGroupClassifier = pickle.load(f)
-        individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(
-            pre_trained_nn, target_device=device
-        )
-        msc = MultiStageClassifier(group_classifier, individual_classifiers)
+
+        if (pre_trained_nn or pre_trained_gc) and pre_trained_msc:
+            print(
+                colored(
+                    (
+                        "Info: Prioritizing `pre_trained_msc` (since it was provided) over `pre_trained_nn` and"
+                        " `pre_trained_gc`."
+                    ),
+                    "blue",
+                )
+            )
+
+        if pre_trained_msc:
+            with open(join_first(1, pre_trained_msc), "rb") as f:
+                msc: MultiStageClassifier = dill.load(f, ignore=False)
+        else:
+            with open(join_first(1, pre_trained_gc), "rb") as f:
+                group_classifier: SKGroupClassifier = pickle.load(f)
+            individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(
+                join_first(1, pre_trained_nn), target_device=device
+            )
+            msc = MultiStageClassifier(group_classifier, individual_classifiers)
         # nn_sample = list(individual_classifiers.interfaces.values())[0]
         # summary_stringio = io.StringIO()
         # FAKE_BATCH_SIZE = 101
@@ -228,24 +246,24 @@ def parse_api() -> dict[str, typing.Any]:
 
     ap = argparse.ArgumentParser(prog="python -m DeepKS.api.main", formatter_class=CustomFormatter, exit_on_error=False)
 
-    def new_exit(status=0, message=None):
-        # print(f"@@@ {sys.argv=}")
-        if sys.argv[1] in ["-h", "--help"] and len(sys.argv) == 2:
-            sys.exit(0)
-        raise ValueError()
+    # def new_exit(status=0, message=None):
+    #     # print(f"@@@ {sys.argv=}")
+    #     if sys.argv[1] in ["-h", "--help"] and len(sys.argv) == 2:
+    #         sys.exit(0)
+    #     raise ValueError()
 
-    error_orig = ap.error
-    ap.exit = new_exit
+    # error_orig = ap.error
+    # ap.exit = new_exit
 
-    def new_err(message):
-        output = ""
-        try:
-            with Capturing() as output:
-                error_orig(message)
-        except Exception:
-            raise argparse.ArgumentError(None, "\t\n".join(output))
+    # def new_err(message):
+    #     output = ""
+    #     try:
+    #         with Capturing() as output:
+    #             error_orig(message)
+    #     except Exception:
+    #         raise argparse.ArgumentError(None, "\t\n".join(output)) from None
 
-    ap.error = new_err
+    # ap.error = new_err
 
     k_group = ap.add_mutually_exclusive_group(required=True)
     k_group.add_argument(
@@ -353,6 +371,12 @@ def parse_api() -> dict[str, typing.Any]:
         required=False,
         metavar="<pre-trained group classifier file>",
     )
+    ap.add_argument(
+        "--pre-trained-msc",
+        help="The path to the pre-trained multi-stage classifier.",
+        required=False,
+        metavar="<pre-trained multi-stage classifier file>",
+    )
 
     def device_eligibility(arg_value):
         try:
@@ -429,7 +453,7 @@ def parse_api() -> dict[str, typing.Any]:
     try:
         args = ap.parse_args()  #### ^ Argument collecting v Argument processing ####
     except Exception as e:
-        informative_exception(e, "Issue with arguments provided.", print_full_tb=False)
+        informative_exception(e, "Issue with arguments provided.", print_full_tb=True)
     args_dict = vars(args)
     device_eligibility(args_dict["device"])
     ii = ll = None

@@ -146,12 +146,22 @@ class IndividualClassifiers:
                 if isinstance(Xy, pd.DataFrame)
                 else "Gene Name of Kin Corring to Provided Sub Seq" in Xy.keys()
             ):  # Test
-                Xy["Group"] = group_classifier.predict(
-                    [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                Xy["Group"] = (
+                    group_classifier.predict([DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]])
+                    if hasattr(group_classifier, "predict")
+                    else [
+                        group_classifier[xx]
+                        for xx in [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                    ]
                 )
             else:  # Prediction
-                Xy["Group"] = group_classifier.predict(
-                    Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
+                Xy["Group"] = (
+                    group_classifier.predict(Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR))
+                    if hasattr(group_classifier, "predict")
+                    else [
+                        group_classifier[xx]
+                        for xx in [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                    ]
                 )
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
@@ -318,9 +328,11 @@ class IndividualClassifiers:
                 cartesian_product=bool(
                     sum(
                         [
-                            evaluation_kwargs["cartesian_product"]
-                            if "cartesian_product" in evaluation_kwargs
-                            else False,
+                            (
+                                evaluation_kwargs["cartesian_product"]
+                                if "cartesian_product" in evaluation_kwargs
+                                else False
+                            ),
                             cartesian_product,
                         ]
                     )

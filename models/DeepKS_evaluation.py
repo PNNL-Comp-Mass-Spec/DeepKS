@@ -491,9 +491,11 @@ class SplitIntoGroupsROC(ROC):
                             jumbled_predictions[1][i],
                             jumbled_predictions[2][i],
                             jumbled_predictions[3][i],
-                            multi_stage_classifier.individual_classifiers.__dict__["grp_to_emp_eqn"].get(grp)
-                            if get_emp_eqn
-                            else None,
+                            (
+                                multi_stage_classifier.individual_classifiers.__dict__["grp_to_emp_eqn"].get(grp)
+                                if get_emp_eqn
+                                else None
+                            ),
                         )
                         for pair_id, i in zip(new_info, range(len(new_info)))
                     }
