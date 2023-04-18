@@ -12,7 +12,6 @@ from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
 from .group_classifier_definitions import check_is_fitted
 from . import individual_classifiers
-from ..tools.parse import parsing
 from ..tools.file_names import get as get_file_name
 from ..tools import make_fasta as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
@@ -538,19 +537,9 @@ def parse_args() -> dict[str, Union[str, None]]:
     return args
 
 
-def get_multi_stage_classifier(load_gc=True):
-    run_args = parsing()
-    assert (
-        run_args.get("load") is not None or run_args.get("load_include_eval") is not None
-    ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
-
-    assert run_args["device"] is not None
-    individual_classifiers_ = IndividualClassifiers.load_all(
-        run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
-        str(run_args["device"]),
-    )
+def get_multi_stage_classifier(load_gc=False):
     if not load_gc:
-        train_kins, val_kins, test_kins, train_true, val_true, test_true = grp_pred.get_ML_sets(
+        train_kins, val_kins, _, train_true, val_true, _ = grp_pred.get_ML_sets(
             *(
                 [
                     join_first(0, x)
@@ -567,20 +556,7 @@ def get_multi_stage_classifier(load_gc=True):
             verbose=False,
         )
 
-        train_kins, train_true = np.array(train_kins + val_kins + test_kins), np.array(
-            train_true + val_true + test_true
-        )
-
-        # train_kins = np.char.replace(train_kins, "RET/PTC2|Q15300", "RET|PTC2|Q15300")
-
-        # train_kins = np.asarray(
-        #     pd.read_csv(
-        #         "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_trunc_250.csv"
-        #     )["Gene Name of Kin Corring to Provided Sub Seq"]
-        #     .drop_duplicates(keep="first")
-        #     .values
-        # ).tolist()
-        # train_true = ["CMGC" for _ in range(len(train_kins))]
+        train_kins, train_true = np.array(train_kins + val_kins), np.array(train_true + val_true)
 
         group_classifier = grp_pred.SKGroupClassifier(
             X_train=train_kins,
@@ -603,21 +579,13 @@ def get_multi_stage_classifier(load_gc=True):
         #     classifier=KNeighborsClassifier,
         #     hyperparameters={"metric": "chebyshev", "n_neighbors": 1},
         # )
-        assert run_args["device"] is not None, "Somehow, device is not set."
 
-        if run_args["c"]:
-            check_is_fitted(group_classifier.model)
-            smart_save_gc(group_classifier)
-            return
     else:
         group_classifier = pickle.load(
             open(join_first(1, "bin/deepks_gc_weights.-1.cornichon"), "rb")
         )  # FIXME Not general enough
 
-    assert run_args["test"] is not None, "Must provide test set for evaluating."
-
-    msc = MultiStageClassifier(group_classifier, individual_classifiers_)
-    msc.evaluation_preparation(run_args, run_args["test"])
+    return group_classifier
 
 
 def efficient_to_csv(data_dict, outfile):
@@ -644,5 +612,26 @@ def efficient_to_csv(data_dict, outfile):
             lines_written += 1
 
 
+def smart_save_msc(msc: MultiStageClassifier):
+    bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
+    max_version = 0
+    for file in os.listdir(bin_):
+        if v := re.search(r"(UNITTESTVERSION|)deepks_msc_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(2)) + 1)
+    save_path = os.path.join(bin_, f"deepks_msc_weights.{max_version}.cornichon")
+    print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
+    with open(save_path, "wb") as f:
+        pickle.dump(msc, f)
+
+
+def combine_ic_and_gc(nn: IndividualClassifiers, gc: SiteClassifier) -> MultiStageClassifier:
+    return MultiStageClassifier(gc, nn)
+
+
 if __name__ == "__main__":
-    get_group_classifier()
+    gc = get_multi_stage_classifier()
+    # smart_save_gc(gc)
+
+    nn = IndividualClassifiers.load_all(join_first(1, "bin/deepks_nn_weights.11.cornichon"))
+
+    smart_save_msc(combine_ic_and_gc(nn, gc))

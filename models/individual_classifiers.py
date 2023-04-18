@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
@@ -7,7 +9,7 @@ if __name__ == "__main__":
     print("Progress: Loading Modules", flush=True)
 
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data
-import cloudpickle as pickle, socket, pathlib, os
+import cloudpickle as pickle, socket, pathlib, os, itertools
 from .KinaseSubstrateRelationship import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -51,7 +53,7 @@ class IndividualClassifiers:
         grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, type]]],
         grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable, type]]],
         device: str,
-        args: dict[str, Union[str, None]],
+        args: dict[str, Union[str, None, list[str]]],
         groups: list[str],
         kin_fam_grp_file: str,
     ):
@@ -98,9 +100,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
-            {}
-        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[
+            str, dict[str, dict[str, list[Union[int, float]]]]
+        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         (
             self.default_tok_dict,
@@ -121,8 +123,7 @@ class IndividualClassifiers:
     def _run_dl_core(
         which_groups: list[str],
         Xy_formatted_input_file: str,
-        pred_groups: Union[None, dict[str, str]] = None,
-        tqdm_passthrough: list[tqdm.tqdm] = [],
+        group_classifier=None,
         cartesian_product: bool = False,
         symbol_to_grp_dict: dict = {},
     ):
@@ -134,8 +135,8 @@ class IndividualClassifiers:
         else:
             with open(Xy_formatted_input_file, "r") as f:
                 Xy = json.load(f)
-        if pred_groups is None:  # Training
-            print(colored("Warning: Using ground truth groups. (Normal for training/val)", "yellow"))
+        if group_classifier is None or symbol_to_grp_dict:  # Training
+            print(colored("Warning: Using ground truth groups. (Normal for training/val/simulated GC)", "yellow"))
             Xy["Group"] = [
                 symbol_to_grp_dict[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
             ]
@@ -145,15 +146,16 @@ class IndividualClassifiers:
                 if isinstance(Xy, pd.DataFrame)
                 else "Gene Name of Kin Corring to Provided Sub Seq" in Xy.keys()
             ):  # Test
-                Xy["Group"] = [
-                    pred_groups[y] for y in [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
-                ]
+                Xy["Group"] = group_classifier.predict(
+                    [DEL_DECOR(x) for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"]]
+                )
             else:  # Prediction
-                Xy["Group"] = [
-                    pred_groups[x] for x in Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
-                ]
+                Xy["Group"] = group_classifier.predict(
+                    Xy["Gene Name of Kin Corring to Provided Sub Seq"].apply(DEL_DECOR)
+                )
         group_df: dict[str, Union[pd.DataFrame, dict]]
         if not cartesian_product:
+            Xy["pair_id"] = [f"Pair # {i}" for i in range(len(Xy))]
             assert isinstance(Xy, pd.DataFrame)
             group_df = {group: Xy[Xy["Group"] == group] for group in which_groups_ordered}
         else:
@@ -175,9 +177,9 @@ class IndividualClassifiers:
                 ]
                 group_df_inner["Kinase Sequence"] = [Xy["Kinase Sequence"][i] for i in put_in_indices]
                 group_df_inner["Site Sequence"] = Xy["Site Sequence"]
-                group_df_inner["pair_id"] = (
-                    []
-                )  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
+                group_df_inner[
+                    "pair_id"
+                ] = []  # [Xy['pair_id'][j] for j in range(i, i + len(Xy['Site Sequence'])) for i in put_in_indices]
                 for i in put_in_indices:
                     group_df_inner["pair_id"] += Xy["pair_id"][
                         i * len(Xy["Site Sequence"]) : (i + 1) * len(Xy["Site Sequence"])
@@ -269,19 +271,26 @@ class IndividualClassifiers:
         which_groups: list[str],
         Xy_formatted_input_file: str,
         evaluation_kwargs={"verbose": False, "savefile": False, "metric": "acc"},
-        pred_groups: Union[None, dict[str, str]] = None,
+        group_classifier=None,
         info_dict_passthrough={},
+        seen_groups_passthrough=[],
+        bypass_gc={},
+        cartesian_product=False,
     ) -> Generator[Tuple[str, torch.utils.data.DataLoader], Tuple[str, pd.DataFrame], None]:
         assert len(info_dict_passthrough) == 0, "Info dict passthrough must be empty for passing in"
-        tqdm_passthrough = [None]
         gen_te = self._run_dl_core(
             which_groups,
             Xy_formatted_input_file,
-            pred_groups=pred_groups,
-            tqdm_passthrough=tqdm_passthrough,  # type: ignore
-            cartesian_product=(
-                evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False
+            group_classifier=group_classifier,
+            cartesian_product=bool(
+                sum(
+                    [
+                        evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False,
+                        cartesian_product,
+                    ]
+                )
             ),
+            symbol_to_grp_dict=bypass_gc,
         )
         count = 0
         for group_te, partial_group_df_te in gen_te:
@@ -290,6 +299,7 @@ class IndividualClassifiers:
                 continue
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
+            seen_groups_passthrough.append(group_te)
             for (_, _, _, test_loader), info_dict in gather_data(
                 partial_group_df_te,
                 trf=0,
@@ -305,10 +315,16 @@ class IndividualClassifiers:
                 ),
                 maxsize=MAX_SIZE_DS,
                 eval_batch_size=1,
-                cartesian_product=(
-                    evaluation_kwargs["cartesian_product"] if "cartesian_product" in evaluation_kwargs else False
+                cartesian_product=bool(
+                    sum(
+                        [
+                            evaluation_kwargs["cartesian_product"]
+                            if "cartesian_product" in evaluation_kwargs
+                            else False,
+                            cartesian_product,
+                        ]
+                    )
                 ),
-                tqdm_passthrough=tqdm_passthrough,
             ):
                 info_dict_passthrough[group_te] = info_dict
                 info_dict_passthrough["on_chunk"] = info_dict["on_chunk"]
@@ -372,6 +388,7 @@ class IndividualClassifiers:
         predict_mode: bool,
         get_emp_eqn: bool = True,
         emp_eqn_kwargs: dict = {"plot_emp_eqn": True, "print_emp_eqn": True},
+        cartesian_product: bool = False,
     ) -> Union[None, list, Callable]:
         """Get predictions or ROC curves from model
 
@@ -403,13 +420,14 @@ class IndividualClassifiers:
             for grp, loader in self.obtain_group_and_loader(
                 which_groups=list(pred_groups.values()),
                 Xy_formatted_input_file=test_filename,
-                pred_groups=pred_groups,
+                group_classifier=pred_groups,
                 evaluation_kwargs={
                     "predict_mode": True,
                     "device": addl_args["device"],
                     "cartesian_product": "test_json" in addl_args,
                 },
                 info_dict_passthrough=info_dict_passthrough,
+                cartesian_product=cartesian_product,
             ):
                 # print(f"Progress: Predicting for {grp}") # TODO: Only if verbose
                 jumbled_predictions = self.interfaces[grp].predict(
@@ -431,6 +449,7 @@ class IndividualClassifiers:
                                 jumbled_predictions[0][i],
                                 jumbled_predictions[1][i],
                                 jumbled_predictions[2][i],
+                                jumbled_predictions[3][i],
                                 self.__dict__["grp_to_emp_eqn"].get(grp) if get_emp_eqn else None,
                             )
                             for pair_id, i in zip(new_info, range(len(new_info)))
@@ -458,7 +477,7 @@ class IndividualClassifiers:
                     for grp, loader in self.obtain_group_and_loader(
                         which_groups=self.groups,
                         Xy_formatted_input_file=test_filename,
-                        pred_groups=pred_groups,
+                        group_classifier=pred_groups,
                         info_dict_passthrough=grp_to_info_pass_through_info_dict,
                     )
                 }
@@ -534,29 +553,32 @@ def main():
     val_filename = args["val"]
     device = args["device"]
     kin_fam_grp = pd.read_csv(kfg_file := join_first(1, args["kin_fam_grp"]))
-    groups: list[str] = kin_fam_grp["Group"].unique().tolist()  # FIXME - all - make them configurable
+    groups: list[str] = list(args["groups"]) if args["groups"] is not None else kin_fam_grp["Group"].unique().tolist()
 
     assert device is not None
 
     with open(join_first(0, args["ksr_params"])) as f:
-        default_grp_to_model_args = json.load(f)
+        grp_to_model_args = json.load(f)
+        default_grp_to_model_args = grp_to_model_args["default"]
     with open(join_first(0, args["nni_params"])) as f:
-        default_grp_to_interface_args = json.load(f)
-        default_grp_to_interface_args["loss_fn"] = eval(str(default_grp_to_interface_args["loss_fn"]))
-        default_grp_to_interface_args["optim"] = eval(str(default_grp_to_interface_args["optim"]))
-        default_grp_to_interface_args["device"] = device
-    with open(join_first(0, args["ksr_training_params"])) as f:
-        default_training_args = json.load(f)
+        grp_to_interface_args = json.load(f)
+        default_grp_to_interface_args = grp_to_interface_args["default"]
+        for grp in grp_to_interface_args:
+            if grp == "default":
+                continue
+            grp_to_interface_args[grp]["loss_fn"] = eval(str(grp_to_interface_args[grp]["loss_fn"]))
+            grp_to_interface_args[grp]["optim"] = eval(str(grp_to_interface_args[grp]["optim"]))
+            grp_to_interface_args[grp]["device"] = device
 
-    classifier = IndividualClassifiers(
-        grp_to_model_args={group: deepcopy(default_grp_to_model_args) for group in groups},
-        grp_to_interface_args={group: deepcopy(default_grp_to_interface_args) for group in groups},
-        grp_to_training_args={group: deepcopy(default_training_args) for group in groups},
-        device=device,
-        args=args,
-        groups=groups,
-        kin_fam_grp_file=kfg_file,
-    )
+    with open(join_first(0, args["ksr_training_params"])) as f:
+        grp_to_training_args = json.load(f)
+        default_training_args = grp_to_training_args["default"]
+
+    gtma = {group: grp_to_model_args.get(group, deepcopy(default_grp_to_model_args)) for group in groups}
+    gtia = {group: grp_to_interface_args.get(group, deepcopy(default_grp_to_interface_args)) for group in groups}
+    gtta = {group: grp_to_training_args.get(group, deepcopy(default_training_args)) for group in groups}
+
+    classifier = IndividualClassifiers(gtma, gtia, gtta, str(device), args, groups, kfg_file)
 
     print(colored("Status: About to Train", "green"))
     assert val_filename is not None
@@ -585,7 +607,7 @@ def device_eligibility(arg_value):
         )
 
 
-def parse_args() -> dict[str, Union[str, None]]:
+def parse_args() -> dict[str, Union[str, None, list[str]]]:
     print(colored("Progress: Parsing Arguments", "green"))
 
     parser = argparse.ArgumentParser()
@@ -638,6 +660,16 @@ def parse_args() -> dict[str, Union[str, None]]:
         required=False,
         default=join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
         metavar="<kin_fam_grp.csv>",
+    )
+
+    parser.add_argument(
+        "--groups",
+        type=str,
+        nargs="+",
+        help="Specify groups to train on",
+        required=False,
+        default=["TK"],
+        metavar="<group> <group> ...",
     )
 
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)

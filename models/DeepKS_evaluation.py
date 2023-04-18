@@ -1,21 +1,25 @@
-import warnings, matplotlib, numpy as np, pandas as pd, json, traceback, sys, itertools, scipy, scipy.special, os
-import sklearn, sklearn.metrics, tempfile, collections, random, cloudpickle as pickle
+import warnings, matplotlib, numpy as np, pandas as pd, json, traceback, sys, os
+import sklearn, sklearn.metrics, tempfile, collections, random, cloudpickle as pickle, re, torch, pathlib
 from ..tools.roc_helpers import ROCHelpers
+from ..models.multi_stage_classifier import MultiStageClassifier
 
 random.seed(42)
 from abc import ABC, abstractmethod
-from roc_comparison_modified.auc_delong import delong_roc_variance
 from matplotlib import pyplot as plt, patches as ptch, collections as clct
 from matplotlib import colormaps  # type: ignore
-from typing import Union
+from typing import Union, Any
 from termcolor import colored
 
 get_cmap = colormaps.get_cmap
 from pydash import _
 from numpy.typing import ArrayLike
+from ..tools.file_names import get as get_file_name
 
 
 warnings.simplefilter("once", Warning)
+
+
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
 def warning_handler(message, category, filename, lineno, file=None, line=None):
@@ -35,14 +39,14 @@ class PerformancePlot(ABC):  # ABC = Abstract Base Class
         self._is_made = False
         matplotlib.rcParams["font.family"] = "P052"
         self.fig, self.ax = plt.subplots(**fig_kwargs)
-        clsname = self.__class__.__name__
+        self.cn = self.__class__.__name__
         self._not_made_error_msg = (
-            f"{clsname} Plot is not made yet. Ignoring Request. Call `my_{_.snake_case(clsname)}_instance.make_plot()`"
+            f"{self.cn} Plot is not made yet. Ignoring Request. Call `my_{_.snake_case(self.cn)}_instance.make_plot()`"
             " first."
         )
 
-    def make_plot(self, scores, labels, *args, **kwargs):
-        self._make_plot_core(scores, labels, *args, **kwargs)
+    def make_plot(self, *args, **kwargs):
+        self._make_plot_core(*args, **kwargs)
         self._is_made = True
 
     def display_plot(self):
@@ -54,9 +58,25 @@ class PerformancePlot(ABC):  # ABC = Abstract Base Class
         else:
             warnings.warn(self._not_made_error_msg)
 
-    def save_plot(self, save_name, save_fig_kwargs={"bbox_inches": "tight"}):
+    def save_plot(
+        self,
+        save_name,
+        file_name_kwargs=dict(
+            directory=join_first(1, "images/Evaluation and Results/ROC"),
+            prefix=f"<Class Name>_plot",
+            suffix="pdf",
+            prefix_sep="_",
+            suffix_sep=".",
+            win_compat=True,
+        ),
+        save_fig_kwargs={"bbox_inches": "tight"},
+    ):
+        if file_name_kwargs.get("prefix") == "<Class Name>_plot":
+            file_name_kwargs["prefix"] = f"{self.cn}_plot"
+
+        filename = get_file_name(**file_name_kwargs)
         if self._is_made:
-            self.fig.savefig(save_name, **save_fig_kwargs)
+            self.fig.savefig(filename, **save_fig_kwargs)
         else:
             warnings.warn(self._not_made_error_msg)
 
@@ -77,12 +97,26 @@ class ROC(PerformancePlot, ABC):
     def __init__(self, **fig_kwargs) -> None:
         super().__init__(**fig_kwargs)
 
+    def _get_roc_info(self, truthses: list[list[Any]], scoreses: list[list[float]], plot_unified_line: bool):
+        fprses = []
+        tprses = []
+        thresholdses = []
+        for truths, scores in zip(truthses, scoreses):
+            fprs, tprs, thresholds = sklearn.metrics.roc_curve(truths, scores)
+            fprses.append(fprs)
+            tprses.append(tprs)
+            thresholdses.append(thresholds)
+        if plot_unified_line:
+            fprs, tprs, thresholds = sklearn.metrics.roc_curve(np.concatenate(truthses), np.concatenate(scoreses))
+            fprses.append(fprs)
+            tprses.append(tprs)
+            thresholdses.append(thresholds)
+        return fprses, tprses, thresholdses
+
     def _roc_core_components(
         self,
-        fprs,
-        tprs,
-        thresholds,
-        datas,
+        truthses,
+        scoreses,
         roc_labels_list=[],
         plotting_kwargs={},
         title_extra="",
@@ -100,7 +134,16 @@ class ROC(PerformancePlot, ABC):
         legend_all_lines = plotting_kwargs.get("legend_all_lines", False)
         plot_pointer_labels = plotting_kwargs.get("plot_pointer_labels", False)
         fancy_legend = plotting_kwargs.get("fancy_legend", True)
+        plot_unified_line = plotting_kwargs.get("plot_unified_line", False)
         plot_mean_value_line = plotting_kwargs.get("plot_mean_value_line", False)
+        positive_label = plotting_kwargs.get("positive_label", 1.0)
+
+        fprses, tprses, thresholdses = self._get_roc_info(truthses, scoreses, plot_unified_line=plot_unified_line)
+
+        if plot_unified_line:
+            scoreses.append(np.concatenate(scoreses))
+            truthses.append(np.concatenate(truthses))
+            roc_labels_list.append("All Data")
 
         roc_colors = plotting_kwargs.get("roc_colors", "plasma")
         cut_colors = plotting_kwargs.get("cut_colors", "plasma")
@@ -108,26 +151,30 @@ class ROC(PerformancePlot, ABC):
 
         cmap_roc, cmap_cut, cmap_acc = get_cmap(roc_colors), get_cmap(cut_colors), get_cmap(acc_colors)
 
-        color_places = np.linspace(0, 1, len(fprs), endpoint=True)
+        color_places = np.linspace(0, 1, len(fprses), endpoint=True)
         convert = lambda ls: [matplotlib.colors.to_hex(c) for c in ls]
         roc_colors = convert(cmap_roc(color_places))
         cut_colors = convert(cmap_cut(color_places))
         acc_colors = convert(cmap_acc(color_places))
 
-        assert len(fprs) == len(tprs) == len(thresholds) == len(datas), "Lengths of lists must be equal"
-        assert len(roc_labels_list) == 0 or len(roc_labels_list) == len(
-            fprs
-        ), "Length of roc_labels_list must be 0 or equal to length of fprs"
+        assert len(fprses) == len(tprses) == len(thresholdses), "Lengths of lists must be equal"
+
+        assert len(roc_labels_list) in [
+            0,
+            len(fprses),
+            len(fprses) - 1,
+        ], "Length of roc_labels_list must be 0 or equal to length of fprs or to length of fprs + 1"
+
         pat2 = None
         ntr = []
-        for i in range(len(fprs)):
-            mn = np.min(datas[i]["Score"].values) - 0.025
-            ma = np.max(datas[i]["Score"].values) + 0.025
-            nt = np.clip(thresholds[i], mn, ma).tolist()
+        for i in range(len(fprses)):
+            mn = np.min(scoreses[i]) - 0.025
+            ma = np.max(scoreses[i]) + 0.025
+            nt = np.clip(thresholdses[i], mn, ma).tolist()
             ntr.append(nt)
-        thresholds = ntr
+        thresholdses = ntr
 
-        roc_labels_list = roc_labels_list if len(roc_labels_list) > 0 else [f"ROC {i}" for i in range(len(fprs))]
+        roc_labels_list = roc_labels_list if len(roc_labels_list) > 0 else [f"ROC {i}" for i in range(len(fprses))]
         roc_col = roc_colors[0]
         cut_col = acc_colors[0]
         acc_col = cut_colors[0]
@@ -146,8 +193,8 @@ class ROC(PerformancePlot, ABC):
             tax.yaxis.label.set_color(cut_col)
             tax.tick_params(axis="y", colors=cut_col)
         aucs = []
-        pct_mult = 2 if len(datas[-1]) == sum([len(d) for d in datas[:-1]]) else 1
-        sd = sum([len(d) for d in datas])
+        pct_mult = 2 if plot_unified_line else 1
+        sd = sum([len(d) for d in scoreses])
         indent_amt = max(
             [
                 len(r)
@@ -159,10 +206,13 @@ class ROC(PerformancePlot, ABC):
                 ]
             ]
         )
-        for i, (fpr, tpr, thrr, data) in enumerate(zip(fprs, tprs, thresholds, datas)):
+        for i, (fprs, tprs, thresholds, truths, scores) in enumerate(
+            zip(fprses, tprses, thresholdses, truthses, scoreses)
+        ):
+            assert len(fprs) == len(tprs) == len(thresholds), "Lengths of lists must be equal"
             mar = f"{roc_labels_list[i]}" if roc_labels_list[i] != "All Data" else None
             col = roc_colors[i]
-            alp = 0.65 if not diff_by_opacity else max(0.05, min(1, 1 / len(fprs)))
+            alp = 0.65 if not diff_by_opacity else max(0.05, min(1, 1 / len(fprses)))
             unif = False
             is_focus = False
             linew = 1
@@ -179,20 +229,23 @@ class ROC(PerformancePlot, ABC):
             elif legend_all_lines:
                 roc_style_kwargs.update(dict(label=roc_labels_list[i]))
 
-            truths, scores = data["Class"].values, data["Score"].values
-            aucscore = sklearn.metrics.roc_auc_score(truths, scores)
+            aucscore = ROCHelpers.protected_roc_auc_score(truths, scores)
+            alpha_level = plotting_kwargs.get("alpha_level", 0.05)
             if fancy_legend:
                 alpha = 0.05
-                ci, p = ROCHelpers.auc_confidence_interval(
-                    truths, scores, alpha_level := plotting_kwargs.get("alpha_level", 0.05)
-                )
+                if len(set([x for x in truths])) == 1:
+                    ci, p = (0, 1), 1
+                else:
+                    ci, p = ROCHelpers.auc_confidence_interval(
+                        np.array(truths).astype(int), np.array(scores), alpha_level
+                    )
                 is_signif = p < alpha_level
 
-                pct_mult = 2 if len(datas[-1]) == sum([len(d) for d in datas[:-1]]) else 1
+                pct_mult = 2 if plot_unified_line else 1
                 fancy_lab = (
                     f"{roc_labels_list[i]:>{indent_amt}}"
                     f" | AUC {aucscore:1.3f} — {100-int(alpha*100)}% CI = [{ci[0]:1.3f}, {ci[1]:1.3f}]"
-                    f" {ROCHelpers.get_p_stars(p)} | n = {len(data):5} = {len(data)*100/sd*pct_mult:6.2f}%"
+                    f" {ROCHelpers.get_p_stars(p)} | n = {len(scores):5} = {len(scores)*100/sd*pct_mult:6.2f}%"
                     " all data"
                 )
                 roc_style_kwargs.update(dict(label=fancy_lab))
@@ -200,7 +253,7 @@ class ROC(PerformancePlot, ABC):
                 if not is_signif:
                     roc_style_kwargs.update(dict(alpha=0.3, linestyle="dotted", dash_capstyle="round"))
 
-            ax.plot(fpr, tpr, **roc_style_kwargs)
+            ax.plot(fprs, tprs, **roc_style_kwargs)
             if is_focus:
                 roc_style_kwargs.update(
                     dict(
@@ -212,20 +265,20 @@ class ROC(PerformancePlot, ABC):
                         label=f"{'Emph. Curve':>{indent_amt}}",
                     )
                 )
-                (focused,) = ax.plot(fpr, tpr, **roc_style_kwargs)
+                (focused,) = ax.plot(fprs, tprs, **roc_style_kwargs)
                 focused.set_dashes([3, 1.5, 2, 1.5])  # type: ignore
                 focused.set_dash_capstyle("round")
             aucs.append(aucscore)
             if plot_pointer_labels and mar is not None:
                 r = random.uniform(0.01, 0.06)
-                random_angle = 2 * np.pi * i / len(fprs)  # random.uniform(0, 2 * np.pi) + np.pi/6
+                random_angle = 2 * np.pi * i / len(fprses)  # random.uniform(0, 2 * np.pi) + np.pi/6
                 offset_x = r * np.cos(random_angle)
                 offset_y = r * np.sin(random_angle)
                 text_angle_degrees = random_angle * 180 / np.pi
                 if 270 >= text_angle_degrees >= 90:
                     text_angle_degrees -= 180
-                for j, (fp, tp) in enumerate(zip(fpr, tpr)):
-                    if j % max(2, len(fpr) // 15) == 0 or (fp, tp) in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                for j, (fp, tp) in enumerate(zip(fprs, tprs)):
+                    if j % max(2, len(fprs) // 15) == 0 or (fp, tp) in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                         ax.annotate(
                             mar,
                             (fp, tp),
@@ -243,17 +296,18 @@ class ROC(PerformancePlot, ABC):
                             verticalalignment="center",
                             rotation=text_angle_degrees,
                             rotation_mode="anchor",
-                            # **dict(label="Kinase|Uniprot Class") if i == 0 else {},
                         )
 
             if show_acc:
                 accs = []
-                for thr in thrr:
-                    targ_labs = ["Target", 1]
-                    decoy_labs = ["Decoy", 0]
-                    correctly_predicted_actual_pos = len(data[(data["Class"].isin(targ_labs)) & (data["Score"] >= thr)])
-                    correctly_predicted_actual_neg = len(data[(data["Class"].isin(decoy_labs)) & (data["Score"] < thr)])
-                    acc = (correctly_predicted_actual_pos + correctly_predicted_actual_neg) / len(data)
+                for threshold in thresholds:
+                    correctly_predicted_actual_pos = len(
+                        [None for truth, score in zip(truths, scores) if truth == positive_label and score >= threshold]
+                    )
+                    correctly_predicted_actual_neg = len(
+                        [None for truth, score in zip(truths, scores) if truth != positive_label and score < threshold]
+                    )
+                    acc = (correctly_predicted_actual_pos + correctly_predicted_actual_neg) / len(scores)
                     accs.append(acc)
 
                 taxacc = ax.twinx()
@@ -264,7 +318,7 @@ class ROC(PerformancePlot, ABC):
                 taxacc.set_ylim(-0.05, 1.05)
 
                 taxacc.plot(
-                    jitter(fpr),
+                    jitter(fprs),
                     accs,
                     label="accuracy",
                     marker=None,
@@ -276,7 +330,7 @@ class ROC(PerformancePlot, ABC):
                 )
 
                 if show_zones:
-                    pat = ptch.Rectangle((fpr[np.argmax(accs)] - 0.01, -1), 0.02, 3, color="#f0f0f030", linewidth=0)
+                    pat = ptch.Rectangle((fprs[np.argmax(accs)] - 0.01, -1), 0.02, 3, color="#f0f0f030", linewidth=0)
                     pat2 = ptch.Rectangle(
                         (-1, np.max(accs) - 0.01), 3, 0.02, color="#f0f0f030", linewidth=0, label="Best Accuracy"
                     )
@@ -289,8 +343,8 @@ class ROC(PerformancePlot, ABC):
                 tax.yaxis.label.set_color(cut_col)
                 tax.tick_params(axis="y", colors=cut_col)
                 tax.plot(
-                    jitter(fpr),
-                    thrr,
+                    jitter(fprs),
+                    thresholds,
                     color=cut_colors[i],
                     label="cutoff",
                     marker=None,
@@ -302,9 +356,11 @@ class ROC(PerformancePlot, ABC):
                 tax.set_ylim(-0.05, 1.05)
 
         if plot_mean_value_line:
-            X, Y, aucscore = ROCHelpers.get_avg_roc(fprs, tprs, aucs)
-            lab = f"{'Mean Value':>{indent_amt}} | AUC {aucscore:1.3f}"
-            ax.plot(X, Y, color="grey", linewidth=2, label=lab)
+            total_obs = sum([len(scores) for scores in scoreses])
+            weights = [len(scores) / total_obs for scores in scoreses]
+            Xavg, Yavg, AUCavg = ROCHelpers.RocAvgValue.get_avg_line_pnts(fprses, tprses, weights)
+            lab = f"{'Mean Value':>{indent_amt}} | AUC {AUCavg:1.3f}"
+            ax.plot(Xavg, Yavg, color="grey", linewidth=2, label=lab)
 
         random_model_label = (
             f"{'Random':>{indent_amt}}{'' if not fancy_legend else ' | AUC 0.5    ' + ' ' * 29 + '| n =     ∞'}"
@@ -352,111 +408,129 @@ class SplitIntoKinasesROC(ROC):
         with open("roc-cache.json", "w") as f:
             json.dump(cache, f)
 
-    def _make_plot_core(self, scores, labels, kinase_identities: list[str], kinase_group, plotting_kwargs):
-        assert len(scores) == len(labels) == len(kinase_identities), "Lengths of lists must be equal"
-
-        plot_unified_line = plotting_kwargs.get("plot_unified_line", False)
-
-        all_datas = pd.DataFrame(
-            {"Score": scores, "Class": [bool(x) for x in labels], "Kinase Class": kinase_identities}
-        )
-
-        datas = [df for _, df in all_datas.groupby("Kinase Class")]
-
-        fprs, tprs, thresholds = [], [], []
-
-        for data in datas:
-            if set(data["Kinase Class"]) == {"ABL1|P00519"}:
-                data.to_csv("sanity_check_abl1.csv", index=False)
-            fpr, tpr, threshold = sklearn.metrics.roc_curve(data["Class"], data["Score"])
-            fprs.append(fpr)
-            tprs.append(tpr)
-            thresholds.append(threshold)
-
-        roc_labels_list = [list(set(data["Kinase Class"]))[0] for data in datas]
-        if plot_unified_line:
-            unified_fpr, unified_tpr, unified_threshold = sklearn.metrics.roc_curve(
-                all_datas["Class"], all_datas["Score"]
-            )
-            fprs.append(unified_fpr)
-            tprs.append(unified_tpr)
-            thresholds.append(unified_threshold)
-            datas.append(all_datas)
-            roc_labels_list.append("All Data")
+    def _make_plot_core(self, truthses, scorses, kinase_identities: list[str], kinase_group, plotting_kwargs):
+        plotting_kwargs.update({"plot_pointer_labels": True})
 
         self._roc_core_components(
-            fprs,
-            tprs,
-            thresholds,
-            datas,
-            roc_labels_list=roc_labels_list,
+            truthses,
+            scorses,
+            roc_labels_list=kinase_identities,
             plotting_kwargs=plotting_kwargs,
             title_extra=f" Stratified by Kinase (Kinase Group: {kinase_group}",
             roc_lab_extra=f" group-{kinase_group} kinase",
         )
-
-        self.cache_prepared_data(scores, labels, kinase_identities, kinase_group, plotting_kwargs)
 
 
 class SplitIntoGroupsROC(ROC):
     def __init__(self, fig_kwargs={"figsize": (10, 10)}) -> None:
         super().__init__(fig_kwargs=fig_kwargs)
 
-    def make_roc(self, scores, labels):
-        return super().make_plot(scores, labels)
+    def make_plot(self, evaluations, _ic_ref, plotting_kwargs):
+        return super().make_plot(evaluations, _ic_ref, plotting_kwargs)
 
     @staticmethod
-    def compute_test_evaluations(test_filename: str, multi_stage_classifier, resave_loc: str):
-        from ..models.multi_stage_classifier import MultiStageClassifier
-
-        assert isinstance(
-            multi_stage_classifier, MultiStageClassifier
-        ), "`multi_stage_classifier` must be a MultiStageClassifier"
+    def compute_test_evaluations(
+        test_filename: str,
+        multi_stage_classifier: MultiStageClassifier,
+        resave_loc: str,
+        kin_to_fam_to_grp_file: str,
+        get_emp_eqn=False,
+        device="cpu",
+        cartesian_product=False,
+        bypass_gc=False,
+    ):
+        assert multi_stage_classifier.__class__.__name__ == "MultiStageClassifier"
+        kin_to_grp = pd.read_csv(kin_to_fam_to_grp_file)[["Kinase", "Uniprot", "Group"]]
+        kin_to_grp["Symbol"] = (
+            kin_to_grp["Kinase"].apply(lambda x: re.sub(r"[\(\)\*]", "", x)) + "|" + kin_to_grp["Uniprot"]
+        )
+        kin_to_grp = kin_to_grp.set_index("Symbol").to_dict()["Group"]
+        gene_order = pd.read_csv(test_filename)["Gene Name of Kin Corring to Provided Sub Seq"]
+        true_grps = [kin_to_grp[x] for x in gene_order]
         grp_to_interface = multi_stage_classifier.individual_classifiers.interfaces
-        grp_to_info_pass_through_info_dict = {}
         groups = list(grp_to_interface.keys())
-        loaders = list(
-            multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
-                which_groups=groups,
-                Xy_formatted_input_file=test_filename,
-                pred_groups=getattr(multi_stage_classifier, "pred_grp_dict"),
-                info_dict_passthrough=grp_to_info_pass_through_info_dict,
-            )
+        seen_groups = []
+        all_predictions_outputs = {}
+        info_dict_passthrough = {}
+        pred_items = ()
+        simulated_bypass_acc = 1
+        random.seed(42)
+        kin_to_grp_simulated_acc = {
+            k: v if random.random() < simulated_bypass_acc else "CMGC" for k, v in kin_to_grp.items()
+        }
+        for grp, loader in multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
+            which_groups=groups,
+            Xy_formatted_input_file=test_filename,
+            group_classifier=multi_stage_classifier.group_classifier,
+            info_dict_passthrough=info_dict_passthrough,
+            seen_groups_passthrough=seen_groups,
+            evaluation_kwargs={
+                "predict_mode": True,
+                "device": device,
+                "cartesian_product": cartesian_product,
+            },
+            **({"bypass_gc": kin_to_grp_simulated_acc} if bypass_gc else {}),
+        ):
+            jumbled_predictions = multi_stage_classifier.individual_classifiers.interfaces[grp].predict(
+                loader,
+                int(info_dict_passthrough["on_chunk"] + 1),
+                int(info_dict_passthrough["total_chunks"]),
+                cutoff=0.5,
+                group=grp,
+            )  # TODO: Make adjustable cutoff
+            # jumbled_predictions = list[predictions], list[output scores], list[group]
+            del loader
+            if "cuda" in str(device):
+                torch.cuda.empty_cache()
+            new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
+            try:
+                all_predictions_outputs.update(
+                    {
+                        pair_id: (
+                            jumbled_predictions[0][i],
+                            jumbled_predictions[1][i],
+                            jumbled_predictions[2][i],
+                            jumbled_predictions[3][i],
+                            multi_stage_classifier.individual_classifiers.__dict__["grp_to_emp_eqn"].get(grp)
+                            if get_emp_eqn
+                            else None,
+                        )
+                        for pair_id, i in zip(new_info, range(len(new_info)))
+                    }
+                )
+            except KeyError:
+                raise AttributeError(
+                    "`--convert-raw-to-prob` was set but the attribute `grp_to_emp_eqn` (aka a"
+                    " dictionary that maps a kinase group to a function capible of converting raw"
+                    " scores to empirical probabilities) was not found in the pretrained neural"
+                    " network file. (To change the neural network file, use the `--pre-trained-nn`"
+                    " command line option.)"
+                ) from None
+        key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
+        pred_items = sorted(all_predictions_outputs.items(), key=key_lambda)  # Pair # {i}
+        pred_items = dict(
+            ground_truth_labels=[x[1][3] for x in pred_items],
+            scores=[x[1][1] for x in pred_items],
+            ground_truth_groups=true_grps,
         )
-        try:
-            assert len(loaders) == len(groups), "The number of loaders must be equal to the number of groups"
-        except AssertionError as e:
-            raise NotImplementedError(str(e)) from None
-        grp_to_loader = dict(zip(groups, loaders))
 
-        grp_to_interface = {k: grp_to_interface[k] for k in grp_to_loader}
-        assert grp_to_interface.keys() == grp_to_loader.keys(), (
-            "The groups for the provided models are not equal to the groups for the provided loaders."
-            f" Respectively, {grp_to_interface.keys()} != {grp_to_loader.keys()}"
-        )
-
-        for grp in groups:
-            interface = grp_to_interface[grp]
-            loader = grp_to_loader[grp]
-            _, _, outputs, labels, _ = interface.eval(
-                loader, cutoff=0.5, metric="roc", predict_mode=False, display_pb=False
-            )
-            # Group -> Tr/Vl/Te -> outputs/labels -> list
-            setattr(interface, "completed_test_evaluations", {grp: {"test": {"outputs": outputs, "labels": labels}}})
-
+        assert len(pred_items) != 0
+        setattr(multi_stage_classifier, "completed_test_evaluations", pred_items)
         with open(resave_loc, "wb") as f:
-            pickle.dump(grp_to_interface, f)
+            pickle.dump(multi_stage_classifier, f)
 
-    def _make_plot_core(self, grp_to_loader_true_groups, from_loaded, _ic_ref, plotting_kwargs):
+    def _make_plot_core(self, evaluations, _ic_ref, plotting_kwargs):
         get_emp_eqn = plotting_kwargs.get("get_emp_eqn", False)
-        assert grp_to_loader_true_groups is not None
         orig_order = ["CAMK", "AGC", "CMGC", "CK1", "OTHER", "TK", "TKL", "STE", "ATYPICAL", "<UNANNOTATED>"]
-        groups = from_loaded.keys()
-        true_grp_to_outputs_and_labels = collections.defaultdict(lambda: collections.defaultdict(list))
+        groups = sorted(list(set(evaluations["ground_truth_groups"])))
         grp_to_emp_eqn = {}
+        ground_truth_groups_to_outputs_labels = collections.defaultdict(lambda: collections.defaultdict(list))
+        for gtl, o, gtg in zip(*evaluations.values()):
+            ground_truth_groups_to_outputs_labels[gtg]["outputs"].append(o)
+            ground_truth_groups_to_outputs_labels[gtg]["labels"].append(gtl)
         for grp in groups:
-            outputs = from_loaded[grp]["test"]["outputs"]
-            labels = from_loaded[grp]["test"]["labels"]
+            outputs = ground_truth_groups_to_outputs_labels[grp]["outputs"]
+            labels = ground_truth_groups_to_outputs_labels[grp]["labels"]
             agst = np.argsort(outputs)
             booled_labels = [bool(x) for x in labels]
             if get_emp_eqn:
@@ -469,17 +543,17 @@ class SplitIntoGroupsROC(ROC):
                         "For some reason, get_emp_eqn was set to False, but the emp_prob_lambda was called."
                     )
 
-            for i in range(len(grp_to_loader_true_groups[grp])):
-                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs"].append(outputs[i])
-                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["labels"].append(labels[i])
-                true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["group_model_used"].append(grp)
-                if get_emp_eqn:
-                    true_grp_to_outputs_and_labels[grp_to_loader_true_groups[grp][i]]["outputs_emp_prob"].append(
-                        emp_prob_lambda([outputs[i]])[0]
-                    )
+            # for i in range(len(true_group_to_results[grp])):
+            #     true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["outputs"].append(outputs[i])
+            #     true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["labels"].append(labels[i])
+            #     true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["group_model_used"].append(grp)
+            #     if get_emp_eqn:
+            #         true_grp_to_outputs_and_labels[true_group_to_results[grp][i]]["outputs_emp_prob"].append(
+            #             emp_prob_lambda([outputs[i]])[0]
+            #         )
 
             assert len(outputs) == len(labels), (
-                "Something is wrong in NNInterface.get_all_rocs_by_group; the length of outputs, the number of labels,"
+                "Something is wrong in DeepKS_evaluation --- the length of outputs, the number of labels,"
                 f" and the number of kinases in `kinase_order` are not equal. (Respectively, {len(outputs)},"
                 f" {len(labels)}"
             )
@@ -509,47 +583,49 @@ class SplitIntoGroupsROC(ROC):
         if plotting_kwargs.get("plot_with_orig_order", False):
             groups = orig_order
         else:
-            groups = sorted(list(set(list(itertools.chain(*[list(x) for x in grp_to_loader_true_groups.values()])))))
-        fprs, tprs, thresholds, datas = [], [], [], []
+            groups = sorted(groups)
+
+        truthses = []
+        scorses = []
         for group in groups:
-            outputs, labels = (
-                true_grp_to_outputs_and_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
-                true_grp_to_outputs_and_labels[group]["labels"],
+            truths, scores = (
+                ground_truth_groups_to_outputs_labels[group]["labels"],
+                ground_truth_groups_to_outputs_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
             )
-            fpr, tpr, threshold = sklearn.metrics.roc_curve(labels, outputs)
-            data = pd.DataFrame({"Class": labels, "Score": outputs})
+            truthses.append(truths)
+            scorses.append(scores)
 
-            fprs.append(fpr)
-            tprs.append(tpr)
-            thresholds.append(threshold)
-            datas.append(data)
-
-        self._roc_core_components(fprs, tprs, thresholds, datas, groups, plotting_kwargs)
+        self._roc_core_components(truthses, scorses, groups, plotting_kwargs)
 
 
-def eval_and_roc_workflow(multi_stage_classifier, test_filename, resave_loc):
+def eval_and_roc_workflow(
+    multi_stage_classifier, kin_to_fam_to_grp_file, test_filename, resave_loc, bypass_gc=False, force_recompute=False
+):
     roc = SplitIntoGroupsROC()
-    if hasattr(multi_stage_classifier, "completed_test_evaluations"):
+    if hasattr(multi_stage_classifier, "completed_test_evaluations") and not force_recompute:
         print(colored("Info: Using pre-computed test evaluations.", "blue"))
     else:
         print(colored("Info: Computing test evaluations.", "blue"))
-        roc.compute_test_evaluations(test_filename, multi_stage_classifier, resave_loc)
+        roc.compute_test_evaluations(
+            test_filename, multi_stage_classifier, resave_loc, kin_to_fam_to_grp_file, bypass_gc=bypass_gc
+        )
 
     roc.make_plot(
-        multi_stage_classifier.completed_test_evaluations["test"]["outputs"],
-        multi_stage_classifier.completed_test_evaluations["test"]["labels"],
-        multi_stage_classifier.completed_test_evaluations["test"]["kinase_order"],
-        "TESTGRP",
+        multi_stage_classifier.completed_test_evaluations,
+        multi_stage_classifier.individual_classifiers,
         plotting_kwargs={
             "plot_pointer_labels": False,
             "legend_all_lines": True,
             "plot_unified_line": True,
             "diff_by_opacity": False,
-            "focus_on": "Kin-B",
-            "plot_mean_value_line": False,
+            "focus_on": None,
+            "plot_mean_value_line": True,
+            "plot_unified_line": True,
         },
     )
-    roc.display_plot()
+    roc.save_plot(
+        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/images/Evaluation and Results/"
+    )
 
 
 def test():
@@ -568,7 +644,7 @@ def test():
             "plot_unified_line": True,
             "diff_by_opacity": False,
             "focus_on": "Kin-B",
-            "plot_mean_value_line": False,
+            # "plot_mean_value_line": False,
         },
     )
     the_roc.display_plot()
@@ -598,5 +674,20 @@ def get_multi_stage_classifier():
 
 
 if __name__ == "__main__":
+    import cloudpickle
+
     # main()
-    test()
+    # test()
+    with open(
+        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_msc_weights_resaved_fake.cornichon",
+        "rb",
+    ) as mscfp:
+        msc = cloudpickle.load(mscfp)
+        eval_and_roc_workflow(
+            msc,
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv",
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv",
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_msc_weights_resaved_bypassed.cornichon",
+            force_recompute=False,
+            bypass_gc=True,
+        )

@@ -3,20 +3,17 @@ import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np
 import tempfile, os, scipy, itertools, warnings, pathlib, typing
 from numpy.typing import ArrayLike
 from matplotlib import lines, pyplot as plt, rcParams
-from typing import Collection, Tuple, Union, Callable, Literal, Sequence
+from typing import Tuple, Union, Callable, Literal, Sequence
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from roc_comparison_modified.auc_delong import delong_roc_test
 from termcolor import colored
-from sklearn.metrics import roc_auc_score
 from .roc_helpers import ROCHelpers
 
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 
-from .roc_lambda import get_avg_roc
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 from ..tools.raw_score_to_prob import raw_score_to_probability
-from ..tools.model_utils import KSDataset
 
 rcParams["font.family"] = "monospace"
 rcParams["font.size"] = 12
@@ -111,11 +108,11 @@ class NNInterface:
     def report_progress(
         self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric, print_every=1, retain=False
     ):
-        if batch_num % print_every != 0:
+        if not isinstance(batch_num, str) and batch_num % print_every != 0:
             return
         print(colored(f"{f'{paradigm} Info:':20}", "blue"), end="")
         print(colored(f"Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
-        print(colored(f"Batch [{batch_num + 1}/{total_step}], ", "blue"), end="")
+        print(colored(f"Batch [{batch_num}/{total_step - 1}], ", "blue"), end="")
         print(
             colored(f"{paradigm} Loss: {loss:.4f}, {paradigm} {expand_metric(metric)}: {score:.2f}", "blue"),
             end="\n" if retain else "\r",
@@ -143,7 +140,7 @@ class NNInterface:
         ), "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
 
         print(
-            colored(f"Status: Training{extra_description}{'' if extra_description == '' else ' '}.", "green"),
+            colored(f"Status: Training{extra_description}{'' if extra_description == '' else ' '}", "green"),
             flush=True,
         )
 
@@ -154,6 +151,7 @@ class NNInterface:
         # While loop to train the model
         while not ((lowest_loss < threshold and epoch >= num_epochs) or epoch >= 2 * num_epochs):
             train_scores = []
+            train_losses = []
             self.model.train()
 
             # Decrease learning rate, if so desired
@@ -163,6 +161,7 @@ class NNInterface:
 
             # Batch loop
             batch_num = 0
+            total_step = -1
             for batch_num, (*X, labels) in enumerate(list(train_loader)):
                 total_step = len(train_loader)
                 X = [x.to(self.device) for x in X]
@@ -216,11 +215,26 @@ class NNInterface:
                         performance_score,
                         metric,
                         print_every=5,
-                        retain=False,
+                        retain=True,
                     )
 
                 lowest_loss = min(lowest_loss, loss.item())
                 train_scores.append(performance_score)
+                train_losses.append(loss.item())
+
+            avg_loss = sum(train_losses) / len(train_losses)
+            avg_train_perf = sum(train_scores) / len(train_scores)
+            self.report_progress(
+                "Train",
+                epoch,
+                num_epochs,
+                "EPOCH MEAN",
+                total_step if total_step in locals() else -1,
+                avg_loss,
+                avg_train_perf,
+                metric,
+                retain=True,
+            )
 
             print(colored(f"{'Train Info:':20}Mean Train {expand_metric(metric)} ", "blue"), end="", flush=True)
             print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
@@ -310,10 +324,10 @@ class NNInterface:
         #           "This may be lengthy and/or crash your computer (due to high RAM use)."
         #           "Press any key to continue anyway (ctrl+c to abort): ")
         dll = list(dataloader)
-        for x in dll:
-            assert (
-                len(x) == expected_input_tuple_len
-            ), f"Input tuple length {len(x)} was not what was expected {expected_input_tuple_len}."
+        # for x in dll:
+        #     assert (
+        #         len(x) == expected_input_tuple_len
+        #     ), f"Input tuple length {len(x)} was not what was expected ({expected_input_tuple_len})."
 
         ible = dll
         if display_pb:
@@ -326,10 +340,10 @@ class NNInterface:
 
         with torch.no_grad():
             for b, (*X, labels) in enumerate(ible):
-                if predict_mode:
-                    assert torch.equal(
-                        labels, torch.Tensor([-1] * len(labels)).to(self.device)
-                    ), "Labels must be -1 for prediction."
+                # if predict_mode:
+                #     assert torch.equal(
+                #         labels, torch.Tensor([-1] * len(labels)).to(self.device)
+                #     ), "Labels must be -1 for prediction."
                 X = [x.to(self.device) for x in X]
 
                 if not isinstance(ible, tqdm.tqdm):
@@ -338,6 +352,7 @@ class NNInterface:
                         end="\r",
                         flush=True,
                     )
+                    print(" " * os.get_terminal_size().columns, end="\r", flush=True)
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)
@@ -488,8 +503,6 @@ class NNInterface:
             points_fpr.append(res[0])
             points_tpr.append(res[1])
             aucs.append(res[2])
-        if get_avg_roc_line:
-            get_avg_roc(points_fpr, points_tpr, aucs, True)
 
         plt.legend(
             loc="lower right",
