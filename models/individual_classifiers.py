@@ -574,13 +574,11 @@ def main():
         default_grp_to_model_args = grp_to_model_args["default"]
     with open(join_first(0, args["nni_params"])) as f:
         grp_to_interface_args = json.load(f)
-        default_grp_to_interface_args = grp_to_interface_args["default"]
         for grp in grp_to_interface_args:
-            if grp == "default":
-                continue
             grp_to_interface_args[grp]["loss_fn"] = eval(str(grp_to_interface_args[grp]["loss_fn"]))
             grp_to_interface_args[grp]["optim"] = eval(str(grp_to_interface_args[grp]["optim"]))
             grp_to_interface_args[grp]["device"] = device
+        default_grp_to_interface_args = grp_to_interface_args["default"]
 
     with open(join_first(0, args["ksr_training_params"])) as f:
         grp_to_training_args = json.load(f)
@@ -680,7 +678,6 @@ def parse_args() -> dict[str, Union[str, None, list[str]]]:
         nargs="+",
         help="Specify groups to train on",
         required=False,
-        default=["TK"],
         metavar="<group> <group> ...",
     )
 

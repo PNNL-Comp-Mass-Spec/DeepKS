@@ -101,7 +101,7 @@ def gather_data(
         #     else eval_batch_size
         # )
 
-        eval_batch_size = 10000 if "cuda" in str(device) else 100  # max(
+        eval_batch_size = 500 if "cuda" in str(device) else 100  # max(
         #     [
         #         len(X) // (1 if "cuda" in str(device) else (9 if len(X) % 10 != 0 else 10))
         #         for X in [X_val, X_tune, X_test]

@@ -251,8 +251,8 @@ class NNInterface:
 
             print(colored(f"Status: ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n", "green"), flush=True)
             epoch += 1
-            if pass_through_scores is not None and val_dl is not None:
-                pass_through_scores.append((score, len(all_outputs)))
+        if pass_through_scores is not None and val_dl is not None:
+            pass_through_scores.append((score, len(all_outputs)))
 
     def predict(
         self,
