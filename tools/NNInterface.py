@@ -109,12 +109,23 @@ class NNInterface:
         return self.representation
 
     def report_progress(
-        self, paradigm, epoch, num_epochs, batch_num, total_step, loss, score, metric, print_every=1, retain=False
+        self,
+        paradigm,
+        epoch,
+        num_epochs,
+        batch_num,
+        chunk_num,
+        total_step,
+        loss,
+        score,
+        metric,
+        print_every=1,
+        retain=False,
     ):
         if batch_num % print_every != 0:
             return
         print(colored(f"{f'{paradigm} Info:':20}", "blue"), end="")
-        print(colored(f"Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
+        print(colored(f"Chunk [{chunk_num}] Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
         print(colored(f"Batch [{batch_num + 1}/{total_step}], ", "blue"), end="")
         print(
             colored(f"{paradigm} Loss: {loss:.4f}, {paradigm} {expand_metric(metric)}: {score:.2f}", "blue"),
@@ -125,7 +136,7 @@ class NNInterface:
 
     def train(
         self,
-        train_loader,
+        loader_generator,
         num_epochs=50,
         lr_decay_amount=1.0,
         lr_decay_freq=1,
@@ -162,65 +173,72 @@ class NNInterface:
                     param["lr"] *= lr_decay_amount
 
             # Batch loop
-            batch_num = 0
-            for batch_num, (*X, labels) in enumerate(list(train_loader)):
-                total_step = len(train_loader)
-                X = [x.to(self.device) for x in X]
-                labels = labels.to(self.device)
+            chunk_num = -1
+            for chunk_num, ((train_loader, _, _, _), _) in enumerate(loader_generator):
+                batch_num = 0
+                for batch_num, (*X, labels) in enumerate(list(train_loader)):
+                    total_step = len(train_loader)
+                    X = [x.to(self.device) for x in X]
+                    labels = labels.to(self.device)
 
-                # Forward pass
-                print(
-                    colored(f"{'Train Status:':20}Step A - Forward propogating." + " " * 20, "green"),
-                    flush=True,
-                    end="\r",
-                )
-                outputs = self.model.forward(*X)
-                outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
-                torch.cuda.empty_cache()
-
-                # Compute loss
-                print(
-                    colored(f"{'Train Status:':20}Step B - Computing loss." + " " * 20, "green"), flush=True, end="\r"
-                )
-                loss: torch.Tensor
-                match self.criterion:
-                    case torch.nn.CrossEntropyLoss():
-                        loss = self.criterion.__call__(outputs, labels.long())
-                    case torch.nn.BCEWithLogitsLoss():
-                        loss = self.criterion.__call__(outputs, labels.float())
-
-                # Backward and optimize
-                self.optimizer.zero_grad()
-                print(
-                    colored(f"{'Train Status:':20}Step C - Backpropogating." + " " * 20, "green"), flush=True, end="\r"
-                )
-                loss.backward()
-                print(
-                    colored(f"{'Train Status:':20}Step D - Stepping in ∇'s direction." + " " * 20, "green"),
-                    flush=True,
-                    end="\r",
-                )
-                self.optimizer.step()
-
-                # Report Progress
-                performance_score = None
-                if (batch_num) % print_every == 0:
-                    performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
-                    self.report_progress(
-                        "Train",
-                        epoch,
-                        num_epochs,
-                        batch_num,
-                        total_step,
-                        torch.mean(loss).item(),
-                        performance_score,
-                        metric,
-                        print_every=1000,
-                        retain=True,
+                    # Forward pass
+                    print(
+                        colored(f"{'Train Status:':20}Step A - Forward propogating." + " " * 20, "green"),
+                        flush=True,
+                        end="\r",
                     )
+                    outputs = self.model.forward(*X)
+                    outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
+                    torch.cuda.empty_cache()
 
-                lowest_loss = min(lowest_loss, loss.item())
-                train_scores.append(performance_score)
+                    # Compute loss
+                    print(
+                        colored(f"{'Train Status:':20}Step B - Computing loss." + " " * 20, "green"),
+                        flush=True,
+                        end="\r",
+                    )
+                    loss: torch.Tensor
+                    match self.criterion:
+                        case torch.nn.CrossEntropyLoss():
+                            loss = self.criterion.__call__(outputs, labels.long())
+                        case torch.nn.BCEWithLogitsLoss():
+                            loss = self.criterion.__call__(outputs, labels.float())
+
+                    # Backward and optimize
+                    self.optimizer.zero_grad()
+                    print(
+                        colored(f"{'Train Status:':20}Step C - Backpropogating." + " " * 20, "green"),
+                        flush=True,
+                        end="\r",
+                    )
+                    loss.backward()
+                    print(
+                        colored(f"{'Train Status:':20}Step D - Stepping in ∇'s direction." + " " * 20, "green"),
+                        flush=True,
+                        end="\r",
+                    )
+                    self.optimizer.step()
+
+                    # Report Progress
+                    performance_score = None
+                    if (batch_num) % print_every == 0:
+                        performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
+                        self.report_progress(
+                            "Train",
+                            epoch,
+                            num_epochs,
+                            batch_num,
+                            chunk_num,
+                            total_step,
+                            torch.mean(loss).item(),
+                            performance_score,
+                            metric,
+                            print_every=5,
+                            retain=True,
+                        )
+
+                    lowest_loss = min(lowest_loss, loss.item())
+                    train_scores.append(performance_score)
 
             print(colored(f"{'Train Info:':20}Mean Train {expand_metric(metric)} ", "blue"), end="", flush=True)
             print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
@@ -233,12 +251,19 @@ class NNInterface:
                 print(colored("Status: Validating", "green"))
                 total_step = len(val_dl)
                 score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
-                self.report_progress("Validation", epoch, num_epochs, 0, 1, val_loss, score, metric, retain=True)
+                self.report_progress(
+                    "Validation", epoch, num_epochs, 0, 1, chunk_num, val_loss, score, metric, retain=True
+                )
 
             print(colored(f"Status: ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n", "green"), flush=True)
             epoch += 1
             if pass_through_scores is not None and val_dl is not None:
                 pass_through_scores.append((score, len(all_outputs)))
+            if chunk_num == -1:
+                warnings.warn(
+                    f"No data for {extra_description}, skipping training for this group. Neural network weights will"
+                    " be random."
+                )
 
     def predict(
         self,
@@ -673,22 +698,22 @@ class NNInterface:
         self.model.load_state_dict(state_dict)
 
     @staticmethod
-    def get_input_size(dl, leave_out_last=True):
+    def get_input_size(dl: torch.utils.data.DataLoader, leave_out_last=True):
         inp_sizes = []
-        assert isinstance(dl, torch.utils.data.DataLoader)
-        dl = list(dl)
-        iterab = dl[0] if not leave_out_last else dl[0][:-1]
+        assert isinstance(dl, torch.utils.data.DataLoader), "dl must be a DataLoader, was {}".format(type(dl))
+        dll = list(dl)
+        iterab = dll[0] if not leave_out_last else dll[0][:-1]
         for X in iterab:
             assert isinstance(X, torch.Tensor)
             inp_sizes.append(list(X.size()))
         return inp_sizes
 
     @staticmethod
-    def get_input_types(dl, leave_out_last=True):
+    def get_input_types(dl: torch.utils.data.DataLoader, leave_out_last=True):
         types = []
         assert isinstance(dl, torch.utils.data.DataLoader)
-        dl = list(dl)
-        iterab = dl[0] if not leave_out_last else dl[0][:-1]
+        dll = list(dl)
+        iterab = dll[0] if not leave_out_last else dll[0][:-1]
         for X in iterab:
             assert isinstance(X, torch.Tensor)
             types.append(X.dtype)

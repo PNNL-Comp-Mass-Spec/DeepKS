@@ -1,6 +1,7 @@
-{
-    "lr_decay_amount": 0.7,
-    "lr_decay_freq": 3,
-    "num_epochs": 5,
-    "metric": "roc"
+{"default": {
+        "lr_decay_amount": 0.7,
+        "lr_decay_freq": 3,
+        "num_epochs": 5,
+        "metric": "roc"
+    }
 }

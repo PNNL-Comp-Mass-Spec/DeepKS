@@ -335,6 +335,7 @@ def gather_data(
         free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]
 
     num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / BYTES_PER_PAIR)
+    print(f"{num_pairs_can_be_stored_per_dl=}")
 
     assert (
         len(data["Kinase Sequence"]) == len(data["Site Sequence"]) or cartesian_product
@@ -356,6 +357,7 @@ def gather_data(
             else len(data["Kinase Sequence"])
         ),
     )
+
     for partition_id in range(int(num_partitions)):
         final_kin_tensor_chunks = []
         final_site_tensor_chunks = []
@@ -369,16 +371,20 @@ def gather_data(
         test_ids_subset = test_ids[begin_idx:end_idx]
 
         actual_partition_size = end_idx - begin_idx
-
         if isinstance(data, pd.DataFrame):
-            assert data_train is not None
-            assert data_val is not None
-            assert data_tune is not None
-            assert data_test is not None
+            assert isinstance(data_train, pd.DataFrame)
+            assert isinstance(data_val, pd.DataFrame)
+            assert isinstance(data_tune, pd.DataFrame)
+            assert isinstance(data_test, pd.DataFrame)
             X_train, X_val, X_tune, X_test = tuple(
                 [
                     torch.IntTensor([encode_seq(x, tok_dict) for x in d_set["Site Sequence"].values]).to(device)
-                    for d_set in [data_train, data_val, data_tune, data_test]
+                    for d_set in [
+                        data_train.loc[train_ids_subset],
+                        data_val.loc[val_ids_subset],
+                        data_tune.loc[tune_ids_subset],
+                        data_test.loc[test_ids_subset],
+                    ]
                 ]
             )
             if not mc:
@@ -390,7 +396,12 @@ def gather_data(
                                 for x in d_set["Kinase Sequence"].values
                             ]
                         ).to(device)
-                        for d_set in [data_train, data_val, data_tune, data_test]
+                        for d_set in [
+                            data_train.loc[train_ids_subset],
+                            data_val.loc[val_ids_subset],
+                            data_tune.loc[tune_ids_subset],
+                            data_test.loc[test_ids_subset],
+                        ]
                     ]
                 )
             else:
@@ -398,10 +409,15 @@ def gather_data(
             y_train, y_val, y_tune, y_test = tuple(
                 [
                     torch.IntTensor(d_set[class_col].values).to(device)
-                    for d_set in [data_train, data_val, data_tune, data_test]
+                    for d_set in [
+                        data_train.loc[train_ids_subset],
+                        data_val.loc[val_ids_subset],
+                        data_tune.loc[tune_ids_subset],
+                        data_test.loc[test_ids_subset],
+                    ]
                 ]
             )
-        else:
+        if isinstance(data, dict):
             rand_idx_to_kin_idx_site_idx = lambda rand_idx: (
                 int(rand_idx // len(data["Site Sequence"])),
                 int(rand_idx // len(data["Kinase Sequence"])),
