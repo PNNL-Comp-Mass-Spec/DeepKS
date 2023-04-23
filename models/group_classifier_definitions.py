@@ -13,6 +13,9 @@ from pprint import pprint
 from itertools import chain, combinations
 from termcolor import colored
 from itertools import product
+from ..config.root_logger import get_logger
+
+logger = get_logger()
 
 
 def powerset(iterable):  # From https://stackoverflow.com/a/5228294/16158339 ---
@@ -80,7 +83,7 @@ def factory(acceptable_classifier: AcceptableClassifier) -> AcceptableClassifier
         def fit(self, X, y) -> typing.Any:
             self.training_X = [x for x in X]
             self.training_y = y
-            print(colored("Status: Fitting SKlearn classifier in Factory.", "green"))
+            logger.status("Fitting SKlearn classifier in Factory.")
             coords = get_coordinates(self.training_X, self.training_X)[0]
             super().fit(coords, self.training_y)
 
@@ -404,7 +407,7 @@ class SKGroupClassifier:
         self.y_train = y_train
         self.model = classifier(**hyperparameters)
         self.model = factory(self.model)
-        print(colored("Status: Fitting Group Classifier Model", "green"))
+        logger.status("Fitting Group Classifier Model")
         self.model.fit(X_train, y_train)
         check_is_fitted(self.model)
 

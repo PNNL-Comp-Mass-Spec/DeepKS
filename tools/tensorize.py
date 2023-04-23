@@ -362,7 +362,7 @@ def gather_data(
         final_kin_tensor_chunks = []
         final_site_tensor_chunks = []
         final_class_chunks = []
-        # print(colored(f"Status: Writing Tensor Data to RAM", "green"))
+        # logger.status("Writing Tensor Data to RAM")
         begin_idx = partition_size * partition_id
         end_idx = partition_size * (partition_id + 1)
         train_ids_subset = train_ids[begin_idx:end_idx]
@@ -448,7 +448,7 @@ def gather_data(
                 final_kin_tensor_chunks.append(stacked_kin_tensors)
                 final_site_tensor_chunks.append(stacked_site_tensors)
                 final_class_chunks.append(stacked_class_tensors)
-                # print(colored(f"Status: Done writing to Tensor", "green"))
+                # logger.status("Done writing to Tensor")
             X_train_kin, X_val_kin, X_tune_kin, X_test_kin = tuple(final_kin_tensor_chunks)
             X_train, X_val, X_tune, X_test = tuple(final_site_tensor_chunks)
             y_train, y_val, y_tune, y_test = tuple(final_class_chunks)

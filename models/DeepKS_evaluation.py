@@ -15,6 +15,9 @@ get_cmap = colormaps.get_cmap
 from pydash import _
 from numpy.typing import ArrayLike
 
+from ..config.root_logger import get_logger
+
+logger = get_logger()
 
 warnings.simplefilter("once", Warning)
 
@@ -584,9 +587,9 @@ class SplitIntoGroupsROC(ROC):
 def eval_and_roc_workflow(multi_stage_classifier, kin_to_fam_to_grp_file, test_filename, resave_loc):
     roc = SplitIntoGroupsROC()
     if hasattr(multi_stage_classifier, "completed_test_evaluations"):
-        print(colored("Info: Using pre-computed test evaluations.", "blue"))
+        logger.info("Using pre-computed test evaluations.")
     else:
-        print(colored("Info: Computing test evaluations.", "blue"))
+        logger.info("Computing test evaluations.")
         roc.compute_test_evaluations(
             test_filename, multi_stage_classifier, resave_loc, kin_to_fam_to_grp_file, bypass_gc=True
         )

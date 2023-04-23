@@ -13,6 +13,7 @@ TEST_INFO = 25
 USER_ERROR = 35
 ERROR = 45
 
+logging.addLevelName(logging.DEBUG, "Debug")
 logging.addLevelName(VANISHING_STATUS, "Status")
 logging.addLevelName(STATUS, "Status")
 logging.addLevelName(logging.INFO, "Info")
@@ -33,16 +34,18 @@ logging.USER_ERROR = USER_ERROR  # type: ignore
 
 class CustomLogger(logging.Logger):
     def __init__(
-        self, logging_level: int = VANISHING_STATUS, output_method: Literal["console", "logfile"] = "console"
+        self, logging_level: int = logging.DEBUG, output_method: Literal["console", "logfile"] = "console"
     ) -> None:
         super().__init__("MainCustomLogger")
-        # Create a logger
-        self.setLevel(logging_level)
+        self._level = logging_level
 
-        # Create console handler and set level to INFO
+        # Create a logger
+        self.setLevel(self._level)
+
+        # Create console handler and set level
         self.handler = logging.StreamHandler() if output_method == "console" else logging.FileHandler("logfile.log")
         self.handler.setLevel(
-            logging_level if isinstance(self.handler, logging.StreamHandler) else max(logging_level, STATUS)
+            logging_level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
         )
 
         # Create formatter
@@ -55,6 +58,16 @@ class CustomLogger(logging.Logger):
         self.addHandler(self.handler)
 
         self.last_log = None
+
+    def _update_logging_level(self, new_level: int):
+        self.setLevel(new_level)
+        self.handler.setLevel(new_level)
+
+    def _update_logging_method(self, new_method: Literal["console", "logfile"]):
+        self.handler = logging.StreamHandler() if new_method == "console" else logging.FileHandler("logfile.log")
+        self.handler.setLevel(
+            self._level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
+        )
 
     def _blankit(self):
         if self.last_log and self.last_log == "vstatus":
@@ -146,7 +159,7 @@ class CustomFormatter(logging.Formatter):
 
 
 if __name__ == "__main__":
-    logger = CustomLogger()
+    logger = CustomLogger(logging_level=logging.DEBUG)
     logger.debug("This is a debug message.")
     logger.vstatus("This is a vanishing status message.")
     time.sleep(1)

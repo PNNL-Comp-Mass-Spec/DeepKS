@@ -17,6 +17,9 @@ aa_inv = {aa: i for i, aa in enumerate(aas)}
 num_classes = 10
 from ..tools.NNInterface import NNInterface
 from .KinaseSubstrateRelationship import MultipleCNN
+from ..config.root_logger import get_logger
+
+logger = get_logger()
 
 os.chdir(pathlib.Path(__file__).resolve().parent.parent.parent)
 
@@ -161,7 +164,7 @@ class SiteClassifier:
         except TypeError:
             gc = eval(gc_hyperparameters["base_classifier"])(**hps, n_jobs=cpu_count)
         (tr,) = SiteClassifier.format_data(train_file, kin_fam_grp=kin_fam_grp_file)
-        print(colored("Status: Training Group Classifier", "green"))
+        logger.status("Training Group Classifier")
         gc.fit(tr[0], tr[1])
         return gc
 

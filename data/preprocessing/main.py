@@ -37,7 +37,7 @@ def main():
         print("Step 1: Download most recent version of the PhosphositePlus database.")
         PS.download_psp.get_phospho(outfile="../raw_data/PSP_script_download.xlsx")
     else:
-        print(colored("Warning: Using cached version of PSP database.", "yellow"))
+        logger.warning("Using cached version of PSP database.")
 
     if not DEBUGGING or 2 in perform_steps:
         print("Step 2: Download sequences using the Uniprot REST API. Using R.")
@@ -129,7 +129,7 @@ def main():
             elif eval_or_train_on_all.lower() == "t":
                 input_good = True
                 data_gen_conf = {"train_percentile": 65, "dataframe_generation_mode": "tr-all"}
-                print(colored("Info: Generating dataframe with the following configuration dictionary:", "blue"))
+                logger.info("Generating dataframe with the following configuration dictionary:")
                 pprint.pprint(data_gen_conf)
                 PS.format_raw_data_DD.get_input_dataframe(
                     input_fn=data_filename,

@@ -1,14 +1,12 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
 import tempfile, os, scipy, itertools, warnings, pathlib, typing
-from numpy.typing import ArrayLike
 from matplotlib import lines, pyplot as plt, rcParams
 from typing import Collection, Tuple, Union, Callable, Literal, Sequence
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from roc_comparison_modified.auc_delong import delong_roc_test
 from termcolor import colored
-from sklearn.metrics import roc_auc_score
 from .roc_helpers import ROCHelpers
 
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
@@ -27,6 +25,10 @@ heaviside_cutoff = lambda outputs, cutoff: torch.heaviside(
     torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
 )
 expand_metric = lambda met: "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
+
+from ..config.root_logger import get_logger
+
+logger = get_logger()
 
 
 class NNInterface:
@@ -71,7 +73,7 @@ class NNInterface:
             self.write_model_summary()
 
     def write_model_summary(self):
-        print(colored(f"Info: Writing model summary to file {self.model_summary_name}.", "blue"))
+        logger.info("Writing model summary to file {self.model_summary_name}.")
         self.model_summary_name = join_first(0, self.model_summary_name)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
@@ -182,18 +184,14 @@ class NNInterface:
                     labels = labels.to(self.device)
 
                     # Forward pass
-                    print(
-                        colored(f"{'Train Status:':20}Step A - Forward propogating." + " " * 20, "green"),
-                        flush=True,
-                        end="\r",
-                    )
+                    logger.vstatus("Train Step A - Forward propogating." + " " * 20, "green")
                     outputs = self.model.forward(*X)
                     outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
                     torch.cuda.empty_cache()
 
                     # Compute loss
                     print(
-                        colored(f"{'Train Status:':20}Step B - Computing loss." + " " * 20, "green"),
+                        logger.vstatus("Train Step B - Computing loss." + " " * 20, "green"),
                         flush=True,
                         end="\r",
                     )
@@ -206,17 +204,9 @@ class NNInterface:
 
                     # Backward and optimize
                     self.optimizer.zero_grad()
-                    print(
-                        colored(f"{'Train Status:':20}Step C - Backpropogating." + " " * 20, "green"),
-                        flush=True,
-                        end="\r",
-                    )
+                    logger.vstatus("Train Step C - Backpropogating." + " " * 20, "green")
                     loss.backward()
-                    print(
-                        colored(f"{'Train Status:':20}Step D - Stepping in ∇'s direction." + " " * 20, "green"),
-                        flush=True,
-                        end="\r",
-                    )
+                    logger.vstatus("Train Step D - Stepping in ∇'s direction." + " " * 20, "green")
                     self.optimizer.step()
 
                     # Report Progress
@@ -240,15 +230,18 @@ class NNInterface:
                     lowest_loss = min(lowest_loss, loss.item())
                     train_scores.append(performance_score)
 
-            print(colored(f"{'Train Info:':20}Mean Train {expand_metric(metric)} ", "blue"), end="", flush=True)
-            print(colored(f"for Epoch [{epoch + 1}/{num_epochs}] was ", "blue"), end="", flush=True)
-            print(colored(f"{sum(train_scores)/len(train_scores):.3f}", "blue"), flush=True)
+            logger.trinfo(
+                f"{'Train Info:':20}Mean Train {expand_metric(metric)} ",
+                f"bluefor Epoch [{epoch + 1}/{num_epochs}] was ",
+                f"blue{sum(train_scores)/len(train_scores):.3f}",
+                "blue",
+            )
 
             score, all_outputs = -1, [-1]
             # Validate
             if val_dl is not None:
                 print(" " * os.get_terminal_size().columns, end="\r")
-                print(colored("Status: Validating", "green"))
+                logger.status("Validating")
                 total_step = len(val_dl)
                 score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
                 self.report_progress(
@@ -658,7 +651,7 @@ class NNInterface:
         """
 
         print(" " * os.get_terminal_size().columns, end="\r")
-        print(colored("Status: Testing", "green"))
+        logger.status("Testing")
         performance, _, outputs, labels, predictions = self.eval(
             test_loader, cutoff, metric, predict_mode=False, display_pb=False
         )
@@ -677,7 +670,7 @@ class NNInterface:
                 pred_print = predictions[i] if not int_label_to_str_label else int_label_to_str_label[predictions[i]]
                 lab_print = labels[i] if not int_label_to_str_label else int_label_to_str_label[labels[i]]
                 tab.add_row([i, lab_print, pred_print])
-            print(colored(str(tab), color="blue"), flush=True)
+            logger.teinfo(str(tab))
 
         return predictions, outputs, labels
 

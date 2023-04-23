@@ -97,7 +97,7 @@ def get_input_dataframe_core(
     sizes = []
     order = []
 
-    print(colored("Status: Assigning target and decoy with bipartite graph algorithm.", "green"))
+    logger.status("Assigning target and decoy with bipartite graph algorithm.")
     max_seen_end = 0
     max_seen_start = 0
     for kin in start_dict:
@@ -123,9 +123,9 @@ def get_input_dataframe_core(
 
     if os.path.exists(f"{sum(sizes)}.derangement"):
         derangement = json.load(open(f"{sum(sizes)}.derangement"))
-        print(colored("Info: Using derangement found in cache.", "blue"))
+        logger.info("Using derangement found in cache.")
     else:
-        print(colored("Warning: Computing derangement instead of using cache.", "yellow"))
+        logger.warning("Computing derangement instead of using cache.")
         derangement = [
             x if x is not None else len(decoy)
             for x in get_groups_derangement4(
@@ -133,8 +133,8 @@ def get_input_dataframe_core(
             )
         ]
 
-    print(colored("Status: Done processing derangement.", "green"))
-    print(colored("Status: assembling final data.", "green"))
+    logger.status("Done processing derangement.")
+    logger.status("assembling final data.")
 
     for col in ["original_kinase", "original_uniprot_id", "seq"]:
         decoy[col] = decoy[col].loc[derangement].reset_index(drop=True)
@@ -181,7 +181,7 @@ def get_input_dataframe_core(
             index=False,
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
-    print(colored(f"Info: Outputting formatted data file with size: {len(all_data_w_seqs)}", "blue"))
+    logger.info("Outputting formatted data file with size: {len(all_data_w_seqs)}")
 
 
 if __name__ == "__main__":

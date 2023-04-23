@@ -30,8 +30,8 @@ def smart_get_latest():
             warnings.warn(colored(f"No pre-trained {pttrn} file found in {bin_}!", "yellow"), ResourceWarning)
         set_vars.append(os.path.join(bin_, "deepks_" + pttrn + "." + str(max_version) + ".cornichon"))
     PRE_TRAINED_NN, PRE_TRAINED_GC = tuple(set_vars)
-    print(colored(f"Info: Using latest pre-trained neural network: {PRE_TRAINED_NN}", "blue"))
-    print(colored(f"Info: Using latest pre-trained group classifier: {PRE_TRAINED_GC}", "blue"))
+    logger.info("Using latest pre-trained neural network: {PRE_TRAINED_NN}")
+    logger.info("Using latest pre-trained group classifier: {PRE_TRAINED_GC}")
 
 
 smart_get_latest()

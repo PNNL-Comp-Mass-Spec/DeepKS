@@ -9,7 +9,11 @@ if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"])
 
     if __name__ == "__main__":
         write_splash.write_splash("main_api")
-        print(colored("Status: Loading Modules...", "green"))
+
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+logger.status("Loading Modules...")
 
 import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch
 
@@ -103,7 +107,7 @@ def make_predictions(
     """
     config.cfg.set_mode("no_alin")
     try:
-        print(colored("Status: Validating inputs.", "green"))
+        logger.status("Validating inputs.")
         assert predictions_output_format in (
             ["inorder", "dictionary", "in_order_json", "dictionary_json", "csv", "sqlite"]
         ), f"Output format was {predictions_output_format}, which is not allowed."
@@ -129,10 +133,10 @@ def make_predictions(
                 " problematic."
             )
 
-        print(colored("Info: Inputs are valid!", "blue"))
+        logger.info("Inputs are valid!")
 
         # Create (load) multi-stage classifier
-        print(colored("Status: Loading previously trained models...", "green"))
+        logger.status("Loading previously trained models...")
         with open(pre_trained_gc, "rb") as f:
             group_classifier: SKGroupClassifier = pickle.load(f)
         individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(
@@ -151,10 +155,10 @@ def make_predictions(
         #     f.write(summary_string)
 
         if dry_run:
-            print(colored("Status: Dry run successful!", "green"))
+            logger.status("Dry run successful!")
             return
 
-        print(colored("Status: Beginning Prediction Process...", "green"))
+        logger.status("Beginning Prediction Process...")
         try:
             res = msc.predict(  #### This is the meat of the prediction process!
                 kinase_seqs,
@@ -187,7 +191,7 @@ def make_predictions(
             else:
                 pprint.pprint(res)
             print("\n" + "<" * int(np.floor(len(first_msg) / 2)) + ">" * int(np.ceil(len(first_msg) / 2)) + "\n")
-        print(colored("Status: Done!\n", "green"))
+        logger.status("Done!\n")
         return res
     except Exception as e:
         print(informative_exception(e, print_full_tb=True))
@@ -199,7 +203,7 @@ def parse_api() -> dict[str, typing.Any]:
     @returns: Dictionary mapping the argument name to the argument value.
     """
 
-    print(colored("Status: Parsing Arguments", "green"))
+    logger.status("Parsing Arguments")
 
     def wrap(s) -> str:
         if "\n" in s:
@@ -504,7 +508,7 @@ def parse_api() -> dict[str, typing.Any]:
     args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
     args_dict["group_output"] = args_dict.pop("groups")
     if not args_dict["scores"] and args_dict["normalize_scores"]:
-        print(colored("Info: Ignoring `--normalize-scores` since `--scores` was not set.", "blue"))
+        logger.info("Ignoring `--normalize-scores` since `--scores` was not set.")
 
     if args_dict["kin_info"] is None:
         kinase_info_dict = {

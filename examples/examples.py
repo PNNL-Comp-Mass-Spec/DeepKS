@@ -2,6 +2,10 @@ import sys, termcolor, os, pathlib, warnings, json
 from ..api import main
 from termcolor import colored
 
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+
 DEVICE = os.environ.get("DEVICE", "cpu")
 
 EXAMPLES = []
@@ -40,7 +44,7 @@ def _main():
             warnings.simplefilter("ignore", UserWarning)
             main.setup()
 
-    print(colored("Info: All Examples Complete.", "blue"))
+    logger.info("All Examples Complete.")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,11 @@
 ### SETUP ----
 # Imports
-from termcolor import colored
 
-print(colored("Status: Importing libraries...", "green"))
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+
+logger.status("Importing libraries...")
 import torch, torch.nn as nn, pandas as pd, numpy as np, sys, pathlib, os
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data

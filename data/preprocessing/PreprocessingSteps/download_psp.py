@@ -84,7 +84,7 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
 
     table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
     print("Info: Number of unique uniprot IDs in PSP: ", len(table["KIN_ACC_ID"].unique()))
-    print(colored("Status: Saving PSP to Excel file...", "green"))
+    logger.status("Saving PSP to Excel file...")
     table.to_excel(outfile, index=False)
 
 

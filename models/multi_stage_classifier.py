@@ -3,7 +3,12 @@ if __name__ == "__main__":
     from termcolor import colored
 
     write_splash("main_gc_trainer")
-    print(colored("Progress: Loading Modules", "green"), flush=True)
+    from ..config.root_logger import get_logger
+
+    logger = get_logger()
+    logger.status("Loading Modules")
+
+
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
 import torch, argparse, socket
 from typing import Callable, Union
@@ -34,7 +39,7 @@ def smart_save_gc(group_classifier: grp_pred.SKGroupClassifier):
         if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(2)) + 1)
     save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
-    print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
+    logger.status("Serializing and Saving Group Classifier to Disk. ({save_path})")
     with open(save_path, "wb") as f:
         pickle.dump(group_classifier, f)
 
@@ -63,7 +68,7 @@ class MultiStageClassifier:
         get_emp_eqn=True,
         cartesian_product=False,
     ):
-        print(colored("Status: Prediction Step [1/2]: Sending input kinases to group classifier", "green"))
+        logger.status("Prediction Step [1/2]: Sending input kinases to group classifier")
         # Open XY_formatted_input_file
         Xy_formatted_input_file = join_first(1, Xy_formatted_input_file)
         with open(Xy_formatted_input_file) as f:
@@ -167,7 +172,7 @@ class MultiStageClassifier:
         suppress_seqs_in_output,
     ):
         if "dict" in predictions_output_format or re.search(r"(sqlite|csv)", predictions_output_format):
-            print(colored("Status: Copying Results to Dictionary.", "green"))
+            logger.status("Copying Results to Dictionary.")
 
             base_kinase_gene_names = [kin_info[k]["Gene Name"] if k in kin_info else "?" for k in kinase_seqs]
             base_kinase_uniprot_accession = [
@@ -271,7 +276,7 @@ class MultiStageClassifier:
                 f"{str(pathlib.Path(__file__).parent.resolve())}/"
                 f"../out/{get_file_name('results', re.sub(r'.*?_json', 'json', predictions_output_format))}"
             )
-            print(colored(f"Info: Writing results to {file_name}", "blue"))
+            logger.info("Writing results to {file_name}")
             table = pd.DataFrame(ret)
             if "json" in predictions_output_format:
                 table.to_json(open(file_name, "w"), orient="records", indent=3)
@@ -361,7 +366,7 @@ class MultiStageClassifier:
                         )
                         mapped_numerical_scores.append(x)
             boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
-        print(colored("Status: Predictions Complete!", "green"))
+        logger.status("Predictions Complete!")
         return self._package_results(
             predictions_output_format,
             kin_info,
@@ -396,7 +401,7 @@ class MultiStageClassifier:
         existing_seqs_to_known_ids = existing_seqs_to_known_ids.set_index("kinase_seq").to_dict()["Symbol"]
         val_kin_list = [x for x in kin_id_to_seq if kin_id_to_seq[x] not in existing_seqs_to_known_ids]
         if len(val_kin_list) == 0:
-            print(colored("Info: Leveraging pre-computed pairwise alignment scores!", "blue"))
+            logger.info("Leveraging pre-computed pairwise alignment scores!")
         additional_name_dict = {
             x: existing_seqs_to_known_ids[kin_id_to_seq[x]]
             for x in kin_id_to_seq
@@ -556,7 +561,7 @@ def smart_save_msc(msc: MultiStageClassifier):
         if v := re.search(r"(UNITTESTVERSION|)deepks_msc_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(2)) + 1)
     save_path = os.path.join(bin_, f"deepks_msc_weights.{max_version}.cornichon")
-    print(colored(f"Status: Serializing and Saving Group Classifier to Disk. ({save_path})", "green"))
+    logger.status("Serializing and Saving Group Classifier to Disk. ({save_path})")
     with open(save_path, "wb") as f:
         pickle.dump(msc, f)
 

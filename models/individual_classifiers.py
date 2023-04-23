@@ -4,7 +4,11 @@ if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
     write_splash("main_nn_trainer")
-    print("Progress: Loading Modules", flush=True)
+    from ..config.root_logger import get_logger
+
+    logger = get_logger()
+    logger.status("Loading Modules", flush=True)
+
 
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data, more_itertools
 import cloudpickle as pickle, socket, pathlib, os, itertools, functools, numpy as np
@@ -48,7 +52,7 @@ def smart_save_nn(individual_classifier: IndividualClassifiers):
         if v := re.search(r"(UNITTESTVERSION|)deepks_nn_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(2)) + 1)
     savepath = os.path.join(bin_, f"deepks_nn_weights.{max_version}.cornichon")
-    print(colored(f"Status: Serializing and Saving Neural Networks to Disk. ({savepath})", "green"))
+    logger.status("Serializing and Saving Neural Networks to Disk. ({savepath})")
     IndividualClassifiers.save_all(individual_classifier, savepath)
 
 
@@ -475,7 +479,7 @@ class IndividualClassifiers:
                     )
                 }
 
-                print(colored("Status: Creating combined roc from individual models.", "green"))
+                logger.status("Creating combined roc from individual models.")
                 NNInterface.get_combined_rocs_from_individual_models(
                     self.interfaces,
                     grp_to_loaders,
@@ -546,7 +550,7 @@ def main():
         groups=groups,
     )
 
-    print(colored("Status: About to Train", "green"))
+    logger.status("About to Train")
     assert val_filename is not None
     classifier.train(
         which_groups=groups,
