@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import numpy as np
+
 if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
@@ -65,7 +67,7 @@ class IndividualClassifiers:
         grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, type]]],
         grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable, type]]],
         device: str,
-        args: dict[str, Union[str, None]],
+        args: dict[str, Union[str, None, list[str]]],
         groups: list[str],
     ):
         for group in grp_to_model_args:
@@ -560,14 +562,11 @@ def main():
         grp_to_training_args = json.load(f)
         default_training_args = grp_to_training_args["default"]
 
-    classifier = IndividualClassifiers(
-        grp_to_model_args={group: deepcopy(default_grp_to_model_args) for group in groups},
-        grp_to_interface_args={group: deepcopy(default_grp_to_interface_args) for group in groups},
-        grp_to_training_args={group: deepcopy(default_training_args) for group in groups},
-        device=device,
-        args=args,
-        groups=groups,
-    )
+    gtma = {group: grp_to_model_args.get(group, deepcopy(default_grp_to_model_args)) for group in groups}
+    gtia = {group: grp_to_interface_args.get(group, deepcopy(default_grp_to_interface_args)) for group in groups}
+    gtta = {group: grp_to_training_args.get(group, deepcopy(default_training_args)) for group in groups}
+
+    classifier = IndividualClassifiers(gtma, gtia, gtta, str(device), args, groups, kfg_file)
 
     logger.status("About to Train")
     assert val_filename is not None
@@ -658,6 +657,15 @@ def parse_args() -> dict[str, Union[str, None]]:
         help="The path to the pre-trained group classifier.",
         required=True,
         metavar="<pre-trained group classifier file>",
+    )
+
+    parser.add_argument(
+        "--groups",
+        type=str,
+        nargs="+",
+        help="Specify groups to train on",
+        required=False,
+        metavar="<group> <group> ...",
     )
 
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)

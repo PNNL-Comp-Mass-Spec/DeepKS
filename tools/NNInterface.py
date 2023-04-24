@@ -3,7 +3,7 @@ import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np
 import logging
 import tempfile, os, scipy, itertools, warnings, pathlib, typing
 from matplotlib import lines, pyplot as plt, rcParams
-from typing import Collection, Tuple, Union, Callable, Literal, Sequence
+from typing import Tuple, Union, Callable, Literal, Sequence
 from prettytable import PrettyTable
 from torchinfo_modified import summary
 from roc_comparison_modified.auc_delong import delong_roc_test
@@ -12,10 +12,8 @@ from .roc_helpers import ROCHelpers
 
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 
-from .roc_lambda import get_avg_roc
 from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
 from ..tools.raw_score_to_prob import raw_score_to_probability
-from ..tools.model_utils import KSDataset
 
 rcParams["font.family"] = "monospace"
 rcParams["font.size"] = 12
@@ -273,7 +271,7 @@ class NNInterface:
             if pass_through_scores is not None and val_dl is not None:
                 pass_through_scores.append((score, len(all_outputs)))
             if chunk_num == -1:
-                warnings.warn(
+                logger.warning(
                     f"No data for {extra_description}, skipping training for this group. Neural network weights will"
                     " be random."
                 )
@@ -514,8 +512,6 @@ class NNInterface:
             points_fpr.append(res[0])
             points_tpr.append(res[1])
             aucs.append(res[2])
-        if get_avg_roc_line:
-            get_avg_roc(points_fpr, points_tpr, aucs, True)
 
         plt.legend(
             loc="lower right",

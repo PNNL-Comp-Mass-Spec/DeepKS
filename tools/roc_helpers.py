@@ -1,57 +1,78 @@
-import itertools, sklearn.metrics, numpy as np, warnings, scipy
+import itertools, sklearn.metrics, numpy as np, warnings, scipy, bisect
 from numpy.typing import ArrayLike
 from roc_comparison_modified.auc_delong import delong_roc_variance
 
 
 class ROCHelpers:
-    @staticmethod
-    def get_avg_roc(fprs, tprs, aucs=None):
-        total_n = len(list(itertools.chain(*fprs))) + 1
-        X = np.linspace(0, 1, num=total_n, endpoint=False).tolist()
-        X = [X[i // 2] for i in range(len(X) * 2)]
-        Y = [ROCHelpers.get_tpr(fprs, tprs, x) for x in X]
-        micro_avg = 0
-        if aucs is not None:
-            for i, a in enumerate(aucs):
-                micro_avg += a * len(fprs[i]) / total_n
+    class RocAvgValue:
+        @classmethod
+        def area_under_points(cls, points) -> float:
+            area = 0
+            for i in range(len(points) - 1):
+                x1, y1 = points[i]
+                x2, y2 = points[i + 1]
+                base = abs(x2 - x1)
+                height = (y1 + y2) / 2
+                area += base * height
+            return area
 
-        return X, Y, micro_avg
+        @classmethod
+        def linear_interpolation(cls, x_values, y_values):
+            if isinstance(x_values, np.ndarray):
+                x_values = x_values.tolist()
+            if isinstance(y_values, np.ndarray):
+                y_values = y_values.tolist()
 
-    @staticmethod
-    def get_tpr(fprs, tprs, fpr_x, weighted=True):
-        assert len(fprs) == len(tprs)
-        total_n = len(list(itertools.chain(*fprs)))
-        running_sum = 0
-        for i in range(len(fprs)):
-            rel_weight = len(fprs[i]) / total_n if weighted else 1 / len(fprs)
-            tpr = -1
-            for j in range(len(fprs[i])):
-                if fpr_x == 0:
-                    tpr = 0
-                    break
-                if fprs[i][j] < fpr_x:
-                    continue
-                if fprs[i][j] == fpr_x:
-                    above = tprs[i][j + 1]
-                    below = tprs[i][j]
-                    tpr = (above + below) / 2
-                    break
-                if fprs[i][j] > fpr_x:
-                    if not np.allclose(
-                        [tprs[i][j]], [tprs[i][j - 1]]
-                    ):  # and not np.allclose([fprs[i][j]], [fprs[i][j - 1]]):
-                        tpr = tprs[i][j - 1] + (tprs[i][j] - tprs[i][j - 1]) / (fprs[i][j] - fprs[i][j - 1]) * (
-                            fpr_x - fprs[i][j - 1]
-                        )
-                    else:
-                        tpr = tprs[i][j]
-                    break
-            assert tpr != -1
-            running_sum += tpr * rel_weight
-        assert 0 <= running_sum <= 1 or np.isnan(
-            running_sum
-        ), "Avg. ROC cannot be lower than 0 or higher than 1. Alternatively, it must be NaN."
-        return running_sum
+            def interp_func(x):
+                if x < min(x_values) or x > max(x_values):
+                    raise ValueError("x-value is outside the range of the input points")
+                if x in x_values:
+                    idx = x_values.index(x)
+                    if x_values.count(x) > 1:
+                        return tuple([y_values[idx + i] for i in range(x_values.count(x))])
+                i = bisect.bisect_left(x_values, x)
+                if i == 0:
+                    return (y_values[0],)
+                elif i == len(x_values):
+                    return (y_values[-1],)
+                else:
+                    x0, x1 = x_values[i - 1], x_values[i]
+                    y0, y1 = y_values[i - 1], y_values[i]
+                    return (y0 + (y1 - y0) * (x - x0) / (x1 - x0),)
+
+            return interp_func
+
+        @classmethod
+        def weighted_avg(cls, Xes, weights, lin_intp_fns):
+            unique_x_vals: list[float] = sorted(list(set(list(itertools.chain(*Xes)))))
+            # total_x = len(list(itertools.chain(*Xes)))
+            # weights = [len(X) / total_x for X in Xes]
+            all_interps = []
+            for x in unique_x_vals:
+                interps = [list(lif(x)) for lif in lin_intp_fns]
+                ml = max(len(inte) for inte in interps)
+                for l in range(len(interps)):
+                    interps[l] += [interps[l][0] for _ in range(ml - len(interps[l]))]
+                for i, inte in enumerate(interps):
+                    inte = [x * weights[i] for x in inte]
+                    interps[i] = inte
+                all_interps.append(interps)
+            chunky = [np.sum(np.asarray(interp), axis=0).tolist() for interp in all_interps]
+            x_rep = [x for i, x in enumerate(unique_x_vals) for _ in range(len(chunky[i]))]
+            flattened: list[float] = [item for sublist in chunky for item in sublist]
+            assert len(x_rep) == len(flattened)
+            auc = cls.area_under_points(list(zip(x_rep, flattened)))
+            return x_rep, flattened, auc
+
+        @classmethod
+        def get_avg_line_pnts(
+            cls, Xes, Yes, weights, num_addl_linspace_pts=0
+        ) -> tuple[list[float], list[float], float]:
+            lin_intp_fns = [cls.linear_interpolation(X, Y) for X, Y in zip(Xes, Yes)]
+            xmin = min(min(X) for X in Xes)
+            xmax = max(max(X) for X in Xes)
+            linspace = np.linspace(xmin, xmax, num_addl_linspace_pts, endpoint=True).tolist()
+            return cls.weighted_avg([sorted(list(set([x for x in X] + linspace))) for X in Xes], weights, lin_intp_fns)
 
     @staticmethod
     def protected_roc_auc_score(y_true: ArrayLike, y_score: ArrayLike, *args, **kwargs) -> float:
@@ -108,13 +129,14 @@ class ROCHelpers:
         if np.isnan(p_val):
             return "?"
         assert p_val >= 0 and p_val <= 1, p_val
+
         if p_val < 0.001:
             return "***"
         elif p_val < 0.01:
-            return "**"
+            return "** "
         elif p_val < 0.05:
-            return "*"
+            return "*  "
         if p_val < 0.1:
-            return "."
+            return ".  "
         else:
-            return ""
+            return "   "
