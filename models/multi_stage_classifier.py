@@ -39,18 +39,6 @@ os.chdir(where_am_i)
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-def smart_save_gc(group_classifier: GroupClassifier):
-    bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
-    max_version = 0
-    for file in os.listdir(bin_):
-        if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
-            max_version = max(max_version, int(v.group(2)) + 1)
-    save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
-    logger.status("Serializing and Saving Group Classifier to Disk. ({save_path})")
-    with open(save_path, "wb") as f:
-        pickle.dump(group_classifier, f)
-
-
 class MultiStageClassifier:
     def __init__(
         self,
@@ -403,76 +391,6 @@ class MultiStageClassifier:
             suppress_seqs_in_output,
         )
 
-    # def align_novel_kin_seqs(
-    #     self,
-    #     kin_id_to_seq: dict[str, str],
-    #     existing_seqs=["../data/raw_data/kinase_seq_826.csv", "../data/raw_data/kinase_seq_494.csv"],
-    # ) -> None:
-    #     train_kin_list = self.group_classifier.X_train
-    #     existing_seqs_to_known_ids = pd.concat(
-    #         [pd.read_csv(existing_seq) for existing_seq in existing_seqs], ignore_index=True
-    #     )  # TODO - fix variable names
-    #     existing_seqs_to_known_ids.drop(columns=["symbol"], inplace=True)
-    #     existing_seqs_to_known_ids.drop_duplicates(inplace=True, keep="first")
-    #     existing_seqs_to_known_ids["Symbol"] = (
-    #         existing_seqs_to_known_ids["gene_name"] + "|" + existing_seqs_to_known_ids["kinase"]
-    #     )
-    #     new_filename = existing_seqs = f"../data/raw_data/kinase_seq_{len(existing_seqs_to_known_ids)}.csv"
-    #     existing_seqs_to_known_ids.to_csv(new_filename, index=False)
-    #     existing_seqs_to_known_ids = existing_seqs_to_known_ids.set_index("kinase_seq").to_dict()["Symbol"]
-    #     val_kin_list = [x for x in kin_id_to_seq if kin_id_to_seq[x] not in existing_seqs_to_known_ids]
-    #     if len(val_kin_list) == 0:
-    #         logger.info("Leveraging pre-computed pairwise alignment scores!")
-    #     additional_name_dict = {
-    #         x: existing_seqs_to_known_ids[kin_id_to_seq[x]]
-    #         for x in kin_id_to_seq
-    #         if kin_id_to_seq[x] in existing_seqs_to_known_ids
-    #     }
-    #     novel_df = None
-    #     with tf.NamedTemporaryFile() as temp_df_in_file:
-    #         df_in = pd.DataFrame(
-    #             {"kinase": "", "kinase_seq": [kin_id_to_seq[v] for v in val_kin_list], "gene_name": val_kin_list}
-    #         )
-    #         df_in.to_csv(temp_df_in_file.name, index=False)
-    #         with tf.NamedTemporaryFile() as temp_fasta_known, tf.NamedTemporaryFile() as temp_fasta_novel, tf.NamedTemporaryFile() as combined_temp_fasta:
-    #             dist_mtx_maker.make_fasta(existing_seqs, temp_fasta_known.name)
-    #             dist_mtx_maker.make_fasta(temp_df_in_file.name, temp_fasta_novel.name)
-    #             with open(combined_temp_fasta.name, "w") as combined_fasta:
-    #                 with open(temp_fasta_known.name, "r") as known_fasta, open(
-    #                     temp_fasta_novel.name, "r"
-    #                 ) as novel_fasta:
-    #                     combined_fasta.write(known_fasta.read() + novel_fasta.read())
-
-    #             with tf.NamedTemporaryFile() as temp_mtx_out:
-    #                 novel_df = get_needle_pairwise_mtx(
-    #                     combined_fasta.name,
-    #                     temp_mtx_out.name,
-    #                     num_procs=6,
-    #                     restricted_combinations=[train_kin_list, val_kin_list],
-    #                 )
-    #     # novel_df.rename(
-    #     #     columns={"RET|PTC2|Q15300": "RET/PTC2|Q15300"} if "RET|PTC2|Q15300" in novel_df.columns else {},
-    #     #     inplace=True,
-    #     # )
-    #     for additional_name in additional_name_dict:
-    #         grp_pred.MTX[additional_name] = grp_pred.MTX[additional_name_dict[additional_name]]
-    #         grp_pred.MTX.loc[additional_name] = grp_pred.MTX.loc[additional_name_dict[additional_name]]
-
-    #     grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
-
-
-# def get_group_classifier():
-#     args = parse_args()
-#     with open(str(args["gc_params"]), "r") as f:
-#         hps = json.load(f)
-#     gc = SiteClassifier.get_group_classifier(join_first(1, args["train"]), join_first(1, args["kin_fam_grp"]), {}, hps)
-#     if args.get("val"):
-#         (vl,) = SiteClassifier.format_data(join_first(1, args["val"]), kin_fam_grp=args["kin_fam_grp"])
-#         print(colored(f"Val Info: Val Performance of GC: {SiteClassifier.performance(gc, *vl)}", "blue"))
-#     if args.get("s"):
-#         smart_save_gc(gc)
-#     return gc
-
 
 def device_eligibility(arg_value):
     try:
@@ -520,23 +438,25 @@ def parse_args() -> dict[str, Union[str, None]]:
         metavar="<gc_params.json>",
     )
 
-    # parser.add_argument(
-    #     "--gc-training-params",
-    #     type=str,
-    #     help="Specify Kinase Substrate Relationship training options file name",
-    #     required=False,
-    #     default=join_first(0, "KSR_training_params.json"),
-    #     metavar="<gc_params.json>",
-    # )
+    parser.add_argument(
+        "--gc-training-params",
+        type=str,
+        help="Specify Kinase Substrate Relationship training options file name",
+        required=False,
+        default=None,
+        metavar="<gc_params.json>",
+        add_help=False,
+    )
 
-    # parser.add_argument(
-    #     "--nni-params",
-    #     type=str,
-    #     help="Specify Nerual Net Interface options file name",
-    #     required=False,
-    #     default=join_first(0, "NNI_params.json"),
-    #     metavar="<gc_params.json>",
-    # )
+    parser.add_argument(
+        "--nni-params",
+        type=str,
+        help="Specify Nerual Net Interface options file name",
+        required=False,
+        default=None,
+        metavar="<gc_params.json>",
+        add_help=False,
+    )
 
     parser.add_argument(
         "--kin-fam-grp",
@@ -567,6 +487,11 @@ def parse_args() -> dict[str, Union[str, None]]:
             warnings.warn(str(e), UserWarning)
         assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
 
+    if args["gc_training_params"] is not None:
+        logger.warning("GC Training Params is not implemented yet. (May never be if not deemed necessary.) Ignoring.")
+    if args["nni_params"] is not None:
+        logger.warning("NNI Params is not implemented yet. (May never be if not deemed necessary.) Ignoring.")
+
     return args
 
 
@@ -584,67 +509,6 @@ def smart_save_msc(msc: MultiStageClassifier):
 
 def combine_ic_and_gc(nn: IndividualClassifiers, gc: GroupClassifier) -> MultiStageClassifier:
     return MultiStageClassifier(gc, nn)
-
-
-# def get_multi_stage_classifier(load_gc=True):
-#     run_args = parsing()
-#     assert (
-#         run_args.get("load") is not None or run_args.get("load_include_eval") is not None
-#     ), "For now, multi-stage classifier must be run with --load or --load-include-eval."
-
-#     assert run_args["device"] is not None
-#     individual_classifiers_ = IndividualClassifiers.load_all(
-#         run_args["load_include_eval"] if run_args["load_include_eval"] is not None else run_args["load"],
-#         str(run_args["device"]),
-#     )
-#     if not load_gc:
-#         train_kins, val_kins, _, train_true, val_true, _ = grp_pred.get_ML_sets(
-#             *(
-#                 [
-#                     join_first(0, x)
-#                     for x in [
-#                         "../data/preprocessing/pairwise_mtx_826.csv",
-#                         "../data/preprocessing/tr_kins.json",
-#                         "../data/preprocessing/vl_kins.json",
-#                         "../data/preprocessing/te_kins.json",
-#                         "../data/preprocessing/kin_to_fam_to_grp_826.csv",
-#                     ]
-#                 ]
-#                 + [None]
-#             ),
-#             verbose=False,
-#         )
-
-#         train_kins, train_true = np.array(train_kins + val_kins), np.array(train_true + val_true)
-
-#         group_classifier = grp_pred.SKGroupClassifier(
-#             X_train=train_kins,
-#             y_train=train_true,
-#             classifier=MLPClassifier,
-#             hyperparameters={
-#                 "activation": "identity",
-#                 "max_iter": 500,
-#                 "learning_rate": "adaptive",
-#                 "hidden_layer_sizes": (1000, 500, 100, 50),
-#                 "random_state": 42,
-#                 "alpha": 1e-7,
-#             },
-#         )
-
-#         ### Use KNN instead
-#         # group_classifier = grp_pred.SKGroupClassifier(
-#         #     X_train=train_kins,
-#         #     y_train=train_true,
-#         #     classifier=KNeighborsClassifier,
-#         #     hyperparameters={"metric": "chebyshev", "n_neighbors": 1},
-#         # )
-
-#     else:
-#         group_classifier = pickle.load(
-#             open(join_first(1, "bin/deepks_gc_weights.-1.cornichon"), "rb")
-#         )  # FIXME Not general enough
-
-#     return group_classifier
 
 
 def efficient_to_csv(data_dict, outfile):

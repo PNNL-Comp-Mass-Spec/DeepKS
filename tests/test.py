@@ -105,7 +105,6 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "cpu",
             "--pre-trained-gc",
             "bin/deepks_gc_weights.2.cornichon",
-            "-s",
         ]
         self.main()
         os.chdir(old_dir)
@@ -113,24 +112,13 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
 
 class TestTrainingGroupClassifier(unittest.TestCase):
     def setUp(self):
-        from ..models.multi_stage_classifier import get_multi_stage_classifier as this_main
-
-        self.main = this_main
+        pass
 
     def test_train_gc_small(self):
-        from DeepKS.api.cfg import PRE_TRAINED_NN
-
-        sys.argv = [
-            "python3 -m DeepKS.models.multi_stage_classifier",
-            "--load",
-            PRE_TRAINED_NN,
-            "--device",
-            "cpu",
-            "-c",
-            "--test",
-            "tests/sample_inputs/small_val_or_test.csv",
-        ]
-        self.main()
+        PseudoSiteGroupClassifier.general_package(
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_"
+            "/DeepKS/data/raw_data/raw_data_45176_formatted_65.csv"
+        )
 
 
 class TestGenerateFigures(unittest.TestCase):

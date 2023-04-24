@@ -1,9 +1,27 @@
 from __future__ import annotations
-import numpy as np, pandas as pd, abc, warnings, re, collections, pickle
+import numpy as np, pandas as pd, abc, warnings, re, collections, pickle, os, pathlib
 from typing import Union
 from termcolor import colored
 
 AA = set(list("ACDEFGHIKLMNPQRSTVWXY"))
+
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+if __name__ == "__main__":
+    logger.status("Loading Modules")
+
+
+def smart_save_gc(group_classifier: GroupClassifier):
+    bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
+    max_version = 0
+    for file in os.listdir(bin_):
+        if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(2)) + 1)
+    save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
+    logger.status("Serializing and Saving Group Classifier to Disk. ({save_path})")
+    with open(save_path, "wb") as f:
+        pickle.dump(group_classifier, f)
 
 
 class GCPrediction(str):
@@ -81,8 +99,8 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         return [GCPrediction(tk_grp) if x[7] in tk_aa else GCPrediction(stk_grp) for x in list_form]
 
     @staticmethod
-    def general_package():
-        fd = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_45176_formatted_65.csv"
+    def general_package(train_file: str):
+        fd = train_file
         # fd = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv"
         fddf = pd.read_csv(fd)
         kin_fam_grp = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv"
@@ -98,12 +116,10 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         pgc = PseudoSiteGroupClassifier(
             list(site_to_grp.keys()), ["TK" if x.upper()[7] == "Y" else "NON-TK" for x in list(site_to_grp.keys())]
         )
-        pgc.predict(pgc, ["AABCDEFTGHIJKLM", "ZYXWTUVYABCDEFG"])
-        with open(
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/PGC.cornichon", "wb"
-        ) as f:
-            pickle.dump(pgc, f)
+        smart_save_gc(pgc)
 
 
 if __name__ == "__main__":
-    PseudoSiteGroupClassifier.general_package()
+    PseudoSiteGroupClassifier.general_package(
+        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_45176_formatted_65.csv"
+    )

@@ -23,7 +23,7 @@ from typing import Callable, Generator, Literal, Protocol, Union, Tuple
 from pprint import pprint  # type: ignore
 from termcolor import colored
 from ..tools.file_names import get as get_file_name
-from ..tools.CustomTqdm import CustomTqdm
+from ..tools.custom_tqdm import CustomTqdm
 from copy import deepcopy
 from .GroupClassifier import (
     GroupClassifier,
@@ -566,7 +566,7 @@ def main():
     gtia = {group: grp_to_interface_args.get(group, deepcopy(default_grp_to_interface_args)) for group in groups}
     gtta = {group: grp_to_training_args.get(group, deepcopy(default_training_args)) for group in groups}
 
-    classifier = IndividualClassifiers(gtma, gtia, gtta, str(device), args, groups, kfg_file)
+    classifier = IndividualClassifiers(gtma, gtia, gtta, str(device), args, groups)
 
     logger.status("About to Train")
     assert val_filename is not None
@@ -657,15 +657,6 @@ def parse_args() -> dict[str, Union[str, None]]:
         help="The path to the pre-trained group classifier.",
         required=True,
         metavar="<pre-trained group classifier file>",
-    )
-
-    parser.add_argument(
-        "--groups",
-        type=str,
-        nargs="+",
-        help="Specify groups to train on",
-        required=False,
-        metavar="<group> <group> ...",
     )
 
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)
