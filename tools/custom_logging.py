@@ -1,6 +1,7 @@
+from __future__ import annotations
 import logging
 import os
-import time
+import time, tqdm
 from typing import Literal
 from termcolor import colored
 
@@ -32,6 +33,19 @@ logging.TEST_INFO = TEST_INFO  # type: ignore
 logging.USER_ERROR = USER_ERROR  # type: ignore
 
 
+class TqdmStreamHandler(logging.StreamHandler):
+    def __init__(self, level=logging.NOTSET):
+        super().__init__(level)
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            tqdm.tqdm.write(msg)
+            self.flush()
+        except Exception:
+            self.handleError(record)
+
+
 class CustomLogger(logging.Logger):
     def __init__(
         self, logging_level: int = logging.DEBUG, output_method: Literal["console", "logfile"] = "console"
@@ -43,7 +57,7 @@ class CustomLogger(logging.Logger):
         self.setLevel(self._level)
 
         # Create console handler and set level
-        self.handler = logging.StreamHandler() if output_method == "console" else logging.FileHandler("logfile.log")
+        self.handler = TqdmStreamHandler() if output_method == "console" else logging.FileHandler("logfile.log")
         self.handler.setLevel(
             logging_level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
         )
@@ -145,8 +159,8 @@ class CustomFormatter(logging.Formatter):
         logging.STATUS: colored(format_neutral, "green"),  # type: ignore
         logging.INFO: colored(format_neutral, "blue"),
         logging.TRAIN_INFO: colored(format_neutral, "cyan"),  # type: ignore
-        logging.VAL_INFO: colored(format_neutral, "cyan", attrs=["underline"]),  # type: ignore
-        logging.TEST_INFO: colored(format_neutral, "cyan", attrs=["bold"]),  # type: ignore
+        logging.VAL_INFO: colored(format_neutral, "cyan", attrs=["bold"]),  # type: ignore
+        logging.TEST_INFO: colored(format_neutral, "cyan", attrs=["bold", "underline"]),  # type: ignore
         logging.WARNING: colored(format_danger, "yellow"),
         logging.USER_ERROR: colored(format_danger, "red"),  # type: ignore
         logging.ERROR: colored(format_danger, "red", attrs=["bold"]),

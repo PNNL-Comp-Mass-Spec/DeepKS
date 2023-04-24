@@ -1,7 +1,13 @@
 import numpy as np, psutil, torch, pandas as pd, collections, json, tqdm, random, torch.utils.data
-from typing import Generator, Union
+from sympy import cartes
+from typing import Generator, Union, Literal
 from ..tools import model_utils
 from termcolor import colored
+
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+logger.status("Loading Modules")
 
 
 def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):
@@ -42,6 +48,13 @@ def encode_seq(seq: str, mapping_dict: dict[str, int]) -> list[int]:
     return res
 
 
+def try_it(obj_str):
+    try:
+        return eval(obj_str)
+    except Exception:
+        return logger.warning(f"Could not evaluate {obj_str} as an object.")
+
+
 def gather_data(
     input_t: Union[str, pd.DataFrame, dict[str, Union[list[str], list[int]]]],
     input_d="",
@@ -60,6 +73,7 @@ def gather_data(
     device=torch.device("cpu"),
     eval_batch_size=None,
     cartesian_product=False,
+    group_by: Literal["site", "kin"] = "site",
     tqdm_passthrough=[None],
     kin_seq_to_group: dict = {},
 ) -> Generator:
@@ -91,23 +105,7 @@ def gather_data(
         else:
             train_loader = None
 
-        # eval_batch_size = (
-        #     len(X_val)
-        #     if vf > 0 and eval_batch_size is None
-        #     else len(X_tune)
-        #     if tuf > 0 and eval_batch_size is None
-        #     else len(X_test)
-        #     if tef > 0 and eval_batch_size is None
-        #     else eval_batch_size
-        # )
-
-        eval_batch_size = 100  # max(
-        #     [
-        #         len(X) // (1 if "cuda" in str(device) else (9 if len(X) % 10 != 0 else 10))
-        #         for X in [X_val, X_tune, X_test]
-        #     ]
-        #     + [1]
-        # )
+        eval_batch_size = 100
 
         if vf > 0:
             val_loader = torch.utils.data.DataLoader(
@@ -158,7 +156,11 @@ def gather_data(
                 },
             }
         else:
-            desired_length = len(data["Site Sequence"]) if desired_length is None else desired_length
+            desired_length = (
+                len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"])
+                if desired_length is None
+                else desired_length
+            )
             desired_chunk_pos = 0 if desired_chunk_pos is None else desired_chunk_pos
             ret_info_dict = {
                 "kin_orders": {
@@ -168,19 +170,16 @@ def gather_data(
                 },
                 "orig_symbols_order": {
                     "train": [
-                        data["Gene Name of Kin Corring to Provided Sub Seq"][i // len(data["Site Sequence"])]
-                        for i in train_ids
+                        data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in train_ids
                     ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
-                    "val": [
-                        data["Gene Name of Kin Corring to Provided Sub Seq"][i // len(data["Site Sequence"])]
-                        for i in val_ids
-                    ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
-                    "test": [
-                        data["Gene Name of Kin Corring to Provided Sub Seq"][i // len(data["Site Sequence"])]
-                        for i in test_ids
-                    ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
+                    "val": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in val_ids][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
+                    "test": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in test_ids][
+                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                    ],
                 },
-                "PairIDs": {  # FIXME!
+                "PairIDs": {
                     "train": data["pair_id"][
                         desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
                     ],
@@ -192,6 +191,7 @@ def gather_data(
                     ],
                 },
             }
+
         update_dict = {
             "classes": classes,
             "class_labels": class_labels,
@@ -335,7 +335,6 @@ def gather_data(
         free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]
 
     num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / BYTES_PER_PAIR)
-    print(f"{num_pairs_can_be_stored_per_dl=}")
 
     assert (
         len(data["Kinase Sequence"]) == len(data["Site Sequence"]) or cartesian_product

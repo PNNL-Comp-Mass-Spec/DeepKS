@@ -135,7 +135,6 @@ def perform_hyperparameter_tuning(
     split_inds = sklearn.model_selection.StratifiedKFold(n_splits=10, shuffle=False)
     gscv = GridSearchCV(pipe, params_grid, n_jobs=1, verbose=0, scoring="accuracy", cv=split_inds)
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", "The least populated class in y has only")
         gscv.fit(X, y)
     print("Best...")
     print("\tEstimator:", gscv.best_params_["clf"])
@@ -299,7 +298,6 @@ def run_hp_tuning():
     splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=10)  # , random_state=0)
     scores = []
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", "The least populated class in y has only")
         for i, (train, test) in enumerate(splitter.split(all_kins, all_true)):
             seed(i)
             shuffle(train)
@@ -372,7 +370,6 @@ class KNNGroupClassifier:
         splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k)  # , random_state=0)
         scores = []
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", "The least populated class in y has only")
             for i, (train, test) in enumerate(splitter.split(X, y)):
                 seed(i)
                 shuffle(train)
@@ -445,7 +442,6 @@ class SKGroupClassifier:
         splitter = sklearn.model_selection.StratifiedKFold(shuffle=False, n_splits=k)  # , random_state=0)
         scores = []
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", "The least populated class in y has only")
             for i, (train, test) in enumerate(splitter.split(X, y)):
                 seed(i)
                 shuffle(train)

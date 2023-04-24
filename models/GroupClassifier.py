@@ -92,7 +92,7 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         )
         kin_to_grp = kin_to_grp_df.set_index("Symbol").to_dict()["Group"]
         site_to_grp = collections.defaultdict(set)
-        for i, r in fddf.iterrows():
+        for _, r in fddf.iterrows():
             site_to_grp[r["Site Sequence"]].add(kin_to_grp[r["Gene Name of Kin Corring to Provided Sub Seq"]])
 
         pgc = PseudoSiteGroupClassifier(

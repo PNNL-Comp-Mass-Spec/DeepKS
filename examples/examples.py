@@ -40,8 +40,6 @@ def _main():
         print(termcolor.colored(" ".join(example) + "\n", "yellow"))
         sys.argv = example
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            warnings.simplefilter("ignore", UserWarning)
             main.setup()
 
     logger.info("All Examples Complete.")

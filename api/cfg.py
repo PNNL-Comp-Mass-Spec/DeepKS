@@ -9,9 +9,12 @@ from termcolor import colored
 
 # PRE_TRAINED_NN = default_paths["PRE_TRAINED_NN"]
 # PRE_TRAINED_GC = default_paths["PRE_TRAINED_GC"]
-warnings.filterwarnings("always")
 
 PRE_TRAINED_NN = PRE_TRAINED_GC = ""
+
+from ..config.root_logger import get_logger
+
+logger = get_logger()
 
 
 def smart_get_latest():

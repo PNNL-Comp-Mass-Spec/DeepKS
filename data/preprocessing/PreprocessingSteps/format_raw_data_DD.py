@@ -16,6 +16,12 @@ import json
 mode = cfg.get_mode()
 random.seed(0)
 
+from ....config.root_logger import get_logger
+
+logger = get_logger()
+if __name__ == "__main__":
+    logger.status("Loading Modules")
+
 
 def my_pop(df, index):
     """

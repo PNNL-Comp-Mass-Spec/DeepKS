@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
+import logging
 import tempfile, os, scipy, itertools, warnings, pathlib, typing
 from matplotlib import lines, pyplot as plt, rcParams
 from typing import Collection, Tuple, Union, Callable, Literal, Sequence
@@ -27,6 +28,7 @@ heaviside_cutoff = lambda outputs, cutoff: torch.heaviside(
 expand_metric = lambda met: "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
 
 from ..config.root_logger import get_logger
+from ..tools.custom_logging import CustomLogger
 
 logger = get_logger()
 
@@ -73,7 +75,7 @@ class NNInterface:
             self.write_model_summary()
 
     def write_model_summary(self):
-        logger.info("Writing model summary to file {self.model_summary_name}.")
+        logger.info(f"Writing model summary to file {self.model_summary_name}.")
         self.model_summary_name = join_first(0, self.model_summary_name)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
@@ -124,17 +126,24 @@ class NNInterface:
         print_every=1,
         retain=False,
     ):
-        if batch_num % print_every != 0:
+        if not (isinstance(batch_num, str) or batch_num % print_every == 0):
             return
-        print(colored(f"{f'{paradigm} Info:':20}", "blue"), end="")
-        print(colored(f"Chunk [{chunk_num}] Epoch [{epoch + 1}/{num_epochs}], ", "blue"), end="")
-        print(colored(f"Batch [{batch_num + 1}/{total_step}], ", "blue"), end="")
-        print(
-            colored(f"{paradigm} Loss: {loss:.4f}, {paradigm} {expand_metric(metric)}: {score:.2f}", "blue"),
-            end="\n" if retain else "\r",
+        if "validation" in paradigm.lower():
+            method = CustomLogger.valinfo
+        elif "train" in paradigm.lower():
+            method = CustomLogger.trinfo
+        else:
+            method = CustomLogger.info
+
+        method(
+            logger,
+            (
+                f"{'(Means) ' if 'mean' in paradigm.lower() else ''}Chunk [{chunk_num + 1}] | Epoch"
+                f" [{epoch + 1}/{num_epochs}] | Batch"
+                f" [{batch_num + 1 if isinstance(batch_num, int) else '-'}/{total_step}] | Loss {loss:.4f} |"
+                f" {expand_metric(metric)} {score:.2f}"
+            ),
         )
-        if not retain:
-            print(" " * os.get_terminal_size().columns, end="\r")
 
     def train(
         self,
@@ -149,24 +158,23 @@ class NNInterface:
         extra_description="",
         pass_through_scores=None,
     ):
-        print_every = 1  # max(len(train_loader) // 10, 1)
         assert isinstance(cutoff, (int, float)), "Cutoff needs to be a number."
         assert (
             type(self.criterion) == torch.nn.BCEWithLogitsLoss or type(self.criterion) == torch.nn.CrossEntropyLoss
         ), "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
 
-        print(
-            colored(f"Status: Training{extra_description}{'' if extra_description == '' else ' '}.", "green"),
-            flush=True,
-        )
+        logger.status(f"Training {extra_description}")
 
         lowest_loss = float("inf")
+        total_step = float("nan")
         threshold = threshold if threshold is not None else float("inf")
         epoch = 0
 
         # While loop to train the model
+        cycler = itertools.cycle(loader_generator)
         while not ((lowest_loss < threshold and epoch >= num_epochs) or epoch >= 2 * num_epochs):
             train_scores = []
+            losses = []
             self.model.train()
 
             # Decrease learning rate, if so desired
@@ -176,22 +184,26 @@ class NNInterface:
 
             # Batch loop
             chunk_num = -1
-            for chunk_num, ((train_loader, _, _, _), _) in enumerate(loader_generator):
+            for (train_loader, _, _, _), info_dict in cycler:
+                chunk_num += 1
+                if chunk_num == info_dict["total_chunks"]:
+                    chunk_num -= 1
+                    break
                 batch_num = 0
-                for batch_num, (*X, labels) in enumerate(list(train_loader)):
+                for batch_num, (*X, labels) in enumerate(train_loader):
                     total_step = len(train_loader)
                     X = [x.to(self.device) for x in X]
                     labels = labels.to(self.device)
 
                     # Forward pass
-                    logger.vstatus("Train Step A - Forward propogating." + " " * 20, "green")
+                    logger.vstatus("Train Step A - Forward propogating.")
                     outputs = self.model.forward(*X)
                     outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
                     torch.cuda.empty_cache()
 
                     # Compute loss
                     print(
-                        logger.vstatus("Train Step B - Computing loss." + " " * 20, "green"),
+                        logger.vstatus("Train Step B - Computing loss."),
                         flush=True,
                         end="\r",
                     )
@@ -204,37 +216,47 @@ class NNInterface:
 
                     # Backward and optimize
                     self.optimizer.zero_grad()
-                    logger.vstatus("Train Step C - Backpropogating." + " " * 20, "green")
+                    logger.vstatus("Train Step C - Backpropogating.")
                     loss.backward()
-                    logger.vstatus("Train Step D - Stepping in ∇'s direction." + " " * 20, "green")
+                    logger.vstatus("Train Step D - Stepping in ∇'s direction.")
                     self.optimizer.step()
 
                     # Report Progress
                     performance_score = None
-                    if (batch_num) % print_every == 0:
-                        performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
-                        self.report_progress(
-                            "Train",
-                            epoch,
-                            num_epochs,
-                            batch_num,
-                            chunk_num,
-                            total_step,
-                            torch.mean(loss).item(),
-                            performance_score,
-                            metric,
-                            print_every=5,
-                            retain=True,
-                        )
+                    performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
+                    self.report_progress(
+                        "Train",
+                        epoch,
+                        num_epochs,
+                        batch_num,
+                        chunk_num,
+                        total_step,
+                        torch.mean(loss).item(),
+                        performance_score,
+                        metric,
+                        print_every=1,
+                        retain=True,
+                    )
 
                     lowest_loss = min(lowest_loss, loss.item())
+                    losses.append(loss.item())
                     train_scores.append(performance_score)
+            try:
+                assert len(train_scores) != 0, "No Data Trained"
+            except AssertionError as e:
+                logger.warning(str(e))
 
-            logger.trinfo(
-                f"{'Train Info:':20}Mean Train {expand_metric(metric)} ",
-                f"bluefor Epoch [{epoch + 1}/{num_epochs}] was ",
-                f"blue{sum(train_scores)/len(train_scores):.3f}",
-                "blue",
+            self.report_progress(
+                "Mean Train",
+                epoch,
+                num_epochs,
+                "",
+                chunk_num,
+                total_step,
+                (sum(losses) / len(losses)) if losses else float("NaN"),
+                (sum(train_scores) / len(train_scores)) if train_scores else float("NaN"),
+                expand_metric(metric),
+                retain=True,
             )
 
             score, all_outputs = -1, [-1]
@@ -244,11 +266,9 @@ class NNInterface:
                 logger.status("Validating")
                 total_step = len(val_dl)
                 score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
-                self.report_progress(
-                    "Validation", epoch, num_epochs, 0, 1, chunk_num, val_loss, score, metric, retain=True
-                )
+                self.report_progress("Validation", epoch, num_epochs, 0, 0, 1, val_loss, score, metric, retain=True)
 
-            print(colored(f"Status: ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n", "green"), flush=True)
+            logger.status(f" ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n")
             epoch += 1
             if pass_through_scores is not None and val_dl is not None:
                 pass_through_scores.append((score, len(all_outputs)))
@@ -313,9 +333,6 @@ class NNInterface:
         Returns:
             (mean performance, mean loss, all outputs, all labels, all predictions, all outputs--sigmoided)
         """
-        group = metadata.get("group", "<?>")
-        on_chunk = metadata.get("on_chunk", -1)
-        total_chunks = metadata.get("total_chunks", -1)
         assert (
             type(self.criterion) == torch.nn.BCEWithLogitsLoss or type(self.criterion) == torch.nn.CrossEntropyLoss
         ), "Loss function must be either `torch.nn.BCEWithLogitsLoss` or `torch.nn.CrossEntropyLoss`."
@@ -335,12 +352,7 @@ class NNInterface:
 
         ible = dll
         if display_pb:
-            description = (
-                f"Status: Eval Progress of {group} " + f"[Chunk {on_chunk}/{total_chunks}]"
-                if on_chunk == total_chunks == 0
-                else ""
-            )
-            ible = tqdm.tqdm(dll, desc=colored(description, "cyan"), position=0, leave=False, colour="cyan")
+            logger.warning("Progress bars in `eval` are currently not implemented, but display_pb was set.")
 
         with torch.no_grad():
             for b, (*X, labels) in enumerate(ible):
@@ -351,11 +363,7 @@ class NNInterface:
                 X = [x.to(self.device) for x in X]
 
                 if not isinstance(ible, tqdm.tqdm):
-                    print(
-                        colored(f"Status: Forward propogating through NN -- Batch [{b + 1}/{len(dll)}]", "green"),
-                        end="\r",
-                        flush=True,
-                    )
+                    logger.vstatus(f"Status: Forward propogating through NN -- Batch [{b + 1}/{len(dll)}]")
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)

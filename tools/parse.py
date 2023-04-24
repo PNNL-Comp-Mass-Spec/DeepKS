@@ -3,9 +3,13 @@ from typing import Union
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+
 
 def parsing() -> dict[str, Union[str, None]]:
-    print("Progress: Parsing Arguments")
+    logger.status("Parsing Arguments")
     global train_filename, val_filename, test_filename
     parser = argparse.ArgumentParser()
 

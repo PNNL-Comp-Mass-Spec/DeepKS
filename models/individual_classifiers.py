@@ -4,14 +4,15 @@ if __name__ == "__main__":
     from ..splash.write_splash import write_splash
 
     write_splash("main_nn_trainer")
-    from ..config.root_logger import get_logger
 
-    logger = get_logger()
-    logger.status("Loading Modules", flush=True)
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+logger.status("Loading Modules")
 
 
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data, more_itertools
-import cloudpickle as pickle, socket, pathlib, os, itertools, functools, numpy as np
+import socket, pathlib, os, itertools, functools, numpy as np, pickle
 from .KinaseSubstrateRelationship import KinaseSubstrateRelationshipNN
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
@@ -20,6 +21,7 @@ from typing import Callable, Generator, Literal, Protocol, Union, Tuple
 from pprint import pprint  # type: ignore
 from termcolor import colored
 from ..tools.file_names import get as get_file_name
+from ..tools.CustomTqdm import CustomTqdm
 from copy import deepcopy
 from .GroupClassifier import (
     GroupClassifier,
@@ -165,8 +167,9 @@ class IndividualClassifiers:
             with open(Xy_formatted_input_file, "r") as f:
                 Xy = json.load(f)
 
-        col = "Site Sequence" if isinstance(group_classifier, SiteGroupClassifier) else "Gene Name of Provided Kin Seq"
-        Xy["Group"] = group_classifier_method(group_classifier, Xy[col].tolist())
+        group_by = "site" if isinstance(group_classifier, SiteGroupClassifier) else "kin"
+        col = "Site Sequence" if group_by == "site" else "Gene Name of Provided Kin Seq"
+        Xy["Group"] = group_classifier_method(group_classifier, [x for x in Xy[col]])
         if which_groups_ordered == ["All - Use Preds"]:
             which_groups_ordered = sorted(list(set(Xy["Group"])))
         group_df: dict[str, Union[pd.DataFrame, dict]]
@@ -189,9 +192,28 @@ class IndividualClassifiers:
                 group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = [
                     Xy["Gene Name of Kin Corring to Provided Sub Seq"][i] for i in put_in_indices
                 ]
-                group_df_inner["Kinase Sequence"] = Xy["Kinase Sequence"]
-                group_df_inner["Site Sequence"] = [Xy["Site Sequence"][i] for i in put_in_indices]
-                group_df_inner["pair_id"] = [Xy["pair_id"][i] for i in put_in_indices]
+
+                if col == "Site Sequence":  # Classifying the sites into groups
+                    group_df_inner["Site Sequence"] = [Xy["Site Sequence"][i] for i in put_in_indices]
+                    group_df_inner["Kinase Sequence"] = Xy["Kinase Sequence"]
+                    group_df_inner["Gene Name of Provided Kin Seq"] = Xy["Gene Name of Provided Kin Seq"]
+                    group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = [
+                        Xy["Gene Name of Kin Corring to Provided Sub Seq"][i] for i in put_in_indices
+                    ]
+                else:  # Classifying the kinases into groups
+                    group_df_inner["Site Sequence"] = Xy["Site Sequence"]
+                    group_df_inner["Kinase Sequence"] = [Xy["Kinase Sequence"][i] for i in put_in_indices]
+                    group_df_inner["Gene Name of Kin Corring to Provided Sub Seq"] = Xy[
+                        "Gene Name of Kin Corring to Provided Sub Seq"
+                    ]
+                    group_df_inner["Gene Name of Provided Kin Seq"] = [
+                        Xy["Gene Name of Provided Kin Seq"][i] for i in put_in_indices
+                    ]
+
+                segment_size = len(Xy["Kinase Sequence" if group_by == "site" else "Site Sequence"])
+                group_df_inner["pair_id"] = [
+                    Xy["pair_id"][i * segment_size + j] for i in put_in_indices for j in range(segment_size)
+                ]
                 group_df_inner["Class"] = Xy["Class"]
                 group_df_inner["Num Seqs in Orig Kin"] = ["N/A"]
                 group_df[group] = group_df_inner
@@ -223,8 +245,10 @@ class IndividualClassifiers:
             cartesian_product=cartesian_product,
         )
         group_tr = ""
-        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in tqdm.tqdm(
-            zip(gen_train, gen_val), desc="Training Group Progress", total=len(set(which_groups))
+        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in CustomTqdm(
+            zip(gen_train, gen_val),
+            desc=colored("Status: Training Group Progress", "green"),
+            total=len(set(which_groups)),
         ):
             assert group_tr == group_vl, "Group mismatch: %s != %s" % (group_tr, group_vl)
             b = self.grp_to_interface_args[group_tr]["batch_size"]
@@ -276,14 +300,9 @@ class IndividualClassifiers:
             )
 
             weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
-            print(
-                colored(
-                    (
-                        f"Train/Validation Info: Overall Weighted {self.grp_to_training_args[group_tr]['metric']} ---"
-                        f" {weighted:3.4f}"
-                    ),
-                    "blue",
-                )
+            logger.valinfo(
+                f"Train/Validation Info: Overall Weighted {self.grp_to_training_args[group_tr]['metric']} →"
+                f" {weighted:3.4f}"
             )
 
     def obtain_group_and_loader(
@@ -358,7 +377,7 @@ class IndividualClassifiers:
                 target_device == "cpu"
             ):  # Workaround from https://github.com/pytorch/pytorch/issues/16797#issuecomment-633423219
 
-                class CPU_Unpickler(dill.Unpickler):
+                class CPU_Unpickler(pickle.Unpickler):
                     def find_class(self, module, name):
                         if module == "torch.storage" and name == "_load_from_bytes":
                             unpickler_lambda = lambda b: torch.load(io.BytesIO(b), map_location="cpu")
@@ -506,9 +525,9 @@ class IndividualClassifiers:
 
 
 def main():
-    print(colored("Progress: Parsing Args", "green"))
+    logger.status("Parsing Args")
     args = parse_args()
-    print(colored("Progress: Preparing Training Data", "green"))
+    logger.status("Preparing Training Data")
     train_filename = args["train"]
     val_filename = args["val"]
     device = args["device"]
@@ -580,7 +599,7 @@ def device_eligibility(arg_value):
 
 
 def parse_args() -> dict[str, Union[str, None]]:
-    print(colored("Progress: Parsing Arguments", "green"))
+    logger.status("Parsing Arguments")
 
     parser = argparse.ArgumentParser()
 

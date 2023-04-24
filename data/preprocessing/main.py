@@ -4,6 +4,12 @@ from ...tools import system_tools, get_needle_pairwise as get_pairwise
 from ...tools import make_fasta as mtx_utils
 from termcolor import colored
 
+from ...config.root_logger import get_logger
+
+logger = get_logger()
+if __name__ == "__main__":
+    logger.status("Loading Modules")
+
 # Change working directory to the directory of this file
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -34,18 +40,18 @@ def main():
     )
 
     if (not (DEBUGGING or USE_XL_CACHE)) or 1 in perform_steps:
-        print("Step 1: Download most recent version of the PhosphositePlus database.")
+        logger.status("Step 1: Download most recent version of the PhosphositePlus database.")
         PS.download_psp.get_phospho(outfile="../raw_data/PSP_script_download.xlsx")
     else:
         logger.warning("Using cached version of PSP database.")
 
     if not DEBUGGING or 2 in perform_steps:
-        print("Step 2: Download sequences using the Uniprot REST API. Using R.")
-        print("Step 2a: Ensuring `Rscript` is in PATH.")
+        logger.status("Step 2: Download sequences using the Uniprot REST API. Using R.")
+        logger.status("Step 2a: Ensuring `Rscript` is in PATH.")
         if os.system("Rscript --version 1>/dev/null 2>/dev/null") != 0:
-            print("Rscript not found in PATH. Please install R and ensure it is in PATH.")
+            logger.status("Rscript not found in PATH. Please install R and ensure it is in PATH.")
             exit(1)
-        print("Step 2b: Running R scripts.")
+        logger.status("Step 2b: Running R scripts.")
         print("\n~~~~ R MESSAGES ~~~~\n")
         seq_filename, data_filename = tuple(
             system_tools.os_system_and_get_stdout("Rscript PreprocessingSteps/ML_data_pipeline.R", prepend="[R] ")
@@ -53,11 +59,11 @@ def main():
         print("\n~~~~ END R MESSAGES ~~~~\n")
 
     if not DEBUGGING or 3 in perform_steps:
-        print("Step 3: Determining Kinase Family and Group Classifications (from http://www.kinhub.org/kinases.html).")
+        logger.status("Step 3: Determining Kinase Family and Group Classifications (from http://www.kinhub.org/kinases.html).")
         kin_fam_grp_filename = PS.get_kin_fam_grp.get_kin_to_fam_to_grp(seq_filename).split("/")[:-1]
 
     if not DEBUGGING or 4 in perform_steps:
-        print(
+        logger.status(
             "Step 4: Getting pairwise distance matrix for all sequences to assess similarity and to be used later in"
             " the kinase group classifier."
         )
@@ -108,12 +114,12 @@ def main():
                 get_pairwise.get_needle_pairwise_mtx(tmp.name, new_mtx_file, num_procs=4, restricted_combinations=[])
 
     if not DEBUGGING or 5 in perform_steps:
-        print("\nStep 5: Creating Table of Targets and computing Decoys.\n")
+        logger.status("Step 5: Creating Table of Targets and computing Decoys.")
         input_good = False
         while not input_good:
             if eval_or_train_on_all.lower() == "e":
                 input_good = True
-                print("Step 5a: Must obtain train/val/test splits.")
+                logger.status("Step 5a: Must obtain train/val/test splits.")
                 PS.split_into_sets_individual_deterministic_top_k.split_into_sets(
                     kin_fam_grp_filename, data_filename, tgt=0.3, get_restart=True, num_restarts=600
                 )
@@ -122,15 +128,14 @@ def main():
                     "train_percentile": 65,
                     "dataframe_generation_mode": "tr-all",
                 }
-                print(
-                    "\nInfo: Using the following thresholds for similarity: (In the future this will be configurable.)"
+                logger.status(
+                    "Info: Using the following thresholds for similarity: (In the future this will be configurable.)"
                 )  # TODO: Make this configurable
                 pprint.pprint(data_gen_conf)
             elif eval_or_train_on_all.lower() == "t":
                 input_good = True
                 data_gen_conf = {"train_percentile": 65, "dataframe_generation_mode": "tr-all"}
-                logger.info("Generating dataframe with the following configuration dictionary:")
-                pprint.pprint(data_gen_conf)
+                logger.info(f"Generating dataframe with the following configuration dictionary:\n{pprint.pformat(data_gen_conf)}")
                 PS.format_raw_data_DD.get_input_dataframe(
                     input_fn=data_filename,
                     kin_seq_file=seq_filename,
@@ -138,7 +143,7 @@ def main():
                     config=data_gen_conf,
                 )
             else:
-                print("Bad input. Trying again...")
+                logger.warning("Bad input. Trying again...")
 
 
 if __name__ == "__main__":

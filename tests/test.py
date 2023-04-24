@@ -8,6 +8,19 @@ class UsesR:
     pass
 
 
+from ..models.GroupClassifier import (
+    GroupClassifier,
+    GCPrediction,
+    SiteGroupClassifier,
+    KinGroupClassifier,
+    PseudoSiteGroupClassifier,
+)
+
+import __main__
+
+setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
+
+
 class TestMisc(unittest.TestCase):
     # def setUp(self):
     #     from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
@@ -53,7 +66,7 @@ class TestPreprocessing(unittest.TestCase, UsesR):
 
         self.main = this_main
 
-    def test_run_main_no_mtx_to_add(self):
+    def test_preprocessing(self):
         if "DEBUGGING" in os.environ:
             del os.environ["DEBUGGING"]
         self.main.main()
@@ -65,7 +78,7 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
 
         self.main = this_main
 
-    def test_a_train_nn_small(self):
+    def test_train_nn_small(self):
         sys.argv = [
             "python3 -m DeepKS.models.individual_classifiers",
             "--train",
@@ -74,24 +87,12 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "tests/sample_inputs/small_val_or_test.csv",
             "--device",
             "cpu",
-            "-s",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.2.cornichon",
         ]
         self.main()
 
-    def test_b_test_nn_small(self):
-        sys.argv = [
-            "python3 -m DeepKS.models.multi_state_classifier",
-            "--test",
-            "tests/sample_inputs/small_train.csv",  # TODO may want to change this in future
-            "--load",
-            "bin/deepks_nn_weights.-1.cornichon",  # TODO Fix quick stop-gap
-            "--device",
-            "cpu",
-            "-s",
-        ]
-        self.main()
-
-    def test_c_train_nn_small_from_another_dir(self):
+    def test_train_nn_small_from_another_dir(self):
         old_dir = os.getcwd()
         os.chdir(pathlib.Path(__file__).parent.parent.parent.resolve())
         sys.argv = [
@@ -102,6 +103,8 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "tests/sample_inputs/small_val_or_test.csv",
             "--device",
             "cpu",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.2.cornichon",
             "-s",
         ]
         self.main()

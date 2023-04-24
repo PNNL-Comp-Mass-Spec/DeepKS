@@ -3,6 +3,11 @@ import re, io, pandas as pd, requests as req
 HELD_OUT_FAMILY = "SGK"
 
 
+from ....config.root_logger import get_logger
+logger = get_logger()
+if __name__ == "__main__":
+    logger.status("Loading Modules")
+
 def get_kin_to_fam_to_grp(relevant_kinases):
     up = lambda x: x.upper() if isinstance(x, str) else x
     url = "http://www.kinhub.org/kinases.html"
@@ -87,7 +92,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
             assert not all(combined_df["Kinase"].isin(combined_df["Family"]))
             combined_df.at[i, "Family"] = f"{r['Kinase']}"
             combined_df.at[i, "Kinase"] = f"*{r['Kinase']}"
-            print(f"{not_found}K. No family found for {r['Kinase']}.")
+            logger.warning(f"No family found for {r['Kinase']}.")
             not_found += 1
     not_found = 1
     for i, r in combined_df[combined_df["Group"].isna()].iterrows():
@@ -110,7 +115,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
                 combined_df.at[i, "Group"] = check.iloc[0]["Group"]
             else:
                 combined_df.at[i, "Group"] = "<UNANNOTATED>"
-                print(f"{not_found}G. No group found for {r['Kinase']}.")
+                logger.warning(f"No group found for {r['Kinase']}.")
                 not_found += 1
 
     for i, r in combined_df[combined_df.isnull().any(axis=1)].iterrows():

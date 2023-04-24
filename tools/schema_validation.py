@@ -53,9 +53,8 @@ if __name__ == "__main__":
     for s in [sample, bad_sample, bad_sample_2]:
         try:
             jss.validate(s, KinSchema)
-            print("Valid")
         except jse.ValidationError as e:
-            print("Invalid")
+            pass
 
     sample = {
         "ABCDEFGHIJKLMNO": {"Uniprot Accession ID": ["P12345"], "Gene Name": ["ABC1"], "Location": ["T777"]},

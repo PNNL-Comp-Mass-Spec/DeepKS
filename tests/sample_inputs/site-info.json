@@ -2,101 +2,121 @@
     "AYGEKEHCANCHNIV": {
         "Uniprot Accession ID": ["SITE-ID1"],
         "Gene Name": ["SITE-GN1"],
-        "Location": ["S1"]
+        "Location": ["S1"],
+        "Known Group": "Non-TK"
     },
     "CHEFIPAKIPTNNIS": {
         "Uniprot Accession ID": ["SITE-ID2"],
         "Gene Name": ["SITE-GN2"],
-        "Location": ["S2"]
+        "Location": ["S2"],
+        "Known Group": "Non-TK"
     },
     "MKNMWMPMHWELTGC": {
         "Uniprot Accession ID": ["SITE-ID3"],
         "Gene Name": ["SITE-GN3"],
-        "Location": ["S3"]
+        "Location": ["S3"],
+        "Known Group": "Non-TK"
     },
     "MWYRQSCWHVRMHPF": {
         "Uniprot Accession ID": ["SITE-ID4"],
         "Gene Name": ["SITE-GN4"],
-        "Location": ["S4"]
+        "Location": ["S4"],
+        "Known Group": "Non-TK"
     },
     "VGRLFIKMQSSVECE": {
         "Uniprot Accession ID": ["SITE-ID5"],
         "Gene Name": ["SITE-GN5"],
-        "Location": ["S5"]
+        "Location": ["S5"],
+        "Known Group": "Non-TK"
     },
     "MVYEFSKRQFHDHLA": {
         "Uniprot Accession ID": ["SITE-ID6"],
         "Gene Name": ["SITE-GN6"],
-        "Location": ["S6"]
+        "Location": ["S6"],
+        "Known Group": "Non-TK"
     },
     "DSAYWVHWEMLARGP": {
         "Uniprot Accession ID": ["SITE-ID7"],
         "Gene Name": ["SITE-GN7"],
-        "Location": ["S7"]
+        "Location": ["S7"],
+        "Known Group": "Non-TK"
     },
     "LCALESTAAWAHWCA": {
         "Uniprot Accession ID": ["SITE-ID8"],
         "Gene Name": ["SITE-GN8"],
-        "Location": ["S8"]
+        "Location": ["S8"],
+        "Known Group": "Non-TK"
     },
     "KRLQKYQTDNKFCYT": {
         "Uniprot Accession ID": ["SITE-ID9"],
         "Gene Name": ["SITE-GN9"],
-        "Location": ["S9"]
+        "Location": ["S9"],
+        "Known Group": "Non-TK"
     },
     "DGEFPLIWEPLNAYQ": {
         "Uniprot Accession ID": ["SITE-ID10"],
         "Gene Name": ["SITE-GN10"],
-        "Location": ["S10"]
+        "Location": ["S10"],
+        "Known Group": "Non-TK"
     },
     "GMIQKVYSSAYHWWT": {
         "Uniprot Accession ID": ["SITE-ID11"],
         "Gene Name": ["SITE-GN11"],
-        "Location": ["S11"]
+        "Location": ["S11"],
+        "Known Group": "Non-TK"
     },
     "FMVECYKLMYVIPFQ": {
         "Uniprot Accession ID": ["SITE-ID12"],
         "Gene Name": ["SITE-GN12"],
-        "Location": ["S12"]
+        "Location": ["S12"],
+        "Known Group": "Non-TK"
     },
     "LNPLSHPPDKRAWYD": {
         "Uniprot Accession ID": ["SITE-ID13"],
         "Gene Name": ["SITE-GN13"],
-        "Location": ["S13"]
+        "Location": ["S13"],
+        "Known Group": "Non-TK"
     },
     "EWKRWGRYCDVQTHK": {
         "Uniprot Accession ID": ["SITE-ID14"],
         "Gene Name": ["SITE-GN14"],
-        "Location": ["S14"]
+        "Location": ["S14"],
+        "Known Group": "TK"
     },
     "QTVLFMKQARKGDGQ": {
         "Uniprot Accession ID": ["SITE-ID15"],
         "Gene Name": ["SITE-GN15"],
-        "Location": ["S15"]
+        "Location": ["S15"],
+        "Known Group": "Non-TK"
     },
     "DMIYQEEDTDCHPAK": {
         "Uniprot Accession ID": ["SITE-ID16"],
         "Gene Name": ["SITE-GN16"],
-        "Location": ["S16"]
+        "Location": ["S16"],
+        "Known Group": "Non-TK"
     },
     "EVVGMKCRFPSEQSQ": {
         "Uniprot Accession ID": ["SITE-ID17"],
         "Gene Name": ["SITE-GN17"],
-        "Location": ["S17"]
+        "Location": ["S17"],
+        "Known Group": "Non-TK"
     },
     "AIPHHARVAHCRHDQ": {
         "Uniprot Accession ID": ["SITE-ID18"],
         "Gene Name": ["SITE-GN18"],
-        "Location": ["S18"]
+        "Location": ["S18"],
+        "Known Group": "Non-TK"
     },
     "YFFTWPPKCWLWAGN": {
         "Uniprot Accession ID": ["SITE-ID19"],
         "Gene Name": ["SITE-GN19"],
-        "Location": ["S19"]
+        "Location": ["S19"],
+        "Known Group": "Non-TK"
     },
     "HRHSHHMFMKLNNQH": {
         "Uniprot Accession ID": ["SITE-ID20"],
         "Gene Name": ["SITE-GN20"],
-        "Location": ["S20"]
+        "Location": ["S20"],
+        "Known Group": "Non-TK"
     }
 }

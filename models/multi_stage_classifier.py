@@ -3,15 +3,18 @@ if __name__ == "__main__":
     from termcolor import colored
 
     write_splash("main_gc_trainer")
-    from ..config.root_logger import get_logger
 
-    logger = get_logger()
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+
+if __name__ == "__main__":
     logger.status("Loading Modules")
 
 
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
 import torch, argparse, socket
-from typing import Callable, Union
+from typing import Callable, Literal, Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
@@ -22,17 +25,22 @@ from ..tools.file_names import get as get_file_name
 from ..tools import make_fasta as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
 from termcolor import colored
-from .site_classifier import SiteClassifier
+from .GroupClassifier import GroupClassifier
+
+from .individual_classifiers import IndividualClassifiers
+
+pd.set_option("display.max_columns", 100)
+pd.set_option("display.max_rows", 100000)
+pd.set_option("display.width", 240)
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
-warnings.filterwarnings(action="always", category=UserWarning)
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-def smart_save_gc(group_classifier: grp_pred.SKGroupClassifier):
+def smart_save_gc(group_classifier: GroupClassifier):
     bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
     max_version = 0
     for file in os.listdir(bin_):
@@ -47,7 +55,7 @@ def smart_save_gc(group_classifier: grp_pred.SKGroupClassifier):
 class MultiStageClassifier:
     def __init__(
         self,
-        group_classifier: grp_pred.SKGroupClassifier,
+        group_classifier: GroupClassifier,
         individual_classifiers: individual_classifiers.IndividualClassifiers,
     ):
         self.group_classifier = group_classifier
@@ -67,6 +75,8 @@ class MultiStageClassifier:
         bypass_group_classifier={},
         get_emp_eqn=True,
         cartesian_product=False,
+        device="cpu",
+        group_on: Literal["kin", "site"] = "site",
     ):
         logger.status("Prediction Step [1/2]: Sending input kinases to group classifier")
         # Open XY_formatted_input_file
@@ -85,7 +95,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["Site Sequence"].drop_duplicates()
+        unq_symbols = input_file["Site Sequence" if group_on != "kin" else "Kinase Sequence"].drop_duplicates()
         unq_symbols_inds = unq_symbols.index.tolist()
         unq_symbols = unq_symbols.tolist()
 
@@ -94,16 +104,17 @@ class MultiStageClassifier:
 
         if not predict_mode or bypass_group_classifier:
             assert true_symbol_to_grp_dict is not None
-            groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
+            # groups_true = [true_symbol_to_grp_dict[u] for u in unq_symbols]
         else:
-            groups_true = [None for _ in unq_symbols]
+            # groups_true = [None for _ in unq_symbols]
+            pass
 
         ### Perform Real Accuracy
-        embedded_unq_symbols = [SiteClassifier.one_hot_aa_embedding(s) for s in unq_symbols]
-        groups_prediction = self.group_classifier.predict(embedded_unq_symbols)
+        # embedded_unq_symbols = [SiteClassifier.one_hot_aa_embedding(s) for s in unq_symbols]
+        groups_prediction = self.group_classifier.__class__.predict(self.group_classifier, unq_symbols)
         pred_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_prediction)}
         self.pred_grp_dict = pred_grp_dict
-        true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
+        # true_grp_dict = {symbol: grp for symbol, grp in zip(unq_symbols, groups_true)}
 
         ### Perform Simulated 100% Accuracy
         # sim_ac = 1
@@ -145,11 +156,12 @@ class MultiStageClassifier:
                     "green",
                 )
             )
+
             res = self.individual_classifiers.evaluation(
                 addl_args,
-                pred_grp_dict if not bypass_group_classifier else true_grp_dict,
-                true_groups={},
-                predict_mode=True,
+                self.group_classifier,
+                True,
+                device,
                 get_emp_eqn=get_emp_eqn,
                 cartesian_product=cartesian_product,
             )
@@ -303,6 +315,7 @@ class MultiStageClassifier:
         scores: bool = False,
         normalize_scores: bool = False,
         cartesian_product: bool = False,
+        group_on: str = "site",
         group_output: bool = False,
         bypass_group_classifier: list[str] = [],
         convert_raw_to_prob=True,
@@ -311,10 +324,15 @@ class MultiStageClassifier:
         seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
         id_to_seq = {v: k for k, v in seq_to_id.items()}
         assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
+        site_seq_to_id = {seq: "SITEID" + str(idx) for idx, seq in enumerate(site_seqs)}
+        site_id_to_seq = {v: k for k, v in site_seq_to_id.items()}
+        assert len(site_seq_to_id) == len(
+            site_id_to_seq
+        ), "Error: site_seq_to_id and site_id_to_seq are not the same length"
 
         data_dict = {
             "Gene Name of Provided Kin Seq": [seq_to_id[k] for k in kinase_seqs],
-            "Gene Name of Kin Corring to Provided Sub Seq": ["?" for _ in range(len(site_seqs))],
+            "Gene Name of Kin Corring to Provided Sub Seq": [site_seq_to_id[s] for s in site_seqs],
             "Kinase Sequence": kinase_seqs,
             "Site Sequence": site_seqs,
             "pair_id": [
@@ -341,6 +359,8 @@ class MultiStageClassifier:
                 bypass_group_classifier=bypass_group_classifier,
                 get_emp_eqn=convert_raw_to_prob,
                 cartesian_product=cartesian_product,
+                device=device,
+                group_on=group_on,
             )
 
             assert isinstance(res, list), "res is not a list"
@@ -440,22 +460,22 @@ class MultiStageClassifier:
         grp_pred.MTX = pd.concat([grp_pred.MTX[train_kin_list], novel_df])
 
 
-def save_msc(msc: SiteClassifier):
+def save_msc(msc: MultiStageClassifier):
     with open(msc.save_path, "wb") as f:
         pickle.dump(msc, f)
 
 
-def get_group_classifier():
-    args = parse_args()
-    with open(str(args["gc_params"]), "r") as f:
-        hps = json.load(f)
-    gc = SiteClassifier.get_group_classifier(join_first(1, args["train"]), join_first(1, args["kin_fam_grp"]), {}, hps)
-    if args.get("val"):
-        (vl,) = SiteClassifier.format_data(join_first(1, args["val"]), kin_fam_grp=args["kin_fam_grp"])
-        print(colored(f"Val Info: Val Performance of GC: {SiteClassifier.performance(gc, *vl)}", "blue"))
-    if args.get("s"):
-        smart_save_gc(gc)
-    return gc
+# def get_group_classifier():
+#     args = parse_args()
+#     with open(str(args["gc_params"]), "r") as f:
+#         hps = json.load(f)
+#     gc = SiteClassifier.get_group_classifier(join_first(1, args["train"]), join_first(1, args["kin_fam_grp"]), {}, hps)
+#     if args.get("val"):
+#         (vl,) = SiteClassifier.format_data(join_first(1, args["val"]), kin_fam_grp=args["kin_fam_grp"])
+#         print(colored(f"Val Info: Val Performance of GC: {SiteClassifier.performance(gc, *vl)}", "blue"))
+#     if args.get("s"):
+#         smart_save_gc(gc)
+#     return gc
 
 
 def device_eligibility(arg_value):
@@ -474,7 +494,7 @@ def device_eligibility(arg_value):
 
 
 def parse_args() -> dict[str, Union[str, None]]:
-    print(colored("Progress: Parsing Arguments", "green"))
+    logger.status("Parsing Arguments")
 
     parser = argparse.ArgumentParser()
 
@@ -566,7 +586,7 @@ def smart_save_msc(msc: MultiStageClassifier):
         pickle.dump(msc, f)
 
 
-def combine_ic_and_gc(nn: IndividualClassifiers, gc: SiteClassifier) -> MultiStageClassifier:
+def combine_ic_and_gc(nn: IndividualClassifiers, gc: GroupClassifier) -> MultiStageClassifier:
     return MultiStageClassifier(gc, nn)
 
 

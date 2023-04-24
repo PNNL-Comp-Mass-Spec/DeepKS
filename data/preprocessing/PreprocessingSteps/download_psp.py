@@ -1,6 +1,11 @@
 import requests, pandas as pd, gzip, io, re, os, json, pathlib
 from termcolor import colored
 
+from ....config.root_logger import get_logger
+
+logger = get_logger()
+if __name__ == "__main__":
+    logger.status("Loading Modules")
 
 def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug.xlsx")):
     url = "https://www.phosphosite.org/downloads/Kinase_Substrate_Dataset.gz"
@@ -83,7 +88,7 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
             )
 
     table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
-    print("Info: Number of unique uniprot IDs in PSP: ", len(table["KIN_ACC_ID"].unique()))
+    logger.info(f"Info: Number of unique uniprot IDs in PSP: {len(table['KIN_ACC_ID'].unique())}")
     logger.status("Saving PSP to Excel file...")
     table.to_excel(outfile, index=False)
 

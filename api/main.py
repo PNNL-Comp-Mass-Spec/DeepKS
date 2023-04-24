@@ -3,6 +3,7 @@
 import sys
 from nbformat import convert
 from termcolor import colored
+from typing import Literal
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
     from ..splash import write_splash
@@ -17,7 +18,6 @@ logger.status("Loading Modules...")
 
 import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch
 
-warnings.filterwarnings(action="always", category=UserWarning)
 
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 
@@ -71,6 +71,7 @@ def make_predictions(
     group_output: bool = False,
     bypass_group_classifier: list[str] = [],
     convert_raw_to_prob: bool = True,
+    group_on: Literal["site", "kin"] = "site",
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
 
@@ -171,6 +172,7 @@ def make_predictions(
                 scores=scores,
                 normalize_scores=normalize_scores,
                 cartesian_product=cartesian_product,
+                group_on=group_on,
                 group_output=group_output,
                 bypass_group_classifier=bypass_group_classifier,
                 convert_raw_to_prob=convert_raw_to_prob,
@@ -184,13 +186,13 @@ def make_predictions(
 
         if verbose:
             assert res is not None
-            print()
-            print(first_msg := "<" * 16 + " REQUESTED RESULTS " + ">" * 16 + "\n")
+            msg = "\n<" * 16 + " REQUESTED RESULTS " + ">" * 16 + "\n"
             if all(isinstance(r, dict) for r in res):
-                pprint.pprint([dict(collections.OrderedDict(sorted(r.items()))) for r in res], sort_dicts=False)  # type: ignore
+                msg += pprint.pformat([dict(collections.OrderedDict(sorted(r.items()))) for r in res], sort_dicts=False)
             else:
-                pprint.pprint(res)
-            print("\n" + "<" * int(np.floor(len(first_msg) / 2)) + ">" * int(np.ceil(len(first_msg) / 2)) + "\n")
+                msg += pprint.pformat(res, sort_dicts=False)
+            msg += "\n" + "<" * int(np.floor(len(msg) / 2)) + ">" * int(np.ceil(len(msg) / 2)) + "\n"
+            logger.info(msg)
         logger.status("Done!\n")
         return res
     except Exception as e:
@@ -356,6 +358,15 @@ def parse_api() -> dict[str, typing.Any]:
         default=PRE_TRAINED_GC,
         required=False,
         metavar="<pre-trained group classifier file>",
+    )
+
+    ap.add_argument(
+        "--group-on",
+        help="Whether to group on kinases or sites.",
+        choices=["kinase", "site"],
+        default=None,
+        required=False,
+        metavar="<group on>",
     )
 
     def device_eligibility(arg_value):
@@ -551,10 +562,10 @@ def parse_api() -> dict[str, typing.Any]:
                     else schema_validation.SiteSchemaBypassGC,
                 )
             except jsonschema.exceptions.ValidationError:
-                print("", file=sys.stderr)
-                print(colored(f"Error: Site information format is incorrect.", "red"), file=sys.stderr)
+                emsg = f"\nError: Site information format is incorrect."
                 with open(join_first(0, "./site-info_file_format.txt")) as f:
-                    print(colored(f.read(), "magenta"), file=sys.stderr)
+                    emsg += f.read()
+                logger.uerror(emsg)
                 sys.exit(1)
     args_dict["site_info"] = site_info_dict
 
@@ -576,6 +587,13 @@ def parse_api() -> dict[str, typing.Any]:
         if args_dict["bypass_group_classifier"]
         else []
     )
+
+    if args_dict["group_on"] and not args_dict["cartesian_product"]:
+        logger.info("Ignoring `--group-on` since `--cartesian-product` was not set.")
+
+    if not args_dict["group_on"] and args_dict["cartesian_product"]:
+        logger.info("Setting `--group-on` to 'site' as default since `--cartesian-product` was set.")
+        args_dict["group_on"] = "site"
 
     return args_dict
 
