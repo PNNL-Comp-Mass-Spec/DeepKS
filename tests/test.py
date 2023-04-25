@@ -2,6 +2,7 @@ import sys, os, argparse, unittest, pathlib, json, inspect
 from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
 class UsesR:
@@ -116,8 +117,8 @@ class TestTrainingGroupClassifier(unittest.TestCase):
 
     def test_train_gc_small(self):
         PseudoSiteGroupClassifier.general_package(
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_"
-            "/DeepKS/data/raw_data/raw_data_45176_formatted_65.csv"
+            join_first(1, "data/raw_data/raw_data_45176_formatted_65.csv"),
+            join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
         )
 
 

@@ -22,6 +22,7 @@ logger = get_logger()
 if __name__ == "__main__":
     logger.status("Loading Modules")
 
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 def my_pop(df, index):
     """
@@ -193,7 +194,7 @@ def get_input_dataframe_core(
 if __name__ == "__main__":
     if mode == "no_alin":
         kin_seq_file = (
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/kinase_seq_826.csv"
+            join_first(3, "data/raw_data/kinase_seq_826.csv")
         )
     else:
         raise RuntimeError("mode not supported")

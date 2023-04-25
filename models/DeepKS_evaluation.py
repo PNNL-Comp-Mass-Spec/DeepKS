@@ -625,15 +625,11 @@ def eval_and_roc_workflow(
             "plot_unified_line": True,
         },
     )
-    roc.save_plot(
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/images/Evaluation and Results/"
-    )
+    roc.save_plot(join_first(1, "images/Evaluation and Results/"))
 
 
 def test():
-    test_dat = pd.read_csv(
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/tools/dff_sample_test_data.csv"
-    )
+    test_dat = pd.read_csv(join_first(1, "tools/dff_sample_test_data.csv"))
     the_roc = SplitIntoKinasesROC()
     the_roc.make_plot(
         test_dat["Score"],
@@ -681,15 +677,15 @@ if __name__ == "__main__":
     # main()
     # test()
     with open(
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_msc_weights_resaved_fake.cornichon",
+        join_first(1, "bin/deepks_msc_weights_resaved_fake.cornichon"),
         "rb",
     ) as mscfp:
         msc = cloudpickle.load(mscfp)
         eval_and_roc_workflow(
             msc,
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv",
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv",
-            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/bin/deepks_msc_weights_resaved_bypassed.cornichon",
+            join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+            join_first(1, "data/raw_data_6406_formatted_95_5616.csv"),
+            join_first(1, "bin/deepks_msc_weights_resaved_bypassed.cornichon"),
             force_recompute=False,
             bypass_gc=True,
         )

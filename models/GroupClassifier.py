@@ -11,6 +11,8 @@ logger = get_logger()
 if __name__ == "__main__":
     logger.status("Loading Modules")
 
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
 
 def smart_save_gc(group_classifier: GroupClassifier):
     bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
@@ -99,12 +101,11 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         return [GCPrediction(tk_grp) if x[7] in tk_aa else GCPrediction(stk_grp) for x in list_form]
 
     @staticmethod
-    def general_package(train_file: str):
-        fd = train_file
+    def general_package(train_file: str, kin_fam_grp: str):
+        fd = join_first(1, train_file)
         # fd = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv"
         fddf = pd.read_csv(fd)
-        kin_fam_grp = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv"
-        kin_to_grp_df = pd.read_csv(kin_fam_grp)[["Kinase", "Uniprot", "Group"]]
+        kin_to_grp_df = pd.read_csv(join_first(1, kin_fam_grp))[["Kinase", "Uniprot", "Group"]]
         kin_to_grp_df["Symbol"] = (
             kin_to_grp_df["Kinase"].apply(lambda x: re.sub(r"[\(\)\*]", "", x)) + "|" + kin_to_grp_df["Uniprot"]
         )
@@ -121,5 +122,6 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
 
 if __name__ == "__main__":
     PseudoSiteGroupClassifier.general_package(
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data/raw_data_45176_formatted_65.csv"
+        join_first(1, "data/raw_data/raw_data_45176_formatted_65.csv"),
+        join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
     )
