@@ -121,9 +121,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
-            {}
-        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[
+            str, dict[str, dict[str, list[Union[int, float]]]]
+        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -313,6 +313,7 @@ class IndividualClassifiers:
 
         weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
         logger.valinfo(f"Overall Weighted {self.grp_to_training_args[group_tr]['metric']} → {weighted:3.4f}")
+        return weighted
 
     def obtain_group_and_loader(
         self,
@@ -535,9 +536,9 @@ class IndividualClassifiers:
                 smart_save_nn(self)
 
 
-def main():
+def main(args_pass_in: Union[None, list[str]] = None):
     logger.status("Parsing Args")
-    args = parse_args()
+    args = parse_args(args_pass_in)
     logger.status("Preparing Training Data")
     train_filename = args["train"]
     val_filename = args["val"]
@@ -606,7 +607,7 @@ def device_eligibility(arg_value):
         )
 
 
-def parse_args() -> dict[str, Union[str, None]]:
+def parse_args(args_pass_in: Union[None, list[str]]) -> dict[str, Union[str, None]]:
     logger.status("Parsing Arguments")
 
     parser = argparse.ArgumentParser()
@@ -671,7 +672,10 @@ def parse_args() -> dict[str, Union[str, None]]:
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)
 
     try:
-        args = vars(parser.parse_args())
+        if args_pass_in is None:
+            args = vars(parser.parse_args())
+        else:
+            args = vars(parser.parse_args(args_pass_in))
     except Exception as e:
         print(e)
         exit(1)
