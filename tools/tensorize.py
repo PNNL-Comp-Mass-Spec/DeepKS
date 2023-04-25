@@ -7,7 +7,8 @@ from termcolor import colored
 from ..config.root_logger import get_logger
 
 logger = get_logger()
-logger.status("Loading Modules")
+if __name__ == "__main__":
+    logger.status("Loading Modules...")
 
 
 def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):

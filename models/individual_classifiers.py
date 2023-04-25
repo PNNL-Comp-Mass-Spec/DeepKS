@@ -10,7 +10,8 @@ if __name__ == "__main__":
 from ..config.root_logger import get_logger
 
 logger = get_logger()
-logger.status("Loading Modules")
+if __name__ == "__main__":
+    logger.status("Loading Modules...")
 
 
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data, more_itertools

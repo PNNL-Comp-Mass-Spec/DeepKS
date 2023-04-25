@@ -14,7 +14,8 @@ if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"])
 from ..config.root_logger import get_logger
 
 logger = get_logger()
-logger.status("Loading Modules...")
+if __name__ == "__main__":
+    logger.status("Loading Modules...")
 
 import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch, dill
 from typing import Union
