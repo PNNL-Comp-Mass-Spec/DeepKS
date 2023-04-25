@@ -13,6 +13,7 @@ kaleido
 lxml
 matplotlib
 mlrose_hiive
+more_itertools
 nbformat
 numpy
 openpyxl

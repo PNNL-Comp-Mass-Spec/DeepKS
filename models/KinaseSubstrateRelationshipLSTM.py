@@ -3,11 +3,16 @@ from ..tools.formal_layers import Concatenation, Multiply, Transpose, Squeeze
 from ..tools.model_utils import cNNUtils as cNNUtils
 from .KSRProtocol import KSR
 from typing import Literal, Union
+from pprint import pformat
 
 torch.use_deterministic_algorithms(True)
 
-where_am_i = pathlib.Path(__file__).parent.resolve()
-os.chdir(where_am_i)
+# where_am_i = pathlib.Path(__file__).parent.resolve()
+# os.chdir(where_am_i)
+
+from ..config.root_logger import get_logger
+
+logger = get_logger()
 
 
 def batch_dot(x, y):
@@ -84,7 +89,7 @@ class KinaseSubstrateRelationshipLSTM(KSR):
         hidden_features_kin=10,
     ):
         super().__init__()
-
+        logger.info(pformat(locals()))
         site_param_vals = site_param_dict.values()
         kinase_param_vals = kin_param_dict.values()
         num_conv_site = len(site_param_dict["kernels"])

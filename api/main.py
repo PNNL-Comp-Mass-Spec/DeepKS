@@ -591,9 +591,11 @@ def parse_api() -> dict[str, typing.Any]:
             try:
                 jsonschema.validate(
                     site_info_dict,
-                    schema_validation.SiteSchema
-                    if not args_dict["bypass_group_classifier"]
-                    else schema_validation.SiteSchemaBypassGC,
+                    (
+                        schema_validation.SiteSchema
+                        if not args_dict["bypass_group_classifier"]
+                        else schema_validation.SiteSchemaBypassGC
+                    ),
                 )
             except jsonschema.exceptions.ValidationError:
                 emsg = f"\nError: Site information format is incorrect."
