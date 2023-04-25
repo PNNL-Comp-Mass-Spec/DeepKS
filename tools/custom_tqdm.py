@@ -10,7 +10,7 @@ class CustomTqdm(tqdm.tqdm):
                 ascii="░▒█",
                 # ncols=os.get_terminal_size().columns // 2,
                 bar_format=colored("{l_bar}", "green") + "{bar:15}" + colored("{r_bar}", "green") + "\r",
-                position=4,
+                position=3,
             )
         )
         super().__init__(*args, **kwargs)

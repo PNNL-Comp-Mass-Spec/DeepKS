@@ -138,7 +138,7 @@ class NNInterface:
             (
                 f"{'(Means) ' if 'mean' in paradigm.lower() else ''}Chunk [{chunk_num + 1}] | Epoch"
                 f" [{epoch + 1}/{num_epochs}] | Batch"
-                f" [{batch_num + 1 if isinstance(batch_num, int) else '-'}/{total_step}] | Loss {loss:.4f} |"
+                f" [{batch_num + 1 if isinstance(batch_num, int) else 'All'}/{total_step}] | Loss {loss:.4f} |"
                 f" {expand_metric(metric)} {score:.2f}"
             ),
         )

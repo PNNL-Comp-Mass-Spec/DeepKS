@@ -4,15 +4,7 @@
         "optim": "torch.optim.Adam",
         "model_summary_name": "../architectures/architecture (IC-DEFAULT).txt",
         "lr": 0.003,
-        "batch_size": 64,
-        "n_gram": 1
-    },
-    "OTHER": {
-        "loss_fn": "torch.nn.BCEWithLogitsLoss",
-        "optim": "torch.optim.Adam",
-        "model_summary_name": "../architectures/architecture (IC-CMGC).txt",
-        "lr": 0.001,
-        "batch_size": 4,
+        "batch_size": 256,
         "n_gram": 1
     }
 }

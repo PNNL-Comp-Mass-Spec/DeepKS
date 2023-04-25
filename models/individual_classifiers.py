@@ -120,9 +120,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -254,11 +254,13 @@ class IndividualClassifiers:
             cartesian_product=cartesian_product,
         )
         group_tr = ""
-        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in CustomTqdm(
-            zip(gen_train, gen_val),
-            desc=colored("Status: Training Group Progress", "green"),
-            total=len(set(which_groups)),
+        for (group_tr, partial_group_df_tr), (group_vl, partial_group_df_vl) in (
+            pb := CustomTqdm(
+                zip(gen_train, gen_val),
+                total=len(set(which_groups)),
+            )
         ):
+            pb.set_description(f"Status: Training Group Progress (Currently on {group_tr})")
             assert group_tr == group_vl, "Group mismatch: %s != %s" % (group_tr, group_vl)
             b = self.grp_to_interface_args[group_tr]["batch_size"]
             ng = self.grp_to_interface_args[group_tr]["n_gram"]
@@ -308,11 +310,8 @@ class IndividualClassifiers:
                 pass_through_scores=pass_through_scores,
             )
 
-            weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
-            logger.valinfo(
-                f"Train/Validation Info: Overall Weighted {self.grp_to_training_args[group_tr]['metric']} →"
-                f" {weighted:3.4f}"
-            )
+        weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
+        logger.valinfo(f"Overall Weighted {self.grp_to_training_args[group_tr]['metric']} → {weighted:3.4f}")
 
     def obtain_group_and_loader(
         self,
@@ -330,9 +329,11 @@ class IndividualClassifiers:
             which_groups,
             Xy_formatted_input_file,
             group_classifier=group_classifier,
-            group_classifier_method=group_classifier.predict
-            if simulated_acc == 1
-            else functools.partial(group_classifier.simulated_predict, simulated_acc=simulated_acc),
+            group_classifier_method=(
+                group_classifier.predict
+                if simulated_acc == 1
+                else functools.partial(group_classifier.simulated_predict, simulated_acc=simulated_acc)
+            ),
             cartesian_product=cartesian_product,
         )
         count = 0
@@ -556,18 +557,18 @@ def main():
 
     with open(join_first(0, args["ksr_params"])) as f:
         grp_to_model_args = json.load(f)
-        default_grp_to_model_args = grp_to_model_args["default"]
+        default_grp_to_model_args = grp_to_model_args.get("default", grp_to_model_args.values().__iter__())
     with open(join_first(0, args["nni_params"])) as f:
         grp_to_interface_args = json.load(f)
         for grp in grp_to_interface_args:
             grp_to_interface_args[grp]["loss_fn"] = eval(str(grp_to_interface_args[grp]["loss_fn"]))
             grp_to_interface_args[grp]["optim"] = eval(str(grp_to_interface_args[grp]["optim"]))
             grp_to_interface_args[grp]["device"] = device
-        default_grp_to_interface_args = grp_to_interface_args["default"]
+        default_grp_to_interface_args = grp_to_interface_args.get("default", grp_to_model_args.values().__iter__())
 
     with open(join_first(0, args["ksr_training_params"])) as f:
         grp_to_training_args = json.load(f)
-        default_training_args = grp_to_training_args["default"]
+        default_training_args = grp_to_training_args.get("default", grp_to_model_args.values().__iter__())
 
     gtma = {group: grp_to_model_args.get(group, deepcopy(default_grp_to_model_args)) for group in groups}
     gtia = {group: grp_to_interface_args.get(group, deepcopy(default_grp_to_interface_args)) for group in groups}

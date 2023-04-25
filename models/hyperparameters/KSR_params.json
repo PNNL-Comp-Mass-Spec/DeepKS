@@ -1,5 +1,5 @@
 {
-    "default": {
+    "NON-TK": {
         "model_class": "KinaseSubstrateRelationshipLSTM",
         "linear_layer_sizes": [
             50,
@@ -29,6 +29,42 @@
             "out_channels": [
                 20
             ]
-        }
+        },
+        "num_recur_kin": 2,
+        "num_recur_site": 2
+    },
+    "TK": {
+        "model_class": "KinaseSubstrateRelationshipLSTM",
+        "linear_layer_sizes": [
+            50,
+            25
+        ],
+        "emb_dim_kin": 22,
+        "emb_dim_site": 22,
+        "dropout_pr": 0.4,
+        "site_param_dict": {
+            "kernels": [
+                8
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                20
+            ]
+        },
+        "kin_param_dict": {
+            "kernels": [
+                100
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                20
+            ]
+        },
+        "num_recur_kin": 16,
+        "num_recur_site": 16
     }
 }
