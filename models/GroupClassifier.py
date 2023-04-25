@@ -19,7 +19,7 @@ def smart_save_gc(group_classifier: GroupClassifier):
         if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(2)) + 1)
     save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
-    logger.status("Serializing and Saving Group Classifier to Disk. ({save_path})")
+    logger.status(f"Serializing and Saving Group Classifier to Disk. ({save_path})")
     with open(save_path, "wb") as f:
         pickle.dump(group_classifier, f)
 

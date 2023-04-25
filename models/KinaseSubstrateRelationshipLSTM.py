@@ -1,6 +1,7 @@
 import os, pathlib, torch, torch.nn as nn
 from ..tools.formal_layers import Concatenation, Multiply, Transpose, Squeeze
 from ..tools.model_utils import cNNUtils as cNNUtils
+from .KSRProtocol import KSR
 from typing import Literal, Union
 
 torch.use_deterministic_algorithms(True)
@@ -49,7 +50,7 @@ class MultipleCNN(nn.Module):
 
     def forward(self, x, ret_size=False):
         if self.do_transpose:
-            out = self.transpose.forward(x)
+            out = self.transpose(x)
         else:
             out = x
         out = self.conv(out)
@@ -63,7 +64,7 @@ class MultipleCNN(nn.Module):
 
 
 # Convolutional neural network (two convolutional layers)
-class KinaseSubstrateRelationshipNN(nn.Module):
+class KinaseSubstrateRelationshipLSTM(KSR):
     def __init__(
         self,
         num_classes: int = 1,
@@ -77,6 +78,10 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         site_len: int = 15,
         kin_len: int = 4128,
         num_aa: int = 22,  # 20 + X + padding
+        num_recur_site=1,
+        num_recur_kin=1,
+        hidden_features_site=10,
+        hidden_features_kin=10,
     ):
         super().__init__()
 
@@ -94,6 +99,10 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         self.num_conv_kin = num_conv_kin
         self.emb_dim_site = emb_dim_site
         self.emb_dim_kin = emb_dim_kin
+        self.num_recur_site = num_recur_site
+        self.num_recur_kin = num_recur_kin
+        self.hidden_features_site = hidden_features_site
+        self.hidden_features_kin = hidden_features_kin
 
         self.emb_site = nn.Embedding(num_aa, self.emb_dim_site)
         self.emb_kin = nn.Embedding(num_aa, self.emb_dim_kin)
@@ -134,10 +143,16 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         self.site_cnns = nn.Sequential(*site_cnn_list)
         self.kin_cnns = nn.Sequential(*kin_cnn_list)
 
-        flat_site_size, flat_kin_size = self.get_flat_size()
-        combined_flat_size = flat_site_size + flat_kin_size
+        self.site_lstm = nn.LSTM(
+            self.site_param_dict["out_channels"][-1], self.hidden_features_site, self.num_recur_site, batch_first=True
+        )
+        self.kin_lstm = nn.LSTM(
+            self.kin_param_dict["out_channels"][-1], self.hidden_features_kin, self.num_recur_kin, batch_first=True
+        )
 
-        self.attn = DotAttention(flat_kin_size, flat_site_size, attn_out_features)
+        self.transpose = Transpose(1, 2)
+
+        self.attn = DotAttention(self.hidden_features_kin, self.hidden_features_site, attn_out_features)
         self.mult = Multiply()
         self.cat = Concatenation()
 
@@ -147,7 +162,7 @@ class KinaseSubstrateRelationshipNN(nn.Module):
         self.linear_layer_sizes: list[int] = linear_layer_sizes if linear_layer_sizes is not None else []
 
         # Create linear layers
-        self.linear_layer_sizes.insert(0, combined_flat_size)
+        self.linear_layer_sizes.insert(0, self.hidden_features_kin + self.hidden_features_site)
         self.linear_layer_sizes.append(num_classes)
 
         # Put linear layers into Sequential module
@@ -186,7 +201,7 @@ class KinaseSubstrateRelationshipNN(nn.Module):
 
         for i in range(num_conv):
             calculated_do_transpose.append(i == 0)
-            calculated_do_flatten.append(i == num_conv - 1)
+            calculated_do_flatten.append(False)  # i == num_conv - 1)
             calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
             input_width = first_width if i == 0 else param["out_lengths"][i - 1]
             calculated_pools.append(
@@ -213,6 +228,15 @@ class KinaseSubstrateRelationshipNN(nn.Module):
 
         out_site = self.site_cnns(emb_site)
         out_kin = self.kin_cnns(emb_kin)
+
+        out_site = self.transpose(out_site)
+        out_kin = self.transpose(out_kin)
+
+        lstm_out_site, (h_out_site, c_out_site) = self.kin_lstm(out_kin)  # type: ignore
+        lstm_out_kin, (h_out_kin, c_out_kin) = self.site_lstm(out_site)  # type: ignore
+
+        out_site = h_out_site[-1]
+        out_kin = h_out_kin[-1]
 
         weights = self.attn(out_site, out_kin)
         weights = torch.softmax(weights / out_site.size(-1) ** (0.5), dim=-1)

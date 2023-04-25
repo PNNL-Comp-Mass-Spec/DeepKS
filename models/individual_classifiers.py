@@ -15,11 +15,11 @@ logger.status("Loading Modules")
 
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data, more_itertools
 import socket, pathlib, os, itertools, functools, numpy as np, pickle
-from .KinaseSubstrateRelationship import KinaseSubstrateRelationshipNN
+from .KinaseSubstrateRelationshipClassic import KinaseSubstrateRelationshipClassic
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 from ..tools import file_names
-from typing import Callable, Generator, Literal, Protocol, Union, Tuple
+from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Type, Any
 from pprint import pprint  # type: ignore
 from termcolor import colored
 from ..tools.file_names import get as get_file_name
@@ -32,6 +32,7 @@ from .GroupClassifier import (
     KinGroupClassifier,
     PseudoSiteGroupClassifier,
 )
+from .KSRProtocol import KSR
 
 
 torch.use_deterministic_algorithms(True)
@@ -63,9 +64,9 @@ def smart_save_nn(individual_classifier: IndividualClassifiers):
 class IndividualClassifiers:
     def __init__(
         self,
-        grp_to_model_args: dict[str, dict[str, Union[bool, str, int, float, Callable, type]]],
-        grp_to_interface_args: dict[str, dict[str, Union[bool, str, int, float, type]]],
-        grp_to_training_args: dict[str, dict[str, Union[bool, str, int, float, Callable, type]]],
+        grp_to_model_args: dict[str, dict[str, Any]],
+        grp_to_interface_args: dict[str, dict[str, Any]],
+        grp_to_training_args: dict[str, dict[str, Any]],
         device: str,
         args: dict[str, Union[str, None, list[str]]],
         groups: list[str],
@@ -84,9 +85,15 @@ class IndividualClassifiers:
         self.groups = groups
         self.device = torch.device(device)
         self.grp_to_training_args = grp_to_training_args
-        self.individual_classifiers = {
-            group: KinaseSubstrateRelationshipNN(**grp_to_model_args[group]) for group in grp_to_model_args
-        }
+        for group in grp_to_model_args:
+            exec(f"from .{grp_to_model_args[group]['model_class']} import {grp_to_model_args[group]['model_class']}")
+        self.individual_classifiers = {}
+        for group in grp_to_model_args:
+            clss = eval(grp_to_model_args[group]["model_class"])
+            assert isinstance(clss, Callable)
+            self.individual_classifiers[group] = eval(grp_to_model_args[group]["model_class"])(
+                **{k: v for k, v in grp_to_model_args[group].items() if k != "model_class"}
+            )
         self.grp_to_interface_args = grp_to_interface_args
         gia = grp_to_interface_args
         optims: list[Callable] = []
@@ -621,7 +628,7 @@ def parse_args() -> dict[str, Union[str, None]]:
         type=str,
         help="Specify Kinase Substrate Relationship hyperparameters file name",
         required=False,
-        default=join_first(0, "KSR_params.json"),
+        default=join_first(0, "hyperparameters/KSR_params.json"),
         metavar="<ksr_params.json>",
     )
 
@@ -630,7 +637,7 @@ def parse_args() -> dict[str, Union[str, None]]:
         type=str,
         help="Specify Kinase Substrate Relationship training options file name",
         required=False,
-        default=join_first(0, "KSR_training_params.json"),
+        default=join_first(0, "hyperparameters/KSR_training_params.json"),
         metavar="<ksr_params.json>",
     )
 
@@ -639,7 +646,7 @@ def parse_args() -> dict[str, Union[str, None]]:
         type=str,
         help="Specify Nerual Net Interface options file name",
         required=False,
-        default=join_first(0, "NNI_params.json"),
+        default=join_first(0, "hyperparameters/NNI_params.json"),
         metavar="<ksr_params.json>",
     )
 
