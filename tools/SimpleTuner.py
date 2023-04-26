@@ -9,8 +9,11 @@ from beautifultable import BeautifulTable
 from numpyencoder import NumpyEncoder
 
 from ..config.root_logger import get_logger
+from .file_names import get as get_file_name
 
 logger = get_logger()
+
+join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
 def sigfig_iter(iterable, sigfigs=3):
@@ -163,7 +166,7 @@ class SimpleTuner:
         bt.columns.header = df.columns[include_cols].tolist()
         for row in df.values[:, include_cols].tolist():
             bt.rows.append(row)
-        bt.columns.width = (os.get_terminal_size().columns - 1) // (len(bt.columns.header) + 1)
+        bt.columns.width = (os.get_terminal_size().columns - 1 - len(bt.columns.header)) // (len(bt.columns.header))
 
         logger.info("\n" + str(bt))
 
@@ -171,7 +174,9 @@ class SimpleTuner:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     def go(self, args_collection):
-        ret = []
+        scores = []
+        best_score = 0
+        best_score_index = None
         # with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
         #     try:
         #         results = pool.starmap(
@@ -189,11 +194,18 @@ class SimpleTuner:
         #         pool.join()
         #         exit(1)
         #     ret = [x for x in results]
-        for args in args_collection:
-            ret.append(self.display_intermediates(args))
+        for i, args in enumerate(args_collection):
+            new_score = self.display_intermediates(args)
+            scores.append(new_score)
+            if best_score < new_score:
+                best_score = new_score
+                best_score_index = i
 
-        return ret
-        # self.display_final_results(ret)
+        res_json = []
+        res_json.append({"Best Score": best_score, "Best Score Index": best_score_index, "Scores": scores})
+        res_json += args_collection
+        with open(get_file_name("tuning", "json", join_first(1, "")), "w") as f:
+            json.dump(res_json, f, indent=3)
 
     def display_final_results(self, results):
         cols = (
@@ -270,7 +282,7 @@ class SimpleTuner:
             # logger.status(pt)
             return res  # acc_vals, acc, loss, acc_std, loss_std
         except KeyboardInterrupt:
-            logger.status("My KeyboardInterrupt", flush=True)
+            logger.status("My KeyboardInterrupt")
             raise KeyboardInterrupt
 
 
@@ -334,18 +346,18 @@ if __name__ == "__main__":
 
     setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 
-    cnn_kin_one_layer_options = get_one_layer_cnn(4128, *[np.unique(np.logspace(0, 8, 16, base=2, dtype=int))] * 3)
+    cnn_kin_one_layer_options = get_one_layer_cnn(4128, *[np.unique(np.logspace(4, 8, 5, base=2, dtype=int))] * 3)
     cnn_site_one_layer_options = get_one_layer_cnn(
-        15, list(range(1, 16)), list(range(1, 16)), np.unique(np.logspace(0, 8, 16, base=2, dtype=int))
+        15, list(range(1, 16, 3)), list(range(1, 16, 3)), np.unique(np.logspace(4, 8, 5, base=2, dtype=int))
     )
 
     model_params = {
         "model_class": ["KinaseSubstrateRelationshipLSTM"],
         "linear_layer_sizes": ll_sizes(),
-        "emb_dim_kin": [1] + list(range(2, 65, 4)),
-        "emb_dim_site": [1] + list(range(2, 65, 4)),
+        "emb_dim_kin": [1] + list(range(2, 65, 10)),
+        "emb_dim_site": [1] + list(range(2, 65, 10)),
         "dropout_pr": sigfig_iter(np.arange(0, 0.66, 0.05), 3),
-        "attn_out_features": list(set(np.linspace(16, 320, 10).astype(int))),
+        "attn_out_features": list(set(np.linspace(64, 640, 5).astype(int))),
         "site_param_dict": [
             {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
             for kern, out, chan in cnn_site_one_layer_options
@@ -354,24 +366,24 @@ if __name__ == "__main__":
             {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
             for kern, out, chan in cnn_kin_one_layer_options
         ],
-        "num_recur_kin": list(range(1, 21, 2)),
-        "num_recur_site": list(range(1, 21, 2)),
-        "hidden_features_site": [1] + list(range(5, 105, 10)),
-        "hidden_features_kin": [1] + list(range(5, 105, 10)),
+        "num_recur_kin": list(range(1, 8, 2)),
+        "num_recur_site": list(range(1, 8, 2)),
+        "hidden_features_site": [1] + list(range(5, 105, 20)),
+        "hidden_features_kin": [1] + list(range(5, 105, 20)),
     }
 
     training_params = {
         "lr_decay_amount": sigfig_iter(np.arange(0.5, 1.05, 0.05), 2),
-        "lr_decay_freq": list(range(1, 11)),
-        "num_epochs": list(range(1, 11)),
+        "lr_decay_freq": list(range(1, 9)),
+        "num_epochs": list(range(5, 11)),
         "metric": ["roc"],
     }
     interface_params = {
         "loss_fn": ["torch.nn.BCEWithLogitsLoss"],
         "optim": ["torch.optim.Adam"],
         "model_summary_name": ["../architectures/architecture (IC-DEFAULT).txt"],
-        "lr": sigfig_iter(np.logspace(-5, 0, 15), 3),
-        "batch_size": sorted(list(set(np.logspace(0, 10, 11, base=2).astype(int)))),
+        "lr": sigfig_iter(np.logspace(-5, -1, 5), 3),
+        "batch_size": sorted(list(set(np.logspace(3, 10, 8, base=2).astype(int)))),
         "n_gram": [1],
     }
 
@@ -400,7 +412,7 @@ if __name__ == "__main__":
         train_fn=train_main,
         config_dict=all_params,
         which_map=which_map,
-        num_samples=100,
+        num_samples=1,
         random_seed=84,
         collapse=[[]],
         num_gpu=None,
