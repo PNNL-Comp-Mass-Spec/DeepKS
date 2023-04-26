@@ -233,8 +233,8 @@ class KinaseSubstrateRelationshipLSTM(KSR):
         out_site = self.transpose(out_site)
         out_kin = self.transpose(out_kin)
 
-        lstm_out_site, (h_out_site, c_out_site) = self.kin_lstm(out_kin)  # type: ignore
-        lstm_out_kin, (h_out_kin, c_out_kin) = self.site_lstm(out_site)  # type: ignore
+        lstm_out_site, (h_out_site, c_out_site) = self.site_lstm(out_site)  # type: ignore
+        lstm_out_kin, (h_out_kin, c_out_kin) = self.kin_lstm(out_kin)  # type: ignore
 
         out_site = h_out_site[-1]
         out_kin = h_out_kin[-1]

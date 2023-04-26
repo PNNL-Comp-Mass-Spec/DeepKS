@@ -163,7 +163,7 @@ class SimpleTuner:
         bt.columns.header = df.columns[include_cols].tolist()
         for row in df.values[:, include_cols].tolist():
             bt.rows.append(row)
-        bt.columns.width = 120 // (len(bt.columns.header) + 1)
+        bt.columns.width = (os.get_terminal_size().columns - 1) // (len(bt.columns.header) + 1)
 
         logger.info("\n" + str(bt))
 
@@ -171,20 +171,28 @@ class SimpleTuner:
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
     def go(self, args_collection):
-        ret = None
-        with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
-            try:
-                results = pool.starmap(
-                    self.display_intermediates,
-                    [[args_collection[i]] for i in range(len(self.sampled_config_dicts))],
-                )
-            except KeyboardInterrupt:
-                logger.status("\nQuitting...\n")
-                pool.terminate()
-                pool.join()
-                exit(1)
-            ret = [x for x in results]
+        ret = []
+        # with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
+        #     try:
+        #         results = pool.starmap(
+        #             self.display_intermediates,
+        #             [[args_collection[i]] for i in range(len(self.sampled_config_dicts))],
+        #         )
+        #     except KeyboardInterrupt:
+        #         logger.status("\nQuitting...\n")
+        #         pool.terminate()
+        #         pool.join()
+        #         exit(1)
+        #     except Exception:
+        #         logger.error("Error in multiprocessing")
+        #         pool.terminate()
+        #         pool.join()
+        #         exit(1)
+        #     ret = [x for x in results]
+        for args in args_collection:
+            ret.append(self.display_intermediates(args))
 
+        return ret
         # self.display_final_results(ret)
 
     def display_final_results(self, results):
@@ -363,7 +371,7 @@ if __name__ == "__main__":
         "optim": ["torch.optim.Adam"],
         "model_summary_name": ["../architectures/architecture (IC-DEFAULT).txt"],
         "lr": sigfig_iter(np.logspace(-5, 0, 15), 3),
-        "batch_size": sorted(list(set(np.logspace(0, 12, 10, base=1.8).astype(int)))),
+        "batch_size": sorted(list(set(np.logspace(0, 10, 11, base=2).astype(int)))),
         "n_gram": [1],
     }
 
@@ -385,7 +393,6 @@ if __name__ == "__main__":
         "bin/deepks_gc_weights.1.cornichon",
         "--groups",
         "TK",
-        "--dry-run",
     ]
 
     st = SimpleTuner(
