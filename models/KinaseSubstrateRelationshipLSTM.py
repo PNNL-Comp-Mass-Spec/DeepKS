@@ -89,7 +89,6 @@ class KinaseSubstrateRelationshipLSTM(KSR):
         hidden_features_kin=10,
     ):
         super().__init__()
-        logger.info(pformat(locals()))
         site_param_vals = site_param_dict.values()
         kinase_param_vals = kin_param_dict.values()
         num_conv_site = len(site_param_dict["kernels"])

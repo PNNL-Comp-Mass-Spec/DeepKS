@@ -21,7 +21,9 @@ from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import gather_data
 from ..tools import file_names
 from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Type, Any
-from pprint import pprint  # type: ignore
+
+# from pprint import pprint  # type: ignore
+import pprint
 from termcolor import colored
 from ..tools.file_names import get as get_file_name
 from ..tools.custom_tqdm import CustomTqdm
@@ -34,6 +36,9 @@ from .GroupClassifier import (
     PseudoSiteGroupClassifier,
 )
 from .KSRProtocol import KSR
+import __main__
+
+setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 
 
 torch.use_deterministic_algorithms(True)
@@ -577,7 +582,12 @@ def main(args_pass_in: Union[None, list[str]] = None):
     gtta = {group: grp_to_training_args.get(group, deepcopy(default_training_args)) for group in groups}
 
     classifier = IndividualClassifiers(gtma, gtia, gtta, str(device), args, groups)
-
+    if args["dry_run"]:
+        logger.status("Dry Run Successful; Exiting after printing hyperparameter configurations:")
+        logger.info(f"Model Args: {pprint.pformat(gtma, compact=True)}")
+        logger.info(f"Interface Args: {pprint.pformat(gtia, compact=True)}")
+        logger.info(f"Training Args: {pprint.pformat(gtta, compact=True)}")
+        return
     logger.status("About to Train")
     assert val_filename is not None
     classifier.train(
@@ -667,6 +677,13 @@ def parse_args(args_pass_in: Union[None, list[str]]) -> dict[str, Union[str, Non
         help="The path to the pre-trained group classifier.",
         required=True,
         metavar="<pre-trained group classifier file>",
+    )
+
+    parser.add_argument(
+        "--dry-run",
+        help="If included, will not train the model, but will instead print out the hyperparameters.",
+        action="store_true",
+        required=False,
     )
 
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)

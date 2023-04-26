@@ -1,13 +1,26 @@
 import collections
 import multiprocessing, itertools, random, time, os, sigfig, signal, warnings, re, json, pathlib, functools
+import pandas as pd
+import tempfile, pprint, tabulate
 import numpy as np
-from typing import Iterable, MutableSequence
+from typing import Collection, MutableSequence, Iterable
 from prettytable import PrettyTable
-from pprint import pprint
+from beautifultable import BeautifulTable
+from numpyencoder import NumpyEncoder
 
 from ..config.root_logger import get_logger
 
 logger = get_logger()
+
+
+def sigfig_iter(iterable, sigfigs=3):
+    res = []
+    for x in iterable:
+        if isinstance(x, float):
+            res.append(sigfig.round(x, sigfigs))
+        else:
+            raise ValueError(f"sigfig_iter only works on floats, not {type(x)}")
+    return res
 
 
 class SimpleTuner:
@@ -18,7 +31,7 @@ class SimpleTuner:
         config_dict,
         which_map,
         num_samples,
-        random_seed=42,
+        random_seed=84,
         collapse=[[]],
         num_gpu=None,
         max_output_width=512,
@@ -41,7 +54,7 @@ class SimpleTuner:
                     del config_dict[x]
 
         assert all(isinstance(x, list) or isinstance(x, np.ndarray) for x in config_dict.values()), (
-            "Not all hyperparameters are in a mutable sequence or numpy array."
+            "Not all hyperparameters are in a list or numpy array."
             f" ({'; '.join([f'{k}:{v}' for k, v in config_dict.items() if not (isinstance(v, list) or isinstance(v, np.ndarray))])})"
         )
 
@@ -54,47 +67,116 @@ class SimpleTuner:
             self.sampled_config_dicts.append(running)
 
         logger.info(
-            f"{num_samples:,} configurations out of a possible"
-            f" {np.product([len(v) for v in config_dict.values()]):,} were randomly sampled."
+            f"{num_samples:,} configurations out of a possible ~"
+            f" 10^{np.sum([np.log10(len(v)) for v in config_dict.values()]):,.2f} were randomly sampled."
         )
 
-        k_outer = -1
-        for d in self.sampled_config_dicts:
-            splits = []
-            for k in d:
-                if re.search(r"group__\[\[(.+\+.+)\]\]__", k):
-                    ksub = re.sub(r"group__\[\[(.+\+.+)\]\]__", r"\1", k)
-                    splits = ksub.split("+")
-                k_outer = k
+        self.model_params = [
+            {
+                "default": {
+                    k: int(v) if type(v) == np.int64 else v
+                    for k, v in sampled_config_dict.items()
+                    if k in which_map["model_params"]
+                }
+            }
+            for sampled_config_dict in self.sampled_config_dicts
+        ]
+        self.training_params = [
+            {
+                "default": {
+                    k: int(v) if type(v) == np.int64 else v
+                    for k, v in sampled_config_dict.items()
+                    if k in which_map["training_params"]
+                }
+            }
+            for sampled_config_dict in self.sampled_config_dicts
+        ]
+        self.interface_params = [
+            {
+                "default": {
+                    k: int(v) if type(v) == np.int64 else v
+                    for k, v in sampled_config_dict.items()
+                    if k in which_map["interface_params"]
+                }
+            }
+            for sampled_config_dict in self.sampled_config_dicts
+        ]
 
-            for i, hp in enumerate(splits):
-                d[hp] = d[k_outer][i]
+        assert len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples
 
-            if len(splits) != 0:
-                del d[k_outer]
+        # k_outer = -1
+        # for d in self.sampled_config_dicts:
+        #     splits = []
+        #     for k in d:
+        #         if re.search(r"group__\[\[(.+\+.+)\]\]__", k):
+        #             ksub = re.sub(r"group__\[\[(.+\+.+)\]\]__", r"\1", k)
+        #             splits = ksub.split("+")
+        #         k_outer = k
+
+        #     for i, hp in enumerate(splits):
+        #         d[hp] = d[k_outer][i]
+
+        #     if len(splits) != 0:
+        #         del d[k_outer]
 
         self._print_combinations()
 
+    def generate_args_for_go(self, base_args, tempdir):
+        all_args = []
+        for i in range(len(self.model_params)):
+            model_params = self.model_params[i]
+            training_params = self.training_params[i]
+            interface_params = self.interface_params[i]
+            with tempfile.NamedTemporaryFile("w", dir=tempdir, delete=False) as mpf, tempfile.NamedTemporaryFile(
+                "w", dir=tempdir, delete=False
+            ) as tpf, tempfile.NamedTemporaryFile("w", dir=tempdir, delete=False) as ipf:
+                json.dump(model_params, mpf, cls=NumpyEncoder)
+                json.dump(training_params, tpf, cls=NumpyEncoder)
+                json.dump(interface_params, ipf, cls=NumpyEncoder)
+                mpf.flush()
+                tpf.flush()
+                ipf.flush()
+                self.model_params_file = mpf.name
+                self.training_params_file = tpf.name
+                self.interface_params_file = ipf.name
+            param_args = [
+                "--ksr-params",
+                self.model_params_file,
+                "--ksr-training-params",
+                self.training_params_file,
+                "--nni-params",
+                self.interface_params_file,
+            ]
+            full_args = base_args + param_args
+            all_args.append(full_args)
+        return all_args
+
     def _print_combinations(self):
-        pt = PrettyTable(["dispatch_num"] + list(self.sampled_config_dicts[0].keys()), title="Configs to Run")
-        rows = [[i] + list(self.sampled_config_dicts[i].values()) for i in range(len(self.sampled_config_dicts))]
-        pt.max_table_width = self.max_output_width
-        pt.add_rows(rows)
-        logger.valinfo(pt)
+        preview = {f"cfg # {i}": v for i, v in enumerate(self.sampled_config_dicts[:20])}
+        df = pd.DataFrame.from_dict(preview, orient="index")
+        df["cfg #"] = df.index
+        df.insert(0, "cfg #", df.pop("cfg #"))
+        # info = json.dumps(, indent=3, cls=NumpyEncoder)
+        bt = BeautifulTable()
+        include_cols = [i for i in range(len(df.columns)) if df.iloc[:, i].apply(lambda x: str(x)).nunique() > 1]
+
+        bt.columns.header = df.columns[include_cols].tolist()
+        for row in df.values[:, include_cols].tolist():
+            bt.rows.append(row)
+        bt.columns.width = 120 // (len(bt.columns.header) + 1)
+
+        logger.info("\n" + str(bt))
 
     def init_pool(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    def go(self, *args):
+    def go(self, args_collection):
         ret = None
         with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
             try:
                 results = pool.starmap(
                     self.display_intermediates,
-                    [
-                        [cd, dispatch_num, *args]
-                        for cd, dispatch_num in zip(self.sampled_config_dicts, range(len(self.sampled_config_dicts)))
-                    ],
+                    [[args_collection[i]] for i in range(len(self.sampled_config_dicts))],
                 )
             except KeyboardInterrupt:
                 logger.status("\nQuitting...\n")
@@ -103,7 +185,7 @@ class SimpleTuner:
                 exit(1)
             ret = [x for x in results]
 
-        self.display_final_results(ret)
+        # self.display_final_results(ret)
 
     def display_final_results(self, results):
         cols = (
@@ -161,23 +243,24 @@ class SimpleTuner:
 
         return desired_conf
 
-    def display_intermediates(self, conf, dispatch_num, *args):
+    def display_intermediates(self, cmdl):
         try:
-            cols = ["dispatch_num"] + list(conf.keys()) + ["acc_vals", "acc", "loss", "acc_std", "loss_std"]
-            pt = PrettyTable(cols, title=" --- Intermediate Results --- ")
-            pt.max_table_width = self.max_output_width
-            kwargs = {"process_device": f"cuda:{dispatch_num % self.num_gpu}"}
-            acc_vals, acc, loss, acc_std, loss_std = self.train_fn(conf, *args, **kwargs)
-            for i in range(len(acc_vals)):
-                acc_vals[i] = sigfig.round(acc_vals[i], sigfigs=3)
-            pt.add_row(
-                [dispatch_num]
-                + list(conf.values())
-                + [acc_vals]
-                + [sigfig.round(x, sigfigs=3) for x in [acc, loss, acc_std, loss_std]]
-            )
-            logger.status(pt)
-            return acc_vals, acc, loss, acc_std, loss_std
+            # cols = ["dispatch_num"] + list(conf.keys()) + ["acc_vals", "acc", "loss", "acc_std", "loss_std"]
+            # pt = PrettyTable(cols, title=" --- Intermediate Results --- ")
+            # pt.max_table_width = self.max_output_width
+            # kwargs = {}
+            # acc_vals, acc, loss, acc_std, loss_std
+            res = self.train_fn(cmdl)
+            # for i in range(len(acc_vals)):
+            #     acc_vals[i] = sigfig.round(acc_vals[i], sigfigs=3)
+            # pt.add_row(
+            #     [dispatch_num]
+            #     + list(conf.values())
+            #     + [acc_vals]
+            #     + [sigfig.round(x, sigfigs=3) for x in [acc, loss, acc_std, loss_std]]
+            # )
+            # logger.status(pt)
+            return res  # acc_vals, acc, loss, acc_std, loss_std
         except KeyboardInterrupt:
             logger.status("My KeyboardInterrupt", flush=True)
             raise KeyboardInterrupt
@@ -185,47 +268,111 @@ class SimpleTuner:
 
 def ll_sizes():
     LL_SIZES = [1, 10, 25, 50, 100, 250, 500]
-    possible_ll_sizes = [[x] for x in LL_SIZES]
+    chunks = [[[x] for x in LL_SIZES]]
     MAX_LAYERS = 3
-    partials = [p for p in possible_ll_sizes]
-    for _ in range(MAX_LAYERS - 1):  # [1, >2]
+    partials = [p for p in chunks[0]]
+    for _ in range(1, MAX_LAYERS):
         new = []
         for p in partials:
             for ll_size in LL_SIZES:
                 new.append(p + [ll_size])
-        possible_ll_sizes += new
+        chunks.append(new)
         partials = new
 
-    theoretical_length = 0
-    for i in range(1, MAX_LAYERS + 1):
-        theoretical_length += len(LL_SIZES) ** i
-    assert len(possible_ll_sizes) == theoretical_length, f"got {len(possible_ll_sizes)} but wanted {theoretical_length}"
-    return possible_ll_sizes
+    out = list(itertools.chain(*[chunk * len(LL_SIZES) ** (MAX_LAYERS - c - 1) for c, chunk in enumerate(chunks)]))
+
+    theoretical_length = MAX_LAYERS * (len(LL_SIZES) ** MAX_LAYERS)
+    assert len(out) == theoretical_length, f"got {len(out)} but wanted {theoretical_length}"
+    return out
 
 
-def get_one_layer_cnn(seq_len: int, kern_range: Iterable, out_range: Iterable, pass_through_channel_range: Iterable):
+def get_one_layer_cnn(seq_len: int, kern_range: Collection, out_range: Collection, channels: Collection):
     kern_options = []
     pool_options = []
+    channel_options = []
 
     for kern in kern_range:
         assert int(kern) == kern
+        assert kern >= 1
         for out in out_range:
             assert int(out) == out
-            kern_out = seq_len - kern
-            pool_stride_l = (kern_out - 1) / out
-            pool_stride_r = (kern_out - 1) / (out + 1)
+            assert out >= 1
+            kern_out = seq_len - kern + 1
+            pool_stride_l = (kern_out) / out
+            pool_stride_r = (kern_out) / (out + 1 - 1e-8)
             if int(pool_stride_l) != int(pool_stride_r):
                 kern_options.append(kern)
                 pool_options.append(out)
 
-    return list(zip(kern_options, pool_options, [x for x in pass_through_channel_range]))
+    kern_options *= len(channels)
+    pool_options *= len(channels)
+    assert len(kern_options) == len(pool_options), f"got {len(kern_options)=} != {len(pool_options)=}"
 
+    channel_options = [x for x in channels for _ in range(len(kern_options) // len(channels))]
 
-get_one_layer_cnn(4128, *[np.unique(np.logspace(0, 8, 16, base=2, dtype=int))] * 3)
+    assert len(kern_options) == len(channel_options), f"{len(kern_options)=} != {len(channel_options)=}"
+
+    return list(zip(kern_options, pool_options, channel_options))
 
 
 if __name__ == "__main__":
     from ..models.individual_classifiers import main as train_main
+
+    from ..models.GroupClassifier import (
+        PseudoSiteGroupClassifier,
+    )
+
+    import __main__
+
+    setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
+
+    cnn_kin_one_layer_options = get_one_layer_cnn(4128, *[np.unique(np.logspace(0, 8, 16, base=2, dtype=int))] * 3)
+    cnn_site_one_layer_options = get_one_layer_cnn(
+        15, list(range(1, 16)), list(range(1, 16)), np.unique(np.logspace(0, 8, 16, base=2, dtype=int))
+    )
+
+    model_params = {
+        "model_class": ["KinaseSubstrateRelationshipLSTM"],
+        "linear_layer_sizes": ll_sizes(),
+        "emb_dim_kin": [1] + list(range(2, 65, 4)),
+        "emb_dim_site": [1] + list(range(2, 65, 4)),
+        "dropout_pr": sigfig_iter(np.arange(0, 0.66, 0.05), 3),
+        "attn_out_features": list(set(np.linspace(16, 320, 10).astype(int))),
+        "site_param_dict": [
+            {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
+            for kern, out, chan in cnn_site_one_layer_options
+        ],
+        "kin_param_dict": [
+            {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
+            for kern, out, chan in cnn_kin_one_layer_options
+        ],
+        "num_recur_kin": list(range(1, 21, 2)),
+        "num_recur_site": list(range(1, 21, 2)),
+        "hidden_features_site": [1] + list(range(5, 105, 10)),
+        "hidden_features_kin": [1] + list(range(5, 105, 10)),
+    }
+
+    training_params = {
+        "lr_decay_amount": sigfig_iter(np.arange(0.5, 1.05, 0.05), 2),
+        "lr_decay_freq": list(range(1, 11)),
+        "num_epochs": list(range(1, 11)),
+        "metric": ["roc"],
+    }
+    interface_params = {
+        "loss_fn": ["torch.nn.BCEWithLogitsLoss"],
+        "optim": ["torch.optim.Adam"],
+        "model_summary_name": ["../architectures/architecture (IC-DEFAULT).txt"],
+        "lr": sigfig_iter(np.logspace(-5, 0, 15), 3),
+        "batch_size": sorted(list(set(np.logspace(0, 12, 10, base=1.8).astype(int)))),
+        "n_gram": [1],
+    }
+
+    all_params = training_params | interface_params | model_params
+    which_map = collections.defaultdict(list)
+    for k, v in all_params.items():
+        for param_dict in ["model_params", "training_params", "interface_params"]:
+            if k in eval(param_dict):
+                which_map[param_dict].append(k)
 
     cmdl = [
         "--train",
@@ -238,62 +385,21 @@ if __name__ == "__main__":
         "bin/deepks_gc_weights.1.cornichon",
         "--groups",
         "TK",
+        "--dry-run",
     ]
-
-    cnn_one_layer_options = get_one_layer_cnn(4128, *[np.unique(np.logspace(0, 8, 16, base=2, dtype=int))] * 3)
-
-    model_params = {
-        "model_class": ["KinaseSubstrateRelationshipLSTM"],
-        "linear_layer_sizes": ll_sizes(),
-        "emb_dim_kin": [1] + list(range(2, 65, 4)),
-        "emb_dim_site": [1] + list(range(2, 65, 4)),
-        "dropout_pr": np.round(np.arange(0, 0.66, 0.05), 2),
-        "attn_out_features": list(set(np.linspace(16, 320, 10).astype(int))),
-        "site_param_dict": [
-            {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
-            for kern, out, chan in cnn_one_layer_options
-        ],
-        "kin_param_dict": [
-            {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
-            for kern, out, chan in cnn_one_layer_options
-        ],
-        "num_recur_kin": list(range(1, 21, 2)),
-        "num_recur_site": list(range(1, 21, 2)),
-        "hidden_features_site": [1] + list(range(5, 105, 10)),
-        "hidden_features_kin": [1] + list(range(5, 105, 10)),
-    }
-
-    training_params = {
-        "lr_decay_amount": np.round(np.arange(0.5, 1.05, 0.05), 2),
-        "lr_decay_freq": list(range(10)),
-        "num_epochs": list(range(10)),
-        "metric": ["roc"],
-    }
-    interface_params = {
-        "loss_fn": ["torch.nn.BCEWithLogitsLoss"],
-        "optim": ["torch.optim.Adam"],
-        "model_summary_name": ["../architectures/architecture (IC-DEFAULT).txt"],
-        "lr": np.logspace(-5, 0, 15),
-        "batch_size": sorted(list(set(np.logspace(0, 12, 10, base=1.8).astype(int)))),
-        "n_gram": [1],
-    }
-
-    all_params = training_params | interface_params | model_params
-    which_map = collections.defaultdict(list)
-    for k, v in all_params.items():
-        for param_dict in ["model_params", "training_params", "interface_params"]:
-            if k in eval(param_dict):
-                which_map[param_dict].append(k)
 
     st = SimpleTuner(
         num_sim_procs=1,
-        train_fn=functools.partial(train_main, cmdl),
+        train_fn=train_main,
         config_dict=all_params,
         which_map=which_map,
         num_samples=100,
-        random_seed=42,
+        random_seed=84,
         collapse=[[]],
         num_gpu=None,
         max_output_width=512,
     )
-    st.go()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        all_args = st.generate_args_for_go(cmdl, tmpdir)
+        st.go(all_args)
