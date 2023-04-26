@@ -7,9 +7,6 @@ from pprint import pformat
 
 torch.use_deterministic_algorithms(True)
 
-# where_am_i = pathlib.Path(__file__).parent.resolve()
-# os.chdir(where_am_i)
-
 from ..config.root_logger import get_logger
 
 logger = get_logger()
@@ -205,7 +202,7 @@ class KinaseSubstrateRelationshipLSTM(KSR):
 
         for i in range(num_conv):
             calculated_do_transpose.append(i == 0)
-            calculated_do_flatten.append(False)  # i == num_conv - 1)
+            calculated_do_flatten.append(False)
             calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
             input_width = first_width if i == 0 else param["out_lengths"][i - 1]
             calculated_pools.append(
