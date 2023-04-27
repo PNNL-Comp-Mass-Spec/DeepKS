@@ -93,3 +93,6 @@ data/raw_data/small_emp_kins_1.csv
 data/raw_data/small_emp_sites_104.csv
 tools/RNN-GC-arch.txt
 **/*roc-cache*.*
+tools/fix_flashing.py
+.gitignore
+tools/fix_flashing_b.py

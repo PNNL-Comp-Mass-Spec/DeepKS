@@ -3,10 +3,11 @@ import multiprocessing, itertools, random, time, os, sigfig, signal, warnings, r
 import pandas as pd
 import tempfile, pprint
 import numpy as np
-from typing import Collection, MutableSequence, Iterable
+from typing import Any, Callable, Collection, MutableSequence, Iterable, Protocol, Union
 from prettytable import PrettyTable
 from beautifultable import BeautifulTable
 from numpyencoder import NumpyEncoder
+from abc import ABC, abstractmethod
 
 from DeepKS.tools.custom_tqdm import CustomTqdm
 
@@ -28,19 +29,26 @@ def sigfig_iter(iterable, sigfigs=3):
     return res
 
 
-class SimpleTuner:
+class Tuner(Protocol):
+    num_gpu: int
+    max_output_width: int
+    num_sim_procs: int
+    train_fn: Callable
+    config_dict: dict[str, Any]
+    sampled_config_dicts: list
+
     def __init__(
         self,
-        num_sim_procs,
-        train_fn,
-        config_dict,
-        which_map,
-        num_samples,
-        random_seed=84,
+        num_sim_procs: int,
+        train_fn: Callable,
+        config_dict: dict[str, Any],
+        num_samples: int,
+        random_seed: int = 84,
         collapse=[[]],
-        num_gpu=None,
+        num_gpu: Union[None, int] = None,
         max_output_width=512,
-    ):
+        **kwargs,
+    ) -> None:
         if num_gpu is None:
             self.num_gpu = num_sim_procs
         else:
@@ -76,87 +84,9 @@ class SimpleTuner:
             f" 10^{np.sum([np.log10(len(v)) for v in config_dict.values()]):,.1f} were randomly sampled."
         )
 
-        self.model_params = [
-            {
-                "default": {
-                    k: int(v) if type(v) == np.int64 else v
-                    for k, v in sampled_config_dict.items()
-                    if k in which_map["model_params"]
-                }
-            }
-            for sampled_config_dict in self.sampled_config_dicts
-        ]
-        self.training_params = [
-            {
-                "default": {
-                    k: int(v) if type(v) == np.int64 else v
-                    for k, v in sampled_config_dict.items()
-                    if k in which_map["training_params"]
-                }
-            }
-            for sampled_config_dict in self.sampled_config_dicts
-        ]
-        self.interface_params = [
-            {
-                "default": {
-                    k: int(v) if type(v) == np.int64 else v
-                    for k, v in sampled_config_dict.items()
-                    if k in which_map["interface_params"]
-                }
-            }
-            for sampled_config_dict in self.sampled_config_dicts
-        ]
+        self.print_combinations()
 
-        assert len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples
-
-        # k_outer = -1
-        # for d in self.sampled_config_dicts:
-        #     splits = []
-        #     for k in d:
-        #         if re.search(r"group__\[\[(.+\+.+)\]\]__", k):
-        #             ksub = re.sub(r"group__\[\[(.+\+.+)\]\]__", r"\1", k)
-        #             splits = ksub.split("+")
-        #         k_outer = k
-
-        #     for i, hp in enumerate(splits):
-        #         d[hp] = d[k_outer][i]
-
-        #     if len(splits) != 0:
-        #         del d[k_outer]
-
-        self._print_combinations()
-
-    def generate_args_for_go(self, base_args, tempdir):
-        all_args = []
-        for i in range(len(self.model_params)):
-            model_params = self.model_params[i]
-            training_params = self.training_params[i]
-            interface_params = self.interface_params[i]
-            with tempfile.NamedTemporaryFile("w", dir=tempdir, delete=False) as mpf, tempfile.NamedTemporaryFile(
-                "w", dir=tempdir, delete=False
-            ) as tpf, tempfile.NamedTemporaryFile("w", dir=tempdir, delete=False) as ipf:
-                json.dump(model_params, mpf, cls=NumpyEncoder)
-                json.dump(training_params, tpf, cls=NumpyEncoder)
-                json.dump(interface_params, ipf, cls=NumpyEncoder)
-                mpf.flush()
-                tpf.flush()
-                ipf.flush()
-                self.model_params_file = mpf.name
-                self.training_params_file = tpf.name
-                self.interface_params_file = ipf.name
-            param_args = [
-                "--ksr-params",
-                self.model_params_file,
-                "--ksr-training-params",
-                self.training_params_file,
-                "--nni-params",
-                self.interface_params_file,
-            ]
-            full_args = base_args + param_args
-            all_args.append(full_args)
-        return all_args
-
-    def _print_combinations(self):
+    def print_combinations(self):
         preview = {f"cfg # {i}": v for i, v in enumerate(self.sampled_config_dicts[:20])}
         df = pd.DataFrame.from_dict(preview, orient="index")
         df["cfg #"] = df.index
@@ -176,52 +106,8 @@ class SimpleTuner:
     def init_pool(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    def go(self, args_collection, **kwargs):
-        scores = []
-        first_file_name = get_file_name(
-            prefix="a_tuning", suffix="json", directory=os.path.join(join_first(0, ""), "tunings")
-        )
-        # with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
-        #     try:
-        #         results = pool.starmap(
-        #             self.display_intermediates,
-        #             [[args_collection[i]] for i in range(len(self.sampled_config_dicts))],
-        #         )
-        #     except KeyboardInterrupt:
-        #         logger.status("\nQuitting...\n")
-        #         pool.terminate()
-        #         pool.join()
-        #         exit(1)
-        #     except Exception:
-        #         logger.error("Error in multiprocessing")
-        #         pool.terminate()
-        #         pool.join()
-        #         exit(1)
-        #     ret = [x for x in results]
-        for i, args in CustomTqdm(
-            enumerate(args_collection), desc="Tuning Progress", total=len(args_collection), position=5
-        ):
-            new_score, notes = self.display_intermediates(args, **kwargs)
-            scores.append((i, new_score, notes))
-            scores.sort(key=lambda x: x[1], reverse=True)
-
-            res_json = {
-                f"cfg # {scores[j][0]}": {
-                    "Score": scores[j][1],
-                    "Model Params": self.model_params[j],
-                    "Training Params": self.training_params[j],
-                    "Interface Params": self.interface_params[j],
-                    "Notes": scores[j][2],
-                }
-                for j in range(i)
-            }
-            logger.status("Saving safety temp file")
-            with open(f"{first_file_name}.gitig-temp", "w") as tf:
-                json.dump(res_json, tf, indent=3, cls=NumpyEncoder)
-            logger.status("Overwriting main file")
-            with open(first_file_name, "w") as f:
-                json.dump(res_json, f, indent=3, cls=NumpyEncoder)
-        logger.status("Done!")
+    def go(self, args_collection: list[list], **kwargs):
+        ...
 
     def display_final_results(self, results):
         cols = (
@@ -279,76 +165,194 @@ class SimpleTuner:
 
         return desired_conf
 
-    def display_intermediates(self, cmdl, **kwargs):
+    def get_result_from_config(self, cmdl, **kwargs):
         try:
-            # cols = ["dispatch_num"] + list(conf.keys()) + ["acc_vals", "acc", "loss", "acc_std", "loss_std"]
-            # pt = PrettyTable(cols, title=" --- Intermediate Results --- ")
-            # pt.max_table_width = self.max_output_width
-            # kwargs = {}
-            # acc_vals, acc, loss, acc_std, loss_std
-            res, notes = self.train_fn(cmdl, **kwargs)
-            # for i in range(len(acc_vals)):
-            #     acc_vals[i] = sigfig.round(acc_vals[i], sigfigs=3)
-            # pt.add_row(
-            #     [dispatch_num]
-            #     + list(conf.values())
-            #     + [acc_vals]
-            #     + [sigfig.round(x, sigfigs=3) for x in [acc, loss, acc_std, loss_std]]
-            # )
-            # logger.status(pt)
-            return res, notes  # acc_vals, acc, loss, acc_std, loss_std
+            res = self.train_fn(cmdl, **kwargs)
+            return res
         except KeyboardInterrupt:
             logger.status("My KeyboardInterrupt")
             raise KeyboardInterrupt
 
 
-def ll_sizes():
-    LL_SIZES = [1, 10, 25, 50, 100, 250, 500]
-    chunks = [[[x] for x in LL_SIZES]]
-    MAX_LAYERS = 3
-    partials = [p for p in chunks[0]]
-    for _ in range(1, MAX_LAYERS):
-        new = []
-        for p in partials:
-            for ll_size in LL_SIZES:
-                new.append(p + [ll_size])
-        chunks.append(new)
-        partials = new
-
-    out = list(itertools.chain(*[chunk * len(LL_SIZES) ** (MAX_LAYERS - c - 1) for c, chunk in enumerate(chunks)]))
-
-    theoretical_length = MAX_LAYERS * (len(LL_SIZES) ** MAX_LAYERS)
-    assert len(out) == theoretical_length, f"got {len(out)} but wanted {theoretical_length}"
-    return out
+######## General Tuner Above ########
+####### Specific Tuner(s) Below #######
 
 
-def get_one_layer_cnn(seq_len: int, kern_range: Collection, out_range: Collection, channels: Collection):
-    kern_options = []
-    pool_options = []
-    channel_options = []
+class SimpleTuner(Tuner):
+    def __init__(
+        self,
+        num_sim_procs,
+        train_fn,
+        config_dict,
+        which_map,
+        num_samples,
+        random_seed=84,
+        collapse=[[]],
+        num_gpu=None,
+        max_output_width=512,
+    ):
+        super().__init__(
+            num_sim_procs, train_fn, config_dict, num_samples, random_seed, collapse, num_gpu, max_output_width
+        )
 
-    for kern in kern_range:
-        assert int(kern) == kern
-        assert kern >= 1
-        for out in out_range:
-            assert int(out) == out
-            assert out >= 1
-            kern_out = seq_len - kern + 1
-            pool_stride_l = (kern_out) / out
-            pool_stride_r = (kern_out) / (out + 1 - 1e-8)
-            if int(pool_stride_l) != int(pool_stride_r):
-                kern_options.append(kern)
-                pool_options.append(out)
+        self.model_params = [
+            {
+                "default": {
+                    k: int(v) if type(v) == np.int64 else v
+                    for k, v in sampled_config_dict.items()
+                    if k in which_map["model_params"]
+                }
+            }
+            for sampled_config_dict in self.sampled_config_dicts
+        ]
+        self.training_params = [
+            {
+                "default": {
+                    k: int(v) if type(v) == np.int64 else v
+                    for k, v in sampled_config_dict.items()
+                    if k in which_map["training_params"]
+                }
+            }
+            for sampled_config_dict in self.sampled_config_dicts
+        ]
+        self.interface_params = [
+            {
+                "default": {
+                    k: int(v) if type(v) == np.int64 else v
+                    for k, v in sampled_config_dict.items()
+                    if k in which_map["interface_params"]
+                }
+            }
+            for sampled_config_dict in self.sampled_config_dicts
+        ]
 
-    kern_options *= len(channels)
-    pool_options *= len(channels)
-    assert len(kern_options) == len(pool_options), f"got {len(kern_options)=} != {len(pool_options)=}"
+        assert len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples
 
-    channel_options = [x for x in channels for _ in range(len(kern_options) // len(channels))]
+    def generate_args_for_go(self, base_args, tempdir):
+        all_args = []
+        for i in range(len(self.model_params)):
+            model_params = self.model_params[i]
+            training_params = self.training_params[i]
+            interface_params = self.interface_params[i]
+            with tempfile.NamedTemporaryFile("w", dir=tempdir, delete=False) as mpf, tempfile.NamedTemporaryFile(
+                "w", dir=tempdir, delete=False
+            ) as tpf, tempfile.NamedTemporaryFile("w", dir=tempdir, delete=False) as ipf:
+                json.dump(model_params, mpf, cls=NumpyEncoder)
+                json.dump(training_params, tpf, cls=NumpyEncoder)
+                json.dump(interface_params, ipf, cls=NumpyEncoder)
+                mpf.flush()
+                tpf.flush()
+                ipf.flush()
+                self.model_params_file = mpf.name
+                self.training_params_file = tpf.name
+                self.interface_params_file = ipf.name
+            param_args = [
+                "--ksr-params",
+                self.model_params_file,
+                "--ksr-training-params",
+                self.training_params_file,
+                "--nni-params",
+                self.interface_params_file,
+            ]
+            full_args = base_args + param_args
+            all_args.append(full_args)
+        return all_args
 
-    assert len(kern_options) == len(channel_options), f"{len(kern_options)=} != {len(channel_options)=}"
+    def go(self, args_collection, **kwargs):
+        scores = []
+        first_file_name = get_file_name(
+            prefix="a_tuning", suffix="json", directory=os.path.join(join_first(0, ""), "tunings")
+        )
+        # with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
+        #     try:
+        #         results = pool.starmap(
+        #             self.get_result_from_config,
+        #             [[args_collection[i]] for i in range(len(self.sampled_config_dicts))],
+        #         )
+        #     except KeyboardInterrupt:
+        #         logger.status("\nQuitting...\n")
+        #         pool.terminate()
+        #         pool.join()
+        #         exit(1)
+        #     except Exception:
+        #         logger.error("Error in multiprocessing")
+        #         pool.terminate()
+        #         pool.join()
+        #         exit(1)
+        #     ret = [x for x in results]
+        for i, args in CustomTqdm(
+            enumerate(args_collection), desc="Tuning Progress", total=len(args_collection), position=5
+        ):
+            new_score, notes = self.get_result_from_config(args, **kwargs)
+            scores.append((i, new_score, notes))
+            scores.sort(key=lambda x: x[1], reverse=True)
 
-    return list(zip(kern_options, pool_options, channel_options))
+            res_json = {
+                f"cfg # {scores[j][0]}": {
+                    "Score": scores[j][1],
+                    "Model Params": self.model_params[j],
+                    "Training Params": self.training_params[j],
+                    "Interface Params": self.interface_params[j],
+                    "Notes": scores[j][2],
+                }
+                for j in range(i)
+            }
+            logger.status("Saving safety temp file")
+            with open(f"{first_file_name}.gitig-temp", "w") as tf:
+                json.dump(res_json, tf, indent=3, cls=NumpyEncoder)
+            logger.status("Overwriting main file")
+            with open(first_file_name, "w") as f:
+                json.dump(res_json, f, indent=3, cls=NumpyEncoder)
+        logger.status("Done!")
+
+    @staticmethod
+    def ll_sizes():
+        LL_SIZES = [1, 10, 25, 50, 100, 250, 500]
+        chunks = [[[x] for x in LL_SIZES]]
+        MAX_LAYERS = 3
+        partials = [p for p in chunks[0]]
+        for _ in range(1, MAX_LAYERS):
+            new = []
+            for p in partials:
+                for ll_size in LL_SIZES:
+                    new.append(p + [ll_size])
+            chunks.append(new)
+            partials = new
+
+        out = list(itertools.chain(*[chunk * len(LL_SIZES) ** (MAX_LAYERS - c - 1) for c, chunk in enumerate(chunks)]))
+
+        theoretical_length = MAX_LAYERS * (len(LL_SIZES) ** MAX_LAYERS)
+        assert len(out) == theoretical_length, f"got {len(out)} but wanted {theoretical_length}"
+        return out
+
+    @staticmethod
+    def get_one_layer_cnn(seq_len: int, kern_range: Collection, out_range: Collection, channels: Collection):
+        kern_options = []
+        pool_options = []
+        channel_options = []
+
+        for kern in kern_range:
+            assert int(kern) == kern
+            assert kern >= 1
+            for out in out_range:
+                assert int(out) == out
+                assert out >= 1
+                kern_out = seq_len - kern + 1
+                pool_stride_l = (kern_out) / out
+                pool_stride_r = (kern_out) / (out + 1 - 1e-8)
+                if int(pool_stride_l) != int(pool_stride_r):
+                    kern_options.append(kern)
+                    pool_options.append(out)
+
+        kern_options *= len(channels)
+        pool_options *= len(channels)
+        assert len(kern_options) == len(pool_options), f"got {len(kern_options)=} != {len(pool_options)=}"
+
+        channel_options = [x for x in channels for _ in range(len(kern_options) // len(channels))]
+
+        assert len(kern_options) == len(channel_options), f"{len(kern_options)=} != {len(channel_options)=}"
+
+        return list(zip(kern_options, pool_options, channel_options))
 
 
 if __name__ == "__main__":
@@ -362,14 +366,16 @@ if __name__ == "__main__":
 
     setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 
-    cnn_kin_one_layer_options = get_one_layer_cnn(4128, *[np.unique(np.logspace(4, 8, 5, base=2, dtype=int))] * 3)
-    cnn_site_one_layer_options = get_one_layer_cnn(
+    cnn_kin_one_layer_options = SimpleTuner.get_one_layer_cnn(
+        4128, *[np.unique(np.logspace(4, 8, 5, base=2, dtype=int))] * 3
+    )
+    cnn_site_one_layer_options = SimpleTuner.get_one_layer_cnn(
         15, list(range(1, 16, 3)), list(range(1, 16, 3)), np.unique(np.logspace(4, 8, 5, base=2, dtype=int))
     )
 
     model_params = {
         "model_class": ["KinaseSubstrateRelationshipLSTM"],
-        "linear_layer_sizes": ll_sizes(),
+        "linear_layer_sizes": SimpleTuner.ll_sizes(),
         "emb_dim_kin": [4, 24, 44, 64, 84],
         "emb_dim_site": [4, 24, 44, 64, 84],
         "dropout_pr": [0.1, 0.3, 0.5, 0.7],
