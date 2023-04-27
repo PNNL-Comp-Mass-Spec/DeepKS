@@ -47,6 +47,7 @@ class Tuner(Protocol):
         collapse=[[]],
         num_gpu: Union[None, int] = None,
         max_output_width=512,
+        start_at=0,
         **kwargs,
     ) -> None:
         if num_gpu is None:
@@ -73,11 +74,13 @@ class Tuner(Protocol):
 
         random.seed(random_seed)
         self.sampled_config_dicts = []
-        for _ in range(num_samples):
+        for i in range(start_at, num_samples):
             running = {}
             for k, v in config_dict.items():
-                running[k] = random.choice(v if isinstance(v, list) else v.tolist())
-            self.sampled_config_dicts.append(running)
+                choice_ = random.choice(v if isinstance(v, list) else v.tolist())
+                running[k] = choice_
+            if i >= start_at:
+                self.sampled_config_dicts.append(running)
 
         logger.info(
             f"{num_samples:,} configuration{'s' if num_samples > 1 else ''} out of a possible ~"
@@ -89,6 +92,7 @@ class Tuner(Protocol):
     def print_combinations(self):
         preview = {f"cfg # {i}": v for i, v in enumerate(self.sampled_config_dicts[:20])}
         df = pd.DataFrame.from_dict(preview, orient="index")
+        # logger.debug(f"{df=}")
         df["cfg #"] = df.index
         df.insert(0, "cfg #", df.pop("cfg #"))
         bt = BeautifulTable()
@@ -99,6 +103,7 @@ class Tuner(Protocol):
         bt.columns.header = df.columns[include_cols].tolist()
         for row in df.values[:, include_cols].tolist():
             bt.rows.append(row)
+        assert len(bt.columns.header)
         bt.columns.width = (os.get_terminal_size().columns - 1 - len(bt.columns.header)) // (len(bt.columns.header))
 
         logger.info("\n" + str(bt))
@@ -190,9 +195,10 @@ class SimpleTuner(Tuner):
         collapse=[[]],
         num_gpu=None,
         max_output_width=512,
+        start_at = 0,
     ):
         super().__init__(
-            num_sim_procs, train_fn, config_dict, num_samples, random_seed, collapse, num_gpu, max_output_width
+            num_sim_procs, train_fn, config_dict, num_samples, random_seed, collapse, num_gpu, max_output_width, start_at
         )
 
         self.model_params = [
@@ -226,7 +232,7 @@ class SimpleTuner(Tuner):
             for sampled_config_dict in self.sampled_config_dicts
         ]
 
-        assert len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples
+        assert len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples - start_at
 
     def generate_args_for_go(self, base_args, tempdir):
         all_args = []
@@ -286,7 +292,7 @@ class SimpleTuner(Tuner):
             new_score, notes = self.get_result_from_config(args, **kwargs)
             scores.append((i, new_score, notes))
             scores.sort(key=lambda x: x[1], reverse=True)
-
+            # logger.debug(f"{scores=}")
             res_json = {
                 f"cfg # {scores[j][0]}": {
                     "Score": scores[j][1],
@@ -295,8 +301,9 @@ class SimpleTuner(Tuner):
                     "Interface Params": self.interface_params[j],
                     "Notes": scores[j][2],
                 }
-                for j in range(i)
+                for j in range(i + 1)
             }
+            # logger.debug(f"{res_json=}")
             logger.status("Saving safety temp file")
             with open(f"{first_file_name}.gitig-temp", "w") as tf:
                 json.dump(res_json, tf, indent=3, cls=NumpyEncoder)
@@ -367,7 +374,7 @@ if __name__ == "__main__":
     setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 
     cnn_kin_one_layer_options = SimpleTuner.get_one_layer_cnn(
-        4128, *[np.unique(np.logspace(4, 8, 5, base=2, dtype=int))] * 3
+        4128, *[np.unique(np.logspace(3, 7, 5, base=2, dtype=int))] * 3
     )
     cnn_site_one_layer_options = SimpleTuner.get_one_layer_cnn(
         15, list(range(1, 16, 3)), list(range(1, 16, 3)), np.unique(np.logspace(4, 8, 5, base=2, dtype=int))
@@ -378,7 +385,7 @@ if __name__ == "__main__":
         "linear_layer_sizes": SimpleTuner.ll_sizes(),
         "emb_dim_kin": [4, 24, 44, 64, 84],
         "emb_dim_site": [4, 24, 44, 64, 84],
-        "dropout_pr": [0.1, 0.3, 0.5, 0.7],
+        "dropout_pr": [0, 0.1, 0.3, 0.5, 0.7],
         "attn_out_features": [64, 128, 256, 512],
         "site_param_dict": [
             {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
@@ -395,8 +402,8 @@ if __name__ == "__main__":
     }
 
     training_params = {
-        "lr_decay_amount": [0.6, 0.7, 0.8, 0.9],
-        "lr_decay_freq": [1, 2, 3],
+        "lr_decay_amount": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+        "lr_decay_freq": [1, 2, 3, 4, 5, 6, 7, 8, 9],
         "num_epochs": [5, 10, 15, 20],
         "metric": ["roc"],
     }
@@ -426,7 +433,7 @@ if __name__ == "__main__":
         "--pre-trained-gc",
         "bin/deepks_gc_weights.1.cornichon",
         "--groups",
-        "TK",
+        "NON-TK",
     ]
 
     st = SimpleTuner(
@@ -434,8 +441,9 @@ if __name__ == "__main__":
         train_fn=train_main,
         config_dict=all_params,
         which_map=which_map,
-        num_samples=1000,
-        random_seed=84,
+        num_samples=200,
+        start_at=0,
+        random_seed=142,
         collapse=[[]],
         num_gpu=None,
         max_output_width=512,

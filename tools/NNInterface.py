@@ -279,10 +279,10 @@ class NNInterface:
                 and training_kwargs.get("loss_below") is not None
                 and training_kwargs.get("val_le") is not None
             ):
-                logger.debug(
-                    f"{mean_loss=}, {training_kwargs['loss_below']=}, {epoch=}, {training_kwargs['loss_chances']=},"
-                    f" {score=}, {training_kwargs['val_le']=}"
-                )
+                # logger.debug(
+                #     f"{mean_loss=}, {training_kwargs['loss_below']=}, {epoch=}, {training_kwargs['loss_chances']=},"
+                #     f" {score=}, {training_kwargs['val_le']=}"
+                # )
                 # logger.debug(f"{mean_loss >= training_kwargs['loss_below']=}; {epoch >= training_kwargs['loss_chances'] - 1=}")
                 if (
                     mean_loss >= training_kwargs["loss_below"]
