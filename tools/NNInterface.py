@@ -155,6 +155,7 @@ class NNInterface:
         metric: Literal["roc", "acc"] = "roc",
         extra_description="",
         pass_through_scores=None,
+        **training_kwargs,
     ):
         assert isinstance(cutoff, (int, float)), "Cutoff needs to be a number."
         assert (
@@ -244,6 +245,7 @@ class NNInterface:
             except AssertionError as e:
                 logger.warning(str(e))
 
+            mean_loss = (sum(losses) / len(losses)) if losses else float("NaN")
             self.report_progress(
                 "Mean Train",
                 epoch,
@@ -251,7 +253,7 @@ class NNInterface:
                 "",
                 chunk_num,
                 total_step,
-                (sum(losses) / len(losses)) if losses else float("NaN"),
+                mean_loss,
                 (sum(train_scores) / len(train_scores)) if train_scores else float("NaN"),
                 expand_metric(metric),
                 retain=True,
@@ -265,11 +267,30 @@ class NNInterface:
                 total_step = len(val_dl)
                 score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
                 self.report_progress("Validation", epoch, num_epochs, 0, 0, 1, val_loss, score, metric, retain=True)
+            assert score >= 0
 
             logger.status(f" ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n")
             epoch += 1
             if pass_through_scores is not None and val_dl is not None:
                 pass_through_scores.append((score, len(all_outputs)))
+            # logger.debug(f"{training_kwargs=}")
+            if (
+                training_kwargs.get("loss_chances") is not None
+                and training_kwargs.get("loss_below") is not None
+                and training_kwargs.get("val_le") is not None
+            ):
+                logger.debug(
+                    f"{mean_loss=}, {training_kwargs['loss_below']=}, {epoch=}, {training_kwargs['loss_chances']=},"
+                    f" {score=}, {training_kwargs['val_le']=}"
+                )
+                # logger.debug(f"{mean_loss >= training_kwargs['loss_below']=}; {epoch >= training_kwargs['loss_chances'] - 1=}")
+                if (
+                    mean_loss >= training_kwargs["loss_below"]
+                    and epoch == training_kwargs["loss_chances"]
+                    and score < training_kwargs["val_le"]
+                ):
+                    logger.warning("Stopping early because train loss is not decreasing.")
+                    return -epoch
             if chunk_num == -1:
                 logger.warning(
                     f"No data for {extra_description}, skipping training for this group. Neural network weights will"

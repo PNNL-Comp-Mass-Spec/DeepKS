@@ -1,12 +1,14 @@
 import collections
 import multiprocessing, itertools, random, time, os, sigfig, signal, warnings, re, json, pathlib, functools
 import pandas as pd
-import tempfile, pprint, tabulate
+import tempfile, pprint
 import numpy as np
 from typing import Collection, MutableSequence, Iterable
 from prettytable import PrettyTable
 from beautifultable import BeautifulTable
 from numpyencoder import NumpyEncoder
+
+from DeepKS.tools.custom_tqdm import CustomTqdm
 
 from ..config.root_logger import get_logger
 from .file_names import get as get_file_name
@@ -70,8 +72,8 @@ class SimpleTuner:
             self.sampled_config_dicts.append(running)
 
         logger.info(
-            f"{num_samples:,} configurations out of a possible ~"
-            f" 10^{np.sum([np.log10(len(v)) for v in config_dict.values()]):,.2f} were randomly sampled."
+            f"{num_samples:,} configuration{'s' if num_samples > 1 else ''} out of a possible ~"
+            f" 10^{np.sum([np.log10(len(v)) for v in config_dict.values()]):,.1f} were randomly sampled."
         )
 
         self.model_params = [
@@ -159,9 +161,10 @@ class SimpleTuner:
         df = pd.DataFrame.from_dict(preview, orient="index")
         df["cfg #"] = df.index
         df.insert(0, "cfg #", df.pop("cfg #"))
-        # info = json.dumps(, indent=3, cls=NumpyEncoder)
         bt = BeautifulTable()
-        include_cols = [i for i in range(len(df.columns)) if df.iloc[:, i].apply(lambda x: str(x)).nunique() > 1]
+        include_cols = [
+            i for i in range(len(df.columns)) if df.iloc[:, i].apply(lambda x: str(x)).nunique() > 1 or len(df) == 1
+        ]
 
         bt.columns.header = df.columns[include_cols].tolist()
         for row in df.values[:, include_cols].tolist():
@@ -173,10 +176,11 @@ class SimpleTuner:
     def init_pool(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    def go(self, args_collection):
+    def go(self, args_collection, **kwargs):
         scores = []
-        best_score = 0
-        best_score_index = None
+        first_file_name = get_file_name(
+            prefix="a_tuning", suffix="json", directory=os.path.join(join_first(0, ""), "tunings")
+        )
         # with multiprocessing.Pool(self.num_sim_procs, initializer=self.init_pool) as pool:
         #     try:
         #         results = pool.starmap(
@@ -194,18 +198,30 @@ class SimpleTuner:
         #         pool.join()
         #         exit(1)
         #     ret = [x for x in results]
-        for i, args in enumerate(args_collection):
-            new_score = self.display_intermediates(args)
-            scores.append(new_score)
-            if best_score < new_score:
-                best_score = new_score
-                best_score_index = i
+        for i, args in CustomTqdm(
+            enumerate(args_collection), desc="Tuning Progress", total=len(args_collection), position=5
+        ):
+            new_score, notes = self.display_intermediates(args, **kwargs)
+            scores.append((i, new_score, notes))
+            scores.sort(key=lambda x: x[1], reverse=True)
 
-        res_json = []
-        res_json.append({"Best Score": best_score, "Best Score Index": best_score_index, "Scores": scores})
-        res_json += args_collection
-        with open(get_file_name("tuning", "json", join_first(1, "")), "w") as f:
-            json.dump(res_json, f, indent=3)
+            res_json = {
+                f"cfg # {scores[j][0]}": {
+                    "Score": scores[j][1],
+                    "Model Params": self.model_params[j],
+                    "Training Params": self.training_params[j],
+                    "Interface Params": self.interface_params[j],
+                    "Notes": scores[j][2],
+                }
+                for j in range(i)
+            }
+            logger.status("Saving safety temp file")
+            with open(f"{first_file_name}.gitig-temp", "w") as tf:
+                json.dump(res_json, tf, indent=3, cls=NumpyEncoder)
+            logger.status("Overwriting main file")
+            with open(first_file_name, "w") as f:
+                json.dump(res_json, f, indent=3, cls=NumpyEncoder)
+        logger.status("Done!")
 
     def display_final_results(self, results):
         cols = (
@@ -263,14 +279,14 @@ class SimpleTuner:
 
         return desired_conf
 
-    def display_intermediates(self, cmdl):
+    def display_intermediates(self, cmdl, **kwargs):
         try:
             # cols = ["dispatch_num"] + list(conf.keys()) + ["acc_vals", "acc", "loss", "acc_std", "loss_std"]
             # pt = PrettyTable(cols, title=" --- Intermediate Results --- ")
             # pt.max_table_width = self.max_output_width
             # kwargs = {}
             # acc_vals, acc, loss, acc_std, loss_std
-            res = self.train_fn(cmdl)
+            res, notes = self.train_fn(cmdl, **kwargs)
             # for i in range(len(acc_vals)):
             #     acc_vals[i] = sigfig.round(acc_vals[i], sigfigs=3)
             # pt.add_row(
@@ -280,7 +296,7 @@ class SimpleTuner:
             #     + [sigfig.round(x, sigfigs=3) for x in [acc, loss, acc_std, loss_std]]
             # )
             # logger.status(pt)
-            return res  # acc_vals, acc, loss, acc_std, loss_std
+            return res, notes  # acc_vals, acc, loss, acc_std, loss_std
         except KeyboardInterrupt:
             logger.status("My KeyboardInterrupt")
             raise KeyboardInterrupt
@@ -354,10 +370,10 @@ if __name__ == "__main__":
     model_params = {
         "model_class": ["KinaseSubstrateRelationshipLSTM"],
         "linear_layer_sizes": ll_sizes(),
-        "emb_dim_kin": [1] + list(range(2, 65, 10)),
-        "emb_dim_site": [1] + list(range(2, 65, 10)),
-        "dropout_pr": sigfig_iter(np.arange(0, 0.66, 0.05), 3),
-        "attn_out_features": list(set(np.linspace(64, 640, 5).astype(int))),
+        "emb_dim_kin": [4, 24, 44, 64, 84],
+        "emb_dim_site": [4, 24, 44, 64, 84],
+        "dropout_pr": [0.1, 0.3, 0.5, 0.7],
+        "attn_out_features": [64, 128, 256, 512],
         "site_param_dict": [
             {"kernels": [kern], "out_lengths": [out], "out_channels": [chan]}
             for kern, out, chan in cnn_site_one_layer_options
@@ -373,9 +389,9 @@ if __name__ == "__main__":
     }
 
     training_params = {
-        "lr_decay_amount": sigfig_iter(np.arange(0.5, 1.05, 0.05), 2),
-        "lr_decay_freq": list(range(1, 9)),
-        "num_epochs": list(range(5, 11)),
+        "lr_decay_amount": [0.6, 0.7, 0.8, 0.9],
+        "lr_decay_freq": [1, 2, 3],
+        "num_epochs": [5, 10, 15, 20],
         "metric": ["roc"],
     }
     interface_params = {
@@ -383,7 +399,7 @@ if __name__ == "__main__":
         "optim": ["torch.optim.Adam"],
         "model_summary_name": ["../architectures/architecture (IC-DEFAULT).txt"],
         "lr": sigfig_iter(np.logspace(-5, -1, 5), 3),
-        "batch_size": sorted(list(set(np.logspace(3, 10, 8, base=2).astype(int)))),
+        "batch_size": [8, 32, 128, 256, 512],
         "n_gram": [1],
     }
 
@@ -400,7 +416,7 @@ if __name__ == "__main__":
         "--val",
         "data/raw_data_6500_formatted_95_5698.csv",
         "--device",
-        "cpu",
+        "cuda:4",
         "--pre-trained-gc",
         "bin/deepks_gc_weights.1.cornichon",
         "--groups",
@@ -412,7 +428,7 @@ if __name__ == "__main__":
         train_fn=train_main,
         config_dict=all_params,
         which_map=which_map,
-        num_samples=1,
+        num_samples=1000,
         random_seed=84,
         collapse=[[]],
         num_gpu=None,
@@ -421,4 +437,4 @@ if __name__ == "__main__":
 
     with tempfile.TemporaryDirectory() as tmpdir:
         all_args = st.generate_args_for_go(cmdl, tmpdir)
-        st.go(all_args)
+        st.go(all_args, loss_chances=5, loss_below=-np.emath.logn(np.e, 0.5), val_le=0.52)

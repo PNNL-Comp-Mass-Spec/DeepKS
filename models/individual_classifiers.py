@@ -126,9 +126,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -243,7 +243,9 @@ class IndividualClassifiers:
         Xy_formatted_val_file: str,
         group_classifier: GroupClassifier,
         cartesian_product: bool = False,
+        **training_kwargs,
     ):
+        notes = ""
         pass_through_scores = []
         gen_train = self.get_group_dataframes(
             which_groups,
@@ -308,17 +310,23 @@ class IndividualClassifiers:
             assert isinstance(msm, str), "Model summary name must be a string"
             self.interfaces[group_tr].model_summary_name = msm + "-" + group_tr.upper()
             self.interfaces[group_tr].write_model_summary()
-            self.interfaces[group_tr].train(
+            err = self.interfaces[group_tr].train(
                 train_generator,
                 val_dl=val_loader,
                 **self.grp_to_training_args[group_tr],
                 extra_description="(Group: %s)" % group_tr.upper(),
                 pass_through_scores=pass_through_scores,
+                **training_kwargs,
             )
+            if err:
+                notes = (
+                    f"Stopped early after {-err} epochs since train loss was not decreasing and val score not"
+                    " increasing."
+                )
 
         weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
         logger.valinfo(f"Overall Weighted {self.grp_to_training_args[group_tr]['metric']} → {weighted:3.4f}")
-        return weighted
+        return weighted, notes
 
     def obtain_group_and_loader(
         self,
@@ -541,7 +549,7 @@ class IndividualClassifiers:
                 smart_save_nn(self)
 
 
-def main(args_pass_in: Union[None, list[str]] = None):
+def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs):
     logger.status("Parsing Args")
     args = parse_args(args_pass_in)
     logger.status("Preparing Training Data")
@@ -590,16 +598,18 @@ def main(args_pass_in: Union[None, list[str]] = None):
         return
     logger.status("About to Train")
     assert val_filename is not None
-    classifier.train(
+    weighted, notes = classifier.train(
         which_groups=groups,
         Xy_formatted_train_file=join_first(1, train_filename),
         Xy_formatted_val_file=join_first(1, val_filename),
         group_classifier=group_classifier,
         cartesian_product=False,
+        **training_kwargs,
     )
 
     if args["s"]:
         smart_save_nn(classifier)
+    return weighted, notes
 
 
 def device_eligibility(arg_value):

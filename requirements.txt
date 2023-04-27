@@ -1,4 +1,5 @@
 aiohttp
+beautifultable
 brokenaxes
 cloudpickle
 coverage
@@ -16,6 +17,7 @@ mlrose_hiive
 more_itertools
 nbformat
 numpy
+numpyencoder
 openpyxl
 pandas
 parameterized

@@ -1,19 +1,26 @@
 import tqdm
 from termcolor import colored
 
+from ..config.root_logger import get_logger
+
+logger = get_logger()
+
 
 class CustomTqdm(tqdm.tqdm):
     def __init__(self, *args, **kwargs):
-        kwargs.update(
-            dict(
-                colour="green",
-                ascii="░▒█",
-                # ncols=os.get_terminal_size().columns // 2,
-                bar_format=colored("{l_bar}", "green") + "{bar:15}" + colored("{r_bar}", "green") + "\r",
-                position=3,
-            )
+        kwargs_to_use: dict = dict()
+        kwargs_to_use = kwargs_to_use | kwargs
+        kwargs_to_use = kwargs_to_use | dict(
+            colour="green",
+            ascii="░▒█",
+            bar_format=colored("{l_bar}", "green") + "{bar:15}" + colored("{r_bar}", "green") + "\r",
         )
-        super().__init__(*args, **kwargs)
+        if "position" not in kwargs:
+            kwargs_to_use = kwargs_to_use | dict(position=6)
+
+        # logger.debug(f"{kwargs_to_use=}")
+
+        super().__init__(*args, **kwargs_to_use)
 
 
 if __name__ == "__main__":
