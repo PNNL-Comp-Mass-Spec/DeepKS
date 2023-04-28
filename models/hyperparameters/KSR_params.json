@@ -1,6 +1,6 @@
 {
-    "default": {
-        "model_class": "KinaseSubstrateRelationshipATTNWSELF",
+    "NON-TK": {
+        "model_class": "KinaseSubstrateRelationshipATTN",
         "linear_layer_sizes": [
             50,
             25
@@ -30,6 +30,39 @@
                 24
             ]
         },
-        "attn_num_heads": 4
+        "attn_num_heads": 12
+    },
+    "TK": {
+        "model_class": "KinaseSubstrateRelationshipATTN",
+        "linear_layer_sizes": [
+            50,
+            25
+        ],
+        "emb_dim_kin": 22,
+        "emb_dim_site": 22,
+        "dropout_pr": 0.4,
+        "site_param_dict": {
+            "kernels": [
+                8
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                48
+            ]
+        },
+        "kin_param_dict": {
+            "kernels": [
+                100
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                48
+            ]
+        },
+        "attn_num_heads": 12
     }
 }
