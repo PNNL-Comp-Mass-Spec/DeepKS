@@ -1,6 +1,6 @@
 {
     "default": {
-        "model_class": "KinaseSubstrateRelationshipATTN",
+        "model_class": "KinaseSubstrateRelationshipATTNWSELF",
         "linear_layer_sizes": [
             50,
             25
