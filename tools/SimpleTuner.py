@@ -195,10 +195,18 @@ class SimpleTuner(Tuner):
         collapse=[[]],
         num_gpu=None,
         max_output_width=512,
-        start_at = 0,
+        start_at=0,
     ):
         super().__init__(
-            num_sim_procs, train_fn, config_dict, num_samples, random_seed, collapse, num_gpu, max_output_width, start_at
+            num_sim_procs,
+            train_fn,
+            config_dict,
+            num_samples,
+            random_seed,
+            collapse,
+            num_gpu,
+            max_output_width,
+            start_at,
         )
 
         self.model_params = [
@@ -232,7 +240,9 @@ class SimpleTuner(Tuner):
             for sampled_config_dict in self.sampled_config_dicts
         ]
 
-        assert len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples - start_at
+        assert (
+            len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples - start_at
+        )
 
     def generate_args_for_go(self, base_args, tempdir):
         all_args = []

@@ -126,9 +126,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -246,7 +246,7 @@ class IndividualClassifiers:
         **training_kwargs,
     ):
         notes = ""
-        pass_through_scores = []
+        pass_through_scores = {}
         gen_train = self.get_group_dataframes(
             which_groups,
             Xy_formatted_train_file,
@@ -324,7 +324,9 @@ class IndividualClassifiers:
                     " increasing."
                 )
 
-        weighted = sum([x[0] * x[1] for x in pass_through_scores]) / sum([x[1] for x in pass_through_scores])
+        weighted = sum([x[0] * x[1] for x in pass_through_scores.values()]) / sum(
+            [x[1] for x in pass_through_scores.values()]
+        )
         logger.valinfo(f"Overall Weighted {self.grp_to_training_args[group_tr]['metric']} → {weighted:3.4f}")
         return weighted, notes
 
