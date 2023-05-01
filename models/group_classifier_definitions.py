@@ -13,7 +13,7 @@ from pprint import pprint
 from itertools import chain, combinations
 from termcolor import colored
 from itertools import product
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 

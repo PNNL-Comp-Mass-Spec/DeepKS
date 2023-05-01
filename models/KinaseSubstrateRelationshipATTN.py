@@ -7,7 +7,7 @@ from pprint import pformat
 
 torch.use_deterministic_algorithms(True)
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 

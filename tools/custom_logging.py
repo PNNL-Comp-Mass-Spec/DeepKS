@@ -1,3 +1,4 @@
+"""Module building on top of the logging module to provide a custom logger with custom logging functions and colors"""
 from __future__ import annotations
 import logging
 import os
@@ -7,12 +8,19 @@ from termcolor import colored
 
 logging.DEBUG = 5
 VANISHING_STATUS = 9
+"""A status that is overwritten by the next logging statement."""
 STATUS = 10
+"""A status that is not overwritten by the next logging statement.""" ""
 TRAIN_INFO = 21
+"""Information about performance in the training process."""
 VAL_INFO = 23
+"""Information about performance in the validation process."""
 TEST_INFO = 25
+"""Information about performance in the testing process."""
 USER_ERROR = 35
+"""An error that is caused and/or partially expected by the user."""
 ERROR = 45
+"""A totally unexpected error."""
 
 logging.addLevelName(logging.DEBUG, "Debug")
 logging.addLevelName(VANISHING_STATUS, "Status")

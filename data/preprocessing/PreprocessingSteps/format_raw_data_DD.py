@@ -16,7 +16,7 @@ import json
 mode = cfg.get_mode()
 random.seed(0)
 
-from ....config.root_logger import get_logger
+from ....config.logging import get_logger
 
 logger = get_logger()
 if __name__ == "__main__":

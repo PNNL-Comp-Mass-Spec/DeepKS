@@ -17,7 +17,7 @@ aa_inv = {aa: i for i, aa in enumerate(aas)}
 num_classes = 10
 from ..tools.NNInterface import NNInterface
 from .KinaseSubstrateRelationshipClassic import MultipleCNN
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 

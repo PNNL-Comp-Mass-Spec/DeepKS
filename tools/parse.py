@@ -3,7 +3,7 @@ from typing import Union
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 

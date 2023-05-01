@@ -1,14 +1,14 @@
 ### SETUP ----
 # Imports
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 
 logger.status("Importing libraries...")
 import torch, torch.nn as nn, pandas as pd, numpy as np, sys, pathlib, os
 from ..tools.NNInterface import NNInterface
-from ..tools.tensorize import gather_data
+from ..tools.tensorize import data_to_tensor
 
 join_first = lambda levels, x: (
     x if os.path.isabs(x) else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
@@ -163,9 +163,9 @@ def get_relevant_data_loaders(df_filenames: list[str], batch_size: int = 64, dev
         "device": device
         # "subsample_num": 100,  # Can make dataset smaller here
     }
-    (train_loader, _, _, _), train_info = list(gather_data(dfs[0], trf=1, vf=0, tef=0, **common_args))[0]
-    (_, val_loader, _, _), _ = list(gather_data(dfs[1], trf=0, vf=1, tef=0, **common_args))[0]
-    (_, _, _, test_loader), _ = list(gather_data(dfs[2], trf=0, vf=0, tef=1, **common_args))[0]
+    (train_loader, _, _, _), train_info = list(data_to_tensor(dfs[0], trf=1, vf=0, tef=0, **common_args))[0]
+    (_, val_loader, _, _), _ = list(data_to_tensor(dfs[1], trf=0, vf=1, tef=0, **common_args))[0]
+    (_, _, _, test_loader), _ = list(data_to_tensor(dfs[2], trf=0, vf=0, tef=1, **common_args))[0]
 
     set_pad_idx(train_info["tok_dict"]["<PADDING>"])
 

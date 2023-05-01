@@ -4,7 +4,8 @@
 logs/
 **/*.log
 !bin/pickle_graph.pkl
-.gitig-*
+gitig*
+.gitig*
 **/*.png
 **/*.tsv
 **/*.error

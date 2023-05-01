@@ -1,17 +1,62 @@
+"""Functions to convert textual biological sequences into tensors for deep learning models."""
+
 import numpy as np, psutil, torch, pandas as pd, collections, json, tqdm, random, torch.utils.data
 from sympy import cartes
-from typing import Generator, Union, Literal
+from typing import Generator, Union, Literal, Any
 from ..tools import model_utils
 from termcolor import colored
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
+"""The logger for this module."""
 if __name__ == "__main__":
     logger.status("Loading Modules...")
 
 
-def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):
+def encode_label(labels: list[int], mode: Literal["mlt_cls", "scalar"]) -> Union[list[list[int]], list[int]]:
+    """Encode labels into a one-hot vector or leave as is
+
+    Parameters
+    ----------
+    labels :
+        The list of labels to encode
+    mode :
+        The mode to use for encoding. If `mlt_cls`, then the labels will be encoded into a one-hot vector. If `scalar`, then the labels will be left as is
+
+    Returns
+    -------
+        The encoded labels
+    """
+    match mode:
+        case "mlt_cls":
+            unq_labels = sorted(list(set(labels)))
+            label_dim = len(unq_labels)
+            new_labels = [[0 if i == j else 1 for i in range(label_dim)] for j in labels]
+            return new_labels
+        case "scalar":
+            return labels
+
+
+def get_tok_dict(
+    data: Union[pd.DataFrame, dict[str, Any]], n_gram: int = 3, include_metadata: bool = False
+) -> dict[str, int]:
+    """Get a token dictionary from a dataset
+
+    Parameters
+    ----------
+    data :
+        The dataset to get the token dictionary from. Gets unique characters from `data["Kinase Sequence"]` and `data["Site Sequence"]`
+    n_gram :
+        The n-gram size to use, by default 3
+    include_metadata :
+        Whether to include the metadata tokens `tok_dict["<PADDING>"]` and `tok_dict["<N-GRAM>"]` in the token dictionary, by default `False`
+
+    Returns
+    -------
+    dict[str, int]
+        The token dictionary, mapping string tokens to their indices
+    """
     tok_dict = {}
     tok_occurrence = collections.Counter()
     all_iters = 0
@@ -28,10 +73,9 @@ def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):
     iter_through(data["Kinase Sequence"].unique())
     iter_through(data["Site Sequence"].unique())
     assert sum(tok_occurrence.values()) == all_iters
-    if verbose:
-        print("Token frequency (top 50):", tok_occurrence.most_common(50))
-        print("Total iterations: ", all_iters)
-        print(f"Total unique {n_gram}-grams: ", len(tok_dict))
+    logger.info("Token frequency (top 50):", tok_occurrence.most_common(50))
+    logger.debug("Total iterations: ", all_iters)
+    logger.info(f"Total unique {n_gram}-grams: ", len(tok_dict))
 
     if include_metadata:
         tok_dict["<PADDING>"] = len(tok_dict)
@@ -41,183 +85,187 @@ def get_tok_dict(data, n_gram=3, verbose=False, include_metadata=False):
 
 
 def encode_seq(seq: str, mapping_dict: dict[str, int]) -> list[int]:
+    """Encode a sequence into a list of integers
+
+    Parameters
+    ----------
+    seq :
+        The sequence to encode
+    mapping_dict :
+        The mapping dictionary to use, which maps tokens to their indices
+
+    Raises
+    ------
+    AssertionError
+        If "<N-GRAM>" is not in `mapping_dict` or if `mapping_dict["<N-GRAM>"]` is not an integer
+    AssertionError
+        If a provided token is not in `mapping_dict`
+
+    Returns
+    -------
+    list[int]
+        The encoded sequence
+    """
     res = []
+    assert "<N-GRAM>" in mapping_dict
     assert isinstance(mapping_dict["<N-GRAM>"], int)
     n_gram: int = mapping_dict["<N-GRAM>"]
     for i in range(len(seq) - n_gram + 1):
+        assert seq[i : i + n_gram] in mapping_dict
         res.append(mapping_dict[seq[i : i + n_gram]])
     return res
 
 
-def try_it(obj_str):
-    try:
-        return eval(obj_str)
-    except Exception:
-        return logger.warning(f"Could not evaluate {obj_str} as an object.")
+def package(
+    X_site: torch.Tensor,
+    X_kin: torch.Tensor,
+    y: torch.Tensor,
+    data: pd.DataFrame | dict[str, Any],
+    ids: list[int],
+    batch_size: int,
+    group_by: Literal["kin", "site"],
+    num_partitions: int,
+    max_kin_length: int,
+    remapping_class_label_dict_inv: dict[int, int] | dict[str | int, int] | None,
+    class_labels: list[str | int],
+    tok_dict: dict[str, int],
+    desired_length: int | None = None,
+    desired_chunk_pos: int = 0,
+) -> tuple[torch.utils.data.DataLoader, dict[str, Any]]:
+    """Take the data tensors and package them into `torch.utils.data.Dataset` objects, and then `torch.utils.data.DataLoader` objects.
+
+    Parameters
+    ----------
+    X_site :
+        The site sequence data, in tensor form
+    X_kin :
+        The kinase sequence data, in tensor form
+    y :
+        The labels, in tensor form
+    data :
+        The original data passed to `data_to_tensors`
+    ids :
+        The indices of the data to use
+    batch_size :
+        The batch size to use
+    group_by : optional
+        Whether or not the groups in the group classifier are classifying by site or kinase, by default "site"
+    num_partitions :
+        The number of partitions to be used
+    max_kin_length :
+        The maximum kinase sequence length
+    remapping_class_label_dict_inv :
+        The remapping dictionary to use, that maps class integers back to their original labels. If `None`, then no remapping will be done
+    class_labels :
+        The class labels that are used
+    tok_dict :
+        The token dictionary that was used
+    desired_length : optional
+        Desired length of a chunk, by default None. If None, then the entire dataset is used.
+    desired_chunk_pos : optional
+        Position (index) of the desired chunk within all the data, by default None
+
+    Returns
+    -------
+        dataloader, metadata dictionary
+    """
+    loader = torch.utils.data.DataLoader(model_utils.KSDataset(X_site, X_kin, y), batch_size=batch_size)
+
+    if isinstance(data, pd.DataFrame):
+        ret_info_dict = {  # FIXME This section needs fixing
+            "kin_orders": data.loc[ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+            "orig_symbols_order": data.loc[ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+            "PairIDs": data.loc[ids]["pair_id"].to_list()
+            if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
+            else [f"N/A # {i}" for i in range(len(ids))],
+        }
+    else:
+        desired_length = (
+            len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"])
+            if desired_length is None
+            else desired_length
+        )
+        ret_info_dict = {
+            "kin_orders": ["N/A"],  # CHECK -- may not be correct in non-predict mode
+            "orig_symbols_order": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in ids][
+                desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+            ],
+            "PairIDs": data["pair_id"][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
+        }
+
+    update_dict = {
+        "classes": len(class_labels),
+        "class_labels": class_labels,
+        "remapping_class_label_dict_inv": remapping_class_label_dict_inv,
+        "maxsize": max_kin_length,
+        "tok_dict": tok_dict,
+        "on_chunk": desired_chunk_pos,
+        "total_chunks": num_partitions,
+    }
+    ret_info_dict.update(update_dict)
+
+    assert loader is not None
+    return loader, ret_info_dict
 
 
-def gather_data(
-    input_t: Union[str, pd.DataFrame, dict[str, Union[list[str], list[int]]]],
-    input_d="",
-    trf=0.7,
-    vf=0.1,
-    tuf=0.1,
-    tef=0.1,
-    train_batch_size=3,
-    clusterfile=None,
+def data_to_tensor(
+    input_data: Union[str, pd.DataFrame, dict[str, Union[list[str], list[int]]]],
+    batch_size: int = 256,
     mc=False,
     maxsize=None,
     tokdict=None,
     subsample_num=None,
-    ret_info=False,
-    n_gram=3,
-    device=torch.device("cpu"),
-    eval_batch_size=None,
-    cartesian_product=False,
+    n_gram: int = 1,
+    device: torch.device = torch.device("cpu"),
+    cartesian_product: bool = False,
     group_by: Literal["site", "kin"] = "site",
-    tqdm_passthrough=[None],
     kin_seq_to_group: dict = {},
-) -> Generator:
+    bytes_per_input: int = 1_400_000,
+    bytes_per_input_multiplier: int = 1,
+) -> Generator[tuple[torch.utils.data.DataLoader, dict[str, Any]], None, None]:
+    """Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.
+
+    Parameters
+    ----------
+    input_data :
+        Input dataframe of kinase/substrate data. If a string, it is assumed to be a path to a CSV file.
+    batch_size : optional
+        Batch size for dataloader(s), by default 256.
+    mc : optional
+        Whether or not to produce "multi_classification" output shape (i.e., labels are n_classes dimentional rather than 0-dimensional), by default False
+    maxsize : optional
+        The maximum size of an input kinase, by default None. If None, the maximum size is the length of the longest kinase in the dataset.
+    tokdict : optional
+        A specific token dictionary to use, by default None. If None, a new token dictionary will be generated from the data.
+    subsample_num : optional
+        The number of datapoints in `input_data`, to subsample, by default None. If None, no subsampling will be done.
+    n_gram : optional
+        The n-gram length, by default 3
+    device : optional
+        The device with which to use for the tensors, by default torch.device("cpu")
+    cartesian_product : optional
+        Whether or not the kinases and sites in `input_data` should have cartesian product performed on them, by default False. For example, if True and `input_data` has 2 kinases and 3 sites, the output will have 6 kinases and 6 sites. If false, the input data should have the same number of kinases and sites; this will be the number of kinases/sites in the output.
+    group_by : optional
+        Whether or not the groups in the group classifier are classifying by site or kinase, by default "site"
+    kin_seq_to_group : optional
+        _description_, by default {}
+    bytes_per_input : optional
+        The number of bytes per input, by default 1_400_000
+    bytes_per_input_multiplier : optional
+        The multiplier for the number of bytes per input, by default 1. Used to increase the number of bytes per input, which is a "safety" measure to prevent OOM errors.
+
+    Yields
+    ------
+        A generator of tuples of dataloaders and metadata dictionaries.
     """
-    input_t: target set filename
-    input_d: decoy set filename
-    trf: training set fraction
-    vf: validation set fraction
-    tuf: tune set fraction
-    tef: test set fraction
-    train_batch_size: batch size for training set (all other sets come in 1 batch)
-    clusterfile: filename of json defining kinase clusters
-    """
-    if len(tqdm_passthrough) == 1:
-        tq = tqdm_passthrough[0]
-        # tqdm_passthrough[0].write("\r" + " " * os.get_terminal_size()[0], end="\r")
-        if tq is not None:
-            tq.write(colored("...(Re)loading Tensors into Device for Next Chunk...", "blue"), end="\r")
-    assert abs(sum([trf, vf, tuf, tef, -1]) < 1e-16)
 
-    # ===== #
-    def package(desired_length=None, desired_chunk_pos=None):
-        nonlocal eval_batch_size, X_train, X_train_kin, y_train, X_val, X_val_kin, y_val, X_tune, X_tune_kin, y_tune, X_test, X_test_kin, y_test, device
-        if trf > 0:
-            train_loader = torch.utils.data.DataLoader(
-                model_utils.KSDataset(X_train, X_train_kin, y_train),
-                batch_size=train_batch_size,
-            )
-        else:
-            train_loader = None
-
-        eval_batch_size = 100
-
-        if vf > 0:
-            val_loader = torch.utils.data.DataLoader(
-                model_utils.KSDataset(X_val, X_val_kin, y_val), batch_size=eval_batch_size
-            )
-        else:
-            val_loader = None
-        if tuf > 0:
-            tune_loader = torch.utils.data.DataLoader(
-                model_utils.KSDataset(X_tune, X_tune_kin, y_tune), batch_size=eval_batch_size
-            )
-        else:
-            tune_loader = None
-        if tef > 0:
-            test_loader = torch.utils.data.DataLoader(
-                model_utils.KSDataset(X_test, X_test_kin, y_test), batch_size=eval_batch_size
-            )
-        else:
-            test_loader = None
-        if isinstance(data, pd.DataFrame):
-            ret_info_dict = {
-                "kin_orders": {
-                    "train": data.loc[train_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-                    "val": data.loc[val_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-                    "test": data.loc[test_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-                },
-                "orig_symbols_order": {
-                    "train": data.loc[train_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-                    "val": data.loc[val_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-                    "test": data.loc[test_ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-                },
-                "PairIDs": {
-                    "train": (
-                        data.loc[train_ids]["pair_id"].to_list()
-                        if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
-                        else [f"N/A # {i}" for i in range(len(train_ids))]
-                    ),
-                    "val": (
-                        data.loc[val_ids]["pair_id"].to_list()
-                        if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
-                        else [f"N/A # {i}" for i in range(len(val_ids))]
-                    ),
-                    "test": (
-                        data.loc[test_ids]["pair_id"].to_list()
-                        if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
-                        else [f"N/A # {i}" for i in range(len(test_ids))]
-                    ),
-                },
-            }
-        else:
-            desired_length = (
-                len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"])
-                if desired_length is None
-                else desired_length
-            )
-            desired_chunk_pos = 0 if desired_chunk_pos is None else desired_chunk_pos
-            ret_info_dict = {
-                "kin_orders": {
-                    "train": ["N/A"],  # CHECK -- may not be correct in non-predict mode
-                    "val": ["N/A"],
-                    "test": ["N/A"],
-                },
-                "orig_symbols_order": {
-                    "train": [
-                        data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in train_ids
-                    ][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
-                    "val": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in val_ids][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                    "test": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in test_ids][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                },
-                "PairIDs": {
-                    "train": data["pair_id"][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                    "val": data["pair_id"][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                    "test": data["pair_id"][
-                        desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
-                    ],
-                },
-            }
-
-        update_dict = {
-            "classes": classes,
-            "class_labels": class_labels,
-            "remapping_class_label_dict_inv": remapping_class_label_dict_inv,
-            "maxsize": max_kin_length,
-            "tok_dict": tok_dict,
-            "on_chunk": desired_chunk_pos,
-            "total_chunks": num_partitions,
-        }
-        ret_info_dict.update(update_dict)
-
-        return (train_loader, val_loader, tune_loader, test_loader), ret_info_dict
-
-    # ===== #
+    logger.vstatus("(Re)loading Tensors into Device for Next Chunk...")
 
     data: Union[pd.DataFrame, dict[str, Union[list[str], list[int]]]]
-    if isinstance(input_t, str):
-        if input_d == "":
-            data = pd.read_csv(input_t)
-        else:
-            data_t = pd.read_csv(input_t)
-            data_d = pd.read_csv(input_d)
-            data = pd.concat([data_t, data_d], axis=0)
+    if isinstance(input_data, str):
+        data = pd.read_csv(input_data)
     else:
-        data = input_t
+        data = input_data
     if subsample_num is not None and isinstance(data, pd.DataFrame):  # TODO Could improve this
         try:
             subsample_num = int(subsample_num)
@@ -232,27 +280,11 @@ def gather_data(
         max_kin_length = maxsize
 
     if tokdict is None:
-        tok_dict = get_tok_dict(data, verbose=False, n_gram=n_gram, include_metadata=False)
+        tok_dict = get_tok_dict(data, n_gram=n_gram, include_metadata=False)
         tok_dict["<PADDING>"] = len(tok_dict)
         tok_dict["<N-GRAM>"] = n_gram
     else:
         tok_dict = tokdict
-
-    if ret_info:
-        return (max_kin_length, None, None, None), tok_dict
-
-    if clusterfile is not None:
-        clust_dict = collections.defaultdict(list)
-        clust_dict_json = json.load(open("data/clusters.json", "r"))
-        for k, v in clust_dict_json.items():
-            clust_dict[v].append(k)
-        clust_dict = {", ".join(clust_dict[k]): v for k, v in dict(clust_dict).items()}
-        final_clust_dict = {}
-        for k, v in clust_dict.items():
-            for vv in v:
-                final_clust_dict[vv] = k
-        clust_dict = final_clust_dict
-        data["Kinase Sequence"] = [clust_dict[x] for x in data["Kinase Sequence"]]
 
     if kin_seq_to_group:
         data["Group"] = [kin_seq_to_group[x] for x in data["Kinase Sequence"]]
@@ -268,7 +300,6 @@ def gather_data(
     data = data.copy()
     class_col = ("Kinase Sequence" if mc else "Class") if not kin_seq_to_group else "Group"
     class_labels = sorted(list(set(data[class_col])))
-    classes = len(class_labels)
     if set(class_labels) in [{0, 1}, {1}, {0}]:
         remapping_class_label_dict = {0: 0, 1: 1}
         remapping_class_label_dict_inv = {0: "Decoy", 1: "Real"}
@@ -287,46 +318,36 @@ def gather_data(
         remapping_class_label_dict_inv = None
 
     random.seed(99354)
-    if isinstance(data, pd.DataFrame):
-        data = data.reset_index(drop=True)
+    if not cartesian_product:
+        data = pd.DataFrame(data).reset_index(drop=True)
         possible_ids = list(range(len(data)))
     else:
         possible_ids = list(range(len(data["Kinase Sequence"]) * len(data["Site Sequence"])))
 
-    shuffled_ids = possible_ids.copy()
+    ids = possible_ids.copy()
+    random.shuffle(ids)
 
-    random.shuffle(shuffled_ids)
-    tot_len = len(shuffled_ids)
-    train_ids: list[int] = shuffled_ids[: int(tot_len * trf)]
-    val_ids: list[int] = shuffled_ids[int(tot_len * trf) : int(tot_len * (trf + vf))]
-    tune_ids: list[int] = shuffled_ids[int(tot_len * (trf + vf)) : int(tot_len * (trf + vf + tuf))]
-    test_ids: list[int] = shuffled_ids[int(tot_len * (trf + vf + tuf)) :]
+    kinase_seq_to_tensor_data: dict[str, torch.IntTensor] = {}
+    site_seq_to_tensor_data: dict[str, torch.IntTensor] = {}
 
-    assert train_ids + val_ids + tune_ids + test_ids == shuffled_ids
-
-    data_train, data_val, data_tune, data_test, kinase_seq_to_tensor_data, site_seq_to_tensor_data = tuple(6 * [{}])
     if isinstance(data, pd.DataFrame):
-        data_train = data.loc[train_ids]
-        data_val = data.loc[val_ids]
-        data_tune = data.loc[tune_ids]
-        data_test = data.loc[test_ids]
+        data_shuffled = data.loc[ids]
     else:
+        data_shuffled = None
         assert all([isinstance(x, str) for x in data["Kinase Sequence"]]), "All kinase seqs must be strings"
         assert all([isinstance(x, str) for x in data["Site Sequence"]]), "All site seqs must be strings"
-        kinase_seq_to_tensor_data: dict[str, torch.IntTensor] = {
+        kinase_seq_to_tensor_data = {
             str(ks): torch.IntTensor(pad(encode_seq(str(ks), tok_dict), max_len=max_kin_length, map_dict=tok_dict))
             for ks in data["Kinase Sequence"]
         }
-        site_seq_to_tensor_data: dict[str, torch.IntTensor] = {
+        site_seq_to_tensor_data = {
             str(ss): torch.IntTensor(encode_seq(str(ss), tok_dict)) for ss in data["Site Sequence"]
         }
 
     assert all(isinstance(x, str) for x in data["Kinase Sequence"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
-    BYTES_PER_PAIR = 1.4e6  # The approximate size of one kinase-site pair in bytes + forward pass size.
-    BYTES_PER_PAIR_MULTIPLIER = 1  # Optionally pretend data is larger than the original data
-    BYTES_PER_PAIR *= BYTES_PER_PAIR_MULTIPLIER
+    bytes_per_input *= bytes_per_input_multiplier
 
     if str(device) == str(torch.device("cpu")) or "mps" in str(device):
         free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) / 1.25
@@ -335,20 +356,18 @@ def gather_data(
         assert "cuda" in str(device), "Device must be either 'cpu' or a cuda device."
         free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]
 
-    num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / BYTES_PER_PAIR)
+    num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / bytes_per_input)
 
     assert (
         len(data["Kinase Sequence"]) == len(data["Site Sequence"]) or cartesian_product
     ), "Length of kinase and site lists must be equal."
 
-    assert num_pairs_can_be_stored_per_dl > 0, "Can't fit one pair in memory. Check system memory usage."
-    num_partitions = max(
-        [int(np.ceil(len(x) / num_pairs_can_be_stored_per_dl)) for x in [train_ids, val_ids, tune_ids, test_ids]] + [1]
-    )
+    assert (
+        num_pairs_can_be_stored_per_dl > 0
+    ), f"Can't fit one input (size required = {bytes_per_input}) in memory. Check system memory usage."
+    num_partitions = int(np.ceil(len(ids) / num_pairs_can_be_stored_per_dl))
     assert num_partitions > 0, "num_partitions <= 0. Something went wrong."
-    # assert num_partitions <= len(data['Kinase Sequence'), f"{num_partitions=} > {len(data['Kinase Sequence')=}. Something went wrong."
 
-    # tqdm_passthrough[0].write(colored(f"Status: Partitioning data into {num_partitions} partitions", "green"))
     partition_size = min(
         num_pairs_can_be_stored_per_dl,
         (
@@ -359,135 +378,88 @@ def gather_data(
     )
 
     for partition_id in range(int(num_partitions)):
-        final_kin_tensor_chunks = []
-        final_site_tensor_chunks = []
-        final_class_chunks = []
-        # logger.status("Writing Tensor Data to RAM")
         begin_idx = partition_size * partition_id
         end_idx = partition_size * (partition_id + 1)
-        train_ids_subset = train_ids[begin_idx:end_idx]
-        val_ids_subset = val_ids[begin_idx:end_idx]
-        tune_ids_subset = tune_ids[begin_idx:end_idx]
-        test_ids_subset = test_ids[begin_idx:end_idx]
 
         actual_partition_size = end_idx - begin_idx
         if isinstance(data, pd.DataFrame):
-            assert isinstance(data_train, pd.DataFrame)
-            assert isinstance(data_val, pd.DataFrame)
-            assert isinstance(data_tune, pd.DataFrame)
-            assert isinstance(data_test, pd.DataFrame)
-            X_train, X_val, X_tune, X_test = tuple(
-                [
-                    torch.IntTensor([encode_seq(x, tok_dict) for x in d_set["Site Sequence"].values]).to(device)
-                    for d_set in [
-                        data_train.loc[train_ids_subset],
-                        data_val.loc[val_ids_subset],
-                        data_tune.loc[tune_ids_subset],
-                        data_test.loc[test_ids_subset],
-                    ]
-                ]
+            assert isinstance(data_shuffled, pd.DataFrame)
+            X_site = torch.IntTensor([encode_seq(x, tok_dict) for x in data_shuffled["Site Sequence"].values])
+            X_site = X_site.to(device)
+            X_kin = torch.IntTensor(
+                pad(encode_seq(x, tok_dict), max_kin_length, tok_dict) for x in data_shuffled["Kinase Sequence"].values
             )
-            if not mc:
-                X_train_kin, X_val_kin, X_tune_kin, X_test_kin = tuple(
-                    [
-                        torch.IntTensor(
-                            [
-                                pad(encode_seq(x, tok_dict), max_kin_length, tok_dict)
-                                for x in d_set["Kinase Sequence"].values
-                            ]
-                        ).to(device)
-                        for d_set in [
-                            data_train.loc[train_ids_subset],
-                            data_val.loc[val_ids_subset],
-                            data_tune.loc[tune_ids_subset],
-                            data_test.loc[test_ids_subset],
-                        ]
-                    ]
-                )
-            else:
-                X_train_kin, X_val_kin, X_tune_kin, X_test_kin = tuple([None] * 4)
-            y_train, y_val, y_tune, y_test = tuple(
-                [
-                    torch.IntTensor(d_set[class_col].values).to(device)
-                    for d_set in [
-                        data_train.loc[train_ids_subset],
-                        data_val.loc[val_ids_subset],
-                        data_tune.loc[tune_ids_subset],
-                        data_test.loc[test_ids_subset],
-                    ]
-                ]
-            )
-        if isinstance(data, dict):
+            X_kin = X_kin.to(device)
+            y = torch.IntTensor(encode_label(data_shuffled[class_col].values.tolist(), "mlt_cls" if mc else "scalar"))
+            y = y.to(device)
+
+        else:  # data is a dict
             rand_idx_to_kin_idx_site_idx = lambda rand_idx: (
                 int(rand_idx // len(data["Site Sequence"])),
                 int(rand_idx // len(data["Kinase Sequence"])),
             )
-            for _, idx_set in enumerate([train_ids_subset, val_ids_subset, tune_ids_subset, test_ids_subset]):
-                kin_tensor_data: list[torch.Tensor] = []
-                site_tensor_data: list[torch.Tensor] = []
-                class_tensor_data: list[torch.Tensor] = []
-                for idx in idx_set:
-                    kin_tensor_idx, site_tensor_idx = rand_idx_to_kin_idx_site_idx(idx)
+            kin_tensor_data: list[torch.Tensor] = []
+            site_tensor_data: list[torch.Tensor] = []
+            class_tensor_data: list[torch.Tensor] = []
+            for id in ids:
+                kin_tensor_idx, site_tensor_idx = rand_idx_to_kin_idx_site_idx(id)
 
-                    kin_tensor, site_tensor = (
-                        kinase_seq_to_tensor_data[str(data["Kinase Sequence"][kin_tensor_idx])],
-                        site_seq_to_tensor_data[str(data["Site Sequence"][site_tensor_idx])],
-                    )
-                    kin_tensor_data.append(kin_tensor)
-                    site_tensor_data.append(site_tensor)
-                    class_tensor_data.append(torch.IntTensor([-1]))  # CHECK -- May not be right for non-predict mode.
-                stacked_kin_tensors = (
-                    torch.stack(kin_tensor_data).to(device) if len(kin_tensor_data) > 0 else torch.IntTensor()
+                kin_tensor, site_tensor = (
+                    kinase_seq_to_tensor_data[str(data["Kinase Sequence"][kin_tensor_idx])],
+                    site_seq_to_tensor_data[str(data["Site Sequence"][site_tensor_idx])],
                 )
-                stacked_site_tensors = (
-                    torch.stack(site_tensor_data).to(device) if len(site_tensor_data) > 0 else torch.IntTensor()
-                )
-                stacked_class_tensors = (
-                    torch.cat(class_tensor_data).to(device) if len(class_tensor_data) > 0 else torch.IntTensor()
-                )
-                final_kin_tensor_chunks.append(stacked_kin_tensors)
-                final_site_tensor_chunks.append(stacked_site_tensors)
-                final_class_chunks.append(stacked_class_tensors)
-                # logger.status("Done writing to Tensor")
-            X_train_kin, X_val_kin, X_tune_kin, X_test_kin = tuple(final_kin_tensor_chunks)
-            X_train, X_val, X_tune, X_test = tuple(final_site_tensor_chunks)
-            y_train, y_val, y_tune, y_test = tuple(final_class_chunks)
-        yield package(actual_partition_size, partition_id)
+                kin_tensor_data.append(kin_tensor)
+                site_tensor_data.append(site_tensor)
+                class_tensor_data.append(torch.IntTensor([-1]))  # CHECK -- May not be right for non-predict mode.
+
+            blank = torch.IntTensor()
+            X_kin = torch.stack(kin_tensor_data).to(device) if len(kin_tensor_data) > 0 else blank
+            X_site = torch.stack(site_tensor_data).to(device) if len(site_tensor_data) > 0 else blank
+            y = torch.cat(class_tensor_data).to(device) if len(class_tensor_data) > 0 else blank
+
+        yield package(
+            X_site,
+            X_kin,
+            y,
+            data,
+            ids,
+            batch_size,
+            group_by,
+            actual_partition_size,
+            partition_id,
+            remapping_class_label_dict,
+            class_labels,
+            tok_dict,
+            actual_partition_size,
+            partition_id,
+        )
 
 
 def pad(tok_list: list[int], max_len: int, map_dict: dict[str, int]) -> list[int]:
+    """Pads a list of tokens to a given length.
+
+    Parameters
+    ----------
+    tok_list :
+        The list of tokens to pad.
+    max_len :
+        The length to pad to.
+    map_dict :
+        The dictionary mapping tokens to integers. In particular, the padding token should be mapped to an integer.
+
+    Raises
+    ------
+    AssertionError
+        If the padding token is not in the map_dict.
+
+    Returns
+    -------
+    list[int]
+        The padded list of tokens.
+    """
+    assert "<PADDING>" in map_dict, "Padding token not in map_dict."
     return tok_list + [map_dict["<PADDING>"] for _ in range(max_len - len(tok_list))]
 
 
-def get_info(target_file, decoy_file="", n_gram=1):
-    (max_length0, _, _, _), tok_dict0 = gather_data(target_file, ret_info=True, n_gram=n_gram)
-    if decoy_file != "":
-        max_length1, tok_dict1 = gather_data(decoy_file, ret_info=True, n_gram=n_gram)
-    else:
-        max_length1, tok_dict1 = 0, {}
-
-    assert isinstance(max_length0, int)
-    max_length = max(max_length0, max_length1)
-    for k in tok_dict1:
-        if k not in tok_dict0:
-            # print("Adding", k)
-            tok_dict0[k] = len(tok_dict0)
-
-    tok_dict = tok_dict0
-    if "<PADDING>" not in tok_dict:
-        tok_dict["<PADDING>"] = len(tok_dict)
-    if "<N-GRAM>" not in tok_dict:
-        tok_dict["<N-GRAM>"] = n_gram
-
-    return max_length, tok_dict
-
-
 if __name__ == "__main__":
-    n = 3
-    max_kin_len, tok_dict = get_info(
-        "data/raw_data_train_8151_formatted.csv", "data/raw_data_held_out_998_formatted.csv", n
-    )
-    (a, b, c, d), _ = gather_data(
-        "data/raw_data_train_8151_formatted.csv", maxsize=max_kin_len, tokdict=tok_dict, n_gram=n
-    )
-    print()
+    pass

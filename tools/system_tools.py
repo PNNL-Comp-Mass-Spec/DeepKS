@@ -1,11 +1,33 @@
+"""Utilities that interact with the system, e.g. run shell commands and get output."""
+
 import tempfile, subprocess, time, re
 
+from ..config.logging import get_logger
 
-def os_system_and_get_stdout(cmd, prepend="", shell="zsh"):
-    """
-    cmd: command to run
+logger = get_logger()
+"""Logger for this module"""
 
-    NOTE: output line must contain `[@python_capture_output]` to be presented in output
+
+def os_system_and_get_stdout(cmd: str, prepend: str = "", shell: str = "zsh") -> list[str]:
+    """Function to run a shell command and fetch the output.
+
+    Parameters
+    ----------
+    cmd :
+        The shell command to run.
+    prepend : optional
+        A string to prepend to each line of the output so we know where it came from.
+    shell : optional
+        The shell to use, `zsh` by default.
+
+    Notes
+    -----
+    Output line must contain `[@python_capture_output]` to be presented in output
+
+
+    Returns
+    -------
+        Lines of output from the shell command.
     """
     TAG = "[@python_capture_output]"
 
@@ -22,11 +44,11 @@ def os_system_and_get_stdout(cmd, prepend="", shell="zsh"):
                 ol = o.decode("UTF-8").split("\n")
                 for line in ol:
                     if line != "" and TAG not in line:
-                        print(prepend + line, flush=True)
+                        logger.info(prepend + line)
                     elif TAG in line:
                         res_out.append(re.sub(f"({TAG})".replace("[", r"\[").replace("]", r"\]"), "", line))
 
     if status:
-        print("Status:", status)
-        raise Exception(f"Error running system command: {shell_cmd}")
+        logger.uerror("Status:", status)
+        logger.uerror(f"Error running system command: {shell_cmd}")
     return res_out

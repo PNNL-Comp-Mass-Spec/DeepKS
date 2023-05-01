@@ -1,3 +1,5 @@
+"""Validation schemas for Kinase and Site metadata inputs."""
+
 import jsonschema as jss, jsonschema.exceptions as jse
 from copy import deepcopy
 

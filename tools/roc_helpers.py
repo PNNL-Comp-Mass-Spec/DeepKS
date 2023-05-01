@@ -1,9 +1,13 @@
+"""Helper functions for computing ROC curves and AUC scores"""
+
 import itertools, sklearn.metrics, numpy as np, warnings, scipy, bisect
 from numpy.typing import ArrayLike
 from roc_comparison_modified.auc_delong import delong_roc_variance
 
 
 class ROCHelpers:
+    """Contains static methods for computing ROC curves and AUC scores"""
+
     class RocAvgValue:
         @classmethod
         def area_under_points(cls, points) -> float:

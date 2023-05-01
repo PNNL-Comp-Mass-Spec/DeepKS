@@ -1,3 +1,5 @@
+"""Make a fasta file from a dataframe with biological sequences."""
+
 import pandas as pd, textwrap as tw
 
 format_for_needle = (
@@ -8,10 +10,32 @@ format_for_needle = (
     .replace(" ", "---")
     .replace(":", "----")
 )
+"""Simple lambda to filter out characters that cause problems for `needle`"""
+
 eldeen_rof_tamrof = lambda x: x.replace("_", "|").replace("--", "/").replace("---", " ").replace("----", ":")
+"""Simple lambda to reverse `format_for_needle`"""
 
 
 def make_fasta(df_in: str, fasta_out: str) -> str:
+    """Make a fasta file from a dataframe with biological sequences.
+
+    Parameters
+    ----------
+    df_in : str
+        The input dataframe. Must have columns "kinase" -- the UniProt ID, "kinase_seq" -- the sequence itself, and "gene_name" -- the UniProt gene name.
+    fasta_out : str
+        The output fasta filename
+
+    Returns
+    -------
+    str
+        The output fasta filename (unmodified from the input parameter)
+
+    Raises
+    ------
+    RuntimeError
+        If there is an NA in the "gene_name" column of the input dataframe.
+    """
     with open(df_in, "r") as f:
         df = pd.read_csv(df_in, sep="," if "," in f.read() else "\t").iloc[:]
     cols = set(df.columns)

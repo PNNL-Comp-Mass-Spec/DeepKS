@@ -3,7 +3,7 @@ import re, io, pandas as pd, requests as req
 HELD_OUT_FAMILY = "SGK"
 
 
-from ....config.root_logger import get_logger
+from ....config.logging import get_logger
 logger = get_logger()
 if __name__ == "__main__":
     logger.status("Loading Modules")

@@ -1,11 +1,40 @@
+"""All the tests for DeepKS"""
 import sys, os, argparse, unittest, pathlib, json, inspect
 from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+"""Device `torch` will use. Can be set with the `DEVICE` environment variable."""
+
+
+def join_first(levels=1, x="/"):
+    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
+
+    Parameters
+    ----------
+    levels : optional
+        How many directories out of the directory of this file the "new root" should start, by default 1
+    x :
+        The target path, by default "/"
+
+    Returns
+    -------
+    str
+        The joined path
+
+    Examples
+    --------
+    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
+    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
+    """
+    if os.path.isabs(x):
+        return x
+    else:
+        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
 class UsesR:
+    """Empty class used to mark tests that use R."""
+
     pass
 
 
@@ -393,10 +422,14 @@ class TestExamples(unittest.TestCase):
 
 
 api_suite = unittest.TestSuite()
+"""Suite of tests that test the API."""
 training_suite = unittest.TestSuite()
+"""Suite of tests that test the training."""
 non_r_suite = unittest.TestSuite()
+"""Suite of all tests that test the non-R functionality."""
 
 testloader = unittest.TestLoader()
+"""Test loader for all tests. Just using `loadTestsFromTestCase`."""
 
 api_suite.addTests(
     [
@@ -413,8 +446,10 @@ training_suite.addTests(
 )
 
 is_non_r_test = lambda x: isinstance(x, type) and issubclass(x, unittest.TestCase) and not issubclass(x, UsesR)
+"""Simple lambda to determine if the given object is a non-R test."""
 
 non_r_tests = [obj_type for _, obj_type in inspect.getmembers(sys.modules[__name__]) if is_non_r_test(obj_type)]
+"""List of all non-R tests."""
 
 if any(".non_r_tests" in a for a in sys.argv):
     print(f"Running the following non-r-tests:")
@@ -422,6 +457,3 @@ if any(".non_r_tests" in a for a in sys.argv):
         print(f"  * {test.__name__}")
 
 non_r_suite.addTests([testloader.loadTestsFromTestCase(test) for test in non_r_tests])
-
-pass
-pass

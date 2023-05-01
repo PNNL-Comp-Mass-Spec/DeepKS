@@ -1,23 +1,27 @@
+"""Contains functionality to automatically glean the latest pre-trained neural network and group classifier binaries."""
+
 import json, os, pathlib, re, warnings
 from termcolor import colored
 
-# where_am_i = pathlib.Path(__file__).parent.resolve()
-# os.chdir(where_am_i)
+PRE_TRAINED_NN: str
+"""The path to the latest pre-trained neural network binary."""
+PRE_TRAINED_GC: str
+"""The path to the latest pre-trained group classifier binary."""
 
-# with open("default_paths.cfg.json") as f:
-#     default_paths = json.load(f)
-
-# PRE_TRAINED_NN = default_paths["PRE_TRAINED_NN"]
-# PRE_TRAINED_GC = default_paths["PRE_TRAINED_GC"]
-
-PRE_TRAINED_NN = PRE_TRAINED_GC = ""
-
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
+"""The logger for this module."""
 
 
 def smart_get_latest():
+    """Automatically get the latest pre-trained neural network and group classifier binary file names
+
+    Returns
+    -------
+    None
+        Does not return anything, but sets the global variables PRE_TRAINED_NN and PRE_TRAINED_GC
+    """
     global PRE_TRAINED_NN, PRE_TRAINED_GC
     # List bin directory
     set_vars = []

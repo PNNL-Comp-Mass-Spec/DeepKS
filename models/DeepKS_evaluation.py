@@ -15,7 +15,7 @@ from pydash import _
 from numpy.typing import ArrayLike
 from ..tools.file_names import get as get_file_name
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 

@@ -1,10 +1,11 @@
+"""Defines the `MultiStageClassifier` class, which allows group pre-classification before neural network classification."""
 if __name__ == "__main__":
-    from ..splash.write_splash import write_splash
+    from ..tools.splash.write_splash import write_splash
     from termcolor import colored
 
     write_splash("main_gc_trainer")
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
 
@@ -36,22 +37,62 @@ where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+def join_first(levels=1, x="/"):
+    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
+
+    Parameters
+    ----------
+    levels : optional
+        How many directories out of the directory of this file the "new root" should start, by default 1
+    x :
+        The target path, by default "/"
+
+    Returns
+    -------
+    str
+        The joined path
+
+    Examples
+    --------
+    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
+    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
+    """
+    if os.path.isabs(x):
+        return x
+    else:
+        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
 class MultiStageClassifier:
+    """A class that allows group pre-classification before neural network classification."""
+
     def __init__(
         self,
         group_classifier: GroupClassifier,
         individual_classifiers: individual_classifiers.IndividualClassifiers,
     ):
+        """Initialize a MultiStageClassifier object.
+
+        Parameters
+        ----------
+        group_classifier : GroupClassifier
+            The group classifier to use
+        individual_classifiers : IndividualClassifiers
+            The individual (neural network) classifiers to use
+        """
         self.group_classifier = group_classifier
         self.individual_classifiers = individual_classifiers
 
     def __str__(self):
-        return "MultiStageClassifier(group_classifier=%s, individual_classifiers=%s)" % (
-            self.group_classifier,
-            self.individual_classifiers,
+        """Return a string representation of this object.
+
+        Returns
+        -------
+            Simple string representation of this object: prints both the group classifier and the individual classifier string representations.
+        """
+        return (
+            f"MultiStageClassifier(group_classifier={self.group_classifier},"
+            f" individual_classifiers={self.individual_classifiers})"
         )
 
     def evaluation_preparation(
@@ -507,11 +548,20 @@ def smart_save_msc(msc: MultiStageClassifier):
         pickle.dump(msc, f)
 
 
-def combine_ic_and_gc(nn: IndividualClassifiers, gc: GroupClassifier) -> MultiStageClassifier:
-    return MultiStageClassifier(gc, nn)
+def efficient_to_csv(data_dict: dict, outfile: str):
+    """Efficiently writes a dictionary of lists to a csv file by not storing the entire data object in memory.
 
+    Parameters
+    ----------
+    data_dict : dict
+        A dictionary of lists to be written to a csv file. The keys are the column names and the values are the column values.
+    outfile : str
+        The path to the output csv file.
 
-def efficient_to_csv(data_dict, outfile):
+    Notes
+    -----
+    Because `data_dict` is a dictionary of lists, the lists must all be the same length. If they are not, an `AssertionError` will be raised.
+    """
     assert all([isinstance(x, list) for x in data_dict.values()])
     headers = ",".join(data_dict.keys())
     max_len = max(len(x) for x in data_dict.values())
@@ -540,4 +590,4 @@ if __name__ == "__main__":
     with open(join_first(1, "bin/deepks_gc_weights.2.cornichon"), "rb") as f:
         gc: GroupClassifier = pickle.load(f)
 
-    smart_save_msc(combine_ic_and_gc(nn, gc))
+    smart_save_msc(MultiStageClassifier(gc, nn))

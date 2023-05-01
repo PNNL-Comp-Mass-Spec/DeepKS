@@ -6,6 +6,12 @@ join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolv
 import warnings
 
 
+def splash(splash_file):
+    from ..tools.splash.write_splash import write_splash
+
+    write_splash(splash_file)
+
+
 def get_logger():
     try:
         with open(join_first(1, __file__)) as f:

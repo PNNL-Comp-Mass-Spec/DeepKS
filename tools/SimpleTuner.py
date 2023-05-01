@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 
 from DeepKS.tools.custom_tqdm import CustomTqdm
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 from .file_names import get as get_file_name
 
 logger = get_logger()

@@ -1,15 +1,18 @@
+"""Contains class definition of `IndividualClassifiers`, which is used to train/validate group-specific neural network classifiers."""
+
 from __future__ import annotations
 
 import numpy as np
 
 if __name__ == "__main__":
-    from ..splash.write_splash import write_splash
+    from ..tools.splash.write_splash import write_splash
 
     write_splash("main_nn_trainer")
 
-from ..config.root_logger import get_logger
+from ..config.logging import get_logger
 
 logger = get_logger()
+"""Logger for this module"""
 if __name__ == "__main__":
     logger.status("Loading Modules...")
 
@@ -18,7 +21,7 @@ import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, arg
 import socket, pathlib, os, itertools, functools, numpy as np, pickle
 from .KinaseSubstrateRelationshipClassic import KinaseSubstrateRelationshipClassic
 from ..tools.NNInterface import NNInterface
-from ..tools.tensorize import gather_data
+from ..tools.tensorize import data_to_tensor
 from ..tools import file_names
 from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Type, Any
 
@@ -45,15 +48,37 @@ torch.use_deterministic_algorithms(True)
 torch.manual_seed(42)
 
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
+"""Simple lambda to remove parentheses and asterisks from a string and convert it to uppercase."""
 MAX_SIZE_DS = 4128
 memory_multiplier = 2**6
 EVAL_BATCH_SIZE = 0
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
+def join_first(levels: int = 1, x: Any = "/"):
+    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
 
-def RAISE_ASSERTION_ERROR(x):
-    raise AssertionError(x)
+    Parameters
+    ----------
+    levels : optional
+        How many directories out of the directory of this file the "new root" should start, by default 1
+    x :
+        The target path, by default "/"
+
+    Returns
+    -------
+    str
+        The joined path
+
+    Examples
+    --------
+    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
+    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
+    """
+    x = str(x)
+    if os.path.isabs(x):
+        return x
+    else:
+        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
 def smart_save_nn(individual_classifier: IndividualClassifiers):
@@ -68,6 +93,8 @@ def smart_save_nn(individual_classifier: IndividualClassifiers):
 
 
 class IndividualClassifiers:
+    """Class to train and validate group-specific neural network classifiers."""
+
     def __init__(
         self,
         grp_to_model_args: dict[str, dict[str, Any]],
@@ -77,6 +104,23 @@ class IndividualClassifiers:
         args: dict[str, Union[str, None, list[str]]],
         groups: list[str],
     ):
+        """Initialize an IndividualClassifiers object.
+
+        Parameters
+        ----------
+        grp_to_model_args : dict[str, dict[str, Any]]
+            A dictionary mapping group names to dictionaries of model-related arguments (hyperparameters).
+        grp_to_interface_args : dict[str, dict[str, Any]]
+            A dictionary mapping group names to dictionaries of `..tools.NNInterface.NNInterface`-related arguments.
+        grp_to_training_args : dict[str, dict[str, Any]]
+            A dictionary mapping group names to dictionaries of training-related arguments.
+        device : str
+            The device to train the neural networks on.
+        args : dict[str, Union[str, None, list[str]]]
+            Should Be Depricated.
+        groups : list[str]
+            The groups to train neural networks for.
+        """
         for group in grp_to_model_args:
             assert group in grp_to_interface_args, "No interface args for group %s" % group
             assert group in grp_to_training_args, "No training args for group %s" % group
@@ -126,9 +170,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
-            {}
-        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[
+            str, dict[str, dict[str, list[Union[int, float]]]]
+        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -275,12 +319,8 @@ class IndividualClassifiers:
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
             (_, val_loader, _, _), _ = list(
-                gather_data(
+                data_to_tensor(
                     partial_group_df_vl,
-                    trf=0,
-                    vf=1,
-                    tuf=0,
-                    tef=0,
                     tokdict=self.default_tok_dict,
                     n_gram=ng,
                     device=self.device,
@@ -288,14 +328,10 @@ class IndividualClassifiers:
                 )
             )[0]
             train_generator = more_itertools.peekable(
-                gather_data(
+                data_to_tensor(
                     partial_group_df_tr,
-                    trf=1,
-                    vf=0,
-                    tuf=0,
-                    tef=0,
                     tokdict=self.default_tok_dict,
-                    train_batch_size=b,
+                    batch_size=b,
                     n_gram=ng,
                     device=self.device,
                     maxsize=MAX_SIZE_DS,
@@ -304,8 +340,8 @@ class IndividualClassifiers:
 
             train_loader_peak = train_generator.peek()
 
-            self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader_peak[0][0])
-            self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader_peak[0][0])
+            self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader_peak[0])
+            self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader_peak[0])
             msm = self.grp_to_interface_args[group_tr]["model_summary_name"]
             assert isinstance(msm, str), "Model summary name must be a string"
             self.interfaces[group_tr].model_summary_name = msm + "-" + group_tr.upper()
@@ -361,17 +397,12 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
             seen_groups_passthrough.append(group_te)
-            for (_, _, _, test_loader), info_dict in gather_data(
+            for (_, _, _, test_loader), info_dict in data_to_tensor(
                 partial_group_df_te,
-                trf=0,
-                vf=0,
-                tuf=0,
-                tef=1,
                 tokdict=self.default_tok_dict,
                 n_gram=ng,
                 device=device,
                 maxsize=MAX_SIZE_DS,
-                eval_batch_size=1,
                 cartesian_product=cartesian_product,
             ):
                 info_dict_passthrough[group_te] = info_dict
@@ -439,18 +470,29 @@ class IndividualClassifiers:
     ) -> Union[None, list, Callable]:
         """Get predictions or ROC curves from model
 
-        Args:
-            @arg addl_args: Additional arguments outside of `self.args` to be passed in.
-            @arg pred_groups: Dict mapping kinase symbol to predicted group
-            @arg true_groups: Dict mapping kinase symbol to ground truth group
-            @arg predict_mode: Whether or not to run in pure prediction mode
-            @arg get_emp_eqn: Whether or not to get empirical equation mapping raw score to empirical probability
-            @arg emp_eqn_kwargs: Arguments for the empirical equation.
+        Parameters
+        ----------
+            addl_args :
+                Additional arguments outside of `self.args` to be passed in.
+            pred_groups :
+                Dict mapping kinase symbol to predicted group
+            true_groups :
+                Dict mapping kinase symbol to ground truth group
+            predict_mode :
+                Whether or not to run in pure prediction mode
+            get_emp_eqn : optional
+                Whether or not to get empirical equation mapping raw score to empirical probability, by default True
+            emp_eqn_kwargs : optional
+                Arguments for the empirical equation, by default `{"plot_emp_eqn": True, "print_emp_eqn": True}`
+            cartesian_product : optional
+                Whether or not to use cartesian product (i.e., cross product of sites and kinases), by default False
 
-        Raises:
+        Raises
+        ------
             ValueError: If neither `test` nor `test_json` is specified in `addl_args`.
 
-        Returns:
+        Returns
+        -------
             Union[None, dict[str, Callable], list]: None, if no empirical equation is requested. If empirical
             equation IS requested, contains lambda which maps raw score to empirical probability. If prediction mode, list of prediction items.
         """
@@ -526,32 +568,32 @@ class IndividualClassifiers:
                 }
 
                 logger.status("Creating combined roc from individual models.")
-                NNInterface.get_combined_rocs_from_individual_models(
-                    self.interfaces,
-                    grp_to_loaders,
-                    f"../images/Evaluation and Results/{file_names.get(f'ROC_{len(grp_to_loaders)}', 'pdf')}",
-                    retain_evals=self.evaluations,
-                    grp_to_loader_true_groups={
-                        grp: group_classifier.get_ground_truth(
-                            group_classifier, grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]
-                        )
-                        for grp in grp_to_info_pass_through_info_dict
-                        if grp in grp_to_loaders
-                    },
-                    get_emp_eqn=get_emp_eqn,
-                    emp_eqn_kwargs=emp_eqn_kwargs,
-                    _ic_ref=self,
-                    grp_to_idents={
-                        grp: grp_to_info_pass_through_info_dict[grp]["orig_symbols_order"]["test"]
-                        for grp in grp_to_loaders
-                    },
-                )
+                # TODO: Put new version of get_combined_rocs_from_individual_models here
 
             if self.args.get("s"):
                 smart_save_nn(self)
 
 
-def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs):
+def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tuple[float, str]:
+    """Main function for training the neural network(s).
+
+    Parameters
+    ----------
+    args_pass_in: Union[None, list[str]], optional
+        If None, uses sys.argv[1:]. Otherwise, uses the passed in list of strings as the command line arguments.
+    training_kwargs: dict, optional, keyword only, variable length
+        Keyword arguments to pass to the training function. See `train` for more details.
+
+    Returns
+    -------
+        The first element is the final-epoch validation performance. The second element is a string containing any notes from the training process.
+
+    Raises
+    ------
+    ValueError
+        If the `--pre-trained-gc` argument is not passed in.
+
+    """
     logger.status("Parsing Args")
     args = parse_args(args_pass_in)
     logger.status("Preparing Training Data")
@@ -597,7 +639,7 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs):
         logger.info(f"Model Args: {pprint.pformat(gtma, compact=True)}")
         logger.info(f"Interface Args: {pprint.pformat(gtia, compact=True)}")
         logger.info(f"Training Args: {pprint.pformat(gtta, compact=True)}")
-        return
+        return -1, ""
     logger.status("About to Train")
     assert val_filename is not None
     weighted, notes = classifier.train(
@@ -629,7 +671,19 @@ def device_eligibility(arg_value):
         )
 
 
-def parse_args(args_pass_in: Union[None, list[str]]) -> dict[str, Union[str, None]]:
+def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[str, None]]:
+    """Argument parser for training a neural network.
+
+    Parameters
+    ----------
+    args_pass_in : Union[None, list[str]], optional
+        A list of arguments to parse. If None, defaults to sys.argv[1:].
+
+    Returns
+    -------
+    dict[str, Union[str, None]]
+        A dictionary of arguments mapping to their values.
+    """
     logger.status("Parsing Arguments")
 
     parser = argparse.ArgumentParser()

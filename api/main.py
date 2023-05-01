@@ -1,57 +1,61 @@
 """Contains functions that are an interface to the DeepKS project.
 """
 import sys
-from nbformat import convert
 from termcolor import colored
-from typing import Literal
+from ..config import logging
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
-    from ..splash import write_splash
-
     if __name__ == "__main__":
-        write_splash.write_splash("main_api")
+        logging.splash("main_api")
 
-from ..config.root_logger import get_logger
 
-logger = get_logger()
+logger = logging.get_logger()
+"""The logger for this module."""
+
 if __name__ == "__main__":
-    logger.status("Loading Modules...")
+    logger.status("Loading initial libraries and modules")
 
-import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io, torch, dill
-from typing import Union
-
-
+import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io
+import torch, dill
+from typing import Union, Literal
 from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
-
-join_first = lambda levels, x: (
-    x if os.path.isabs(x) else os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
-)
-
-with open(str(pathlib.Path(__file__).parent.resolve()) + "/../config/API_IMPORT_MODE.json", "r") as apiim:
-    API_IMPORT_MODE = "true" in apiim.read()
-
 from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
 from ..models.GroupClassifier import GroupClassifier
 
 
-class Capturing(list):
-    """https://stackoverflow.com/a/16571630/16158339"""
+def join_first(levels=1, x="/"):
+    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
 
-    def __enter__(self):
-        self._stdout = sys.stdout
-        self._stderr = sys.stderr
-        sys.stdout = self._stringio = io.StringIO()
-        sys.stderr = self._stringio2 = io.StringIO()
-        return self
+    Parameters
+    ----------
+    levels : optional
+        How many directories out of the directory of this file the "new root" should start, by default 1
+    x :
+        The target path, by default "/"
 
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        self.extend(self._stringio2.getvalue().splitlines())
-        del self._stringio  # free up some memory
-        del self._stringio2  # free up some memory
-        sys.stdout = self._stdout
-        sys.stderr = self._stderr
+    Returns
+    -------
+    str
+        The joined path
+
+    Examples
+    --------
+    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
+    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
+    """
+    if os.path.isabs(x):
+        return x
+    else:
+        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
+
+NO_PARSE_NO_PRED: bool
+"""Whether or not to parse args and begin prediction pipeline.
+"""
+
+with open(str(pathlib.Path(__file__).parent.resolve()) + "/../config/API_IMPORT_MODE.json", "r") as apiim:
+    NO_PARSE_NO_PRED = "true" in apiim.read()
 
 
 def make_predictions(
@@ -78,37 +82,57 @@ def make_predictions(
     group_on: Literal["site", "kin"] = "site",
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
+    Parameters
+    __________
+    kinase_seqs:
+        The kinase sequences. Each must be ≥ 1 and ≤ 4128 residues long.
+    kin_info:
+        The kinase (meta-) information. See `./kin-info_file_format.txt` for the required format.
+    site_seqs:
+        The site sequences. Each must be 15 residues long.
+    site_info:
+        The site (meta-) information. See `./site-info_file_format.txt` for the required format.
+    predictions_output_format:
+        The format of the output.
+        - `inorder` returns a list of predictions in the same order as the input kinases and sites.
 
-    @arg kinase_seqs: The kinase sequences. Each must be >= 1 and <= 4128 residues long.
-    @arg kin_info: The kinase (meta-) information. See C{./kin-info_file_format.txt} for the required format.
-    @arg site_seqs: The site sequences. Each must be 15 residues long.
-    @arg site_info: The site (meta-) information. See C{./site-info_file_format.txt} for the required format.
-    @arg predictions_output_format: The format of the output.
-        - C{inorder} returns a list of predictions in the same order as the input kinases and sites.
-        - C{dictionary} returns a dictionary of predictions, where the keys are the input kinases and sites
-            and the values are the predictions.
-        - C{in_order_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a list of
-            predictions in the same order as the input kinases and sites.
-        - C{dictionary_json} outputs a JSON string (filename = C{"DeepKS/out/current-date-and-time.json"}) of a
-            dictionary of predictions, where the keys are the input kinases and sites and the values are the
-            predictions.
-        - C{csv} outputs a CSV table (filename = C{"DeepKS/out/current-date-and-time.csv"}), where the columns include
-            the input kinases, sites, sequence, metadata and predictions.
-        - C{sqlite} outputs a sqlite database (filename = C{"DeepKS/out/current-date-and-time.sqlite"}), where the
-            columns include the input kinases, sites, sequence, metadata and predictions.
-    @arg suppress_seqs_in_output: Whether to include the input sequences in the output.
-    @arg verbose: Whether to print predictions.
-    @arg pre_trained_gc: Path to previously trained group classifier model state.
-    @arg pre_trained_nn: Path to previously trained neural network model state.
-    @arg device: Device to use for predictions.
-    @arg scores: Whether to return scores.
-    @arg normalize_scores: Whether to normalize scores.
-    @arg dry_run: Whether to run a dry run (make sure input parameters work).
-    @arg cartesian_product: Whether to make predictions for all combinations of kinases and sites.
-    @arg group_output: Whether to return group predictions.
-    @arg bypass_group_classifier: List of known kinase groups in the same order in which they appear in kinase_seqs.
-                                  See C{./kin-info_file_format.txt} for instructions on how to specify groups.
-    @arg convert_raw_to_prob: Whether to convert raw scores to empirical probabilities. The neural network save file's object must have a C{emp_eqn} attribute (i.e., a mapping from raw score to empirical probability).
+        - `dictionary` returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+
+        - `in_order_json` outputs a JSON string (filename = `"DeepKS/out/current-date-and-time.json"`) of a list of predictions in the same order as the input kinases and sites.
+
+        - `dictionary_json` outputs a JSON string (filename = `"DeepKS/out/current-date-and-time.json"`) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+
+        - `csv` outputs a CSV table (filename = `"DeepKS/out/current-date-and-time.csv"`), where the columns include the input kinases, sites, sequence, metadata and predictions.
+
+        - `sqlite` outputs a sqlite database (filename = `"DeepKS/out/current-date-and-time.sqlite"`), where the columns include the input kinases, sites, sequence, metadata and predictions.
+    suppress_seqs_in_output:
+        Whether to include the input sequences in the output.
+    verbose:
+        Whether to print predictions.
+    pre_trained_gc:
+        Path to previously trained group classifier model state.
+    pre_trained_nn:
+        Path to previously trained neural network model state.
+    pre_trained_msc:
+        Path to a `..models.multi_stage_classifier.MultiStageClassifier` object that combines a group classifier and a neural network. Must specify either this or `pre_trained_gc` and `pre_trained_nn`.
+    device:
+        Device to use for predictions.
+    scores:
+        Whether to return scores.
+    normalize_scores:
+        Whether to normalize scores.
+    dry_run:
+        Whether to run a dry run (make sure input parameters work).
+    cartesian_product:
+        Whether to make predictions for all combinations of kinases and sites.
+    group_output:
+        Whether to return group predictions.
+    bypass_group_classifier:
+        List of known kinase groups in the same order in which they appear in kinase_seqs. See `./kin-info_file_format.txt` for instructions on how to specify groups.
+    convert_raw_to_prob:
+        Whether to convert raw scores to empirical probabilities. The neural network save file's object must have a `emp_eqn` attribute (i.e., a mapping from raw score to empirical probability).
+    group_on:
+        When pre-classifying into groups before running the neural network, whether to group on the kinase or the site.
     """
     config.cfg.set_mode("no_alin")
     try:
@@ -230,7 +254,10 @@ def make_predictions(
 def parse_api() -> dict[str, typing.Any]:
     """Parse the command line arguments.
 
-    @returns: Dictionary mapping the argument name to the argument value.
+    Returns
+    -------
+    dict
+        Dictionary mapping the argument name to the argument value.
     """
 
     logger.status("Parsing Arguments")
@@ -452,7 +479,7 @@ def parse_api() -> dict[str, typing.Any]:
         "--bypass-group-classifier",
         help=(
             "Whether or not to bypass the group classifier (due to having known groups). See"
-            " C{./kin-info_file_format.txt} for instructions on how to specify groups."
+            " `./kin-info_file_format.txt` for instructions on how to specify groups."
         ),
         default=False,
         required=False,
@@ -637,8 +664,15 @@ def parse_api() -> dict[str, typing.Any]:
 def setup(args: dict[str, typing.Any] = {}):
     """Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with `args` (either passed in or from the commandline).
 
-    Args:
-        @arg args: DeepKS arguments.
+    Parameters
+    ----------
+    args:
+        DeepKS arguments.
+
+    Returns
+    -------
+    None:
+        Does not return anything; just calls `make_predictions`.
     """
     global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
     from ..tools.informative_tb import informative_exception
@@ -660,7 +694,8 @@ def setup(args: dict[str, typing.Any] = {}):
 
 
 if __name__ == "__main__":
-    args = parse_api()
+    args = parse_api()  # Parse arguments before loading "heavy" modules
+    logger.status("Loading more libraries and modules")
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
@@ -669,7 +704,7 @@ if __name__ == "__main__":
 
     make_predictions(**args)
 
-if API_IMPORT_MODE:
+if NO_PARSE_NO_PRED:
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema, torch
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
