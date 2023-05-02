@@ -26,11 +26,21 @@ def smart_save_gc(group_classifier: GroupClassifier):
         pickle.dump(group_classifier, f)
 
 
-class GCPrediction(str):
+class GCPredictionABC(abc.ABC):
+    """Wrapper for a a group prediction"""
+
+    pass
+
+
+class GCPrediction(str, GCPredictionABC):
+    """Wrapper for a a group prediction that is just a string."""
+
     pass
 
 
 class GroupClassifier(abc.ABC):
+    """Defines the interface for a group classifier."""
+
     @abc.abstractmethod
     def __init__(self, sequences: list[str], ground_truth: list[str]) -> None:
         self.sequences = sequences

@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>DeepKS.tools.tensorize</title>
+    <meta name="generator" content="pydoctor 22.9.1"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          DeepKS <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="search-help-button" title="Help" onclick="toggleSearchHelpText()"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div class="hint" id="search-help-box">
+          <p class="rst-last">
+      
+            Search bar offers the following options:
+            <ul>   
+                <li>
+                  <strong>Term presence.</strong> The below example searches for documents that 
+                    must contain “foo”, might contain “bar” and must not contain “baz”: <code>+foo bar -baz</code>
+                </li> 
+
+                <li>
+                  <strong>Wildcards.</strong> The below example searches for documents with words beginning with “foo”: <code>foo*</code>
+                </li> 
+
+                <li>
+                  <strong>Search in specific fields.</strong> The following search matches all objects 
+                  in "twisted.mail" that matches “search”: <code>+qname:twisted.mail.* +search</code>
+
+                  <p>
+                    Possible fields: 'name', 'qname' (fully qualified name), 'docstring', and 'kind'.
+                    Last two fields are only applicable if "search in docstrings" is enabled.
+                  </p>
+                </li>
+
+                <li>
+                  <strong>Fuzzy matches.</strong> The following search matches all documents 
+                  that have a word within 1 edit distance of “foo”: <code>foo~1</code>
+                </li>
+            </ul>
+
+          </p>
+        </div>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 8px;">
+          <p>Results provided by <a href="https://lunrjs.com">Lunr.js</a></p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code class="thisobject"><a href="DeepKS.tools.tensorize.html" class="internal-link" title="This module">tensorize</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Functions</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#data_to_tensor" class="internal-link" title="DeepKS.tools.tensorize.data_to_tensor">data<wbr></wbr>_to<wbr></wbr>_tensor</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#encode_label" class="internal-link" title="DeepKS.tools.tensorize.encode_label">encode<wbr></wbr>_label</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#encode_seq" class="internal-link" title="DeepKS.tools.tensorize.encode_seq">encode<wbr></wbr>_seq</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#get_tok_dict" class="internal-link" title="DeepKS.tools.tensorize.get_tok_dict">get<wbr></wbr>_tok<wbr></wbr>_dict</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#package" class="internal-link" title="DeepKS.tools.tensorize.package">package</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#pad" class="internal-link" title="DeepKS.tools.tensorize.pad">pad</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#logger" class="internal-link" title="DeepKS.tools.tensorize.logger">logger</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Package</span>
+        <code><a href="DeepKS.tools.html" class="internal-link" title="The parent of this module">tools</a></code> 
+      </div>
+      
+      <div>
+        
+
+        <div class="childrenKindTitle">Modules</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.splash.html" class="internal-link" title="DeepKS.tools.splash">splash</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.bipartite_derangement.html" class="internal-link" title="DeepKS.tools.bipartite_derangement">bipartite<wbr></wbr>_derangement</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.custom_logging.html" class="internal-link" title="DeepKS.tools.custom_logging">custom<wbr></wbr>_logging</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.custom_tqdm.html" class="internal-link" title="DeepKS.tools.custom_tqdm">custom<wbr></wbr>_tqdm</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.custom_tree_maker.html" class="internal-link" title="DeepKS.tools.custom_tree_maker">custom<wbr></wbr>_tree<wbr></wbr>_maker</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.file_names.html" class="internal-link" title="DeepKS.tools.file_names">file<wbr></wbr>_names</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.formal_layers.html" class="internal-link" title="DeepKS.tools.formal_layers">formal<wbr></wbr>_layers</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.get_array_percentile.html" class="internal-link" title="DeepKS.tools.get_array_percentile">get<wbr></wbr>_array<wbr></wbr>_percentile</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.get_needle_pairwise.html" class="internal-link" title="DeepKS.tools.get_needle_pairwise">get<wbr></wbr>_needle<wbr></wbr>_pairwise</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.informative_tb.html" class="internal-link" title="DeepKS.tools.informative_tb">informative<wbr></wbr>_tb</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.legacy_plotting.html" class="internal-link" title="DeepKS.tools.legacy_plotting">legacy<wbr></wbr>_plotting</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.make_call_graph.html" class="internal-link" title="DeepKS.tools.make_call_graph">make<wbr></wbr>_call<wbr></wbr>_graph</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.make_call_graph_demonstrator.html" class="internal-link" title="DeepKS.tools.make_call_graph_demonstrator">make<wbr></wbr>_call<wbr></wbr>_graph<wbr></wbr>_demonstrator</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.model_utils.html" class="internal-link" title="DeepKS.tools.model_utils">model<wbr></wbr>_utils</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.nice_printer.html" class="internal-link" title="DeepKS.tools.nice_printer">nice<wbr></wbr>_printer</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.NNInterface.html" class="internal-link" title="DeepKS.tools.NNInterface"><wbr></wbr>NNInterface</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.parse.html" class="internal-link" title="DeepKS.tools.parse">parse</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.raw_score_to_prob.html" class="internal-link" title="DeepKS.tools.raw_score_to_prob">raw<wbr></wbr>_score<wbr></wbr>_to<wbr></wbr>_prob</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.roc_helpers.html" class="internal-link" title="DeepKS.tools.roc_helpers">roc<wbr></wbr>_helpers</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.schema_validation.html" class="internal-link" title="DeepKS.tools.schema_validation">schema<wbr></wbr>_validation</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.system_tools.html" class="internal-link" title="DeepKS.tools.system_tools">system<wbr></wbr>_tools</a></code>
+            </div>
+        
+
+    </li><li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.tensorize.html" class="internal-link" title="DeepKS.tools.tensorize">tensorize</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.Tuner.html" class="internal-link" title="DeepKS.tools.Tuner"><wbr></wbr>Tuner</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+        
+
+        
+         
+
+        
+         
+
+        
+         
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapseSideBar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <div id="main" class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="module"><code><code><a href="index.html" class="internal-link">DeepKS</a></code><wbr></wbr>.<code><a href="DeepKS.tools.html" class="internal-link" title="DeepKS.tools">tools</a></code><wbr></wbr>.<code><a href="DeepKS.tools.tensorize.html" class="internal-link" title="DeepKS.tools.tensorize">tensorize</a></code></code></h1>
+          <div id="showPrivate">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          module documentation
+        </div>
+
+        <div class="extrasDocstring">
+          
+          <p></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p>Functions to convert textual biological sequences into tensors for deep learning models.</p>
+</div>
+        </div>
+
+        <div id="splitTables">
+          <table class="children sortable" id="id149">
+  
+  
+  <tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#data_to_tensor" class="internal-link" title="DeepKS.tools.tensorize.data_to_tensor">data<wbr></wbr>_to<wbr></wbr>_tensor</a></code></td>
+    <td>Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#encode_label" class="internal-link" title="DeepKS.tools.tensorize.encode_label">encode<wbr></wbr>_label</a></code></td>
+    <td>Encode labels into a one-hot vector or leave as is</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#encode_seq" class="internal-link" title="DeepKS.tools.tensorize.encode_seq">encode<wbr></wbr>_seq</a></code></td>
+    <td>Encode a sequence into a list of integers</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#get_tok_dict" class="internal-link" title="DeepKS.tools.tensorize.get_tok_dict">get<wbr></wbr>_tok<wbr></wbr>_dict</a></code></td>
+    <td>Get a token dictionary from a dataset</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#package" class="internal-link" title="DeepKS.tools.tensorize.package">package</a></code></td>
+    <td>Take the data tensors and package them into <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset" class="intersphinx-link">torch.utils.data.Dataset</a></code> objects, and then <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code> objects.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#pad" class="internal-link" title="DeepKS.tools.tensorize.pad">pad</a></code></td>
+    <td>Pads a list of tokens to a given length.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#logger" class="internal-link" title="DeepKS.tools.tensorize.logger">logger</a></code></td>
+    <td>The logger for this module.</td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="childList">
+          <div class="basefunction">
+  
+  
+  <a name="DeepKS.tools.tensorize.data_to_tensor">
+    
+  </a>
+  <a name="data_to_tensor">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">data_to_tensor</span>(input_data, batch_size=256, mc=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, maxsize=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, tokdict=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, subsample_num=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, n_gram=1, device=<a href="https://pytorch.org/docs/stable/tensor_attributes.html#torch.device" class="intersphinx-link">torch.device</a>(<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>), cartesian_product=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, group_by=<span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>, kin_seq_to_group={}, bytes_per_input=1400000, bytes_per_input_multiplier=1):
+    
+    <a class="headerLink" href="#data_to_tensor" title="DeepKS.tools.tensorize.data_to_tensor">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">input<wbr></wbr>_data:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" class="intersphinx-link">pd.DataFrame</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>], <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]]]</code></td><td class="fieldArgDesc">Input dataframe of kinase/substrate data. If a string, it is assumed to be a path to a CSV file.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">batch<wbr></wbr>_size:</span><em>optional</em></td><td class="fieldArgDesc">Batch size for dataloader(s), by default 256.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">mc:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not to produce "multi_classification" output shape (i.e., labels are n_classes dimentional rather than 0-dimensional), by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">maxsize:</span><em>optional</em></td><td class="fieldArgDesc">The maximum size of an input kinase, by default None. If None, the maximum size is the length of the longest kinase in the dataset.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tokdict:</span><em>optional</em></td><td class="fieldArgDesc">A specific token dictionary to use, by default None. If None, a new token dictionary will be generated from the data.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">subsample<wbr></wbr>_num:</span><em>optional</em></td><td class="fieldArgDesc">The number of datapoints in <tt class="rst-docutils literal">input_data</tt>, to subsample, by default None. If None, no subsampling will be done.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">n<wbr></wbr>_gram:</span><em>optional</em></td><td class="fieldArgDesc">The n-gram length, by default 3</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">device:</span><em>optional</em></td><td class="fieldArgDesc">The device with which to use for the tensors, by default torch.device("cpu")</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cartesian<wbr></wbr>_product:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not the kinases and sites in <tt class="rst-docutils literal">input_data</tt> should have cartesian product performed on them, by default False. For example, if True and <tt class="rst-docutils literal">input_data</tt> has 2 kinases and 3 sites, the output will have 6 kinases and 6 sites. If false, the input data should have the same number of kinases and sites; this will be the number of kinases/sites in the output.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_by:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not the groups in the group classifier are classifying by site or kinase, by default "site"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq<wbr></wbr>_to<wbr></wbr>_group:</span><em>optional</em></td><td class="fieldArgDesc">_description_, by default {}</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">bytes<wbr></wbr>_per<wbr></wbr>_input:</span><em>optional</em></td><td class="fieldArgDesc">The number of bytes per input, by default 1_400_000</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">bytes<wbr></wbr>_per<wbr></wbr>_input<wbr></wbr>_multiplier:</span><em>optional</em></td><td class="fieldArgDesc">The multiplier for the number of bytes per input, by default 1. Used to increase the number of bytes per input, which is a "safety" measure to prevent OOM errors.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Generator" class="intersphinx-link">Generator</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]], <wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, <wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Yields</td></tr><tr><td colspan="2">A generator of tuples of dataloaders and metadata dictionaries.</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.tools.tensorize.encode_label">
+    
+  </a>
+  <a name="encode_label">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">encode_label</span>(labels, mode):
+    
+    <a class="headerLink" href="#encode_label" title="DeepKS.tools.tensorize.encode_label">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Encode labels into a one-hot vector or leave as is</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">labels:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The list of labels to encode</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">mode:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">mlt_cls</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">scalar</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">The mode to use for encoding. If <tt class="rst-docutils literal">mlt_cls</tt>, then the labels will be encoded into a one-hot vector. If <tt class="rst-docutils literal">scalar</tt>, then the labels will be left as is</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]], <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code></td><td class="fieldArgDesc">The encoded labels</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.tools.tensorize.encode_seq">
+    
+  </a>
+  <a name="encode_seq">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">encode_seq</span>(seq, mapping_dict):
+    
+    <a class="headerLink" href="#encode_seq" title="DeepKS.tools.tensorize.encode_seq">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Encode a sequence into a list of integers</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">seq:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The sequence to encode</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">mapping<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The mapping dictionary to use, which maps tokens to their indices</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The encoded sequence</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#AssertionError" class="intersphinx-link">AssertionError</a></code></td><td>If "&lt;N-GRAM&gt;" is not in <tt class="rst-docutils literal">mapping_dict</tt> or if <tt class="rst-docutils literal"><span class="pre">mapping_dict["&lt;N-GRAM&gt;"]</span></tt> is not an integer</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#AssertionError" class="intersphinx-link">AssertionError</a></code></td><td>If a provided token is not in <tt class="rst-docutils literal">mapping_dict</tt></td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.tools.tensorize.get_tok_dict">
+    
+  </a>
+  <a name="get_tok_dict">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_tok_dict</span>(data, n_gram=3, include_metadata=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    
+    <a class="headerLink" href="#get_tok_dict" title="DeepKS.tools.tensorize.get_tok_dict">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Get a token dictionary from a dataset</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">data:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" class="intersphinx-link">pd.DataFrame</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]]</code></td><td class="fieldArgDesc">The dataset to get the token dictionary from. Gets unique characters from <tt class="rst-docutils literal"><span class="pre">data["Kinase</span> Sequence"]</tt> and <tt class="rst-docutils literal"><span class="pre">data["Site</span> Sequence"]</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">n<wbr></wbr>_gram:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The n-gram size to use, by default 3</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">include<wbr></wbr>_metadata:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to include the metadata tokens <tt class="rst-docutils literal"><span class="pre">tok_dict["&lt;PADDING&gt;"]</span></tt> and <tt class="rst-docutils literal"><span class="pre">tok_dict["&lt;N-GRAM&gt;"]</span></tt> in the token dictionary, by default <code><a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a></code></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The token dictionary, mapping string tokens to their indices</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.tools.tensorize.package">
+    
+  </a>
+  <a name="package">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">package</span>(X_site, X_kin, y, data, ids, batch_size, group_by, num_partitions, max_kin_length, remapping_class_label_dict_inv, class_labels, tok_dict, desired_length=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, desired_chunk_pos=0):
+    
+    <a class="headerLink" href="#package" title="DeepKS.tools.tensorize.package">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Take the data tensors and package them into <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset" class="intersphinx-link">torch.utils.data.Dataset</a></code> objects, and then <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code> objects.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg"><wbr></wbr>X_site:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The site sequence data, in tensor form</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg"><wbr></wbr>X_kin:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The kinase sequence data, in tensor form</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">y:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The labels, in tensor form</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">data:</span><code><a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" class="intersphinx-link">pd.DataFrame</a>|<a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]</code></td><td class="fieldArgDesc">The original data passed to <code><a href="#data_to_tensor" class="internal-link" title="DeepKS.tools.tensorize.data_to_tensor">data_to_tensor</a></code></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">ids:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The indices of the data to use</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">batch<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The batch size to use</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_by:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not the groups in the group classifier are classifying by site or kinase, by default "site"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_partitions:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of partitions to be used</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">max<wbr></wbr>_kin<wbr></wbr>_length:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The maximum kinase sequence length</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">remapping<wbr></wbr>_class<wbr></wbr>_label<wbr></wbr>_dict<wbr></wbr>_inv:</span><code>(<a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]|<a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>|<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>])|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td><td class="fieldArgDesc">The remapping dictionary to use, that maps class integers back to their original labels. If <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>, then no remapping will be done</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">class<wbr></wbr>_labels:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>|<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The class labels that are used</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tok<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The token dictionary that was used</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">desired<wbr></wbr>_length:</span><em>optional</em></td><td class="fieldArgDesc">Desired length of a chunk, by default <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>. If <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>, then the entire dataset is used.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">desired<wbr></wbr>_chunk<wbr></wbr>_pos:</span><em>optional</em></td><td class="fieldArgDesc">Position (index) of the desired chunk within all the data, by default <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]]</code></td><td class="fieldArgDesc">dataloader, metadata dictionary</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.tools.tensorize.pad">
+    
+  </a>
+  <a name="pad">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">pad</span>(tok_list, max_len, map_dict):
+    
+    <a class="headerLink" href="#pad" title="DeepKS.tools.tensorize.pad">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Pads a list of tokens to a given length.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tok<wbr></wbr>_list:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The list of tokens to pad.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">max<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The length to pad to.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">map<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The dictionary mapping tokens to integers. In particular, the padding token should be mapped to an integer.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The padded list of tokens.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#AssertionError" class="intersphinx-link">AssertionError</a></code></td><td>If the padding token is not in the map_dict.</td></tr></table></div>
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.tools.tensorize.logger">
+    
+  </a>
+  <a name="logger">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">logger</span> =
+    
+    <a class="headerLink" href="#logger" title="DeepKS.tools.tensorize.logger">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The logger for this module.</p>
+</div>
+    
+  </div>
+</div>
+        </div>
+      
+      </div>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container">
+    <a href="index.html">API Documentation</a> for DeepKS,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    22.9.1 at 2023-05-02 16:53:57.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

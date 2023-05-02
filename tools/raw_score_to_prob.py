@@ -1,3 +1,6 @@
+"Module to help convert raw classifier scores into probabilities."
+
+
 from matplotlib.markers import MarkerStyle
 import inspect, numpy as np, warnings
 from typing import NoReturn, Union, Callable, Iterable

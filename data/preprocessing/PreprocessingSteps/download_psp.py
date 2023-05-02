@@ -1,13 +1,29 @@
+"""Downloads the most recent version of the PhosphoSitePlus database and saves it to an Excel file."""
+
 import requests, pandas as pd, gzip, io, re, os, json, pathlib
-from termcolor import colored
 
 from ....config.logging import get_logger
 
 logger = get_logger()
+"""The logger for this module."""
 if __name__ == "__main__":
     logger.status("Loading Modules")
 
 def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug.xlsx")):
+    """Downloads the most recent version of the PhosphoSitePlus database and saves it to an Excel file.
+
+    Parameters
+    ----------
+    redownload : bool, optional
+        Whether or not to redownload the excel file, by default False
+    outfile : tuple, optional
+        The save location for the PSP database, by default (outfile := "PSP_script_download_debug.xlsx")
+
+    Raises
+    ------
+    requests.HTTPError
+        If the download fails
+    """
     url = "https://www.phosphosite.org/downloads/Kinase_Substrate_Dataset.gz"
     if not os.path.exists("Kinase_Substrate_Dataset.gz") and not redownload:
         try:

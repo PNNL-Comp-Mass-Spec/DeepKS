@@ -18,11 +18,11 @@ def os_system_and_get_stdout(cmd: str, prepend: str = "", shell: str = "zsh") ->
     prepend : optional
         A string to prepend to each line of the output so we know where it came from.
     shell : optional
-        The shell to use, `zsh` by default.
+        The shell to use, ``zsh`` by default.
 
     Notes
     -----
-    Output line must contain `[@python_capture_output]` to be presented in output
+    Output line must contain ``[@python_capture_output]`` to be presented in output
 
 
     Returns

@@ -51,20 +51,39 @@ def join_first(levels: int = 1, x: Any = "/"):
         return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-heaviside_cutoff = lambda outputs, cutoff: torch.heaviside(
-    torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0])
-)
-"""A helper `lambda` to convert raw outputs to binary predictions
+def heaviside_cutoff(outputs: torch.Tensor, cutoff: float) -> torch.Tensor:
+    """A helper function to convert raw outputs to binary predictions
+
     Parameters
     ----------
-    outputs : torch.Tensor
+    outputs :
         The raw outputs
-    cutoff : float
+    cutoff :
         The cutoff to use
-"""
+
+    Returns
+    -------
+        The binary predictions
+    """
+    return torch.heaviside(torch.sigmoid(outputs.data.cpu()).cpu() - cutoff, values=torch.tensor([0.0]))
+
+
+def expand_metric(met: str) -> str:
+    """A helper function to expand a metric ("roc" or "acc") abbreviation to its full name
+
+    Parameters
+    ----------
+    met :
+        The metric to expand
+
+    Returns
+    -------
+        The expanded metric
+    """
+    return "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
+
 
 expand_metric = lambda met: "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
-"""A helper `lambda` to expand a metric ("roc" or "acc") abbreviation to its full name"""
 
 from ..config.logging import get_logger
 from ..tools.custom_logging import CustomLogger
@@ -134,7 +153,7 @@ class NNInterface:
             self.write_model_summary()
 
     def write_model_summary(self):
-        """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `self.model_summary_name`."""
+        """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""
         logger.info(f"Writing model summary to file {self.model_summary_name}.")
         self.model_summary_name = join_first(0, self.model_summary_name)
         if isinstance(self.model_summary_name, str):
@@ -171,7 +190,7 @@ class NNInterface:
                 )
                 + "\n"
             )
-            """The model summary as a string; the string representation of `self`"""
+            """The model summary as a string; the string representation of ``self``"""
             self.model_summary = ms
             """The model summary as a `torchinfo.summary.Summary` object"""
             torch.cuda.empty_cache()
@@ -215,9 +234,9 @@ class NNInterface:
         score :
             The resultant score
         metric :
-            The metric of `score`
+            The metric of ``score``
         print_every : int, optional
-            Returns after doing nothing if `batch_num % print_every != 0`, by default 1
+            Returns after doing nothing if ``batch_num % print_every != 0``, by default 1
         """
         if not (isinstance(batch_num, str) or batch_num % print_every == 0):
             return
@@ -245,37 +264,42 @@ class NNInterface:
         lr_decay_amount: float = 1.0,
         lr_decay_freq: int = 1,
         threshold: float = float("inf"),
-        val_dl: Union[torch.utils.data.DataLoader, None] = None,
+        val_dl: torch.utils.data.DataLoader | None = None,
         cutoff: float = 0.5,
         metric: Literal["roc", "acc"] = "roc",
         extra_description: str = "",
-        pass_through_scores: Union[dict, None] = None,
+        pass_through_scores: dict | None = None,
         **training_kwargs,
     ):
-        """Trains a `torch.nn.Module`-based neural network model.
+        """Trains a `torch.nn.Module` -based neural network model.
 
         Parameters
         ----------
-        loader_iterable : Generator[torch.utils.data.DataLoader, None, None]
-            A generator that yields `torch.utils.data.DataLoader`s
-        num_epochs : int, optional
+        loader_iterable :
+            A generator that yields `torch.utils.data.DataLoader` s
+        num_epochs : optional
             The number of epochs for which to train, by default 50
         lr_decay_amount : float, optional
-            The amount by which the learning rate will be multiplied for every `lr_decay_freq`'th epoch, by default 1.0
-        lr_decay_freq : int, optional
-            For an epoch this often, the learning rate gets multiplied by `lr_decay_amount`, by default 1
-        threshold : float, optional
+            The amount by which the learning rate will be multiplied for every ``lr_decay_freq``'th epoch, by default 1.0
+        lr_decay_freq : optional
+            For an epoch this often, the learning rate gets multiplied by ``lr_decay_amount``, by default 1
+        threshold : optional
             The training process will stop if the lowest loss encountered by a batch goes below this value, by default float("inf")
-        val_dl : Union[torch.utils.data.DataLoader, None], optional
+        val_dl : optional
             The validation `torch.utils.data.DataLoader`, by default `None`
-        cutoff : float, optional
-            If `metric` is `acc` the score cutoff for deciding label, by default 0.5
+        cutoff : optional
+            If ``metric`` is ``acc`` the score cutoff for deciding label, by default 0.5
         metric : optional
             The scoring metric, by default "roc"
-        extra_description : str, optional
+        extra_description :  optional
             An extra descriptor used to identify which data being trained, by default ""
-        pass_through_scores : Union[dict, None], optional
-            If a `dict`, an empty `dict` can be passed in here to collect the resultant validation score, as this function will map `extra_description` to the resultant validation score, by default `None`
+        pass_through_scores : optional
+            If a `dict`, an empty `dict` can be passed in here to collect the resultant validation score, as this function will map ``extra_description`` to the resultant validation score, by default `None`
+        training_kwargs : optional
+            Additional, option keyword arguments. They can be any of the following:
+                - ``loss_below``: The loss below which the training process ends early
+                - ``loss_chances``: The number of chances the loss has to go below ``loss_below`` before the training process ends early
+                - ``val_le``: In order to stop training early, the validation score must be less than this value
 
         Returns
         -------
@@ -430,7 +454,7 @@ class NNInterface:
         metric: Literal["roc", "acc"] = "roc",
         display_pb: bool = False,
     ) -> Tuple[list, list, list, list]:
-        """Obtains prediction from `self.model`, of a specified dataloader. Essentially a special case of `self.eval`.
+        """Obtains prediction from `model`, of a specified dataloader. Essentially a special case of `NNInterface.eval`.
 
         Parameters
         ----------
@@ -441,7 +465,7 @@ class NNInterface:
         total_chunks : int
             The total number of chunks we will be obtaining predictions for.
         cutoff : float, optional
-            If `metric` is `acc` the score cutoff for deciding label, by default 0.5
+            If ``metric`` is ``acc`` the score cutoff for deciding label, by default 0.5
         group : str, optional
             The group name we are obtaining predictions for, by default "UNKNOWN GROUP"
         metric : optional
@@ -481,7 +505,7 @@ class NNInterface:
         Raises
         ------
         NotImplementedError
-            If `self.criterion` does not have an implementated case in this function.
+            If `criterion` does not have an implementated case in this function.
         """
         predictions: np.ndarray
         match self.criterion:
@@ -508,22 +532,22 @@ class NNInterface:
         metric: typing.Literal["roc", "acc"] = "roc",
         display_pb: bool = False,
     ) -> Tuple[float, float, list[float], list[int], list[int]]:
-        """Obtains prediction from `self.model`, of a specified dataloader.
+        """Obtains prediction from `model`, of a specified dataloader.
 
         Parameters
         ----------
-        dataloader : torch.utils.data.DataLoader
+        dataloader :
             The dataloader to obtain predictions from.
-        cutoff : float, optional
-            If `metric` is `acc` the score cutoff for deciding label, by default 0.5
+        cutoff : optional
+            If ``metric`` is ``acc`` the score cutoff for deciding label, by default 0.5
         metric : optional
             The scoring metric, by default "roc"
-        display_pb : bool, optional
+        display_pb : optional
             Whether to display a progress bar, by default False
 
         Returns
         -------
-            Average performance across all batches of `dataloader`, average loss across all batches of `dataloader`, all output scores, all true labels (if legitimate true labels are put into `dataloader`), all predictions.
+            Average performance across all batches of ``dataloader``, average loss across all batches of ``dataloader``, all output scores, all true labels (if legitimate true labels are put into ``dataloader``), all predictions.
         """
         assert (
             type(self.criterion) == torch.nn.BCEWithLogitsLoss or type(self.criterion) == torch.nn.CrossEntropyLoss
@@ -645,12 +669,12 @@ class NNInterface:
 
     @staticmethod
     def get_input_size(dl: torch.utils.data.DataLoader, leave_out_last=True) -> list[list[int]]:
-        """Get the input size of tensors in a `DataLoader`.
+        """Get the input size of tensors in a `torch.utils.data.DataLoader`.
 
         Parameters
         ----------
         dl : torch.utils.data.DataLoader
-            The DataLoader to get the input size of.
+            The dataloader to get the input size of.
         leave_out_last : bool, optional
             Whether to leave out the last batch, as this may have a different size, by default True
 
@@ -669,7 +693,7 @@ class NNInterface:
 
     @staticmethod
     def get_input_types(dl: torch.utils.data.DataLoader, leave_out_last=True):
-        """Get the input types of tensors in a `DataLoader`.
+        """Get the input types of tensors in a `torch.utils.data.DataLoader`.
 
         Parameters
         ----------

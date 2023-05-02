@@ -8,7 +8,7 @@ os.chdir(where_am_i)
 import pandas as pd
 import sys
 from ....config import cfg
-from ....tools.bipartite_derangement import get_groups_derangement4
+from ....tools.bipartite_derangement import get_derangement
 import random
 import re
 import json
@@ -135,7 +135,7 @@ def get_input_dataframe_core(
         logger.warning("Computing derangement instead of using cache.")
         derangement = [
             x if x is not None else len(decoy)
-            for x in get_groups_derangement4(
+            for x in get_derangement(
                 order, sizes, kin_seq_file, distance_matrix_file, percentile, cache_derangement=True
             )
         ]

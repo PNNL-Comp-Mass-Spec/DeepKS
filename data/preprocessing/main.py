@@ -61,7 +61,7 @@ def step_1_download_psp(outfile="../raw_data/PSP_script_download.xlsx"):
 
 
 def step_2_download_uniprot():
-    """Wrapper for `PreprocessingSteps/ML_data_pipeline.R`."""
+    """Wrapper for ``PreprocessingSteps/ML_data_pipeline.R``."""
     if not DEBUGGING or 2 in perform_steps:
         logger.status("Step 2: Download sequences using the Uniprot REST API. Using R.")
         logger.status("Step 2a: Ensuring `Rscript` is in PATH.")

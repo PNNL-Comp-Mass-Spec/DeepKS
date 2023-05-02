@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>DeepKS.models.group_classifier_definitions.SKGroupClassifier</title>
+    <meta name="generator" content="pydoctor 22.9.1"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          DeepKS <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="search-help-button" title="Help" onclick="toggleSearchHelpText()"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div class="hint" id="search-help-box">
+          <p class="rst-last">
+      
+            Search bar offers the following options:
+            <ul>   
+                <li>
+                  <strong>Term presence.</strong> The below example searches for documents that 
+                    must contain “foo”, might contain “bar” and must not contain “baz”: <code>+foo bar -baz</code>
+                </li> 
+
+                <li>
+                  <strong>Wildcards.</strong> The below example searches for documents with words beginning with “foo”: <code>foo*</code>
+                </li> 
+
+                <li>
+                  <strong>Search in specific fields.</strong> The following search matches all objects 
+                  in "twisted.mail" that matches “search”: <code>+qname:twisted.mail.* +search</code>
+
+                  <p>
+                    Possible fields: 'name', 'qname' (fully qualified name), 'docstring', and 'kind'.
+                    Last two fields are only applicable if "search in docstrings" is enabled.
+                  </p>
+                </li>
+
+                <li>
+                  <strong>Fuzzy matches.</strong> The following search matches all documents 
+                  that have a word within 1 edit distance of “foo”: <code>foo~1</code>
+                </li>
+            </ul>
+
+          </p>
+        </div>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 8px;">
+          <p>Results provided by <a href="https://lunrjs.com">Lunr.js</a></p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Class</span>
+        <code class="thisobject"><a href="DeepKS.models.group_classifier_definitions.SKGroupClassifier.html" class="internal-link" title="This class"><wbr></wbr>SKGroup<wbr></wbr>Classifier</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Methods</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#k_fold_evaluation" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.k_fold_evaluation">k<wbr></wbr>_fold<wbr></wbr>_evaluation</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.test">test</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#__init__" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.__init__">__init__</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#make_confusion_matrix" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_confusion_matrix">make<wbr></wbr>_confusion<wbr></wbr>_matrix</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#make_roc" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_roc">make<wbr></wbr>_roc</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#predict" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.predict">predict</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Attributes</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#model" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.model">model</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#X_train" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.X_train"><wbr></wbr>X_train</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#y_train" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.y_train">y<wbr></wbr>_train</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code><a href="DeepKS.models.group_classifier_definitions.html" class="internal-link" title="The parent of this class">group<wbr></wbr>_classifier<wbr></wbr>_definitions</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        <div class="childrenKindTitle">Classes</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.AcceptableClassifier.html" class="internal-link" title="DeepKS.models.group_classifier_definitions.AcceptableClassifier"><wbr></wbr>Acceptable<wbr></wbr>Classifier</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.KNNGroupClassifier.html" class="internal-link" title="DeepKS.models.group_classifier_definitions.KNNGroupClassifier"><wbr></wbr>KNNGroup<wbr></wbr>Classifier</a></code>
+            </div>
+        
+
+    </li><li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.SKGroupClassifier.html" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier"><wbr></wbr>SKGroup<wbr></wbr>Classifier</a></code>
+            </div>
+        
+
+    </li>
+</ul>
+
+        <div class="childrenKindTitle">Functions</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#check_is_fitted" class="internal-link" title="DeepKS.models.group_classifier_definitions.check_is_fitted">check<wbr></wbr>_is<wbr></wbr>_fitted</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#confIntMean" class="internal-link" title="DeepKS.models.group_classifier_definitions.confIntMean">conf<wbr></wbr>Int<wbr></wbr>Mean</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#custom_run" class="internal-link" title="DeepKS.models.group_classifier_definitions.custom_run">custom<wbr></wbr>_run</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#factory" class="internal-link" title="DeepKS.models.group_classifier_definitions.factory">factory</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#get_coordinates" class="internal-link" title="DeepKS.models.group_classifier_definitions.get_coordinates">get<wbr></wbr>_coordinates</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#get_ML_sets" class="internal-link" title="DeepKS.models.group_classifier_definitions.get_ML_sets">get_<wbr></wbr>ML_sets</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#grid_search_no_cv" class="internal-link" title="DeepKS.models.group_classifier_definitions.grid_search_no_cv">grid<wbr></wbr>_search<wbr></wbr>_no<wbr></wbr>_cv</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#grid_search_worker" class="internal-link" title="DeepKS.models.group_classifier_definitions.grid_search_worker">grid<wbr></wbr>_search<wbr></wbr>_worker</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#my_product" class="internal-link" title="DeepKS.models.group_classifier_definitions.my_product">my<wbr></wbr>_product</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#perform_hyperparameter_tuning" class="internal-link" title="DeepKS.models.group_classifier_definitions.perform_hyperparameter_tuning">perform<wbr></wbr>_hyperparameter<wbr></wbr>_tuning</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#powerset" class="internal-link" title="DeepKS.models.group_classifier_definitions.powerset">powerset</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#run_hp_tuning" class="internal-link" title="DeepKS.models.group_classifier_definitions.run_hp_tuning">run<wbr></wbr>_hp<wbr></wbr>_tuning</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#MTX" class="internal-link" title="DeepKS.models.group_classifier_definitions.MTX">MTX</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#join_first" class="internal-link" title="DeepKS.models.group_classifier_definitions.join_first">join<wbr></wbr>_first</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#logger" class="internal-link" title="DeepKS.models.group_classifier_definitions.logger">logger</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#recluster" class="internal-link" title="DeepKS.models.group_classifier_definitions.recluster">recluster</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.models.group_classifier_definitions.html#where_am_i" class="internal-link" title="DeepKS.models.group_classifier_definitions.where_am_i">where<wbr></wbr>_am<wbr></wbr>_i</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapseSideBar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <div id="main" class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="class"><code><code><a href="index.html" class="internal-link">DeepKS</a></code><wbr></wbr>.<code><a href="DeepKS.models.html" class="internal-link" title="DeepKS.models">models</a></code><wbr></wbr>.<code><a href="DeepKS.models.group_classifier_definitions.html" class="internal-link" title="DeepKS.models.group_classifier_definitions">group_classifier_definitions</a></code><wbr></wbr>.<code><a href="DeepKS.models.group_classifier_definitions.SKGroupClassifier.html" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier">SKGroupClassifier</a></code></code></h1>
+          <div id="showPrivate">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          class documentation
+        </div>
+
+        <div class="extrasDocstring">
+          <p><code><span class="py-keyword">class</span> <span class="py-defname">SKGroupClassifier</span>:</code></p>
+          <p><a href="classIndex.html#DeepKS.models.group_classifier_definitions.SKGroupClassifier">View In Hierarchy</a></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p class="undocumented">Undocumented</p></div>
+        </div>
+
+        <div id="splitTables">
+          <table class="children sortable" id="id83">
+  
+  
+  <tr class="staticmethod">
+    
+    <td>Static Method</td>
+    <td><code><a href="#k_fold_evaluation" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.k_fold_evaluation">k<wbr></wbr>_fold<wbr></wbr>_evaluation</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="staticmethod">
+    
+    <td>Static Method</td>
+    <td><code><a href="#test" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.test">test</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#__init__" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.__init__">__init__</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#make_confusion_matrix" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_confusion_matrix">make<wbr></wbr>_confusion<wbr></wbr>_matrix</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#make_roc" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_roc">make<wbr></wbr>_roc</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#predict" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.predict">predict</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#model" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.model">model</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#X_train" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.X_train"><wbr></wbr>X_train</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#y_train" class="internal-link" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.y_train">y<wbr></wbr>_train</a></code></td>
+    <td><span class="undocumented">Undocumented</span></td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="childList">
+          <div class="basestaticmethod">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.k_fold_evaluation">
+    
+  </a>
+  <a name="k_fold_evaluation">
+    
+  </a>
+  <div class="functionHeader">
+    @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
+    <span class="py-keyword">def</span> <span class="py-defname">k_fold_evaluation</span>(model, X, y, k=5):
+    
+    <a class="headerLink" href="#k_fold_evaluation" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.k_fold_evaluation">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basestaticmethod">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.test">
+    
+  </a>
+  <a name="test">
+    
+  </a>
+  <div class="functionHeader">
+    @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
+    <span class="py-keyword">def</span> <span class="py-defname">test</span>(true, pred, pass_through=[<wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]):
+    
+    <a class="headerLink" href="#test" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.test">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, X_train, y_train, classifier, hyperparameters={}):
+    
+    <a class="headerLink" href="#__init__" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.__init__">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg"><wbr></wbr>X_train</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">y<wbr></wbr>_train</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">classifier:</span><code><a href="https://docs.python.org/3/library/functions.html#type" class="intersphinx-link">type</a>[<wbr></wbr><a href="DeepKS.models.group_classifier_definitions.AcceptableClassifier.html" class="internal-link" title="DeepKS.models.group_classifier_definitions.AcceptableClassifier">AcceptableClassifier</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">hyperparameters</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_confusion_matrix">
+    
+  </a>
+  <a name="make_confusion_matrix">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">make_confusion_matrix</span>(self, X_test, y_test, fig_kwargs={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">figsize</span><span class="rst-variable-quote">'</span>: (<wbr></wbr>10, <wbr></wbr>10)}, filename=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <a class="headerLink" href="#make_confusion_matrix" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_confusion_matrix">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_roc">
+    
+  </a>
+  <a name="make_roc">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">make_roc</span>(self, X_test, y_test, fig_kwargs={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">figsize</span><span class="rst-variable-quote">'</span>: (<wbr></wbr>10, <wbr></wbr>10)}, filename=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <a class="headerLink" href="#make_roc" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.make_roc">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.predict">
+    
+  </a>
+  <a name="predict">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">predict</span>(self, X_test):
+    
+    <a class="headerLink" href="#predict" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.predict">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.model">
+    
+  </a>
+  <a name="model">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">model</span> =
+    
+    <a class="headerLink" href="#model" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.model">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.X_train">
+    
+  </a>
+  <a name="X_train">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">X_train</span> =
+    
+    <a class="headerLink" href="#X_train" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.X_train">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.models.group_classifier_definitions.SKGroupClassifier.y_train">
+    
+  </a>
+  <a name="y_train">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">y_train</span> =
+    
+    <a class="headerLink" href="#y_train" title="DeepKS.models.group_classifier_definitions.SKGroupClassifier.y_train">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p class="undocumented">Undocumented</p></div>
+    
+  </div>
+</div>
+        </div>
+      
+      </div>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container">
+    <a href="index.html">API Documentation</a> for DeepKS,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    22.9.1 at 2023-05-02 16:53:57.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

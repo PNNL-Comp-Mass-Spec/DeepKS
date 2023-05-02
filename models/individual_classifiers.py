@@ -111,7 +111,7 @@ class IndividualClassifiers:
         grp_to_model_args : dict[str, dict[str, Any]]
             A dictionary mapping group names to dictionaries of model-related arguments (hyperparameters).
         grp_to_interface_args : dict[str, dict[str, Any]]
-            A dictionary mapping group names to dictionaries of `..tools.NNInterface.NNInterface`-related arguments.
+            A dictionary mapping group names to dictionaries of `NNInterface`-related arguments.
         grp_to_training_args : dict[str, dict[str, Any]]
             A dictionary mapping group names to dictionaries of training-related arguments.
         device : str
@@ -473,23 +473,19 @@ class IndividualClassifiers:
         Parameters
         ----------
             addl_args :
-                Additional arguments outside of `self.args` to be passed in.
-            pred_groups :
-                Dict mapping kinase symbol to predicted group
-            true_groups :
-                Dict mapping kinase symbol to ground truth group
+                Additional arguments outside of `args` to be passed in.
             predict_mode :
                 Whether or not to run in pure prediction mode
             get_emp_eqn : optional
                 Whether or not to get empirical equation mapping raw score to empirical probability, by default True
             emp_eqn_kwargs : optional
-                Arguments for the empirical equation, by default `{"plot_emp_eqn": True, "print_emp_eqn": True}`
+                Arguments for the empirical equation, by default ``{"plot_emp_eqn": True, "print_emp_eqn": True}``
             cartesian_product : optional
                 Whether or not to use cartesian product (i.e., cross product of sites and kinases), by default False
 
         Raises
         ------
-            ValueError: If neither `test` nor `test_json` is specified in `addl_args`.
+            ValueError: If neither ``test`` nor ``test_json`` is specified in ``addl_args``.
 
         Returns
         -------
@@ -591,7 +587,7 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
     Raises
     ------
     ValueError
-        If the `--pre-trained-gc` argument is not passed in.
+        If the ``--pre-trained-gc`` argument is not passed in.
 
     """
     logger.status("Parsing Args")

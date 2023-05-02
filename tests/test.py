@@ -429,7 +429,7 @@ non_r_suite = unittest.TestSuite()
 """Suite of all tests that test the non-R functionality."""
 
 testloader = unittest.TestLoader()
-"""Test loader for all tests. Just using `loadTestsFromTestCase`."""
+"""Test loader for all tests. Just using `unittest.TestLoader.loadTestsFromTestCase`."""
 
 api_suite.addTests(
     [

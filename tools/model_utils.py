@@ -1,3 +1,5 @@
+"""Contains various useful functions for working with models (specifically CNNs) and data"""
+
 import warnings, json, pandas as pd, numpy as np
 from matplotlib.pyplot import figure, rcParams
 from matplotlib import colors, pyplot as plt, cm
@@ -13,14 +15,9 @@ rcParams["font.family"] = "monospace"
 rcParams["font.size"] = "8"
 
 
-class dataUtils:
-    @staticmethod
-    def get_multiple_folds(dataloader):
-        pass
-
-
 class cNNUtils:
-    @staticmethod
+    """General useful utilities for working with CNNs"""
+
     @staticmethod
     def id_params(config, db_file="../architectures/HP_config_DB.tsv", index_column=0):
         db = pd.read_csv(db_file, sep="\t")
@@ -36,60 +33,118 @@ class cNNUtils:
         return res
 
     @staticmethod
-    def output_shape(width, height, kernel_size, stride=1, pad=0, dilation=1):
-        """
-        Based on https://discuss.pytorch.org/t/utility-function-for-calculating-the-shape-of-a-conv-output/11173/5?
+    def output_shape(length: int, kernel_size: int, stride: int = 1, pad: int = 0, dilation: int = 1) -> int:
+        """Calculate the output shape of a dimension (W, H, or D) for a convolutional layer.
+
+        Parameters
+        ----------
+        length : int
+            The length of the input
+        kernel_size : int
+            The size of the kernel
+        stride : int, optional
+            The stride of the convolution, by default 1
+        pad : int, optional
+            The padding of the convolution, by default 0
+        dilation : int, optional
+            The dilation of the convolution, by default 1
+
+        Returns
+        -------
+        int :
+            The width of the output image
+
+        Notes
+        -----
+            Based on https://discuss.pytorch.org/t/utility-function-for-calculating-the-shape-of-a-conv-output/11173/5
         """
         try:
-            w_h = (width, height)
-            if not isinstance(kernel_size, tuple):
-                kernel_size = (kernel_size, kernel_size)
-            if not isinstance(stride, tuple):
-                stride = (stride, stride)
-            if not isinstance(pad, tuple):
-                pad = (pad, pad)
-            w = floor(((w_h[0] + (2 * pad[0]) - (dilation * (kernel_size[0] - 1)) - 1) / stride[0]) + 1)
-            h = floor(((w_h[1] + (2 * pad[1]) - (dilation * (kernel_size[1] - 1)) - 1) / stride[1]) + 1)
-            return w, h
+            return floor(((length + (2 * pad) - (dilation * (kernel_size - 1)) - 1) / stride) + 1)
         except ZeroDivisionError as zde:
             print(zde, flush=True)
             warnings.warn("ZeroDivisionError in output_shape")
-            return 0, 0
+            return 0
 
     @staticmethod
     def desired_conv_then_pool_shape(
-        input_width,
-        input_height,
-        desired_width,
-        desired_height,
-        kernel_size=None,
-        stride=None,
-        dilation=1,
-        pad=0,
-        conv_stride=1,
-        err_message="",
-    ):
-        if input_height is None:
-            input_height = input_width
-        if desired_height is None:
-            desired_height = desired_width
-        after_conv_w, after_conv_h = cNNUtils.output_shape(
-            input_width, input_height, kernel_size, conv_stride, pad, dilation
-        )
-        return cNNUtils.desired_output_shape(
-            after_conv_w,
-            after_conv_h,
-            desired_width,
-            desired_height,
-            kernel_size=kernel_size,
-            stride=stride,
-            err_message=err_message,
-            pad=pad,
-            dilation=dilation,
-        )
+        length: int,
+        desired_length: int,
+        kernel_size: int = 10,
+        dilation: int = 1,
+        pad: int = 0,
+        conv_stride: int = 1,
+        err_message: str = "",
+    ) -> int:
+        """Calculate the stride for a pooling layer if it follows a convolutional layer to get a desired output shape.
+
+        Parameters
+        ----------
+        length : int
+            The input length (unconvolved)
+        desired_length : int
+            The desired output length (after convolution and pooling)
+        kernel_size : int, optional
+            The kernel for the convolution, by default 10. (The kernel for the pooling is assumed to be the same as the resultant stride)
+        dilation : int, optional
+            The convolutional dilation, by default 1
+        pad : int, optional
+            The convolutional padding, by default 0
+        conv_stride : int, optional
+            The stride for the convolution, by default 1
+        err_message : str, optional
+            The error message to print if no stride can be found that satisfies the input constraints, by default ""
+
+        Returns
+        -------
+            The pooling stride that will result in the desired output shape
+
+        Raises
+        ------
+        ValueError
+            If no stride can be found that satisfies the input constraints
+        """
+        after_conv = cNNUtils.output_shape(length, kernel_size, conv_stride, pad, dilation)
+        values_to_check = [after_conv, after_conv + 1 - 1e-6]
+
+        stride_range = []
+        for l in values_to_check:
+            stride = (l + 2 * pad - 1 + dilation) / (desired_length - 1 + dilation)
+            stride_range.append(stride)
+
+        stride_res = 0
+        for i in [0, 1]:
+            if stride_range[0][i] < 1 or (
+                stride_range[0][i] - stride_range[1][i] < 1
+                and int(stride_range[1][i]) == int(stride_range[0][i])
+                and stride_range[1][i] != int(stride_range[1][i])
+            ):
+                raise ValueError(
+                    "There is no stride for which the output shape equals the desired shape --"
+                    f" {desired_length} with the given kernel"
+                    f" {kernel_size} ({err_message}). Some close by alternative output lengths are:"
+                    f" {cNNUtils.close_by_out_sizes(after_conv, desired_length)}"
+                )
+
+            else:
+                stride_res = max(1, ceil(stride_range[i]))
+
+        return stride_res
 
     @staticmethod
-    def close_by_out_sizes(base_len, desired_out):
+    def close_by_out_sizes(base_len: int, desired_out: int) -> list[int]:
+        """Get a list of output sizes that are close to the desired output size.
+
+        Parameters
+        ----------
+        base_len :
+            The length of the input
+        desired_out :
+            The desired output length
+
+        Returns
+        -------
+            List of output sizes that are close to the desired output size
+        """
         possible = set()
         spread = 10
         upper = desired_out + spread
@@ -103,142 +158,25 @@ class cNNUtils:
             lower -= spread
         return sorted(list(possible))
 
-    @staticmethod
-    def desired_output_shape(
-        input_width,
-        input_height,
-        desired_width,
-        desired_height,
-        kernel_size=None,
-        stride=None,
-        dilation: Union[int, None] = 1,
-        pad: Union[int, tuple[int, int]] = 0,
-        err_message="",
-    ):
-        if not isinstance(kernel_size, tuple):
-            kernel_size = (kernel_size, kernel_size)
-        if not isinstance(stride, tuple):
-            stride = (stride, stride)
-        if isinstance(pad, int):
-            pad_tuple: tuple[int, int] = (pad, pad)
-        else:
-            pad_tuple = pad
-        # if kernel_size not in [None, (None, None)] and stride not in [None, (None, None)]:
-        #     raise RuntimeError("Cannot specify both kernel size and stride.")
-        # if kernel_size in [None, (None, None)] and stride in [None, (None, None)]:
-        #     raise RuntimeError("Must specify one of kernel size or stride.")
-        if dilation is None:
-            raise RuntimeError("Must specify dilation.")
-        if pad_tuple == (None, None):
-            raise RuntimeError("Must specify pad.")
-        if input_height is None:
-            input_height = input_width
-        if desired_height is None:
-            desired_height = desired_width
-
-        assert int(desired_width) == desired_width
-        desired_width = int(desired_width)
-        assert int(desired_height) == desired_height
-        desired_height = int(desired_height)
-
-        values_to_check_w = [desired_width, desired_width + 1 - 1e-6]
-        values_to_check_h = [desired_height, desired_height + 1 - 1e-6]
-
-        # input_width, input_height = cNNUtils.output_shape(input_width, input_height, kernel_size, 1, pad, dilation)
-
-        # if kernel_size in [None, (None, None)]: # specified stride, need to obtain kernel size
-        #     raise RuntimeError("Not implemented yet.")
-        #     # kernel_range = []
-        #     # for desired_w, desired_h in zip(values_to_check_w, values_to_check_h):
-        #     #     k_w = ((stride * (desired_w - 1) - input_width - 2 * pad[0] + 1)/dilation) + 1
-        #     #     k_h = ((stride * (desired_h - 1) - input_height - 2 * pad[1] + 1)/dilation) + 1
-        #     #     kernel_range.append((k_w, k_h))
-
-        #     # kernel_res = []
-        #     # for i in [0, 1]:
-        #     #     if kernel_range[1][i] < 1 or (kernel_range[1][i] - kernel_range[0][i] < 1 and int(kernel_range[0][i]) == int(kernel_range[1][i]) and stride_range[0][i] != int(stride_range[0][i])):
-        #     #         raise RuntimeError("There is no kernel for which the output shape equals the desired shape. ")
-        #     #         return None, None
-        #     #     else:
-        #     #         kernel_res[i] = max(1, ceil(kernel_range[1][i]))
-        #     #         kernel_res[i] = max(1, ceil(kernel_range[1][i]))
-
-        #     # return tuple(kernel_res)
-
-        if stride in [None, (None, None)]:  # specified kernel size, need to obtain stride size
-            stride_range = []
-            for desired_w, desired_h in zip(values_to_check_w, values_to_check_h):
-                s_w = (input_width + 2 * pad_tuple[0] - 1 + dilation) / (desired_w - 1 + dilation)
-                s_h = (input_height + 2 * pad_tuple[1] - 1 + dilation) / (desired_h - 1 + dilation)
-                stride_range.append((s_w, s_h))
-
-            stride_res = [0, 0]
-            for i in [0, 1]:
-                if stride_range[0][i] < 1 or (
-                    stride_range[0][i] - stride_range[1][i] < 1
-                    and int(stride_range[1][i]) == int(stride_range[0][i])
-                    and stride_range[1][i] != int(stride_range[1][i])
-                ):
-                    raise ValueError(
-                        "There is no stride for which the output shape equals the desired shape --"
-                        f" {(values_to_check_w[0], values_to_check_h[0])} with the given kernel"
-                        f" {kernel_size} ({err_message}). Some close by alternative output lengths are:"
-                        f" {cNNUtils.close_by_out_sizes(input_width, desired_width)}"
-                    )
-
-                else:
-                    stride_res[i] = max(1, ceil(stride_range[1][i]))
-                    stride_res[i] = max(1, ceil(stride_range[1][i]))
-        else:
-            raise RuntimeError(colored("Not Implemented", "r"))
-
-        return stride_res
-
-
-class KSDatasetSiamese(Dataset):
-    def __init__(self, data, target, siamese, class_):
-        self.data = data
-        self.target = target
-        self.siamese = siamese
-        self.class_ = class_
-        assert len(self.data) == len(self.target) == len(self.class_) == len(siamese)
-
-    def __getitem__(self, index):
-        return (self.data[index], self.target[index], self.siamese[index], self.class_[index])
-
-    def __len__(self):
-        return len(self.data)
-
 
 class KSDataset(Dataset):
-    def __init__(self, data, target, class_):
-        self.data = data
-        self.target = target
+    """Dataset for the Kinase - Substrate data."""
+
+    def __init__(self, encoded_site, encoded_kinase, class_):
+        self.encoded_site = encoded_site
+        self.encoded_kinase = encoded_kinase
         self.class_ = class_
-        assert (data is None and target is None and class_ is None) or (
-            len(self.data) == len(self.target) == len(self.class_)
+        assert (encoded_site is None and encoded_kinase is None and class_ is None) or (
+            len(self.encoded_site) == len(self.encoded_kinase) == len(self.class_)
         )
 
     def __getitem__(self, index):
-        return (self.data[index], self.target[index], self.class_[index])
+        return (self.encoded_site[index], self.encoded_kinase[index], self.class_[index])
 
     def __len__(self):
-        if self.data is None:
+        if self.encoded_site is None:
             return 0
-        return len(self.data)
-
-
-class KGroupDataset(Dataset):
-    def __init__(self, sequence, class_):
-        self.sequence = sequence
-        self.class_ = class_
-        assert len(self.sequence) == len(self.class_)
-
-    def __getitem__(self, index):
-        return (self.sequence[index], self.class_[index])
-
-    def __len__(self):
-        return len(self.sequence)
+        return len(self.encoded_site)
 
 
 def make_plot(main_fn, fn):

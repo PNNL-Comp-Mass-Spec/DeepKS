@@ -1,4 +1,7 @@
+"""Contains logging and printing functions that draw from `DeepKS.tools.custom_logging` and `DeepKS.tools.splash`."""
+
 from ..tools import custom_logging
+from ..tools.splash.write_splash import write_splash
 import pathlib, os, json
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
@@ -7,12 +10,14 @@ import warnings
 
 
 def splash(splash_file):
-    from ..tools.splash.write_splash import write_splash
+    """Wrapper for `write_splash`. Same Parameters."""
 
     write_splash(splash_file)
 
 
 def get_logger():
+    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file.
+    """
     try:
         with open(join_first(1, __file__)) as f:
             kwargs = json.load(f)

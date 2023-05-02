@@ -1,3 +1,5 @@
+"""Module to perform hyperparameter tuning on `torch.nn.Module` -based neural networks."""
+
 import collections
 import multiprocessing, itertools, random, time, os, sigfig, signal, warnings, re, json, pathlib, functools
 import pandas as pd
@@ -15,11 +17,31 @@ from ..config.logging import get_logger
 from .file_names import get as get_file_name
 
 logger = get_logger()
+"""The logger for this module."""
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-def sigfig_iter(iterable, sigfigs=3):
+def sigfig_iter(iterable: Iterable, sigfigs: int = 3):
+    """Rounds all floats in an iterable to a certain number of significant figures.
+
+    Parameters
+    ----------
+    iterable :
+        The iterable to round.
+    sigfigs : int, optional
+        The number of significant figures to round the elements to, by default 3
+
+    Returns
+    -------
+    list
+        The rounded iterable.
+
+    Raises
+    ------
+    ValueError
+        If the iterable contains non-floats.
+    """
     res = []
     for x in iterable:
         if isinstance(x, float):
@@ -183,7 +205,7 @@ class Tuner(Protocol):
 ####### Specific Tuner(s) Below #######
 
 
-class SimpleTuner(Tuner):
+class BasicTuner(Tuner):
     def __init__(
         self,
         num_sim_procs,
@@ -383,16 +405,16 @@ if __name__ == "__main__":
 
     setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 
-    cnn_kin_one_layer_options = SimpleTuner.get_one_layer_cnn(
+    cnn_kin_one_layer_options = BasicTuner.get_one_layer_cnn(
         4128, *[np.unique(np.logspace(3, 7, 5, base=2, dtype=int))] * 3
     )
-    cnn_site_one_layer_options = SimpleTuner.get_one_layer_cnn(
+    cnn_site_one_layer_options = BasicTuner.get_one_layer_cnn(
         15, list(range(1, 16, 3)), list(range(1, 16, 3)), np.unique(np.logspace(4, 8, 5, base=2, dtype=int))
     )
 
     model_params = {
         "model_class": ["KinaseSubstrateRelationshipLSTM"],
-        "linear_layer_sizes": SimpleTuner.ll_sizes(),
+        "linear_layer_sizes": BasicTuner.ll_sizes(),
         "emb_dim_kin": [4, 24, 44, 64, 84],
         "emb_dim_site": [4, 24, 44, 64, 84],
         "dropout_pr": [0, 0.1, 0.3, 0.5, 0.7],
@@ -446,7 +468,7 @@ if __name__ == "__main__":
         "NON-TK",
     ]
 
-    st = SimpleTuner(
+    st = BasicTuner(
         num_sim_procs=1,
         train_fn=train_main,
         config_dict=all_params,

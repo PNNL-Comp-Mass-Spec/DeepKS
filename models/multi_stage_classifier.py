@@ -560,7 +560,7 @@ def efficient_to_csv(data_dict: dict, outfile: str):
 
     Notes
     -----
-    Because `data_dict` is a dictionary of lists, the lists must all be the same length. If they are not, an `AssertionError` will be raised.
+    Because ``data_dict`` is a dictionary of lists, the lists must all be the same length. If they are not, an `AssertionError` will be raised.
     """
     assert all([isinstance(x, list) for x in data_dict.values()])
     headers = ",".join(data_dict.keys())

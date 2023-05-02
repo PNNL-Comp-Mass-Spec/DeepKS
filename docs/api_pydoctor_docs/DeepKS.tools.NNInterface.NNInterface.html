@@ -1,0 +1,1177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>DeepKS.tools.NNInterface.NNInterface</title>
+    <meta name="generator" content="pydoctor 22.9.1"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          DeepKS <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="search-help-button" title="Help" onclick="toggleSearchHelpText()"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div class="hint" id="search-help-box">
+          <p class="rst-last">
+      
+            Search bar offers the following options:
+            <ul>   
+                <li>
+                  <strong>Term presence.</strong> The below example searches for documents that 
+                    must contain “foo”, might contain “bar” and must not contain “baz”: <code>+foo bar -baz</code>
+                </li> 
+
+                <li>
+                  <strong>Wildcards.</strong> The below example searches for documents with words beginning with “foo”: <code>foo*</code>
+                </li> 
+
+                <li>
+                  <strong>Search in specific fields.</strong> The following search matches all objects 
+                  in "twisted.mail" that matches “search”: <code>+qname:twisted.mail.* +search</code>
+
+                  <p>
+                    Possible fields: 'name', 'qname' (fully qualified name), 'docstring', and 'kind'.
+                    Last two fields are only applicable if "search in docstrings" is enabled.
+                  </p>
+                </li>
+
+                <li>
+                  <strong>Fuzzy matches.</strong> The following search matches all documents 
+                  that have a word within 1 edit distance of “foo”: <code>foo~1</code>
+                </li>
+            </ul>
+
+          </p>
+        </div>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 8px;">
+          <p>Results provided by <a href="https://lunrjs.com">Lunr.js</a></p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Class</span>
+        <code class="thisobject"><a href="DeepKS.tools.NNInterface.NNInterface.html" class="internal-link" title="This class"><wbr></wbr>NNInterface</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Methods</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#get_input_size" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.get_input_size">get<wbr></wbr>_input<wbr></wbr>_size</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#get_input_types" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.get_input_types">get<wbr></wbr>_input<wbr></wbr>_types</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#__init__" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.__init__">__init__</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#__str__" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.__str__">__str__</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#eval" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.eval">eval</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#predict" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.predict">predict</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#report_progress" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.report_progress">report<wbr></wbr>_progress</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#save_eval_results" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.save_eval_results">save<wbr></wbr>_eval<wbr></wbr>_results</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#test" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.test">test</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#train" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.train">train</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#write_model_summary" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.write_model_summary">write<wbr></wbr>_model<wbr></wbr>_summary</a></code>
+            </div>
+        
+
+    </li><li class="private">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#_get_acc_or_auc_and_predictions" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface._get_acc_or_auc_and_predictions">_get<wbr></wbr>_acc<wbr></wbr>_or<wbr></wbr>_auc<wbr></wbr>_and<wbr></wbr>_predictions</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Attributes</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#criterion" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.criterion">criterion</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#device" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.device">device</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#inp_size" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.inp_size">inp<wbr></wbr>_size</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#inp_types" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.inp_types">inp<wbr></wbr>_types</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#model" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model">model</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#model_summary" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model_summary">model<wbr></wbr>_summary</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#model_summary_name" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model_summary_name">model<wbr></wbr>_summary<wbr></wbr>_name</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#optimizer" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.optimizer">optimizer</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#representation" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.representation">representation</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code><a href="DeepKS.tools.NNInterface.html" class="internal-link" title="The parent of this class"><wbr></wbr>NNInterface</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        <div class="childrenKindTitle">Classes</div>
+        <ul>
+    
+    <li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.NNInterface.NNInterface.html" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface"><wbr></wbr>NNInterface</a></code>
+            </div>
+        
+
+    </li>
+</ul>
+
+        <div class="childrenKindTitle">Functions</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.NNInterface.html#expand_metric" class="internal-link" title="DeepKS.tools.NNInterface.expand_metric">expand<wbr></wbr>_metric</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.NNInterface.html#heaviside_cutoff" class="internal-link" title="DeepKS.tools.NNInterface.heaviside_cutoff">heaviside<wbr></wbr>_cutoff</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.NNInterface.html#join_first" class="internal-link" title="DeepKS.tools.NNInterface.join_first">join<wbr></wbr>_first</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.NNInterface.html#logger" class="internal-link" title="DeepKS.tools.NNInterface.logger">logger</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapseSideBar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <div id="main" class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="class"><code><code><a href="index.html" class="internal-link">DeepKS</a></code><wbr></wbr>.<code><a href="DeepKS.tools.html" class="internal-link" title="DeepKS.tools">tools</a></code><wbr></wbr>.<code><a href="DeepKS.tools.NNInterface.html" class="internal-link" title="DeepKS.tools.NNInterface">NNInterface</a></code><wbr></wbr>.<code><a href="DeepKS.tools.NNInterface.NNInterface.html" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface">NNInterface</a></code></code></h1>
+          <div id="showPrivate">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          class documentation
+        </div>
+
+        <div class="extrasDocstring">
+          <p><code><span class="py-keyword">class</span> <span class="py-defname">NNInterface</span>:</code></p>
+          <p><a href="classIndex.html#DeepKS.tools.NNInterface.NNInterface">View In Hierarchy</a></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p>A flexible class that allows for training, validation, testing, and summarization of a <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code>-based neural network</p>
+</div>
+        </div>
+
+        <div id="splitTables">
+          <table class="children sortable" id="id104">
+  
+  
+  <tr class="staticmethod">
+    
+    <td>Static Method</td>
+    <td><code><a href="#get_input_size" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.get_input_size">get<wbr></wbr>_input<wbr></wbr>_size</a></code></td>
+    <td>Get the input size of tensors in a <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code>.</td>
+  </tr><tr class="staticmethod">
+    
+    <td>Static Method</td>
+    <td><code><a href="#get_input_types" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.get_input_types">get<wbr></wbr>_input<wbr></wbr>_types</a></code></td>
+    <td>Get the input types of tensors in a <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code>.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#__init__" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.__init__">__init__</a></code></td>
+    <td>Initializes the NNInterface class</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#__str__" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.__str__">__str__</a></code></td>
+    <td>Gets the model summary as a string by using <code>torchinfo.summary</code> and returns it.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#eval" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.eval">eval</a></code></td>
+    <td>Obtains prediction from <code><a href="DeepKS.tools.NNInterface.NNInterface.html#model" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model">model</a></code>, of a specified dataloader.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#predict" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.predict">predict</a></code></td>
+    <td>Obtains prediction from <code><a href="DeepKS.tools.NNInterface.NNInterface.html#model" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model">model</a></code>, of a specified dataloader. Essentially a special case of <code><a href="DeepKS.tools.NNInterface.NNInterface.html#eval" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.eval">NNInterface.eval</a></code>.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#report_progress" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.report_progress">report<wbr></wbr>_progress</a></code></td>
+    <td>Reports the progress of the training/validation process, including the loss, score, and metric.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#save_eval_results" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.save_eval_results">save<wbr></wbr>_eval<wbr></wbr>_results</a></code></td>
+    <td>Save evaluation results to a JSON file.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#test" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.test">test</a></code></td>
+    <td>Returns: list of predictions, list of outputs, list of ground-truth labels</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#train" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.train">train</a></code></td>
+    <td>Trains a <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code> -based neural network model.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#write_model_summary" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.write_model_summary">write<wbr></wbr>_model<wbr></wbr>_summary</a></code></td>
+    <td>Writes the model summary (calls <code><a href="DeepKS.tools.NNInterface.NNInterface.html#__str__" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.__str__">NNInterface.__str__</a></code>) to a file specified by <code><a href="DeepKS.tools.NNInterface.NNInterface.html#model_summary_name" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model_summary_name">model_summary_name</a></code>.</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#criterion" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.criterion">criterion</a></code></td>
+    <td>The loss function to use</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#device" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.device">device</a></code></td>
+    <td>The device with which to compute</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#inp_size" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.inp_size">inp<wbr></wbr>_size</a></code></td>
+    <td>The input shape for the model</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#inp_types" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.inp_types">inp<wbr></wbr>_types</a></code></td>
+    <td>The input types for the model</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#model" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model">model</a></code></td>
+    <td>The model to train</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#model_summary" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model_summary">model<wbr></wbr>_summary</a></code></td>
+    <td>The model summary as a <code>torchinfo.summary.Summary</code> object</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#model_summary_name" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model_summary_name">model<wbr></wbr>_summary<wbr></wbr>_name</a></code></td>
+    <td>The name of the file to write the model summary to</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#optimizer" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.optimizer">optimizer</a></code></td>
+    <td>The optimizer to use</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#representation" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.representation">representation</a></code></td>
+    <td>The model summary as a string; the string representation of <tt class="rst-docutils literal">self</tt></td>
+  </tr><tr class="method private">
+    
+    <td>Method</td>
+    <td><code><a href="#_get_acc_or_auc_and_predictions" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface._get_acc_or_auc_and_predictions">_get<wbr></wbr>_acc<wbr></wbr>_or<wbr></wbr>_auc<wbr></wbr>_and<wbr></wbr>_predictions</a></code></td>
+    <td>Obtains the accuracy or AUC score, and predictions, from a set of outputs and labels.</td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="childList">
+          <div class="basestaticmethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.get_input_size">
+    
+  </a>
+  <a name="get_input_size">
+    
+  </a>
+  <div class="functionHeader">
+    @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
+    <span class="py-keyword">def</span> <span class="py-defname">get_input_size</span>(dl, leave_out_last=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>):
+    
+    <a class="headerLink" href="#get_input_size" title="DeepKS.tools.NNInterface.NNInterface.get_input_size">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Get the input size of tensors in a <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code>.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dl:</span><code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code></td><td class="fieldArgDesc">The dataloader to get the input size of.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">leave<wbr></wbr>_out<wbr></wbr>_last:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether to leave out the last batch, as this may have a different size, by default True</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code></td><td class="fieldArgDesc">A list of lists of ints, where each list of ints is the shape of a(n) input tensor.</td></tr></table></div>
+  </div>
+</div><div class="basestaticmethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.get_input_types">
+    
+  </a>
+  <a name="get_input_types">
+    
+  </a>
+  <div class="functionHeader">
+    @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
+    <span class="py-keyword">def</span> <span class="py-defname">get_input_types</span>(dl, leave_out_last=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>):
+    
+    <a class="headerLink" href="#get_input_types" title="DeepKS.tools.NNInterface.NNInterface.get_input_types">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Get the input types of tensors in a <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code>.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dl:</span><code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code></td><td class="fieldArgDesc">The DataLoader to get the input types of.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">leave<wbr></wbr>_out<wbr></wbr>_last:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether to leave out the last batch, for consistency with <code><a href="#get_input_size" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.get_input_size">NNInterface.get_input_size</a></code>, by default True</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">A list of types, where each type is the type of a(n) input tensor.</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.__init__">
+    
+  </a>
+  <a name="__init__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, model_to_train, loss_fn, optim, inp_size=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, inp_types=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, model_summary_name=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, device=<a href="https://pytorch.org/docs/stable/tensor_attributes.html#torch.device" class="intersphinx-link">torch.device</a>(<wbr></wbr>('cuda:0' if torch.cuda.is_available() else 'cpu'))):
+    
+    <a class="headerLink" href="#__init__" title="DeepKS.tools.NNInterface.NNInterface.__init__">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Initializes the NNInterface class</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">model<wbr></wbr>_to<wbr></wbr>_train:</span><code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code></td><td class="fieldArgDesc">The model to train</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">loss<wbr></wbr>_fn:</span><code>torch.nn.modules.loss._Loss</code></td><td class="fieldArgDesc">The loss function to use</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">optim:</span><code><a href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" class="intersphinx-link">torch.optim.Optimizer</a></code></td><td class="fieldArgDesc">The optimizer to use</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">inp<wbr></wbr>_size</span></td><td class="fieldArgDesc">The input size of the model</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">inp<wbr></wbr>_types</span></td><td class="fieldArgDesc">The input types of the model</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">model<wbr></wbr>_summary<wbr></wbr>_name</span></td><td class="fieldArgDesc">The name of the file to write the model summary to</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">device</span></td><td class="fieldArgDesc">The device to use for training</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#AssertionError" class="intersphinx-link">AssertionError</a></code></td><td>If the loss function is not <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html#torch.nn.BCEWithLogitsLoss" class="intersphinx-link">torch.nn.BCEWithLogitsLoss</a></code> or <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html#torch.nn.CrossEntropyLoss" class="intersphinx-link">torch.nn.CrossEntropyLoss</a></code>:</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.__str__">
+    
+  </a>
+  <a name="__str__">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__str__</span>(self):
+    
+    <a class="headerLink" href="#__str__" title="DeepKS.tools.NNInterface.NNInterface.__str__">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Gets the model summary as a string by using <code>torchinfo.summary</code> and returns it.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The model summary as a string</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.eval">
+    
+  </a>
+  <a name="eval">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">eval</span>(self, dataloader, cutoff=0.5, metric=<span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, display_pb=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    
+    <a class="headerLink" href="#eval" title="DeepKS.tools.NNInterface.NNInterface.eval">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Obtains prediction from <code><a href="#model" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model">model</a></code>, of a specified dataloader.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dataloader:</span><code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code></td><td class="fieldArgDesc">The dataloader to obtain predictions from.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cutoff:</span><em>optional</em></td><td class="fieldArgDesc">If <tt class="rst-docutils literal">metric</tt> is <tt class="rst-docutils literal">acc</tt> the score cutoff for deciding label, by default 0.5</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><em>optional</em></td><td class="fieldArgDesc">The scoring metric, by default "roc"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">display<wbr></wbr>_pb:</span><em>optional</em></td><td class="fieldArgDesc">Whether to display a progress bar, by default False</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Tuple" class="intersphinx-link">Tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>], <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>], <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code></td><td class="fieldArgDesc">Average performance across all batches of <tt class="rst-docutils literal">dataloader</tt>, average loss across all batches of <tt class="rst-docutils literal">dataloader</tt>, all output scores, all true labels (if legitimate true labels are put into <tt class="rst-docutils literal">dataloader</tt>), all predictions.</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.predict">
+    
+  </a>
+  <a name="predict">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">predict</span>(self, dataloader, on_chunk, total_chunks, cutoff=0.5, group=<span class="rst-variable-quote">'</span><span class="rst-variable-string">UNKNOWN GROUP</span><span class="rst-variable-quote">'</span>, metric=<span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, display_pb=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    
+    <a class="headerLink" href="#predict" title="DeepKS.tools.NNInterface.NNInterface.predict">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Obtains prediction from <code><a href="#model" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model">model</a></code>, of a specified dataloader. Essentially a special case of <code><a href="#eval" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.eval">NNInterface.eval</a></code>.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dataloader:</span><code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code></td><td class="fieldArgDesc">The dataloader to obtain predictions from.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">on<wbr></wbr>_chunk:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The chunk number of the dataloader. There may be multiple "chunks" we want to obtain predictions for, if the dataset is too large to fit in memory.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">total<wbr></wbr>_chunks:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The total number of chunks we will be obtaining predictions for.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cutoff:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code>, <em>optional</em></td><td class="fieldArgDesc">If <tt class="rst-docutils literal">metric</tt> is <tt class="rst-docutils literal">acc</tt> the score cutoff for deciding label, by default 0.5</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The group name we are obtaining predictions for, by default "UNKNOWN GROUP"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><em>optional</em></td><td class="fieldArgDesc">The scoring metric, by default "roc"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">display<wbr></wbr>_pb:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether to display a progress bar, by default False</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Tuple" class="intersphinx-link">Tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></td><td class="fieldArgDesc">A list of predictions, a list of outputs, a list of groups, and a list of labels.</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.report_progress">
+    
+  </a>
+  <a name="report_progress">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">report_progress</span>(self, paradigm, epoch, num_epochs, batch_num, chunk_num, total_step, loss, score, metric, print_every=1):
+    
+    <a class="headerLink" href="#report_progress" title="DeepKS.tools.NNInterface.NNInterface.report_progress">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Reports the progress of the training/validation process, including the loss, score, and metric.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">paradigm:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">Training or Validation</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">epoch:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The epoch we are on</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_epochs:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The total number of epochs we are training for</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">batch<wbr></wbr>_num:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc">The batch number we are on or "All" if we are reporting the average loss over the batch</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">chunk<wbr></wbr>_num:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The chunk number we are on. There may be multiple "chunks" per epoch if the dataset is too large to fit in memory.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">total<wbr></wbr>_step:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The total number of batches we are training for</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">loss:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The resultant loss</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">score:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The resultant score</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">acc</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">The metric of <tt class="rst-docutils literal">score</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">print<wbr></wbr>_every:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">Returns after doing nothing if <tt class="rst-docutils literal">batch_num % print_every != 0</tt>, by default 1</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.save_eval_results">
+    
+  </a>
+  <a name="save_eval_results">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">save_eval_results</span>(self, loader, path, kin_order=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <a class="headerLink" href="#save_eval_results" title="DeepKS.tools.NNInterface.NNInterface.save_eval_results">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Save evaluation results to a JSON file.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">loader:</span><code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code></td><td class="fieldArgDesc">The data loader to evaluate on.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">path:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The path to save the results to.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_order:</span><em>optional</em></td><td class="fieldArgDesc">The order of kinases, corresponding to the predictions in the output, by default None</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.test">
+    
+  </a>
+  <a name="test">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">test</span>(self, test_loader, print_sample_predictions=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, cutoff=0.5, metric=<span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, int_label_to_str_label={}):
+    
+    <a class="headerLink" href="#test" title="DeepKS.tools.NNInterface.NNInterface.test">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Returns: list of predictions, list of outputs, list of ground-truth labels</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">test<wbr></wbr>_loader</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">print<wbr></wbr>_sample<wbr></wbr>_predictions:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cutoff:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">acc</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">int<wbr></wbr>_label<wbr></wbr>_to<wbr></wbr>_str<wbr></wbr>_label:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Tuple" class="intersphinx-link">Tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.train">
+    
+  </a>
+  <a name="train">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">train</span>(self, loader_iterable, num_epochs=50, lr_decay_amount=1.0, lr_decay_freq=1, threshold=<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>(<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">inf</span><span class="rst-variable-quote">'</span>), val_dl=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, cutoff=0.5, metric=<span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, extra_description=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, pass_through_scores=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, **training_kwargs):
+    
+    <a class="headerLink" href="#train" title="DeepKS.tools.NNInterface.NNInterface.train">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Trains a <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code> -based neural network model.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">loader<wbr></wbr>_iterable:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Iterable" class="intersphinx-link">Iterable</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]]]</code></td><td class="fieldArgDesc">A generator that yields <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code> s</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_epochs:</span><em>optional</em></td><td class="fieldArgDesc">The number of epochs for which to train, by default 50</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">lr<wbr></wbr>_decay<wbr></wbr>_amount:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code>, <em>optional</em></td><td class="fieldArgDesc">The amount by which the learning rate will be multiplied for every <tt class="rst-docutils literal">lr_decay_freq</tt>'th epoch, by default 1.0</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">lr<wbr></wbr>_decay<wbr></wbr>_freq:</span><em>optional</em></td><td class="fieldArgDesc">For an epoch this often, the learning rate gets multiplied by <tt class="rst-docutils literal">lr_decay_amount</tt>, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">threshold:</span><em>optional</em></td><td class="fieldArgDesc">The training process will stop if the lowest loss encountered by a batch goes below this value, by default float("inf")</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">val<wbr></wbr>_dl:</span><em>optional</em></td><td class="fieldArgDesc">The validation <code><a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" class="intersphinx-link">torch.utils.data.DataLoader</a></code>, by default <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cutoff:</span><em>optional</em></td><td class="fieldArgDesc">If <tt class="rst-docutils literal">metric</tt> is <tt class="rst-docutils literal">acc</tt> the score cutoff for deciding label, by default 0.5</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><em>optional</em></td><td class="fieldArgDesc">The scoring metric, by default "roc"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">extra<wbr></wbr>_description:</span><em>optional</em></td><td class="fieldArgDesc">An extra descriptor used to identify which data being trained, by default ""</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pass<wbr></wbr>_through<wbr></wbr>_scores:</span><em>optional</em></td><td class="fieldArgDesc">If a <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code>, an empty <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code> can be passed in here to collect the resultant validation score, as this function will map <tt class="rst-docutils literal">extra_description</tt> to the resultant validation score, by default <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">**training<wbr></wbr>_kwargs:</span><em>optional</em></td><td class="fieldArgDesc"><dl class="rst-docutils">
+<dt>Additional, option keyword arguments. They can be any of the following:</dt>
+<dd><ul class="rst-first rst-last rst-simple">
+<li><tt class="rst-docutils literal">loss_below</tt>: The loss below which the training process ends early</li>
+<li><tt class="rst-docutils literal">loss_chances</tt>: The number of chances the loss has to go below <tt class="rst-docutils literal">loss_below</tt> before the training process ends early</li>
+<li><tt class="rst-docutils literal">val_le</tt>: In order to stop training early, the validation score must be less than this value</li>
+</ul>
+</dd>
+</dl>
+</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td><td class="fieldArgDesc">Trains, but does not return anything.</td></tr></table></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.write_model_summary">
+    
+  </a>
+  <a name="write_model_summary">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">write_model_summary</span>(self):
+    
+    <a class="headerLink" href="#write_model_summary" title="DeepKS.tools.NNInterface.NNInterface.write_model_summary">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Writes the model summary (calls <code><a href="#__str__" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.__str__">NNInterface.__str__</a></code>) to a file specified by <code><a href="#model_summary_name" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.model_summary_name">model_summary_name</a></code>.</p>
+</div>
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.criterion">
+    
+  </a>
+  <a name="criterion">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">criterion</span> =
+    
+    <a class="headerLink" href="#criterion" title="DeepKS.tools.NNInterface.NNInterface.criterion">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The loss function to use</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.device">
+    
+  </a>
+  <a name="device">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">device</span> =
+    
+    <a class="headerLink" href="#device" title="DeepKS.tools.NNInterface.NNInterface.device">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The device with which to compute</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.inp_size">
+    
+  </a>
+  <a name="inp_size">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">inp_size</span> =
+    
+    <a class="headerLink" href="#inp_size" title="DeepKS.tools.NNInterface.NNInterface.inp_size">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The input shape for the model</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.inp_types">
+    
+  </a>
+  <a name="inp_types">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">inp_types</span> =
+    
+    <a class="headerLink" href="#inp_types" title="DeepKS.tools.NNInterface.NNInterface.inp_types">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The input types for the model</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.model">
+    
+  </a>
+  <a name="model">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">model</span>: <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code> =
+    
+    <a class="headerLink" href="#model" title="DeepKS.tools.NNInterface.NNInterface.model">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The model to train</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.model_summary">
+    
+  </a>
+  <a name="model_summary">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">model_summary</span> =
+    
+    <a class="headerLink" href="#model_summary" title="DeepKS.tools.NNInterface.NNInterface.model_summary">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The model summary as a <code>torchinfo.summary.Summary</code> object</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.model_summary_name">
+    
+  </a>
+  <a name="model_summary_name">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">model_summary_name</span> =
+    
+    <a class="headerLink" href="#model_summary_name" title="DeepKS.tools.NNInterface.NNInterface.model_summary_name">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The name of the file to write the model summary to</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.optimizer">
+    
+  </a>
+  <a name="optimizer">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">optimizer</span>: <code><a href="https://pytorch.org/docs/stable/optim.html#torch.optim.Optimizer" class="intersphinx-link">torch.optim.Optimizer</a></code> =
+    
+    <a class="headerLink" href="#optimizer" title="DeepKS.tools.NNInterface.NNInterface.optimizer">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The optimizer to use</p>
+</div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface.representation">
+    
+  </a>
+  <a name="representation">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">representation</span> =
+    
+    <a class="headerLink" href="#representation" title="DeepKS.tools.NNInterface.NNInterface.representation">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The model summary as a string; the string representation of <tt class="rst-docutils literal">self</tt></p>
+</div>
+    
+  </div>
+</div><div class="basemethod private">
+  
+  
+  <a name="DeepKS.tools.NNInterface.NNInterface._get_acc_or_auc_and_predictions">
+    
+  </a>
+  <a name="_get_acc_or_auc_and_predictions">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_get_acc_or_auc_and_predictions</span>(self, outputs, labels, metric, cutoff=0.5):
+    
+    <a class="headerLink" href="#_get_acc_or_auc_and_predictions" title="DeepKS.tools.NNInterface.NNInterface._get_acc_or_auc_and_predictions">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Obtains the accuracy or AUC score, and predictions, from a set of outputs and labels.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">outputs:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The outputs from the model.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">labels:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The labels from the dataset.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[</code>&amp;quot;acc&amp;quot;, &amp;quot;roc&amp;quot;]</td><td class="fieldArgDesc">The metric to use.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cutoff:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code>, <em>optional</em></td><td class="fieldArgDesc">The cutoff for the metric, by default 0.5</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Tuple" class="intersphinx-link">Tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>]</code></td><td class="fieldArgDesc">Performance score, and predictions.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" class="intersphinx-link">NotImplementedError</a></code></td><td>If <code><a href="#criterion" class="internal-link" title="DeepKS.tools.NNInterface.NNInterface.criterion">criterion</a></code> does not have an implementated case in this function.</td></tr></table></div>
+  </div>
+</div>
+        </div>
+      
+      </div>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container">
+    <a href="index.html">API Documentation</a> for DeepKS,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    22.9.1 at 2023-05-02 16:53:57.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

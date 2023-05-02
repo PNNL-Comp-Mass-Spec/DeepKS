@@ -22,7 +22,7 @@ def encode_label(labels: list[int], mode: Literal["mlt_cls", "scalar"]) -> Union
     labels :
         The list of labels to encode
     mode :
-        The mode to use for encoding. If `mlt_cls`, then the labels will be encoded into a one-hot vector. If `scalar`, then the labels will be left as is
+        The mode to use for encoding. If ``mlt_cls``, then the labels will be encoded into a one-hot vector. If ``scalar``, then the labels will be left as is
 
     Returns
     -------
@@ -46,11 +46,11 @@ def get_tok_dict(
     Parameters
     ----------
     data :
-        The dataset to get the token dictionary from. Gets unique characters from `data["Kinase Sequence"]` and `data["Site Sequence"]`
+        The dataset to get the token dictionary from. Gets unique characters from ``data["Kinase Sequence"]`` and ``data["Site Sequence"]``
     n_gram :
         The n-gram size to use, by default 3
     include_metadata :
-        Whether to include the metadata tokens `tok_dict["<PADDING>"]` and `tok_dict["<N-GRAM>"]` in the token dictionary, by default `False`
+        Whether to include the metadata tokens ``tok_dict["<PADDING>"]`` and ``tok_dict["<N-GRAM>"]`` in the token dictionary, by default `False`
 
     Returns
     -------
@@ -97,9 +97,9 @@ def encode_seq(seq: str, mapping_dict: dict[str, int]) -> list[int]:
     Raises
     ------
     AssertionError
-        If "<N-GRAM>" is not in `mapping_dict` or if `mapping_dict["<N-GRAM>"]` is not an integer
+        If "<N-GRAM>" is not in ``mapping_dict`` or if ``mapping_dict["<N-GRAM>"]`` is not an integer
     AssertionError
-        If a provided token is not in `mapping_dict`
+        If a provided token is not in ``mapping_dict``
 
     Returns
     -------
@@ -143,7 +143,7 @@ def package(
     y :
         The labels, in tensor form
     data :
-        The original data passed to `data_to_tensors`
+        The original data passed to `data_to_tensor`
     ids :
         The indices of the data to use
     batch_size :
@@ -161,9 +161,9 @@ def package(
     tok_dict :
         The token dictionary that was used
     desired_length : optional
-        Desired length of a chunk, by default None. If None, then the entire dataset is used.
+        Desired length of a chunk, by default `None`. If `None`, then the entire dataset is used.
     desired_chunk_pos : optional
-        Position (index) of the desired chunk within all the data, by default None
+        Position (index) of the desired chunk within all the data, by default `None`
 
     Returns
     -------
@@ -238,13 +238,13 @@ def data_to_tensor(
     tokdict : optional
         A specific token dictionary to use, by default None. If None, a new token dictionary will be generated from the data.
     subsample_num : optional
-        The number of datapoints in `input_data`, to subsample, by default None. If None, no subsampling will be done.
+        The number of datapoints in ``input_data``, to subsample, by default None. If None, no subsampling will be done.
     n_gram : optional
         The n-gram length, by default 3
     device : optional
         The device with which to use for the tensors, by default torch.device("cpu")
     cartesian_product : optional
-        Whether or not the kinases and sites in `input_data` should have cartesian product performed on them, by default False. For example, if True and `input_data` has 2 kinases and 3 sites, the output will have 6 kinases and 6 sites. If false, the input data should have the same number of kinases and sites; this will be the number of kinases/sites in the output.
+        Whether or not the kinases and sites in ``input_data`` should have cartesian product performed on them, by default False. For example, if True and ``input_data`` has 2 kinases and 3 sites, the output will have 6 kinases and 6 sites. If false, the input data should have the same number of kinases and sites; this will be the number of kinases/sites in the output.
     group_by : optional
         Whether or not the groups in the group classifier are classifying by site or kinase, by default "site"
     kin_seq_to_group : optional

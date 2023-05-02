@@ -10,10 +10,10 @@ format_for_needle = (
     .replace(" ", "---")
     .replace(":", "----")
 )
-"""Simple lambda to filter out characters that cause problems for `needle`"""
+"""Simple lambda to filter out characters that cause problems for ``needle``"""
 
 eldeen_rof_tamrof = lambda x: x.replace("_", "|").replace("--", "/").replace("---", " ").replace("----", ":")
-"""Simple lambda to reverse `format_for_needle`"""
+"""Simple lambda to reverse ``format_for_needle``"""
 
 
 def make_fasta(df_in: str, fasta_out: str) -> str:

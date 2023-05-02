@@ -1,3 +1,5 @@
+"""The main example script"""
+
 import sys, termcolor, os, pathlib, warnings, json
 from ..api import main
 from termcolor import colored
@@ -5,18 +7,21 @@ from termcolor import colored
 from ..config.logging import get_logger
 
 logger = get_logger()
+"""The logger for this script."""
 
 DEVICE = os.environ.get("DEVICE", "cpu")
+"""The device to use for training. Can be configured with the `DEVICE` environment variable."""
 
-EXAMPLES = []
 with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "tests/examples.json")) as f:
     EXAMPLES = json.load(f)
+    """Global list of lists that are command line arguments, each of which is an example."""
     for ex in EXAMPLES:
         if "DEVICE_PLACEHOLDER" in ex:
             ex[ex.index("DEVICE_PLACEHOLDER")] = DEVICE
 
 
 def _main():
+    """Main example function that runs examples"""
     os.chdir(pathlib.Path(__file__).parent.resolve())
 
     print(

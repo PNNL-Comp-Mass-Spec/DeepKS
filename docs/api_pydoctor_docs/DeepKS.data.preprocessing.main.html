@@ -1,0 +1,835 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>DeepKS.data.preprocessing.main</title>
+    <meta name="generator" content="pydoctor 22.9.1"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          DeepKS <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="search-help-button" title="Help" onclick="toggleSearchHelpText()"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div class="hint" id="search-help-box">
+          <p class="rst-last">
+      
+            Search bar offers the following options:
+            <ul>   
+                <li>
+                  <strong>Term presence.</strong> The below example searches for documents that 
+                    must contain “foo”, might contain “bar” and must not contain “baz”: <code>+foo bar -baz</code>
+                </li> 
+
+                <li>
+                  <strong>Wildcards.</strong> The below example searches for documents with words beginning with “foo”: <code>foo*</code>
+                </li> 
+
+                <li>
+                  <strong>Search in specific fields.</strong> The following search matches all objects 
+                  in "twisted.mail" that matches “search”: <code>+qname:twisted.mail.* +search</code>
+
+                  <p>
+                    Possible fields: 'name', 'qname' (fully qualified name), 'docstring', and 'kind'.
+                    Last two fields are only applicable if "search in docstrings" is enabled.
+                  </p>
+                </li>
+
+                <li>
+                  <strong>Fuzzy matches.</strong> The following search matches all documents 
+                  that have a word within 1 edit distance of “foo”: <code>foo~1</code>
+                </li>
+            </ul>
+
+          </p>
+        </div>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 8px;">
+          <p>Results provided by <a href="https://lunrjs.com">Lunr.js</a></p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code class="thisobject"><a href="DeepKS.data.preprocessing.main.html" class="internal-link" title="This module">main</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Functions</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#main" class="internal-link" title="DeepKS.data.preprocessing.main.main">main</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#step_1_download_psp" class="internal-link" title="DeepKS.data.preprocessing.main.step_1_download_psp">step<wbr></wbr>_1<wbr></wbr>_download<wbr></wbr>_psp</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#step_2_download_uniprot" class="internal-link" title="DeepKS.data.preprocessing.main.step_2_download_uniprot">step<wbr></wbr>_2<wbr></wbr>_download<wbr></wbr>_uniprot</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#step_3_get_kin_to_fam_to_grp" class="internal-link" title="DeepKS.data.preprocessing.main.step_3_get_kin_to_fam_to_grp">step<wbr></wbr>_3<wbr></wbr>_get<wbr></wbr>_kin<wbr></wbr>_to<wbr></wbr>_fam<wbr></wbr>_to<wbr></wbr>_grp</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#step_4_get_pairwise_mtx" class="internal-link" title="DeepKS.data.preprocessing.main.step_4_get_pairwise_mtx">step<wbr></wbr>_4<wbr></wbr>_get<wbr></wbr>_pairwise<wbr></wbr>_mtx</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#step_5_get_train_val_test_split" class="internal-link" title="DeepKS.data.preprocessing.main.step_5_get_train_val_test_split">step<wbr></wbr>_5<wbr></wbr>_get<wbr></wbr>_train<wbr></wbr>_val<wbr></wbr>_test<wbr></wbr>_split</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#DEBUGGING" class="internal-link" title="DeepKS.data.preprocessing.main.DEBUGGING">DEBUGGING</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#USE_XL_CACHE" class="internal-link" title="DeepKS.data.preprocessing.main.USE_XL_CACHE">USE<wbr></wbr>_XL<wbr></wbr>_CACHE</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#debug_var_names" class="internal-link" title="DeepKS.data.preprocessing.main.debug_var_names">debug<wbr></wbr>_var<wbr></wbr>_names</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#debug_var_vals" class="internal-link" title="DeepKS.data.preprocessing.main.debug_var_vals">debug<wbr></wbr>_var<wbr></wbr>_vals</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#debugging_variables" class="internal-link" title="DeepKS.data.preprocessing.main.debugging_variables">debugging<wbr></wbr>_variables</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#logger" class="internal-link" title="DeepKS.data.preprocessing.main.logger">logger</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#perform_steps" class="internal-link" title="DeepKS.data.preprocessing.main.perform_steps">perform<wbr></wbr>_steps</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Package</span>
+        <code><a href="DeepKS.data.preprocessing.html" class="internal-link" title="The parent of this module">preprocessing</a></code> 
+      </div>
+      
+      <div>
+        
+
+        <div class="childrenKindTitle">Modules</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.data.preprocessing.PreprocessingSteps.html" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps"><wbr></wbr>Preprocessing<wbr></wbr>Steps</a></code>
+            </div>
+        
+
+    </li><li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.data.preprocessing.main.html" class="internal-link" title="DeepKS.data.preprocessing.main">main</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.data.preprocessing.make_clean.html" class="internal-link" title="DeepKS.data.preprocessing.make_clean">make<wbr></wbr>_clean</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+        
+
+        
+         
+
+        
+         
+
+        
+         
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapseSideBar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <div id="main" class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="module"><code><code><a href="index.html" class="internal-link">DeepKS</a></code><wbr></wbr>.<code><a href="DeepKS.data.html" class="internal-link" title="DeepKS.data">data</a></code><wbr></wbr>.<code><a href="DeepKS.data.preprocessing.html" class="internal-link" title="DeepKS.data.preprocessing">preprocessing</a></code><wbr></wbr>.<code><a href="DeepKS.data.preprocessing.main.html" class="internal-link" title="DeepKS.data.preprocessing.main">main</a></code></code></h1>
+          <div id="showPrivate">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          module documentation
+        </div>
+
+        <div class="extrasDocstring">
+          
+          <p></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p>The main script for preprocessing the data.</p>
+</div>
+        </div>
+
+        <div id="splitTables">
+          <table class="children sortable" id="id19">
+  
+  
+  <tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#main" class="internal-link" title="DeepKS.data.preprocessing.main.main">main</a></code></td>
+    <td>The main function for preprocessing the data. Does the following: 1. Downloads PSP 2. Downloads Uniprot data 3. Maps kinases to families and groups 4. Gets pairwise distance matrix 5. Gets train/val/test split...</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#step_1_download_psp" class="internal-link" title="DeepKS.data.preprocessing.main.step_1_download_psp">step<wbr></wbr>_1<wbr></wbr>_download<wbr></wbr>_psp</a></code></td>
+    <td>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.html#get_phospho" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.get_phospho">PreprocessingSteps.download_psp.get_phospho</a></code>. Same Parameters.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#step_2_download_uniprot" class="internal-link" title="DeepKS.data.preprocessing.main.step_2_download_uniprot">step<wbr></wbr>_2<wbr></wbr>_download<wbr></wbr>_uniprot</a></code></td>
+    <td>Wrapper for <tt class="rst-docutils literal">PreprocessingSteps/ML_data_pipeline.R</tt>.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#step_3_get_kin_to_fam_to_grp" class="internal-link" title="DeepKS.data.preprocessing.main.step_3_get_kin_to_fam_to_grp">step<wbr></wbr>_3<wbr></wbr>_get<wbr></wbr>_kin<wbr></wbr>_to<wbr></wbr>_fam<wbr></wbr>_to<wbr></wbr>_grp</a></code></td>
+    <td>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.html#get_kin_to_fam_to_grp" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp">PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp</a></code>. Same parameters.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#step_4_get_pairwise_mtx" class="internal-link" title="DeepKS.data.preprocessing.main.step_4_get_pairwise_mtx">step<wbr></wbr>_4<wbr></wbr>_get<wbr></wbr>_pairwise<wbr></wbr>_mtx</a></code></td>
+    <td>Wrapper for <code><a href="DeepKS.tools.get_needle_pairwise.html#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_pairwise.get_needle_pairwise_mtx</a></code>.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#step_5_get_train_val_test_split" class="internal-link" title="DeepKS.data.preprocessing.main.step_5_get_train_val_test_split">step<wbr></wbr>_5<wbr></wbr>_get<wbr></wbr>_train<wbr></wbr>_val<wbr></wbr>_test<wbr></wbr>_split</a></code></td>
+    <td>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.html#split_into_sets" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets</a></code> and <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data_DD.html#get_input_dataframe" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data_DD.get_input_dataframe">PreprocessingSteps.format_raw_data_DD.get_input_dataframe</a></code>.</td>
+  </tr><tr class="constant">
+    
+    <td>Constant</td>
+    <td><code><a href="#DEBUGGING" class="internal-link" title="DeepKS.data.preprocessing.main.DEBUGGING">DEBUGGING</a></code></td>
+    <td>Whether or not to run in debugging mode; need to provide steps in <code><a href="DeepKS.data.preprocessing.main.html#perform_steps" class="internal-link" title="DeepKS.data.preprocessing.main.perform_steps">perform_steps</a></code> if True.</td>
+  </tr><tr class="constant">
+    
+    <td>Constant</td>
+    <td><code><a href="#USE_XL_CACHE" class="internal-link" title="DeepKS.data.preprocessing.main.USE_XL_CACHE">USE<wbr></wbr>_XL<wbr></wbr>_CACHE</a></code></td>
+    <td>Whether or not to use the cached version of the PSP database.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#debug_var_names" class="internal-link" title="DeepKS.data.preprocessing.main.debug_var_names">debug<wbr></wbr>_var<wbr></wbr>_names</a></code></td>
+    <td>If one only wants to run a single step, one can use the variables here.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#debug_var_vals" class="internal-link" title="DeepKS.data.preprocessing.main.debug_var_vals">debug<wbr></wbr>_var<wbr></wbr>_vals</a></code></td>
+    <td>The values for the variables in <code><a href="DeepKS.data.preprocessing.main.html#debug_var_names" class="internal-link" title="DeepKS.data.preprocessing.main.debug_var_names">debug_var_names</a></code>.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#debugging_variables" class="internal-link" title="DeepKS.data.preprocessing.main.debugging_variables">debugging<wbr></wbr>_variables</a></code></td>
+    <td>The debugging variables as a dictionary.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#logger" class="internal-link" title="DeepKS.data.preprocessing.main.logger">logger</a></code></td>
+    <td>The logger for this script.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#perform_steps" class="internal-link" title="DeepKS.data.preprocessing.main.perform_steps">perform<wbr></wbr>_steps</a></code></td>
+    <td>The steps to perform. If empty, all steps will be performed.</td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="childList">
+          <div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.main">
+    
+  </a>
+  <a name="main">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">main</span>(seq_filename_B, data_filename, new_mtx_file, eval_or_train_on_all, seq_filename_A=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, kin_fam_grp_filename=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <a class="headerLink" href="#main" title="DeepKS.data.preprocessing.main.main">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>The main function for preprocessing the data. Does the following:
+1. Downloads PSP
+2. Downloads Uniprot data
+3. Maps kinases to families and groups
+4. Gets pairwise distance matrix
+5. Gets train/val/test split</p>
+</div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.step_1_download_psp">
+    
+  </a>
+  <a name="step_1_download_psp">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_1_download_psp</span>(outfile=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../raw_data/PSP_script_download.xlsx</span><span class="rst-variable-quote">'</span>):
+    
+    <a class="headerLink" href="#step_1_download_psp" title="DeepKS.data.preprocessing.main.step_1_download_psp">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.html#get_phospho" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.get_phospho">PreprocessingSteps.download_psp.get_phospho</a></code>. Same Parameters.</p>
+</div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.step_2_download_uniprot">
+    
+  </a>
+  <a name="step_2_download_uniprot">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_2_download_uniprot</span>():
+    
+    <a class="headerLink" href="#step_2_download_uniprot" title="DeepKS.data.preprocessing.main.step_2_download_uniprot">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Wrapper for <tt class="rst-docutils literal">PreprocessingSteps/ML_data_pipeline.R</tt>.</p>
+</div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.step_3_get_kin_to_fam_to_grp">
+    
+  </a>
+  <a name="step_3_get_kin_to_fam_to_grp">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_3_get_kin_to_fam_to_grp</span>(seq_filename_A):
+    
+    <a class="headerLink" href="#step_3_get_kin_to_fam_to_grp" title="DeepKS.data.preprocessing.main.step_3_get_kin_to_fam_to_grp">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.html#get_kin_to_fam_to_grp" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp">PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp</a></code>. Same parameters.</p>
+</div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.step_4_get_pairwise_mtx">
+    
+  </a>
+  <a name="step_4_get_pairwise_mtx">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_4_get_pairwise_mtx</span>(seq_filename_A, seq_filename_B):
+    
+    <a class="headerLink" href="#step_4_get_pairwise_mtx" title="DeepKS.data.preprocessing.main.step_4_get_pairwise_mtx">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Wrapper for <code><a href="DeepKS.tools.get_needle_pairwise.html#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_pairwise.get_needle_pairwise_mtx</a></code>.</p>
+</div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.step_5_get_train_val_test_split">
+    
+  </a>
+  <a name="step_5_get_train_val_test_split">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_5_get_train_val_test_split</span>(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, eval_or_train_on_all, data_gen_conf={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">held_out_percentile</span><span class="rst-variable-quote">'</span>: 95, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">train_percentile</span><span class="rst-variable-quote">'</span>: 65, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dataframe_generation_mode</span><span class="rst-variable-quote">'</span>: <span class="rst-variable-quote">'</span><span class="rst-variable-string">tr-all</span><span class="rst-variable-quote">'</span>}):
+    
+    <a class="headerLink" href="#step_5_get_train_val_test_split" title="DeepKS.data.preprocessing.main.step_5_get_train_val_test_split">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.html#split_into_sets" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets</a></code> and <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data_DD.html#get_input_dataframe" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data_DD.get_input_dataframe">PreprocessingSteps.format_raw_data_DD.get_input_dataframe</a></code>.</p>
+</div>
+  </div>
+</div><div class="baseconstant">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.DEBUGGING">
+    
+  </a>
+  <a name="DEBUGGING">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">DEBUGGING</span> =
+    
+    <a class="headerLink" href="#DEBUGGING" title="DeepKS.data.preprocessing.main.DEBUGGING">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>Whether or not to run in debugging mode; need to provide steps in <code><a href="#perform_steps" class="internal-link" title="DeepKS.data.preprocessing.main.perform_steps">perform_steps</a></code> if True.</p>
+</div>
+    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>(False if 'DEBUGGING' not in os.environ else True if os.environ['DEBUGGING'
+    ] == '1' else False)</code></pre></td></tr></table>
+  </div>
+</div><div class="baseconstant">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.USE_XL_CACHE">
+    
+  </a>
+  <a name="USE_XL_CACHE">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">USE_XL_CACHE</span> =
+    
+    <a class="headerLink" href="#USE_XL_CACHE" title="DeepKS.data.preprocessing.main.USE_XL_CACHE">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>Whether or not to use the cached version of the PSP database.</p>
+</div>
+    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>(False if 'USE_XL_CACHE' not in os.environ else True if os.environ[
+    'USE_XL_CACHE'] == '1' else False)</code></pre></td></tr></table>
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.debug_var_names">
+    
+  </a>
+  <a name="debug_var_names">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">debug_var_names</span>: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code> =
+    
+    <a class="headerLink" href="#debug_var_names" title="DeepKS.data.preprocessing.main.debug_var_names">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>If one only wants to run a single step, one can use the variables here.</p>
+</div>
+    
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.debug_var_vals">
+    
+  </a>
+  <a name="debug_var_vals">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">debug_var_vals</span>: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code> =
+    
+    <a class="headerLink" href="#debug_var_vals" title="DeepKS.data.preprocessing.main.debug_var_vals">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The values for the variables in <code><a href="#debug_var_names" class="internal-link" title="DeepKS.data.preprocessing.main.debug_var_names">debug_var_names</a></code>.</p>
+</div>
+    
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.debugging_variables">
+    
+  </a>
+  <a name="debugging_variables">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">debugging_variables</span> =
+    
+    <a class="headerLink" href="#debugging_variables" title="DeepKS.data.preprocessing.main.debugging_variables">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The debugging variables as a dictionary.</p>
+</div>
+    
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.logger">
+    
+  </a>
+  <a name="logger">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">logger</span> =
+    
+    <a class="headerLink" href="#logger" title="DeepKS.data.preprocessing.main.logger">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The logger for this script.</p>
+</div>
+    
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.data.preprocessing.main.perform_steps">
+    
+  </a>
+  <a name="perform_steps">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">perform_steps</span> =
+    
+    <a class="headerLink" href="#perform_steps" title="DeepKS.data.preprocessing.main.perform_steps">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The steps to perform. If empty, all steps will be performed.</p>
+</div>
+    
+  </div>
+</div>
+        </div>
+      
+      </div>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container">
+    <a href="index.html">API Documentation</a> for DeepKS,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    22.9.1 at 2023-05-02 16:53:57.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

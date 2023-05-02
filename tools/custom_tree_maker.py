@@ -1,3 +1,5 @@
+"""Script to make a custom file tree for the DeepKS repo."""
+
 from __future__ import annotations
 import os, json, re, pprint, time, pathlib
 from sys import argv

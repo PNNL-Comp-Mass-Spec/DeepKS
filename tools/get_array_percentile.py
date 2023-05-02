@@ -5,26 +5,30 @@ import numpy as np
 
 def get_array_percentile(
     arr: np.ndarray,
-    percentile: Union[Union[int, float], Collection[Union[int, float]]],
-    axes: Union[int, Collection[int]],
+    percentile: (int | float) | Collection[int | float],
+    axes: int | Collection[int],
     tf: Collection = (1, 0),
 ) -> np.ndarray:
-    """Gets np.array of numbers of the same shape as an input depending on whether or not each
-        element in the input array satisfies axiswise percentile
+    """Gets `np.array` of numbers of the same shape as an input depending on whether or not each element in the input array satisfies axiswise percentile
 
-    Args:
-        arr (np.array): The input array
-        percentile (number or iterable of number (length 2)): The percentile threshold.
-                    *  If float, inserts elements from `tf` into result array where
-                        elements of `arr` are < `percentile` along the provided axe(s).
-                    *  If float, inserts elements from `tf` into result array where
-                        elements of `arr` are < `percentile[1]` and >= than `percentile[0]` along the provided axe(s).
-        axes (int or iterable of ints): The axe(s) along which to compute percentiles.
-        tf (iterable): [Default = (1, 0)] `tf[0]` is object to insert
-            if the percentile condition is met, and `tf[1]` is the object to insert otherwise. Summary tf = [less than pctl, more than pctl]
+    Parameters
+    ----------
+    arr :
+        The input array
+    percentile :
+        The percentile threshold.
+                *  If `int` ``|`` `float`, inserts elements from ``tf`` into result array where
+                    elements of ``arr`` are < ``percentile`` along the provided axe(s).
+                *  If `Collection`, inserts elements from ``tf`` into result array where
+                    elements of ``arr`` are < ``percentile[1]`` and >= than ``percentile[0]`` along the provided axe(s).
+    axes :
+        The axe(s) along which to compute percentiles.
+    tf :
+        if the percentile condition is met, and ``tf[1]`` is the object to insert otherwise. Summary tf = [less than pctl, more than pctl], by default (1, 0)
 
-    Returns:
-        (np.array): np.array based on percentile and arr
+    Returns
+    -------
+        `np.array` based on percentile and ``arr``
     """
 
     assert len(tf) == 2, "Length of `tf` must be 2."

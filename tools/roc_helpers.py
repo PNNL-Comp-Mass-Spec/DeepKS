@@ -82,17 +82,25 @@ class ROCHelpers:
     def protected_roc_auc_score(y_true: ArrayLike, y_score: ArrayLike, *args, **kwargs) -> float:
         """Wrapper for sklearn.metrics.roc_auc_score that handles edge cases
 
-        Args:
-            @arg y_true: Iterable of (integer) true labels
-            @arg y_score: Iterable of predicted scores
-            @arg *args: Additional arguments to pass to roc_auc_score
-            @arg **kwargs: Additional keyword arguments to pass to roc_auc_score
+        Parameters:
+        -----------
+        y_true :
+            Iterable of (integer) true labels
+        y_score :
+            Iterable of predicted scores
+        args :
+            Additional arguments to pass to `sklearn.metrics.roc_auc_score`
+        kwargs :
+            Additional keyword arguments to pass to `sklearn.metrics.roc_auc_score`
 
-        Raises:
-            e: Error that is not a multi class error or single class present error
+        Raises
+        ------
+            e :
+                Error that is not a multi class error or single class present error
 
-        Returns:
-            float: The roc_auc_score
+        Returns
+        -------
+            The roc_auc_score
         """
         try:
             return float(sklearn.metrics.roc_auc_score(y_true, y_score, *args, **kwargs))

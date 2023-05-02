@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "DTD/xhtml1-strict.dtd">
+<html>
+  
+
+  <head>
+    
+    <title>DeepKS.api.main</title>
+    <meta name="generator" content="pydoctor 22.9.1"> 
+        
+    </meta>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="apidocs.css" />
+    <link rel="stylesheet" type="text/css" href="extra.css" />
+</head>
+
+  <body>
+
+    
+
+    <nav class="navbar navbar-default mainnavbar">
+      
+  
+  <div class="container-fluid">
+
+
+    <div class="navbar-header">
+      
+      <div class="navlinks">
+        <span class="navbar-brand">
+          DeepKS <a href="index.html">API Documentation</a>
+        </span>
+
+        <a href="moduleIndex.html">
+          Modules
+        </a>
+
+        <a href="classIndex.html">
+          Classes
+        </a>
+
+        <a href="nameIndex.html">
+          Names
+        </a>
+
+        <div id="search-box-container">
+          <div class="input-group">
+            <input id="search-box" type="search" name="search-query" placeholder="Search..." aria-label="Search" minlength="2" class="form-control" autocomplete="off" />
+            
+            <span class="input-group-btn">
+              <a style="display: none;" class="btn btn-default" id="search-clear-button" title="Clear" onclick="clearSearch()"><img src="fonts/x-circle.svg" alt="Clear" /></a>
+              <a class="btn btn-default" id="search-help-button" title="Help" onclick="toggleSearchHelpText()"><img src="fonts/info.svg" alt="Help" /></a>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="search-results-container" style="display: none;">
+        
+        <div id="search-buttons">
+          <span class="label label-default" id="search-docstrings-button">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="toggle-search-in-docstrings-checkbox" value="false" onclick="toggleSearchInDocstrings()">
+              search in docstrings
+            </input>
+          </label>
+          </span>
+          
+        </div>
+        
+        <noscript>
+            <h1>Cannot search: JavaScript is not supported/enabled in your browser.</h1>
+        </noscript>
+
+        <div class="hint" id="search-help-box">
+          <p class="rst-last">
+      
+            Search bar offers the following options:
+            <ul>   
+                <li>
+                  <strong>Term presence.</strong> The below example searches for documents that 
+                    must contain “foo”, might contain “bar” and must not contain “baz”: <code>+foo bar -baz</code>
+                </li> 
+
+                <li>
+                  <strong>Wildcards.</strong> The below example searches for documents with words beginning with “foo”: <code>foo*</code>
+                </li> 
+
+                <li>
+                  <strong>Search in specific fields.</strong> The following search matches all objects 
+                  in "twisted.mail" that matches “search”: <code>+qname:twisted.mail.* +search</code>
+
+                  <p>
+                    Possible fields: 'name', 'qname' (fully qualified name), 'docstring', and 'kind'.
+                    Last two fields are only applicable if "search in docstrings" is enabled.
+                  </p>
+                </li>
+
+                <li>
+                  <strong>Fuzzy matches.</strong> The following search matches all documents 
+                  that have a word within 1 edit distance of “foo”: <code>foo~1</code>
+                </li>
+            </ul>
+
+          </p>
+        </div>
+
+        <div id="search-status"> </div>
+
+        <div class="warning" id="search-warn-box" style="display: none;">
+          <p class="rst-last"><span id="search-warn"></span></p>
+        </div>
+
+        <table id="search-results">
+          <!-- Filled dynamically by JS -->
+        </table>
+        
+        <div style="margin-top: 8px;">
+          <p>Results provided by <a href="https://lunrjs.com">Lunr.js</a></p>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</nav>
+    
+    <div class="container-fluid">
+
+      <!-- Side navigation -->
+      <div class="sidebarcontainer" style="display: none;">
+        
+        <div class="sidebar"><nav class="sidebar">
+  
+
+  <div>
+
+      <div class="thingTitle">
+        <span>Module</span>
+        <code class="thisobject"><a href="DeepKS.api.main.html" class="internal-link" title="This module">main</a></code> 
+      </div>
+      
+      <div>
+        
+
+        
+         
+
+        
+        
+
+        <div class="childrenKindTitle">Functions</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#join_first" class="internal-link" title="DeepKS.api.main.join_first">join<wbr></wbr>_first</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#make_predictions" class="internal-link" title="DeepKS.api.main.make_predictions">make<wbr></wbr>_predictions</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#parse_api" class="internal-link" title="DeepKS.api.main.parse_api">parse<wbr></wbr>_api</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#setup" class="internal-link" title="DeepKS.api.main.setup">setup</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#NO_PARSE_NO_PRED" class="internal-link" title="DeepKS.api.main.NO_PARSE_NO_PRED">NO<wbr></wbr>_PARSE<wbr></wbr>_NO<wbr></wbr>_PRED</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#logger" class="internal-link" title="DeepKS.api.main.logger">logger</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+         
+        
+      </div>
+  </div><div>
+
+      <div class="thingTitle">
+        <span>Package</span>
+        <code><a href="DeepKS.api.html" class="internal-link" title="The parent of this module">api</a></code> 
+      </div>
+      
+      <div>
+        
+
+        <div class="childrenKindTitle">Modules</div>
+        <ul>
+    
+    <li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.api.cfg.html" class="internal-link" title="DeepKS.api.cfg">cfg</a></code>
+            </div>
+        
+
+    </li><li class=" thisobject">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.api.main.html" class="internal-link" title="DeepKS.api.main">main</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
+
+        
+        
+
+        
+         
+
+        
+         
+
+        
+         
+
+        
+         
+        
+      </div>
+  </div>
+
+</nav>
+        </div>
+        <div id="collapseSideBar">
+          <a class="btn btn-link" onclick="toggleSideBarCollapse()" title="Toggle Sidebar Collapse">
+          </a>
+        </div> 
+        <script src="sidebartoggle.js" type="text/javascript"></script>
+       
+      </div>
+
+      <div id="main" class="">
+        
+
+        
+
+        <div class="page-header">
+          <h1 class="module"><code><code><a href="index.html" class="internal-link">DeepKS</a></code><wbr></wbr>.<code><a href="DeepKS.api.html" class="internal-link" title="DeepKS.api">api</a></code><wbr></wbr>.<code><a href="DeepKS.api.main.html" class="internal-link" title="DeepKS.api.main">main</a></code></code></h1>
+          <div id="showPrivate">
+            <button class="btn btn-link" onclick="togglePrivate()">Toggle Private API</button>
+          </div>
+        </div>
+
+        <div class="categoryHeader">
+          module documentation
+        </div>
+
+        <div class="extrasDocstring">
+          
+          <p></p>
+        </div>
+
+        <div class="moduleDocstring">
+          <div><p>Contains functions that are an interface to the DeepKS project.</p>
+</div>
+        </div>
+
+        <div id="splitTables">
+          <table class="children sortable" id="id4">
+  
+  
+  <tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#join_first" class="internal-link" title="DeepKS.api.main.join_first">join<wbr></wbr>_first</a></code></td>
+    <td>Helper function to join a target path to a pseudo-root path derived from the location of this file.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#make_predictions" class="internal-link" title="DeepKS.api.main.make_predictions">make<wbr></wbr>_predictions</a></code></td>
+    <td>Make a target/decoy prediction for a kinase-substrate pair.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#parse_api" class="internal-link" title="DeepKS.api.main.parse_api">parse<wbr></wbr>_api</a></code></td>
+    <td>Parse the command line arguments.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#setup" class="internal-link" title="DeepKS.api.main.setup">setup</a></code></td>
+    <td>Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with potentially passed in aruments.</td>
+  </tr><tr class="constant">
+    
+    <td>Constant</td>
+    <td><code><a href="#NO_PARSE_NO_PRED" class="internal-link" title="DeepKS.api.main.NO_PARSE_NO_PRED">NO<wbr></wbr>_PARSE<wbr></wbr>_NO<wbr></wbr>_PRED</a></code></td>
+    <td>Whether or not to parse args and begin prediction pipeline.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#logger" class="internal-link" title="DeepKS.api.main.logger">logger</a></code></td>
+    <td>The logger for this module.</td>
+  </tr>
+</table>
+          
+
+            
+        </div>
+
+        <div id="childList">
+          <div class="basefunction">
+  
+  
+  <a name="DeepKS.api.main.join_first">
+    
+  </a>
+  <a name="join_first">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">join_first</span>(levels=1, x=<span class="rst-variable-quote">'</span><span class="rst-variable-string">/</span><span class="rst-variable-quote">'</span>):
+    
+    <a class="headerLink" href="#join_first" title="DeepKS.api.main.join_first">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Helper function to join a target path to a pseudo-root path derived from the location of this file.</p>
+<div class="rst-admonition rst-admonition-examples">
+<p class="rst-first rst-admonition-title">Examples</p>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>join_first(1, <span class="py-string">"images/Phylo Families/phylo_families_Cairo.pdf"</span>)
+<span class="py-output">"/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"</span>
+</pre></div>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">levels:</span><em>optional</em></td><td class="fieldArgDesc">How many directories out of the directory of this file the "new root" should start, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">x</span></td><td class="fieldArgDesc">The target path, by default "/"</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The joined path</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.api.main.make_predictions">
+    
+  </a>
+  <a name="make_predictions">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">make_predictions</span>(kinase_seqs, kin_info, site_seqs, site_info, predictions_output_format=<span class="rst-variable-quote">'</span><span class="rst-variable-string">csv</span><span class="rst-variable-quote">'</span>, suppress_seqs_in_output=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, verbose=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, pre_trained_gc=<a href="DeepKS.api.cfg.html#PRE_TRAINED_GC" class="internal-link" title="DeepKS.api.cfg.PRE_TRAINED_GC">PRE_TRAINED_GC</a>, pre_trained_nn=<a href="DeepKS.api.cfg.html#PRE_TRAINED_NN" class="internal-link" title="DeepKS.api.cfg.PRE_TRAINED_NN">PRE_TRAINED_NN</a>, pre_trained_msc=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, device=<span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, scores=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, normalize_scores=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, dry_run=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, cartesian_product=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, group_output=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier=[], convert_raw_to_prob=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, group_on=<span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>):
+    
+    <a class="headerLink" href="#make_predictions" title="DeepKS.api.main.make_predictions">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Make a target/decoy prediction for a kinase-substrate pair.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kinase<wbr></wbr>_seqs:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc">The kinase sequences. Each must be ≥ 1 and ≤ 4128 residues long.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_info:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code></td><td class="fieldArgDesc">The kinase (meta-) information. See <tt class="rst-docutils literal"><span class="pre">./kin-info_file_format.txt</span></tt> for the required format.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seqs:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc">The site sequences. Each must be 15 residues long.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_info:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code></td><td class="fieldArgDesc">The site (meta-) information. See <tt class="rst-docutils literal"><span class="pre">./site-info_file_format.txt</span></tt> for the required format.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">predictions<wbr></wbr>_output<wbr></wbr>_format:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">typing.Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">inorder</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dictionary</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">inorder_json</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dictionary_json</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">csv</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">sqlite</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><p>The format of the output.
+- <tt class="rst-docutils literal">inorder</tt> returns a list of predictions in the same order as the input kinases and sites.</p>
+<ul class="rst-simple">
+<li><tt class="rst-docutils literal">dictionary</tt> returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.</li>
+<li><tt class="rst-docutils literal">in_order_json</tt> outputs a JSON string (filename = <tt class="rst-docutils literal"><span class="pre">"DeepKS/out/current-date-and-time.json"</span></tt>) of a list of predictions in the same order as the input kinases and sites.</li>
+<li><tt class="rst-docutils literal">dictionary_json</tt> outputs a JSON string (filename = <tt class="rst-docutils literal"><span class="pre">"DeepKS/out/current-date-and-time.json"</span></tt>) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.</li>
+<li><tt class="rst-docutils literal">csv</tt> outputs a CSV table (filename = <tt class="rst-docutils literal"><span class="pre">"DeepKS/out/current-date-and-time.csv"</span></tt>), where the columns include the input kinases, sites, sequence, metadata and predictions.</li>
+<li><tt class="rst-docutils literal">sqlite</tt> outputs a sqlite database (filename = <tt class="rst-docutils literal"><span class="pre">"DeepKS/out/current-date-and-time.sqlite"</span></tt>), where the columns include the input kinases, sites, sequence, metadata and predictions.</li>
+</ul>
+</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">suppress<wbr></wbr>_seqs<wbr></wbr>_in<wbr></wbr>_output:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to include the input sequences in the output.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">verbose:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to print predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pre<wbr></wbr>_trained<wbr></wbr>_gc:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">Path to previously trained group classifier model state.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pre<wbr></wbr>_trained<wbr></wbr>_nn:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">Path to previously trained neural network model state.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pre<wbr></wbr>_trained<wbr></wbr>_msc:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]</code></td><td class="fieldArgDesc">Path to a <code><a href="DeepKS.models.multi_stage_classifier.MultiStageClassifier.html" class="internal-link" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier">MultiStageClassifier</a></code> object that combines a group classifier and a neural network. Must specify either this or <tt class="rst-docutils literal">pre_trained_gc</tt> and <tt class="rst-docutils literal">pre_trained_nn</tt>.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">device:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">Device to use for predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">scores:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to return scores.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">normalize<wbr></wbr>_scores:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to normalize scores.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dry<wbr></wbr>_run:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to run a dry run (make sure input parameters work).</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cartesian<wbr></wbr>_product:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to make predictions for all combinations of kinases and sites.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_output:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to return group predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">bypass<wbr></wbr>_group<wbr></wbr>_classifier:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc">List of known kinase groups in the same order in which they appear in kinase_seqs. See <tt class="rst-docutils literal"><span class="pre">./kin-info_file_format.txt</span></tt> for instructions on how to specify groups.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">convert<wbr></wbr>_raw<wbr></wbr>_to<wbr></wbr>_prob:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc">Whether to convert raw scores to empirical probabilities. The neural network save file's object must have an <tt class="rst-docutils literal">emp_eqn</tt> attribute (i.e., a mapping from raw score to empirical probability).</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_on:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">When pre-classifying into groups before running the neural network, whether to group on the kinase or the site.</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.api.main.parse_api">
+    
+  </a>
+  <a name="parse_api">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">parse_api</span>():
+    
+    <a class="headerLink" href="#parse_api" title="DeepKS.api.main.parse_api">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Parse the command line arguments.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code></td><td class="fieldArgDesc">Dictionary mapping the argument name to the argument value.</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.api.main.setup">
+    
+  </a>
+  <a name="setup">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">setup</span>(args={}):
+    
+    <a class="headerLink" href="#setup" title="DeepKS.api.main.setup">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with potentially passed in aruments.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">args:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">typing.Any</a>]</code></td><td class="fieldArgDesc">DeepKS arguments.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td><td class="fieldArgDesc">Does not return anything; just calls <code><a href="#make_predictions" class="internal-link" title="DeepKS.api.main.make_predictions">make_predictions</a></code>.</td></tr></table></div>
+  </div>
+</div><div class="baseconstant">
+  
+  
+  <a name="DeepKS.api.main.NO_PARSE_NO_PRED">
+    
+  </a>
+  <a name="NO_PARSE_NO_PRED">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">NO_PARSE_NO_PRED</span> =
+    
+    <a class="headerLink" href="#NO_PARSE_NO_PRED" title="DeepKS.api.main.NO_PARSE_NO_PRED">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>Whether or not to parse args and begin prediction pipeline.</p>
+</div>
+    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>('true' in apiim.read())</code></pre></td></tr></table>
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.api.main.logger">
+    
+  </a>
+  <a name="logger">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">logger</span> =
+    
+    <a class="headerLink" href="#logger" title="DeepKS.api.main.logger">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The logger for this module.</p>
+</div>
+    
+  </div>
+</div>
+        </div>
+      
+      </div>
+    </div>
+
+    <footer class="navbar navbar-default">
+
+  
+  <div class="container">
+    <a href="index.html">API Documentation</a> for DeepKS,
+  generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a>
+    22.9.1 at 2023-05-02 16:53:57.
+  </div>
+
+  <!-- Search related scripts needs to be loaded at the end of HTML 
+    parsing not to introduce overhead and display HTML data asap -->
+  <script src="ajax.js" type="text/javascript"></script>
+  <script src="searchlib.js" type="text/javascript"></script>
+  <script src="search.js" type="text/javascript"></script>
+
+</footer>
+  
+    <script src="pydoctor.js" type="text/javascript"></script>
+
+  </body>
+</html>

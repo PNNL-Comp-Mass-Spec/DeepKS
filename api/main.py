@@ -87,24 +87,24 @@ def make_predictions(
     kinase_seqs:
         The kinase sequences. Each must be ≥ 1 and ≤ 4128 residues long.
     kin_info:
-        The kinase (meta-) information. See `./kin-info_file_format.txt` for the required format.
+        The kinase (meta-) information. See ``./kin-info_file_format.txt`` for the required format.
     site_seqs:
         The site sequences. Each must be 15 residues long.
     site_info:
-        The site (meta-) information. See `./site-info_file_format.txt` for the required format.
+        The site (meta-) information. See ``./site-info_file_format.txt`` for the required format.
     predictions_output_format:
         The format of the output.
-        - `inorder` returns a list of predictions in the same order as the input kinases and sites.
+        - ``inorder`` returns a list of predictions in the same order as the input kinases and sites.
 
-        - `dictionary` returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+        - ``dictionary`` returns a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
 
-        - `in_order_json` outputs a JSON string (filename = `"DeepKS/out/current-date-and-time.json"`) of a list of predictions in the same order as the input kinases and sites.
+        - ``in_order_json`` outputs a JSON string (filename = ``"DeepKS/out/current-date-and-time.json"``) of a list of predictions in the same order as the input kinases and sites.
 
-        - `dictionary_json` outputs a JSON string (filename = `"DeepKS/out/current-date-and-time.json"`) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
+        - ``dictionary_json`` outputs a JSON string (filename = ``"DeepKS/out/current-date-and-time.json"``) of a dictionary of predictions, where the keys are the input kinases and sites and the values are the predictions.
 
-        - `csv` outputs a CSV table (filename = `"DeepKS/out/current-date-and-time.csv"`), where the columns include the input kinases, sites, sequence, metadata and predictions.
+        - ``csv`` outputs a CSV table (filename = ``"DeepKS/out/current-date-and-time.csv"``), where the columns include the input kinases, sites, sequence, metadata and predictions.
 
-        - `sqlite` outputs a sqlite database (filename = `"DeepKS/out/current-date-and-time.sqlite"`), where the columns include the input kinases, sites, sequence, metadata and predictions.
+        - ``sqlite`` outputs a sqlite database (filename = ``"DeepKS/out/current-date-and-time.sqlite"``), where the columns include the input kinases, sites, sequence, metadata and predictions.
     suppress_seqs_in_output:
         Whether to include the input sequences in the output.
     verbose:
@@ -114,7 +114,7 @@ def make_predictions(
     pre_trained_nn:
         Path to previously trained neural network model state.
     pre_trained_msc:
-        Path to a `..models.multi_stage_classifier.MultiStageClassifier` object that combines a group classifier and a neural network. Must specify either this or `pre_trained_gc` and `pre_trained_nn`.
+        Path to a `MultiStageClassifier` object that combines a group classifier and a neural network. Must specify either this or ``pre_trained_gc`` and ``pre_trained_nn``.
     device:
         Device to use for predictions.
     scores:
@@ -128,9 +128,9 @@ def make_predictions(
     group_output:
         Whether to return group predictions.
     bypass_group_classifier:
-        List of known kinase groups in the same order in which they appear in kinase_seqs. See `./kin-info_file_format.txt` for instructions on how to specify groups.
+        List of known kinase groups in the same order in which they appear in kinase_seqs. See ``./kin-info_file_format.txt`` for instructions on how to specify groups.
     convert_raw_to_prob:
-        Whether to convert raw scores to empirical probabilities. The neural network save file's object must have a `emp_eqn` attribute (i.e., a mapping from raw score to empirical probability).
+        Whether to convert raw scores to empirical probabilities. The neural network save file's object must have an ``emp_eqn`` attribute (i.e., a mapping from raw score to empirical probability).
     group_on:
         When pre-classifying into groups before running the neural network, whether to group on the kinase or the site.
     """
@@ -662,7 +662,7 @@ def parse_api() -> dict[str, typing.Any]:
 
 
 def setup(args: dict[str, typing.Any] = {}):
-    """Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with `args` (either passed in or from the commandline).
+    """Optionally parses command line arguments for DeepKS, imports necessary modules, and calls make_predictions with potentially passed in aruments.
 
     Parameters
     ----------
