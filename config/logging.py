@@ -4,7 +4,35 @@ from ..tools import custom_logging
 from ..tools.splash.write_splash import write_splash
 import pathlib, os, json
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+from typing import Any
+
+
+def join_first(levels: int = 1, x: Any = "/"):
+    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
+
+    Parameters
+    ----------
+    levels : optional
+        How many directories out of the directory of this file the "new root" should start, by default 1
+    x :
+        The target path, by default "/"
+
+    Returns
+    -------
+    str
+        The joined path
+
+    Examples
+    --------
+    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
+    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
+    """
+    x = str(x)
+    if os.path.isabs(x):
+        return x
+    else:
+        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+
 
 import warnings
 
@@ -19,7 +47,7 @@ def get_logger():
     """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file.
     """
     try:
-        with open(join_first(1, __file__)) as f:
+        with open(f"{join_first(0, 'logging_config.json')}") as f:
             kwargs = json.load(f)
             good_keys = {"logging_level", "output_method"}
             for k, v in kwargs.items():

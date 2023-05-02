@@ -7,6 +7,38 @@
         border-color: black;
         border-style: solid;
         border-radius: 6px;
+        padding: 10px;
+        box-sizing: border-box 
+    }
+    .fancy-link {
+        font-size: 52px;
+        color: black;
+        text-align: center;
+        vertical-align: center;
+        background-image: url("API Docs Icon.png");
+        width:200px; 
+        height:200px;
+        border-width:2px;
+        border-color:black; 
+        border-radius:5px; 
+        border-style:solid; 
+        transition: cubic-bezier(.18,.89,.32,1.28) 0.125s;
+        background-size: contain;
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        flex-direction: column;
+    }
+    .fancy-link:hover {
+        text-decoration: unset;
+        transform: scale(1.1);
+        opacity: 0.68;
+    }
+    .no-underline {
+        text-decoration: none;
+    }
+    .no-underline:hover {
+        text-decoration: none;
     }
     pre.bash-output.bash-output{
         background-color: #ebe9c27f;
@@ -101,14 +133,12 @@
   - [Follow **one** of the cases below.](#follow-one-of-the-cases-below-1)
     - [Case A/B: Running On Personal Computer](#case-ab-running-on-personal-computer)
     - [Case C: Running on HPC cluster](#case-c-running-on-hpc-cluster-1)
-- [Running The Programs and API](#running-the-programs-and-api)
-  - [Trying Examples](#trying-examples)
-  - [Using API](#using-api)
-    - [From Command Line](#from-command-line)
+- [Trying Examples](#trying-examples)
+- [Full `DeepKS` Specification](#full-deepks-specification)
+- [Using Command Line API](#using-command-line-api)
     - [Adding to new code and importing](#adding-to-new-code-and-importing)
       - [VS Code Integration](#vs-code-integration)
       - [Importing](#importing)
-    - [Full API Specification](#full-api-specification)
   - [Running tests](#running-tests)
 - [File Explainer](#file-explainer)
 - [Troubleshooting](#troubleshooting)
@@ -202,10 +232,9 @@ Run the following command:
 
 ***Note: You will have `sudo` privileges inside the Docker container (!) by virtue of passing `--fakeroot`. If you ever need to install programs, for example, this means you can do so inside the container.***
 
-# Running The Programs and API
 ***Note: The following steps are run from <u> inside the Docker container</u>. See the steps above to start the Docker container.***
 
-## Trying Examples
+# Trying Examples
 
 Because of various Python specifications, `DeepKS.examples` — the examples submodule — must be run as a module from _outside_ the `/DeepKS` directory. Hence, before running examples, ensure you are in the top-level directory (which contains a symbolic link (an alias) to `DeepKS`).  The examples submodule provides sample api calls to give the user a sense of how to use the tool. The full API specification is listed in the next section.
 
@@ -247,8 +276,15 @@ Use the following command to actually start the examples:
 .
 </pre>
 
-## Using API
-### From Command Line
+# Full `DeepKS` Specification
+Below is a link to view the full code specification for `DeepKS`. This contains documentation for the functions in this package.
+<div style='width:100%;justify-content: center;align-items: center; display: flex;'>
+<div style='justify-content: center;align-items: center; display: flex;'>
+<div style='text-align: center'><a href='api_pydoctor_docs/index.html' class='no-underline'><div class='fancy-link'>➥</div></a></div>
+</div>
+</div>
+
+# Using Command Line API
 The Command Line Interface is the main way to query the deep learning model. The API is a submodule of `DeepKS`. (Henceforth referred to as `DeepKS.api`.) The `DeepKS.api` module, itself contains a submodule `main`. (Henceforth referred to as `DeepKS.api.main`). This is the main "entrypoint" for running queries. Because of various Python specifications, `DeepKS.api.main` must be run as a module from _outside_ the `/DeepKS` directory. Hence, to run from the command line in the Docker container, run 
 
 ```bash
@@ -266,16 +302,18 @@ usage: python -m DeepKS.api.main [-h] (-k <kinase sequences> | -kf <kinase seque
                                  [--cartesian-product]
                                  [-p {inorder,dictionary,in_order_json,dictionary_json,csv,sqlite}]
                                  [--suppress-seqs-in-output] [-v]
-                                 [--pre_trained_nn <pre-trained neural network file>]
-                                 [--pre_trained_gc <pre-trained group classifier file>]
-                                 [--device <device>] [--scores] [--normalize-scores] [--groups]
-                                 [--bypass-group-classifier] [--dry-run]
+                                 [--pre-trained-nn <pre-trained neural network file>]
+                                 [--pre-trained-gc <pre-trained group classifier file>]
+                                 [--pre-trained-msc <pre-trained multi-stage classifier file>]
+                                 [--group-on <group on>] [--device <device>] [--scores]
+                                 [--normalize-scores] [--groups] [--bypass-group-classifier]
+                                 [--dry-run] [--convert-raw-to-prob]
 ```
 - Anything in square brackets is optional and has default values. To view what these flags refer to (and their default values), run `python -m DeepKS.api.main --help`.
 - For each instance of round parentheses, you must provide one of the options between "`|`". 
 - Curly braces show available options for a flag.
 - That is, as a minimal example, you may run `python -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt`.
-- Maximally, you might run `python3 -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt --kin-info my_kinase_info.txt --site-info my_site_info.txt --cartesian-product -p in_order_json -v --pre_trained_nn my_pre_trained_nn.pt --pre_trained_gc my_pre_trained_gc.pt --device cuda:0 --scores --normalize-scores --groups --dry-run`.
+- You might also run `python3 -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt --kin-info my_kinase_info.txt --site-info my_site_info.txt --cartesian-product -p in_order_json -v --pre_trained_nn my_pre_trained_nn.pt --pre_trained_gc my_pre_trained_gc.pt --device cuda:0 --scores --normalize-scores --groups --dry-run`.
 
 ***Note: If using CUDA, it may be helpful to run `nvidia-smi` to see which GPUs is being used extensively. DeepKS can automatically scale for the available hardware, but it will run much faster if it is run on a GPU with no other concurrent processes.***
 
@@ -319,9 +357,7 @@ from DeepKS.api.main import make_predictions
 import DeepKS.models.multi_stage_classifier as msc
 import DeepKS
 ```
-### Full API Specification
-Below, you will find a scrollable list of API functions found in `DeepKS.api.main`.
-<div><iframe width=100% height=500px src="api_pydoctor_docs/index.html"></iframe></div>
+
 
 ## Running tests
 It may be useful to run the tests to make sure everything is working properly (especially if the user modifies the DeepKS API). To do this run — from the top-level directory — `python3 -m unittest -fvb DeepKS.tests.test`. If all tests pass, and you want to see code coverage, you can run `coverage run -m unittest discover -fvb` and then `coverage -m report`.
@@ -374,14 +410,18 @@ DeepKS/tools/informative_tb.py:121, in &lt;module&gt;
   - For all other issues, on [the issues page](https://github.com/Ben-Drucker/DeepKS/issues/new/choose), one can select "Don’t see your issue here? Open a blank issue." at the bottom. (But make sure to ensure the issue doesn't fit into the other two categories first.)
 
 # Reproducing Everything From Scratch
-TODO — still working on cleaning things up.
 ## Preprocessing and Data Collection
+All the steps are packaged in the module `DeepKS.data.preprocessing.main`. This will run through all the necessary steps, download the necessary data, and put it in the appropriate directories. It will also report what it is doing as it runs.
 ## Training
 The python training scripts contain command line interfaces. However, to make running easier, one can use the bash scripts in the `models` directory. The bash scripts are simply wrappers around the python scripts. The bash scripts are the recommended way to run the training scripts.
-1. Run `bash models/train_multi_stage_classifier.sh` to train the multi-stage classifier.
+1. Run `bash models/train_group_classifier.sh` to train and save the group classifier.
+2. Run `bash models/train_individual_classifiers.sh` to train and save the individual group-based neural network classifiers. This should be done on a GPU, if possible. If not, it will take a long time. However, the script automatically detects the amount of memory in the system so it won't get overloaded and/or crash.
 ## Evaluating
+TODO: finish this section
 ## Creating Evaluation Diagrams
+The evaluation diagram creating functions are located in the module `DeepKS.models.DeepKS_evaluation`. TODO: finish this section
 ## Creating Other Diagrams
+Other supporting diagrams can be made from the submodules of `DeepKS.images`. TODO: finish this section
 </div>
 </div>
 </div>
