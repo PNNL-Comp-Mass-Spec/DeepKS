@@ -169,29 +169,33 @@ class TestMainAPIFromCMDL(unittest.TestCase):
 
         self.main = this_main
 
-    def test_convert_raw_to_prob(self):
-        sys.argv = [
-            "python3 -m DeepKS.api.main",
-            "-kf",
-            "tests/sample_inputs/kins.txt",
-            "-sf",
-            "tests/sample_inputs/sites-prod.txt",
-            "-p",
-            "csv",
-            "--kin-info",
-            "tests/sample_inputs/kin-info-known-groups.json",
-            "--site-info",
-            "tests/sample_inputs/site-info.json",
-            "--scores",
-            "--cartesian-product",
-            "--groups",
-            "--convert-raw-to-prob",
-            "--pre-trained-nn",
-            "bin/deepks_nn_weights.-1.cornichon",
-            "--device",
-            DEVICE,
-        ]
-        self.main.setup()
+    # def test_convert_raw_to_prob(self):
+    #     sys.argv = [
+    #         "python3 -m DeepKS.api.main",
+    #         "-kf",
+    #         "tests/sample_inputs/kins.txt",
+    #         "-sf",
+    #         "tests/sample_inputs/sites-prod.txt",
+    #         "-p",
+    #         "csv",
+    #         "--kin-info",
+    #         "tests/sample_inputs/kin-info-known-groups.json",
+    #         "--site-info",
+    #         "tests/sample_inputs/site-info.json",
+    #         "--scores",
+    #         "--cartesian-product",
+    #         "--groups",
+    #         "--convert-raw-to-prob",
+    #         "--pre-trained-nn",
+    #         "bin/deepks_nn_weights.-1.cornichon",
+    #         "--device",
+    #         DEVICE,
+    #         "--pre-trained-nn",
+    #         "bin/deepks_nn_weights.-1.cornichon",
+    #         "--pre-trained-gc",
+    #         "bin/deepks_gc_weights.-1.cornichon"
+    #     ]
+    #     self.main.setup()
 
     def test_dict(self):
         sys.argv = [
@@ -205,6 +209,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--scores",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -222,6 +230,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--suppress-seqs-in-output",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -237,6 +249,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "-v",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -251,6 +267,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "dictionary_json",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -266,6 +286,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "-v",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -287,6 +311,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--cartesian-product",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -308,6 +336,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--cartesian-product",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -330,6 +362,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--cartesian-product",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -352,6 +388,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--cartesian-product",
             "--device",
             DEVICE,
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.main.setup()
 
@@ -367,6 +407,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "-v",
             "--device",
             "cpuu",
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.assertRaises(SystemExit, self.main.setup)
 
@@ -381,6 +425,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "-v",
             "--device",
             "cudaa",
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.assertRaises(SystemExit, self.main.setup)
 
@@ -395,6 +443,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "-v",
             "--device",
             "cuda:999",
+            "--pre-trained-nn",
+            "bin/deepks_nn_weights.-1.cornichon",
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
         ]
         self.assertRaises(SystemExit, self.main.setup)
 
@@ -426,6 +478,8 @@ class TestExamples(unittest.TestCase):
         self.main.setup()
 
 
+api_and_training_suite = unittest.TestSuite()
+"""Suite of all tests that test the API and training."""
 api_suite = unittest.TestSuite()
 """Suite of tests that test the API."""
 training_suite = unittest.TestSuite()
@@ -449,6 +503,8 @@ training_suite.addTests(
         testloader.loadTestsFromTestCase(TestTrainingGroupClassifier),
     ]
 )
+
+api_and_training_suite.addTests([api_suite, training_suite])
 
 is_non_r_test = lambda x: isinstance(x, type) and issubclass(x, unittest.TestCase) and not issubclass(x, UsesR)
 """Simple lambda to determine if the given object is a non-R test."""

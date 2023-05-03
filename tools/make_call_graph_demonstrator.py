@@ -1,3 +1,6 @@
+"""Simple demonstrator/example of how to use make_call_graph.py"""
+
+
 def dummy_fn():
     import numpy as np, pandas as pd, matplotlib.pyplot as plt, re, os, sys, pathlib, json, pickle, tqdm, itertools, collections, random, warnings, pprint, plotly, plotly.express
     from matplotlib import rcParams

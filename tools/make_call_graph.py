@@ -1,3 +1,5 @@
+"""Make a visual call graph to help understand the path of the code"""
+
 from pycallgraph2 import PyCallGraph
 from pycallgraph2.output import GraphvizOutput
 from pycallgraph2.config import Config
@@ -38,6 +40,8 @@ class GlobbingFilter(object):
 
 
 class DeepKSCallGraph:
+    """Make a call graph, specifically tailored to DeepKS"""
+
     def __init__(
         self,
         keep_all_from="DeepKS",

@@ -169,9 +169,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
-            {}
-        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[
+            str, dict[str, dict[str, list[Union[int, float]]]]
+        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -401,7 +401,7 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
             seen_groups_passthrough.append(group_te)
-            for (_, _, _, test_loader), info_dict in data_to_tensor(
+            for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,
                 n_gram=ng,
@@ -527,7 +527,7 @@ class IndividualClassifiers:
                     torch.cuda.empty_cache()
                 except Exception:
                     pass
-                new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
+                new_info = info_dict_passthrough[grp]["PairIDs"]
                 try:
                     all_predictions_outputs.update(
                         {

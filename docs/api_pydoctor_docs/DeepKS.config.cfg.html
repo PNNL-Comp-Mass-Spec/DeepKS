@@ -203,21 +203,8 @@
         
          
 
-        <div class="childrenKindTitle">Variables</div>
-        <ul>
-    
-    <li class="">
         
-        
-        
-
-        
-            <div class="itemName"><code><a href="#API_IMPORT_MODE" class="internal-link" title="DeepKS.config.cfg.API_IMPORT_MODE">API<wbr></wbr>_IMPORT<wbr></wbr>_MODE</a></code>
-            </div>
-        
-
-    </li>
-</ul> 
+         
 
         
          
@@ -309,7 +296,8 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p class="undocumented">Undocumented</p></div>
+          <div><p>Provides the ability to change the model mode between aligned and non-aligned. Currently, this should not be touched.</p>
+</div>
         </div>
 
         <div id="splitTables">
@@ -320,27 +308,22 @@
     
     <td>Function</td>
     <td><code><a href="#get_mode" class="internal-link" title="DeepKS.config.cfg.get_mode">get<wbr></wbr>_mode</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Get the alignment mode of the model.</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#set_mode" class="internal-link" title="DeepKS.config.cfg.set_mode">set<wbr></wbr>_mode</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="constant">
-    
-    <td>Constant</td>
-    <td><code><a href="#API_IMPORT_MODE" class="internal-link" title="DeepKS.config.cfg.API_IMPORT_MODE">API<wbr></wbr>_IMPORT<wbr></wbr>_MODE</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Set the alignment mode of the model.</td>
   </tr><tr class="function private">
     
     <td>Function</td>
     <td><code><a href="#_postrun" class="internal-link" title="DeepKS.config.cfg._postrun">_postrun</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Change the working directory back to the old working directory.</td>
   </tr><tr class="function private">
     
     <td>Function</td>
     <td><code><a href="#_prerun" class="internal-link" title="DeepKS.config.cfg._prerun">_prerun</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Change the working directory to the directory of this file.</td>
   </tr>
 </table>
           
@@ -370,7 +353,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Get the alignment mode of the model.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">'alin' if the aligned version should be used, 'no_alin' if the aligned version should not be used.</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -393,31 +377,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
-  </div>
-</div><div class="baseconstant">
-  
-  
-  <a name="DeepKS.config.cfg.API_IMPORT_MODE">
-    
-  </a>
-  <a name="API_IMPORT_MODE">
-    
-  </a>
-  <div class="functionHeader">
-    
-    <span class="py-defname">API_IMPORT_MODE</span>: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> =
-    
-    <a class="headerLink" href="#API_IMPORT_MODE" title="DeepKS.config.cfg.API_IMPORT_MODE">
-      
-      
-      ¶
-    </a>
-  </div>
-  <div class="functionBody">
-    
-    <div><p class="undocumented">Undocumented</p></div>
-    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code><a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a></code></pre></td></tr></table>
+    <div><p>Set the alignment mode of the model.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">mode:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">'alin' if the aligned version should be used, 'no_alin' if the aligned version should not be used.</td></tr></table></div>
   </div>
 </div><div class="basefunction private">
   
@@ -440,7 +401,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Change the working directory back to the old working directory.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">old<wbr></wbr>_wd:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The old working directory.</td></tr></table></div>
   </div>
 </div><div class="basefunction private">
   
@@ -463,7 +425,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Change the working directory to the directory of this file.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The old working directory.</td></tr></table></div>
   </div>
 </div>
         </div>

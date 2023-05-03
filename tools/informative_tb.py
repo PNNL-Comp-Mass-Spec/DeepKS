@@ -1,3 +1,5 @@
+"""Contains functionality to print a more informative traceback, giving the user a concrete format from which to debug."""
+
 import collections
 import html2text, traceback, os, types, typing, sys, re, requests, json, textwrap, pathlib, io, pprint
 from ..tools.nice_printer import nice_printer
@@ -5,25 +7,7 @@ from termcolor import colored
 
 
 FAKE_TERM_WIDTH = 90
-
-
-class Capturing(list):
-    """https://stackoverflow.com/a/16571630/16158339"""
-
-    def __enter__(self):
-        self._stdout = sys.stdout
-        self._stderr = sys.stderr
-        sys.stdout = self._stringio = io.StringIO()
-        sys.stderr = self._stringio2 = io.StringIO()
-        return self
-
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        self.extend(self._stringio2.getvalue().splitlines())
-        del self._stringio  # free up some memory
-        del self._stringio2  # free up some memory
-        sys.stdout = self._stdout
-        sys.stderr = self._stderr
+"""How long should we assume the terminal will be?"""
 
 
 def informative_exception(
@@ -33,6 +17,25 @@ def informative_exception(
     exitcode=1,
     fake_root_dir="DeepKS",
 ) -> typing.NoReturn:
+    """Prints a more informative traceback, giving the user a concrete format from which to debug.
+
+    Parameters
+    ----------
+    e :
+        The exception for which to print information
+    top_message : optional
+        The message to print at the top of the informative traceback, by default "Error: Something went wrong! Error message(s) below."
+    print_full_tb : optional
+        Whether or not to print a full traceback as part of the informative exception, by default True
+    exitcode : optional
+        The exitcode to give the terminal after printing information, by default 1
+    fake_root_dir : optional
+        The fake root directory to allow VSCode to provide links to files & line numbers in the integrated terminal, by default "DeepKS"
+
+    Returns
+    -------
+        Does not return, but exits the program with the given exitcode.
+    """
     top_message += "" if not print_full_tb else " Full traceback above."
     print("\n\n", file=sys.stderr)
     assert e.__traceback__ is not None
@@ -110,10 +113,19 @@ def informative_exception(
 
     # with Capturing():
     #     raise e
-    sys.exit(1)
+    sys.exit(exitcode)
 
 
-def get_exception_description(exception_type: str):
+def get_exception_description(exception_type: str) -> str:
+    """Gets the description of an exception from the Python docs.
+    Parameters
+    ----------
+    exception_type :
+        The name of the exception to get the description of.
+    Returns
+    -------
+        The description of the exception.
+    """
     cached = str(pathlib.Path(__file__).parent.resolve()) + "/cached_docs.json"
     if not os.path.exists(cached) or "REDOWNLOAD" in os.environ:
         base_url = "https://docs.python.org/3/library/exceptions.html"

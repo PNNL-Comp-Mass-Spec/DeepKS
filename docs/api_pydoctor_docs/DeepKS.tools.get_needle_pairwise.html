@@ -212,26 +212,6 @@
         
 
         
-            <div class="itemName"><code><a href="#eldeen_rof_tamrof" class="internal-link" title="DeepKS.tools.get_needle_pairwise.eldeen_rof_tamrof">eldeen<wbr></wbr>_rof<wbr></wbr>_tamrof</a></code>
-            </div>
-        
-
-    </li><li class="">
-        
-        
-        
-
-        
-            <div class="itemName"><code><a href="#format_for_needle" class="internal-link" title="DeepKS.tools.get_needle_pairwise.format_for_needle">format<wbr></wbr>_for<wbr></wbr>_needle</a></code>
-            </div>
-        
-
-    </li><li class="">
-        
-        
-        
-
-        
             <div class="itemName"><code><a href="#tq" class="internal-link" title="DeepKS.tools.get_needle_pairwise.tq">tq</a></code>
             </div>
         
@@ -402,6 +382,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.tools.make_fasta.html" class="internal-link" title="DeepKS.tools.make_fasta">make<wbr></wbr>_fasta</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.tools.model_utils.html" class="internal-link" title="DeepKS.tools.model_utils">model<wbr></wbr>_utils</a></code>
             </div>
         
@@ -423,16 +413,6 @@
 
         
             <div class="itemName"><code><a href="DeepKS.tools.NNInterface.html" class="internal-link" title="DeepKS.tools.NNInterface"><wbr></wbr>NNInterface</a></code>
-            </div>
-        
-
-    </li><li class="">
-        
-        
-        
-
-        
-            <div class="itemName"><code><a href="DeepKS.tools.parse.html" class="internal-link" title="DeepKS.tools.parse">parse</a></code>
             </div>
         
 
@@ -549,23 +529,24 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p class="undocumented">Undocumented</p></div>
+          <div><p>Contains functionality to compute pairwise alignments using the <a class="rst-reference external" href="https://emboss.sourceforge.net/apps/cvs/emboss/apps/needleall.html" target="_top">needleall program from EMBOSS</a>.</p>
+</div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id127">
+          <table class="children sortable" id="id126">
   
   
   <tr class="function">
     
     <td>Function</td>
     <td><code><a href="#benchmark_performance" class="internal-link" title="DeepKS.tools.get_needle_pairwise.benchmark_performance">benchmark<wbr></wbr>_performance</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Determine roughly how long it takes to run <code><a href="DeepKS.tools.get_needle_pairwise.html#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_needle_pairwise_mtx</a></code> for a given number of sequences</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get<wbr></wbr>_needle<wbr></wbr>_pairwise<wbr></wbr>_mtx</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Obtain a pairwise alignment matrix for a given fasta file.</td>
   </tr><tr class="function">
     
     <td>Function</td>
@@ -575,16 +556,6 @@
     
     <td>Function</td>
     <td><code><a href="#worker" class="internal-link" title="DeepKS.tools.get_needle_pairwise.worker">worker</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="variable">
-    
-    <td>Variable</td>
-    <td><code><a href="#eldeen_rof_tamrof" class="internal-link" title="DeepKS.tools.get_needle_pairwise.eldeen_rof_tamrof">eldeen<wbr></wbr>_rof<wbr></wbr>_tamrof</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
-  </tr><tr class="variable">
-    
-    <td>Variable</td>
-    <td><code><a href="#format_for_needle" class="internal-link" title="DeepKS.tools.get_needle_pairwise.format_for_needle">format<wbr></wbr>_for<wbr></wbr>_needle</a></code></td>
     <td><span class="undocumented">Undocumented</span></td>
   </tr><tr class="variable">
     
@@ -625,7 +596,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Determine roughly how long it takes to run <code><a href="#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_needle_pairwise_mtx</a></code> for a given number of sequences</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fasta<wbr></wbr>_a<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The path to the fasta file containing the sequences to be aligned</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">test<wbr></wbr>_subsets:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">A list of subset sizes to test how long it takes to run <code><a href="#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_needle_pairwise_mtx</a></code> for different sized inputs</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -638,7 +610,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_needle_pairwise_mtx</span>(fasta, outfile, subset=-1, num_procs=4, restricted_combinations=[]):
+    <span class="py-keyword">def</span> <span class="py-defname">get_needle_pairwise_mtx</span>(fasta, outfile, subset=-1, num_procs=4, restricted_combinations=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
     
     <a class="headerLink" href="#get_needle_pairwise_mtx" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">
       
@@ -648,7 +620,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fasta:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">outfile:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">subset:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_procs:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">restricted<wbr></wbr>_combinations:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p>Obtain a pairwise alignment matrix for a given fasta file.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fasta:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The input <tt class="rst-docutils literal">fasta</tt>-formatted file</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">outfile:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The output file to write the intermediate <tt class="rst-docutils literal">needleall</tt> results to</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">subset:</span><em>optional</em></td><td class="fieldArgDesc">Use the first <tt class="rst-docutils literal">subset</tt> of sequences in the <tt class="rst-docutils literal">fasta</tt> file, or -1 to use all, by default -1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_procs:</span><em>optional</em></td><td class="fieldArgDesc">The number of <code><a href="https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing" class="intersphinx-link">multiprocessing</a></code> processes to use, to speed up computations, by default 4</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">restricted<wbr></wbr>_combinations:</span><em>optional</em></td><td class="fieldArgDesc">Only , by default []</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" class="intersphinx-link">pd.DataFrame</a></code></td><td class="fieldArgDesc">Dataframe of pairwise alignments between rows and columns, with the index and columns being the same sequence of biological sequence names</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -695,54 +668,6 @@
   <div class="docstring functionBody">
     
     <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fasta<wbr></wbr>_chunks:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
-  </div>
-</div><div class="basevariable">
-  
-  
-  <a name="DeepKS.tools.get_needle_pairwise.eldeen_rof_tamrof">
-    
-  </a>
-  <a name="eldeen_rof_tamrof">
-    
-  </a>
-  <div class="functionHeader">
-    
-    <span class="py-defname">eldeen_rof_tamrof</span> =
-    
-    <a class="headerLink" href="#eldeen_rof_tamrof" title="DeepKS.tools.get_needle_pairwise.eldeen_rof_tamrof">
-      
-      
-      ¶
-    </a>
-  </div>
-  <div class="functionBody">
-    
-    <div><p class="undocumented">Undocumented</p></div>
-    
-  </div>
-</div><div class="basevariable">
-  
-  
-  <a name="DeepKS.tools.get_needle_pairwise.format_for_needle">
-    
-  </a>
-  <a name="format_for_needle">
-    
-  </a>
-  <div class="functionHeader">
-    
-    <span class="py-defname">format_for_needle</span> =
-    
-    <a class="headerLink" href="#format_for_needle" title="DeepKS.tools.get_needle_pairwise.format_for_needle">
-      
-      
-      ¶
-    </a>
-  </div>
-  <div class="functionBody">
-    
-    <div><p class="undocumented">Undocumented</p></div>
-    
   </div>
 </div><div class="basevariable">
   

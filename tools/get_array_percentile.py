@@ -1,3 +1,5 @@
+"""Functionality to get array of numbers depending on how each element numerically compares to axiswise percentiles"""
+
 from typing import Union
 from collections.abc import Collection
 import numpy as np

@@ -44,7 +44,8 @@ def splash(splash_file):
 
 
 def get_logger():
-    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file."""
+    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file.
+    """
     try:
         with open(f"{join_first(0, 'logging_config.json')}") as f:
             kwargs = json.load(f)

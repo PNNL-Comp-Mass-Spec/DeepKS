@@ -1,17 +1,11 @@
+"""Contains functionality to compute pairwise alignments using the `needleall program from EMBOSS <https://emboss.sourceforge.net/apps/cvs/emboss/apps/needleall.html>`_."""
+
 import itertools, warnings, tqdm, os, re, tempfile, time, pathlib, matplotlib, numpy as np, pandas as pd, subprocess
 from multiprocessing.pool import ThreadPool
 
-matplotlib.rcParams["font.family"] = "monospace"
+from .make_fasta import eldeen_rof_tamrof, format_for_needle
 
-format_for_needle = (
-    lambda x: x.replace("|", "_")
-    .replace("(", "")
-    .replace(")", "")
-    .replace("/", "--")
-    .replace(" ", "---")
-    .replace(":", "----")
-)
-eldeen_rof_tamrof = lambda x: x.replace("_", "|").replace("----", ":").replace("---", " ").replace("--", "/")
+matplotlib.rcParams["font.family"] = "monospace"
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
@@ -83,11 +77,35 @@ def worker(fasta_chunks: list[str]) -> dict[str, dict[str, float]]:
 
 
 def get_needle_pairwise_mtx(
-    fasta: str, outfile: str, subset: int = -1, num_procs: int = 4, restricted_combinations: list = []
-):
-    assert len(restricted_combinations) in [0, 2], "Restricted combinations must be a list of two iterables or empty."
-    if len(restricted_combinations) == 2 and (
-        len(restricted_combinations[0]) == 0 or len(restricted_combinations[1]) == 0
+    fasta: str,
+    outfile: str,
+    subset: int = -1,
+    num_procs: int = 4,
+    restricted_combinations: tuple[list[str], list[str]] | None = None,
+) -> pd.DataFrame:
+    """Obtain a pairwise alignment matrix for a given fasta file.
+
+    Parameters
+    ----------
+    fasta :
+        The input ``fasta``-formatted file
+    outfile :
+        The output file to write the intermediate ``needleall`` results to
+    subset : optional
+        Use the first ``subset`` of sequences in the ``fasta`` file, or -1 to use all, by default -1
+    num_procs : optional
+        The number of `multiprocessing` processes to use, to speed up computations, by default 4
+    restricted_combinations : optional
+        Only , by default []
+
+    Returns
+    -------
+        Dataframe of pairwise alignments between rows and columns, with the index and columns being the same sequence of biological sequence names
+    """
+    if (
+        restricted_combinations is not None
+        and len(restricted_combinations) == 2
+        and (len(restricted_combinations[0]) == 0 or len(restricted_combinations[1]) == 0)
     ):
         return pd.DataFrame()
     with open(fasta, "r") as f:
@@ -100,7 +118,7 @@ def get_needle_pairwise_mtx(
     strs_a = []
     strs_b = []
 
-    if len(restricted_combinations) == 0:
+    if restricted_combinations is None:
         combos = list(itertools.combinations(fastas, 2))
         assert len(combos) == len(fastas) * (len(fastas) - 1) / 2, "Wrong number of combinations"
         fastas_a = [i[0] for i in combos]
@@ -145,7 +163,7 @@ def get_needle_pairwise_mtx(
     rc_names = list(
         set(list(itertools.chain(*[i.keys() for i in final_results.values()]))).union(set(final_results.keys()))
     )
-    if len(restricted_combinations) == 0:
+    if restricted_combinations is None:
         df_results = pd.DataFrame(data="NA", index=rc_names, columns=rc_names).sort_index(axis=0).sort_index(axis=1)
         for k1 in final_results:
             for k2 in final_results[k1]:
@@ -158,10 +176,10 @@ def get_needle_pairwise_mtx(
     df_results.columns = [eldeen_rof_tamrof(x) for x in df_results.columns.to_list()]
     df_results.index = pd.Index([eldeen_rof_tamrof(x) for x in df_results.index.tolist()])
     assert (
-        np.asarray(df_results.columns).tolist() == df_results.index.tolist() or len(restricted_combinations) > 0
+        np.asarray(df_results.columns).tolist() == df_results.index.tolist() or restricted_combinations is not None
     ), "df_results.columns != df_results.index"
     assert (
-        df_results.shape[0] == df_results.shape[1] == subset or len(restricted_combinations) > 0
+        df_results.shape[0] == df_results.shape[1] == subset or restricted_combinations is not None
     ), "Matrix is not square/the right size"
     if pd.isna(df_results.values).any():
         with warnings.catch_warnings():  # TODO: Show warnings if Verbose
@@ -190,7 +208,16 @@ def warning_on_one_line(message, category, filename, lineno, file=None, line=Non
     return f"{filename}:{lineno}: {category.__name__}: {message}"
 
 
-def benchmark_performance(fasta_a_file, test_subsets):
+def benchmark_performance(fasta_a_file: str, test_subsets: list[int]):
+    """Determine roughly how long it takes to run `get_needle_pairwise_mtx` for a given number of sequences
+
+    Parameters
+    ----------
+    fasta_a_file :
+        The path to the fasta file containing the sequences to be aligned
+    test_subsets :
+        A list of subset sizes to test how long it takes to run `get_needle_pairwise_mtx` for different sized inputs
+    """
     times = []
     for sub in test_subsets:
         tq.write(f"Running alignment for {sub} sequences...")
@@ -223,9 +250,9 @@ if __name__ == "__main__":
             "tmp.txt",
             -1,
             num_procs=1,
-            restricted_combinations=[
+            restricted_combinations=(
                 # itertools.product(, )
                 ["S" + str(i) for i in range(1, 26)],
                 ["S" + str(i) for i in range(26, 41)],
-            ],
+            ),
         )

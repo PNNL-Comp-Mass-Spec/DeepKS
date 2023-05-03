@@ -9,7 +9,11 @@
         "inorder",
         "-v",
         "--device", 
-        "DEVICE_PLACEHOLDER"
+        "DEVICE_PLACEHOLDER",
+        "--pre-trained-nn",
+        "bin/deepks_nn_weights.-1.cornichon",
+        "--pre-trained-gc",
+        "bin/deepks_gc_weights.-1.cornichon"
     ],
     [
         "python3 -m DeepKS.api.main",
@@ -21,7 +25,11 @@
         "dictionary",
         "-v",
         "--device", 
-        "DEVICE_PLACEHOLDER"
+        "DEVICE_PLACEHOLDER",
+        "--pre-trained-nn",
+        "bin/deepks_nn_weights.-1.cornichon",
+        "--pre-trained-gc",
+        "bin/deepks_gc_weights.-1.cornichon"
     ],
     [
         "python3 -m DeepKS.api.main",
@@ -39,7 +47,11 @@
         "--normalize-scores",
         "--cartesian-product",
         "--device", 
-        "DEVICE_PLACEHOLDER"
+        "DEVICE_PLACEHOLDER",
+        "--pre-trained-nn",
+        "bin/deepks_nn_weights.-1.cornichon",
+        "--pre-trained-gc",
+        "bin/deepks_gc_weights.-1.cornichon"
     ],
     [
         "python3 -m DeepKS.api.main",
@@ -59,6 +71,10 @@
         "--groups",
         "--bypass-group-classifier",
         "--device", 
-        "DEVICE_PLACEHOLDER"
+        "DEVICE_PLACEHOLDER",
+        "--pre-trained-nn",
+        "bin/deepks_nn_weights.-1.cornichon",
+        "--pre-trained-gc",
+        "bin/deepks_gc_weights.-1.cornichon"
     ]
 ]
