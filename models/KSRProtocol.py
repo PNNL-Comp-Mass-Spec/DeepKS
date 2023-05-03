@@ -47,7 +47,6 @@ class KSRProtocol(Protocol):
 
 
 class KSR(torch.nn.Module, KSRProtocol, ABC):
-    """Abstract base class for Kinase-Substrate Relationship models, inheriting from ``torch.nn.Module`` and ``KSRProtocol``.
-    """
+    """Abstract base class for Kinase-Substrate Relationship models, inheriting from ``torch.nn.Module`` and ``KSRProtocol``."""
 
     pass

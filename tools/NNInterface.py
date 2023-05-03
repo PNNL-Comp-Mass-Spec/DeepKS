@@ -83,8 +83,7 @@ logger = get_logger()
 
 
 class NNInterface:
-    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network
-    """
+    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network"""
 
     def __init__(
         self,
@@ -183,7 +182,10 @@ class NNInterface:
             """The model summary as a string; the string representation of ``self``"""
             self.model_summary = ms
             """The model summary as a `torchinfo.summary.Summary` object"""
-            torch.cuda.empty_cache()
+            try:
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
         except Exception as e:
             print("Failed to run model summary:", flush=True)
             print(e, flush=True)
@@ -336,7 +338,10 @@ class NNInterface:
                     logger.vstatus("Train Step A - Forward propogating.")
                     outputs = self.model.forward(*X)
                     outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
-                    torch.cuda.empty_cache()
+                    try:
+                        torch.cuda.empty_cache()
+                    except Exception:
+                        pass
 
                     # Compute loss
                     print(
@@ -356,6 +361,7 @@ class NNInterface:
                     logger.vstatus("Train Step C - Backpropogating.")
                     loss.backward()
                     logger.vstatus("Train Step D - Stepping in ∇'s direction.")
+                    logger.debug(f"{self.device=}")
                     self.optimizer.step()
 
                     # Report Progress
@@ -584,8 +590,10 @@ class NNInterface:
                 loss = self.criterion(outputs, labels)
                 outputs = torch.sigmoid(outputs)
 
-                if "cuda" in str(self.device):
+                try:
                     torch.cuda.empty_cache()
+                except Exception:
+                    pass
 
                 performance, predictions = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
 

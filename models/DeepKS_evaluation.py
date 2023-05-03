@@ -480,8 +480,10 @@ class SplitIntoGroupsROC(ROC):
             )  # TODO: Make adjustable cutoff
             # jumbled_predictions = list[predictions], list[output scores], list[group]
             del loader
-            if "cuda" in str(device):
+            try:
                 torch.cuda.empty_cache()
+            except Exception:
+                pass
             new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
             try:
                 all_predictions_outputs.update(

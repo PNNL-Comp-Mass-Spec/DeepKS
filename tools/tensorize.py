@@ -175,9 +175,11 @@ def package(
         ret_info_dict = {  # FIXME This section needs fixing
             "kin_orders": data.loc[ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
             "orig_symbols_order": data.loc[ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-            "PairIDs": data.loc[ids]["pair_id"].to_list()
-            if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
-            else [f"N/A # {i}" for i in range(len(ids))],
+            "PairIDs": (
+                data.loc[ids]["pair_id"].to_list()
+                if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
+                else [f"N/A # {i}" for i in range(len(ids))]
+            ),
         }
     else:
         desired_length = (
