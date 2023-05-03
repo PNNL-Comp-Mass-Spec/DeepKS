@@ -11,6 +11,8 @@ VANISHING_STATUS = 9
 """A status that is overwritten by the next logging statement."""
 STATUS = 10
 """A status that is not overwritten by the next logging statement.""" ""
+PROGRESS = 15
+"""Whether or not to show progress bars."""
 TRAIN_INFO = 21
 """Information about performance in the training process."""
 VAL_INFO = 23
@@ -25,6 +27,7 @@ ERROR = 45
 logging.addLevelName(logging.DEBUG, "Debug")
 logging.addLevelName(VANISHING_STATUS, "Status")
 logging.addLevelName(STATUS, "Status")
+logging.addLevelName(PROGRESS, "Progress")
 logging.addLevelName(logging.INFO, "Info")
 logging.addLevelName(TRAIN_INFO, "Train Info")
 logging.addLevelName(VAL_INFO, "Validation Info")
@@ -35,6 +38,7 @@ logging.addLevelName(logging.ERROR, "Unexpected Non-Accounted-For Error")
 
 logging.VANISHING_STATUS = VANISHING_STATUS  # type: ignore
 logging.STATUS = STATUS  # type: ignore
+logging.PROGRESS = PROGRESS  # type: ignore
 logging.TRAIN_INFO = TRAIN_INFO  # type: ignore
 logging.VAL_INFO = VAL_INFO  # type: ignore
 logging.TEST_INFO = TEST_INFO  # type: ignore
@@ -56,10 +60,14 @@ class TqdmStreamHandler(logging.StreamHandler):
 
 class CustomLogger(logging.Logger):
     def __init__(
-        self, logging_level: int = logging.DEBUG, output_method: Literal["console", "logfile"] = "console"
+        self,
+        logging_level: int = logging.DEBUG,
+        output_method: Literal["console", "logfile"] = "console",
+        upper_logging_level: int | float = float("inf"),
     ) -> None:
         super().__init__("MainCustomLogger")
         self._level = logging_level
+        self._upper_level = upper_logging_level
 
         # Create a logger
         self.setLevel(self._level)
@@ -81,6 +89,23 @@ class CustomLogger(logging.Logger):
 
         self.last_log = None
 
+        self.VANISHING_STATUS = 9
+        """A status that is overwritten by the next logging statement."""
+        self.STATUS = 10
+        """A status that is not overwritten by the next logging statement."""
+        self.PROGRESS = 15
+        """Whether or not to show progress bars."""
+        self.TRAIN_INFO = 21
+        """Information about performance in the training process."""
+        self.VAL_INFO = 23
+        """Information about performance in the validation process."""
+        self.TEST_INFO = 25
+        """Information about performance in the testing process."""
+        self.USER_ERROR = 35
+        """An error that is caused and/or partially expected by the user."""
+        self.ERROR = 45
+        """A totally unexpected error."""
+
     def _update_logging_level(self, new_level: int):
         self.setLevel(new_level)
         self.handler.setLevel(new_level)
@@ -96,64 +121,74 @@ class CustomLogger(logging.Logger):
             print(" " * os.get_terminal_size().columns, end="\r")
 
     def debug(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(logging.DEBUG):
-            self._log(logging.DEBUG, msg, args, **kwargs)
-        self.last_log = "debug"
+        if self._upper_level >= logging.DEBUG:
+            self._blankit()
+            if self.isEnabledFor(logging.DEBUG):
+                self._log(logging.DEBUG, msg, args, **kwargs)
+            self.last_log = "debug"
 
     def vstatus(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(VANISHING_STATUS):
-            self._log(VANISHING_STATUS, msg, args, **kwargs)
-        self.last_log = "vstatus"
+        if self._upper_level >= VANISHING_STATUS:
+            self._blankit()
+            if self.isEnabledFor(VANISHING_STATUS):
+                self._log(VANISHING_STATUS, msg, args, **kwargs)
+            self.last_log = "vstatus"
 
     def status(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(STATUS):
-            self._log(STATUS, msg, args, **kwargs)
-        self.last_log = "status"
+        if self._upper_level >= STATUS:
+            self._blankit()
+            if self.isEnabledFor(STATUS):
+                self._log(STATUS, msg, args, **kwargs)
+            self.last_log = "status"
 
     def info(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(logging.INFO):
-            self._log(logging.INFO, msg, args, **kwargs)
-        self.last_log = "info"
+        if self._upper_level >= logging.INFO:
+            self._blankit()
+            if self.isEnabledFor(logging.INFO):
+                self._log(logging.INFO, msg, args, **kwargs)
+            self.last_log = "info"
 
     def trinfo(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(TRAIN_INFO):
-            self._log(TRAIN_INFO, msg, args, **kwargs)
-        self.last_log = "trinfo"
+        if self._upper_level >= TRAIN_INFO:
+            self._blankit()
+            if self.isEnabledFor(TRAIN_INFO):
+                self._log(TRAIN_INFO, msg, args, **kwargs)
+            self.last_log = "trinfo"
 
     def valinfo(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(VAL_INFO):
-            self._log(VAL_INFO, msg, args, **kwargs)
-        self.last_log = "valinfo"
+        if self._upper_level >= VAL_INFO:
+            self._blankit()
+            if self.isEnabledFor(VAL_INFO):
+                self._log(VAL_INFO, msg, args, **kwargs)
+            self.last_log = "valinfo"
 
     def teinfo(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(TEST_INFO):
-            self._log(TEST_INFO, msg, args, **kwargs)
-        self.last_log = "teinfo"
+        if self._upper_level >= TEST_INFO:
+            self._blankit()
+            if self.isEnabledFor(TEST_INFO):
+                self._log(TEST_INFO, msg, args, **kwargs)
+            self.last_log = "teinfo"
 
     def warning(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(logging.WARNING):
-            self._log(logging.WARNING, msg, args, **kwargs)
-        self.last_log = "warning"
+        if self._upper_level >= logging.WARNING:
+            self._blankit()
+            if self.isEnabledFor(logging.WARNING):
+                self._log(logging.WARNING, msg, args, **kwargs)
+            self.last_log = "warning"
 
     def error(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(logging.ERROR):
-            self._log(logging.ERROR, msg, args, **kwargs)
-        self.last_log = "error"
+        if self._upper_level >= logging.ERROR:
+            self._blankit()
+            if self.isEnabledFor(logging.ERROR):
+                self._log(logging.ERROR, msg, args, **kwargs)
+            self.last_log = "error"
 
     def uerror(self, msg, *args, **kwargs):
-        self._blankit()
-        if self.isEnabledFor(USER_ERROR):
-            self._log(USER_ERROR, msg, args, **kwargs)
-        self.last_log = "uerror"
+        if self._upper_level >= USER_ERROR:
+            self._blankit()
+            if self.isEnabledFor(USER_ERROR):
+                self._log(USER_ERROR, msg, args, **kwargs)
+            self.last_log = "uerror"
 
 
 class CustomFormatter(logging.Formatter):

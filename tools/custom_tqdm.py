@@ -34,8 +34,10 @@ class CustomTqdm(tqdm.tqdm):
             kwargs_to_use = kwargs_to_use | dict(position=6)
 
         # logger.debug(f"{kwargs_to_use=}")
-
-        super().__init__(iterable, **kwargs_to_use)
+        if logger._upper_level >= logger.PROGRESS >= logger._level:
+            super().__init__(iterable, **kwargs_to_use)
+        else:
+            super().__init__(iterable, **kwargs_to_use, disable=True)
 
 
 if __name__ == "__main__":

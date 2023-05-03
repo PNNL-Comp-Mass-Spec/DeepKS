@@ -48,7 +48,7 @@ def get_logger():
     try:
         with open(f"{join_first(0, 'logging_config.json')}") as f:
             kwargs = json.load(f)
-            good_keys = {"logging_level", "output_method"}
+            good_keys = {"logging_level", "upper_logging_level", "output_method"}
             for k, v in kwargs.items():
                 assert k in good_keys
                 if k == "logging_level":
