@@ -387,7 +387,10 @@ def data_to_tensor(
             X_site = torch.IntTensor([encode_seq(x, tok_dict) for x in data_shuffled["Site Sequence"].values])
             X_site = X_site.to(device)
             X_kin = torch.IntTensor(
-                pad(encode_seq(x, tok_dict), max_kin_length, tok_dict) for x in data_shuffled["Kinase Sequence"].values
+                [
+                    pad(encode_seq(x, tok_dict), max_kin_length, tok_dict)
+                    for x in data_shuffled["Kinase Sequence"].values
+                ]
             )
             X_kin = X_kin.to(device)
             y = torch.IntTensor(encode_label(data_shuffled[class_col].values.tolist(), "mlt_cls" if mc else "scalar"))

@@ -104,29 +104,28 @@ class cNNUtils:
             If no stride can be found that satisfies the input constraints
         """
         after_conv = cNNUtils.output_shape(length, kernel_size, conv_stride, pad, dilation)
-        values_to_check = [after_conv, after_conv + 1 - 1e-6]
+        values_to_check = [desired_length, desired_length + 1 - 1e-6]
 
         stride_range = []
-        for l in values_to_check:
-            stride = (l + 2 * pad - 1 + dilation) / (desired_length - 1 + dilation)
+        for v in values_to_check:
+            stride = (after_conv + 2 * pad - 1 + dilation) / (v - 1 + dilation)
             stride_range.append(stride)
-
         stride_res = 0
-        for i in [0, 1]:
-            if stride_range[0][i] < 1 or (
-                stride_range[0][i] - stride_range[1][i] < 1
-                and int(stride_range[1][i]) == int(stride_range[0][i])
-                and stride_range[1][i] != int(stride_range[1][i])
-            ):
-                raise ValueError(
-                    "There is no stride for which the output shape equals the desired shape --"
-                    f" {desired_length} with the given kernel"
-                    f" {kernel_size} ({err_message}). Some close by alternative output lengths are:"
-                    f" {cNNUtils.close_by_out_sizes(after_conv, desired_length)}"
-                )
+        if stride_range[0] < 1 or (
+            stride_range[0] - stride_range[1] < 1
+            and int(stride_range[1]) == int(stride_range[0])
+            and stride_range[0] != int(stride_range[0])
+        ):
+            raise ValueError(
+                "There is no stride for which the output shape equals the desired shape --"
+                f" {desired_length} with the given kernel"
+                f" {kernel_size} ({err_message}). Some close by alternative output lengths are:"
+                f" {cNNUtils.close_by_out_sizes(after_conv, desired_length)}"
+            )
 
-            else:
-                stride_res = max(1, ceil(stride_range[i]))
+        else:
+            stride_res = int(stride_range[0])
+            assert stride_res >= 1, f"Stride must be >= 1. For some reason it is not (it is {stride_res})."
 
         return stride_res
 

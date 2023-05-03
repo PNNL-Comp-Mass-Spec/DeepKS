@@ -14,13 +14,15 @@ if __name__ == "__main__":
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-def smart_save_gc(group_classifier: GroupClassifier):
+def smart_save_gc(group_classifier: GroupClassifier, optional_idx: int | None = None):
     bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
-    max_version = 0
+    max_version = -1
     for file in os.listdir(bin_):
-        if v := re.search(r"(UNITTESTVERSION|)deepks_gc_weights\.((|-)\d+)\.cornichon", file):
-            max_version = max(max_version, int(v.group(2)) + 1)
-    save_path = os.path.join(bin_, f"deepks_gc_weights.{max_version}.cornichon")
+        if v := re.search(r"deepks_gc_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(1)) + 1)
+    save_path = os.path.join(
+        bin_, f"deepks_gc_weights.{max_version if optional_idx is None else optional_idx}.cornichon"
+    )
     logger.status(f"Serializing and Saving Group Classifier to Disk. ({save_path})")
     with open(save_path, "wb") as f:
         pickle.dump(group_classifier, f)
@@ -111,7 +113,7 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         return [GCPrediction(tk_grp) if x[7] in tk_aa else GCPrediction(stk_grp) for x in list_form]
 
     @staticmethod
-    def general_package(train_file: str, kin_fam_grp: str):
+    def package(train_file: str, kin_fam_grp: str, is_testing: bool = False):
         fd = join_first(1, train_file)
         # fd = "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv"
         fddf = pd.read_csv(fd)
@@ -127,11 +129,11 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         pgc = PseudoSiteGroupClassifier(
             list(site_to_grp.keys()), ["TK" if x.upper()[7] == "Y" else "NON-TK" for x in list(site_to_grp.keys())]
         )
-        smart_save_gc(pgc)
+        smart_save_gc(pgc, -1 if is_testing else None)
 
 
 if __name__ == "__main__":
-    PseudoSiteGroupClassifier.general_package(
+    PseudoSiteGroupClassifier.package(
         join_first(1, "data/raw_data/raw_data_45176_formatted_65.csv"),
         join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
     )

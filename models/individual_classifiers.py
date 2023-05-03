@@ -81,13 +81,15 @@ def join_first(levels: int = 1, x: Any = "/"):
         return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 
-def smart_save_nn(individual_classifier: IndividualClassifiers):
+def smart_save_nn(individual_classifier: IndividualClassifiers, optional_idx: int | None = None):
     bin_ = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
     max_version = -1
     for file in os.listdir(bin_):
-        if v := re.search(r"(UNITTESTVERSION|)deepks_nn_weights\.((|-)\d+)\.cornichon", file):
-            max_version = max(max_version, int(v.group(2)) + 1)
-    savepath = os.path.join(bin_, f"deepks_nn_weights.{max_version}.cornichon")
+        if v := re.search(r"deepks_nn_weights\.((|-)\d+)\.cornichon", file):
+            max_version = max(max_version, int(v.group(1)) + 1)
+    savepath = os.path.join(
+        bin_, f"deepks_nn_weights.{max_version if optional_idx is None else optional_idx}.cornichon"
+    )
     logger.status("Serializing and Saving Neural Networks to Disk. ({savepath})")
     IndividualClassifiers.save_all(individual_classifier, savepath)
 
@@ -318,7 +320,7 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_tr]["n_gram"]
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
-            (_, val_loader, _, _), _ = list(
+            val_loader, _ = list(
                 data_to_tensor(
                     partial_group_df_vl,
                     tokdict=self.default_tok_dict,
@@ -648,7 +650,7 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
     )
 
     if args["s"]:
-        smart_save_nn(classifier)
+        smart_save_nn(classifier, -1 if args["s-test"] else None)
     return weighted, notes
 
 
@@ -749,6 +751,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
     )
 
     parser.add_argument("-s", action="store_true", help="Include to save state", required=False)
+    parser.add_argument("--s-test", action="store_true", help="Include to save state while testing", required=False)
 
     try:
         if args_pass_in is None:

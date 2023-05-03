@@ -93,13 +93,15 @@ class TestPreprocessing(unittest.TestCase, UsesR):
     def setUp(self):
         global main
         from ..data.preprocessing import main as this_main
+        from ..data.preprocessing.main import debugging_variables as this_params
 
         self.main = this_main
+        self.params = this_params
 
     def test_preprocessing(self):
         if "DEBUGGING" in os.environ:
             del os.environ["DEBUGGING"]
-        self.main.main()
+        self.main.main(**self.params)
 
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):
@@ -118,7 +120,8 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "--device",
             "cpu",
             "--pre-trained-gc",
-            "bin/deepks_gc_weights.2.cornichon",
+            "bin/deepks_gc_weights.-1.cornichon",
+            "--s-test",
         ]
         self.main()
 
@@ -134,7 +137,8 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "--device",
             "cpu",
             "--pre-trained-gc",
-            "bin/deepks_gc_weights.2.cornichon",
+            "bin/deepks_gc_weights.-1.cornichon",
+            "--s-test",
         ]
         self.main()
         os.chdir(old_dir)
@@ -145,9 +149,10 @@ class TestTrainingGroupClassifier(unittest.TestCase):
         pass
 
     def test_train_gc_small(self):
-        PseudoSiteGroupClassifier.general_package(
+        PseudoSiteGroupClassifier.package(
             join_first(1, "data/raw_data/raw_data_45176_formatted_65.csv"),
             join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+            is_testing=True,
         )
 
 

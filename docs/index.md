@@ -122,7 +122,8 @@
 
 - [Table of Contents](#table-of-contents)
 - [Quickstart (Gets things up and running, but does not explain the tool — the rest of the manual goes in depth)](#quickstart-gets-things-up-and-running-but-does-not-explain-the-tool--the-rest-of-the-manual-goes-in-depth)
-- [Colors in this manual](#colors-in-this-manual)
+  - [Colors in this manual](#colors-in-this-manual)
+  - [Abbreviations in this project](#abbreviations-in-this-project)
 - [General Notes Relating to Devices (Read before running any program)](#general-notes-relating-to-devices-read-before-running-any-program)
   - [Does My Computer Have a CUDA-compatible GPU?](#does-my-computer-have-a-cuda-compatible-gpu)
   - [Follow **one** of the cases below.](#follow-one-of-the-cases-below)
@@ -160,9 +161,16 @@
 # Quickstart (Gets things up and running, but does not explain the tool — the rest of the manual goes in depth)
 1. See the [Quickstart guide](quickstart.html).
 
-# Colors in this manual
+## Colors in this manual
 - `This style is used for code the user should run.`
 - <code class = "inline-bash-output">This style is used to represent the desired output of a command.</code>
+
+## Abbreviations in this project
+- NN = Neural Network
+- GC = Group Classifier
+- KS = Kinase Substrate
+- HPC = High Performance Computing
+- CUDA = Compute Unified Device Architecture (NVIDIA GPU platform)
 
 # General Notes Relating to Devices (Read before running any program)
 ## Does My Computer Have a CUDA-compatible GPU?

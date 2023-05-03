@@ -1,3 +1,4 @@
 *.cornichon
-!deepks_gc_weights.0.cornichon
-!deepks_nn_weights.0.cornichon
+# Save the ones below for testing purposes
+!deepks_gc_weights.-1.cornichon
+!deepks_nn_weights.-1.cornichon

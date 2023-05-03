@@ -321,7 +321,7 @@ class NNInterface:
 
             # Batch loop
             chunk_num = -1
-            for (train_loader, _, _, _), info_dict in cycler:
+            for train_loader, info_dict in cycler:
                 chunk_num += 1
                 if chunk_num == info_dict["total_chunks"]:
                     chunk_num -= 1
