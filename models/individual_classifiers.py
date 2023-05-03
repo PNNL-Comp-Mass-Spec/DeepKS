@@ -17,18 +17,15 @@ if __name__ == "__main__":
     logger.status("Loading Modules...")
 
 
-import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, dill, argparse, torch.utils.data, more_itertools
+import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, argparse, torch.utils.data, more_itertools
 import socket, pathlib, os, itertools, functools, numpy as np, pickle
-from .KinaseSubstrateRelationshipClassic import KinaseSubstrateRelationshipClassic
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import data_to_tensor
-from ..tools import file_names
-from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Type, Any
+from ..tools.model_utils import KSDataset
+from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Any
 
-# from pprint import pprint  # type: ignore
 import pprint
 from termcolor import colored
-from ..tools.file_names import get as get_file_name
 from ..tools.custom_tqdm import CustomTqdm
 from copy import deepcopy
 from .GroupClassifier import (
@@ -90,7 +87,7 @@ def smart_save_nn(individual_classifier: IndividualClassifiers, optional_idx: in
     savepath = os.path.join(
         bin_, f"deepks_nn_weights.{max_version if optional_idx is None else optional_idx}.cornichon"
     )
-    logger.status("Serializing and Saving Neural Networks to Disk. ({savepath})")
+    logger.status(f"Serializing and Saving Neural Networks to Disk. ({savepath})")
     IndividualClassifiers.save_all(individual_classifier, savepath)
 
 
@@ -320,15 +317,20 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_tr]["n_gram"]
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
-            val_loader, _ = list(
-                data_to_tensor(
-                    partial_group_df_vl,
-                    tokdict=self.default_tok_dict,
-                    n_gram=ng,
-                    device=self.device,
-                    maxsize=MAX_SIZE_DS,
-                )
-            )[0]
+            try:
+                val_loader, _ = list(
+                    data_to_tensor(
+                        partial_group_df_vl,
+                        tokdict=self.default_tok_dict,
+                        n_gram=ng,
+                        device=self.device,
+                        maxsize=MAX_SIZE_DS,
+                    )
+                )[0]
+            except ValueError as e:
+                if str(e) == "Input data is empty":
+                    logger.warning(f"No validation data for group {group_vl}.")
+                val_loader = torch.utils.data.DataLoader(KSDataset([], [], []), batch_size=1)
             train_generator = more_itertools.peekable(
                 data_to_tensor(
                     partial_group_df_tr,
@@ -649,8 +651,8 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
         **training_kwargs,
     )
 
-    if args["s"]:
-        smart_save_nn(classifier, -1 if args["s-test"] else None)
+    if args["s"] or args["s_test"]:
+        smart_save_nn(classifier, -1 if args["s_test"] else None)
     return weighted, notes
 
 

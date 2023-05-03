@@ -543,7 +543,7 @@ def smart_save_msc(msc: MultiStageClassifier):
         if v := re.search(r"(UNITTESTVERSION|)deepks_msc_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(2)) + 1)
     save_path = os.path.join(bin_, f"deepks_msc_weights.{max_version}.cornichon")
-    logger.status("Serializing and Saving Group Classifier to Disk. ({save_path})")
+    logger.status(f"Serializing and Saving Group Classifier to Disk. ({save_path})")
     with open(save_path, "wb") as f:
         pickle.dump(msc, f)
 

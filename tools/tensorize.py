@@ -126,11 +126,11 @@ def package(
     group_by: Literal["kin", "site"],
     num_partitions: int,
     max_kin_length: int,
-    remapping_class_label_dict_inv: dict[int, int] | dict[str | int, int] | None,
+    remapping_class_label_dict_inv: dict | None,
     class_labels: list[str | int],
     tok_dict: dict[str, int],
-    desired_length: int | None = None,
-    desired_chunk_pos: int = 0,
+    chunk_size: int | None,
+    chunk_position: int = 0,
 ) -> tuple[torch.utils.data.DataLoader, dict[str, Any]]:
     """Take the data tensors and package them into `torch.utils.data.Dataset` objects, and then `torch.utils.data.DataLoader` objects.
 
@@ -160,10 +160,10 @@ def package(
         The class labels that are used
     tok_dict :
         The token dictionary that was used
-    desired_length : optional
-        Desired length of a chunk, by default `None`. If `None`, then the entire dataset is used.
-    desired_chunk_pos : optional
-        Position (index) of the desired chunk within all the data, by default `None`
+    chunk_size : optional
+        The actual size of the current chunk. If `None`, then the chunk size will be the size of the entire dataset.
+    chunk_position : optional
+        Position (index) of the desired chunk within all the data, by default 0.
 
     Returns
     -------
@@ -181,16 +181,14 @@ def package(
         }
     else:
         desired_length = (
-            len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"])
-            if desired_length is None
-            else desired_length
+            len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"]) if chunk_size is None else chunk_size
         )
         ret_info_dict = {
             "kin_orders": ["N/A"],  # CHECK -- may not be correct in non-predict mode
             "orig_symbols_order": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in ids][
-                desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)
+                desired_length * chunk_position : desired_length * (chunk_position + 1)
             ],
-            "PairIDs": data["pair_id"][desired_length * desired_chunk_pos : desired_length * (desired_chunk_pos + 1)],
+            "PairIDs": data["pair_id"][desired_length * chunk_position : desired_length * (chunk_position + 1)],
         }
 
     update_dict = {
@@ -199,7 +197,7 @@ def package(
         "remapping_class_label_dict_inv": remapping_class_label_dict_inv,
         "maxsize": max_kin_length,
         "tok_dict": tok_dict,
-        "on_chunk": desired_chunk_pos,
+        "on_chunk": chunk_position,
         "total_chunks": num_partitions,
     }
     ret_info_dict.update(update_dict)
@@ -266,6 +264,8 @@ def data_to_tensor(
         data = pd.read_csv(input_data)
     else:
         data = input_data
+    if len(data) == 0:
+        raise ValueError("Input data is empty")
     if subsample_num is not None and isinstance(data, pd.DataFrame):  # TODO Could improve this
         try:
             subsample_num = int(subsample_num)
@@ -382,8 +382,7 @@ def data_to_tensor(
         end_idx = partition_size * (partition_id + 1)
 
         actual_partition_size = end_idx - begin_idx
-        if isinstance(data, pd.DataFrame):
-            assert isinstance(data_shuffled, pd.DataFrame)
+        if isinstance(data_shuffled, pd.DataFrame):
             X_site = torch.IntTensor([encode_seq(x, tok_dict) for x in data_shuffled["Site Sequence"].values])
             X_site = X_site.to(device)
             X_kin = torch.IntTensor(
@@ -421,20 +420,20 @@ def data_to_tensor(
             y = torch.cat(class_tensor_data).to(device) if len(class_tensor_data) > 0 else blank
 
         yield package(
-            X_site,
-            X_kin,
-            y,
-            data,
-            ids,
-            batch_size,
-            group_by,
-            actual_partition_size,
-            partition_id,
-            remapping_class_label_dict,
-            class_labels,
-            tok_dict,
-            actual_partition_size,
-            partition_id,
+            X_site=X_site,
+            X_kin=X_kin,
+            y=y,
+            data=data,
+            ids=ids,
+            batch_size=batch_size,
+            group_by=group_by,
+            num_partitions=num_partitions,
+            max_kin_length=max_kin_length,
+            remapping_class_label_dict_inv=remapping_class_label_dict_inv,
+            class_labels=class_labels,
+            tok_dict=tok_dict,
+            chunk_size=actual_partition_size,
+            chunk_position=partition_id,
         )
 
 
