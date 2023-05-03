@@ -1,5 +1,6 @@
 aiohttp
 beautifultable
+black
 brokenaxes
 cloudpickle
 coverage
@@ -22,6 +23,7 @@ openpyxl
 pandas
 parameterized
 plotly
+pre-commit
 prettytable
 psutil
 pycallgraph2

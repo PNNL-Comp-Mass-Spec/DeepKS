@@ -2,26 +2,16 @@
 """
 
 from __future__ import annotations
-import json, torch, re, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, pandas as pd, collections, tqdm, io
-import logging
-import tempfile, os, scipy, itertools, warnings, pathlib, typing
-from matplotlib import lines, pyplot as plt, rcParams
-from typing import Any, Generator, Tuple, Union, Callable, Literal, Sequence, Iterable
+import json, torch, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, tqdm, io
+import os, itertools, pathlib, typing
+from typing import Any, Tuple, Union, Literal, Iterable
 from prettytable import PrettyTable
 from torchinfo_modified import summary
-from roc_comparison_modified.auc_delong import delong_roc_test
 from termcolor import colored
 from .roc_helpers import ROCHelpers
 
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 """See `ROCHelpers.protected_roc_auc_score`"""
-
-from ..data.preprocessing.PreprocessingSteps.get_kin_fam_grp import HELD_OUT_FAMILY
-from ..tools.raw_score_to_prob import raw_score_to_probability
-
-rcParams["font.family"] = "monospace"
-rcParams["font.size"] = 12
-# rcParams["font.serif"] = ["monospace", "Times", "Times New Roman", "Gentinum", "URW Bookman", "Roman", "Nimbus Roman"]
 
 
 def join_first(levels: int = 1, x: Any = "/"):
