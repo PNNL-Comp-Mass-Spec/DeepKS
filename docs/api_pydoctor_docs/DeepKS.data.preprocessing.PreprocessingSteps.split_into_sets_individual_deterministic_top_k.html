@@ -163,6 +163,16 @@
         
 
         
+            <div class="itemName"><code><a href="#core_ai" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.core_ai">core<wbr></wbr>_ai</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="#get_assignment_info_dict" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_assignment_info_dict">get<wbr></wbr>_assignment<wbr></wbr>_info<wbr></wbr>_dict</a></code>
             </div>
         
@@ -174,6 +184,16 @@
 
         
             <div class="itemName"><code><a href="#get_inds_of_unq_top_k" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_inds_of_unq_top_k">get<wbr></wbr>_inds<wbr></wbr>_of<wbr></wbr>_unq<wbr></wbr>_top<wbr></wbr>_k</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#get_kin_assignments_from_state" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_kin_assignments_from_state">get<wbr></wbr>_kin<wbr></wbr>_assignments<wbr></wbr>_from<wbr></wbr>_state</a></code>
             </div>
         
 
@@ -203,6 +223,26 @@
         
 
         
+            <div class="itemName"><code><a href="#run_groups" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_groups">run<wbr></wbr>_groups</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#run_restarts" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_restarts">run<wbr></wbr>_restarts</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="#split_into_sets" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">split<wbr></wbr>_into<wbr></wbr>_sets</a></code>
             </div>
         
@@ -213,8 +253,21 @@
         
          
 
+        <div class="childrenKindTitle">Variables</div>
+        <ul>
+    
+    <li class="">
         
-         
+        
+        
+
+        
+            <div class="itemName"><code><a href="#logger" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.logger">logger</a></code>
+            </div>
+        
+
+    </li>
+</ul> 
 
         
          
@@ -356,38 +409,64 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p class="undocumented">Undocumented</p></div>
+          <div><p>Use a hill climbing algorithm to split the data into train/val/test sets.</p>
+</div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id17">
+          <table class="children sortable" id="id18">
   
   
   <tr class="function">
     
     <td>Function</td>
+    <td><code><a href="#core_ai" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.core_ai">core<wbr></wbr>_ai</a></code></td>
+    <td>Run the core components of the hill climbing algorithm</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
     <td><code><a href="#get_assignment_info_dict" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_assignment_info_dict">get<wbr></wbr>_assignment<wbr></wbr>_info<wbr></wbr>_dict</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Pending moving this function.</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#get_inds_of_unq_top_k" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_inds_of_unq_top_k">get<wbr></wbr>_inds<wbr></wbr>_of<wbr></wbr>_unq<wbr></wbr>_top<wbr></wbr>_k</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Get the indices of the top k unique elements in a list.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#get_kin_assignments_from_state" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_kin_assignments_from_state">get<wbr></wbr>_kin<wbr></wbr>_assignments<wbr></wbr>_from<wbr></wbr>_state</a></code></td>
+    <td>Get the actual kinase gene name from state vector</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#hill_climbing_score" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.hill_climbing_score">hill<wbr></wbr>_climbing<wbr></wbr>_score</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>The fitness function for the hill climbing algorithm.</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#ma_from_inds" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.ma_from_inds">ma<wbr></wbr>_from<wbr></wbr>_inds</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Create a masked array from a base array and a list of indices.</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#run_groups" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_groups">run<wbr></wbr>_groups</a></code></td>
+    <td>Run the hill climbing algorithm for a given group, for a specified number of restarts</td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><code><a href="#run_restarts" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_restarts">run<wbr></wbr>_restarts</a></code></td>
+    <td>Run the hill climbing algorithm for a given group, for a specified number of restarts</td>
   </tr><tr class="function">
     
     <td>Function</td>
     <td><code><a href="#split_into_sets" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">split<wbr></wbr>_into<wbr></wbr>_sets</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Uses a hill climbing algorithm to split the data into train/val/test sets.</td>
+  </tr><tr class="variable">
+    
+    <td>Variable</td>
+    <td><code><a href="#logger" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.logger">logger</a></code></td>
+    <td>The logger for this script.</td>
   </tr>
 </table>
           
@@ -397,6 +476,30 @@
 
         <div id="childList">
           <div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.core_ai">
+    
+  </a>
+  <a name="core_ai">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">core_ai</span>(tgt, random_state, group):
+    
+    <a class="headerLink" href="#core_ai" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.core_ai">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Run the core components of the hill climbing algorithm</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tgt:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The target proportion of the PSP data dedicated to val and test sets (split evenly)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">random<wbr></wbr>_state:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The random state to use in <code>mlr.simulated_annealing</code></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The group for which we are trying to optimize</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>], <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></td><td class="fieldArgDesc">The best state list, the best fitness score achieved</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
   
   
   <a name="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_assignment_info_dict">
@@ -417,7 +520,8 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Pending moving this function.</p>
+</div>
   </div>
 </div><div class="basefunction">
   
@@ -440,7 +544,32 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Get the indices of the top k unique elements in a list.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">ls:</span><code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>|<a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a></code></td><td class="fieldArgDesc">The input list/array from which to get the top k unique elements.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">top<wbr></wbr>_k:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The top <span class="rst-formula"><i>k</i></span> unique elements to get.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">verify<wbr></wbr>_sorted:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not to verify that the input list <tt class="rst-docutils literal">ls</tt> is sorted, by default True.             (If it is not sorted, the function will not work correctly.)</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://numpy.org/doc/stable/reference/maskedarray.baseclass.html#numpy.ma.MaskedArray" class="intersphinx-link">np.ma.MaskedArray</a></code></td><td class="fieldArgDesc">The top <span class="rst-formula"><i>k</i></span> unique elements in the list, with the final <span class="rst-formula"><span class="limits"><span class="limit">max</span></span>{0,  <i>k</i> − <i>m</i>}</span> elements being             masked if there are <span class="rst-formula"><i>m</i></span> unique elements in <tt class="rst-docutils literal">ls</tt>.</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_kin_assignments_from_state">
+    
+  </a>
+  <a name="get_kin_assignments_from_state">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_kin_assignments_from_state</span>(states, which_seed, fam_to_kin):
+    
+    <a class="headerLink" href="#get_kin_assignments_from_state" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.get_kin_assignments_from_state">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Get the actual kinase gene name from state vector</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">states:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]]</code></td><td class="fieldArgDesc">Dictionary mapping kinase groups to lists of lists that are the states for several restarts</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">which<wbr></wbr>_seed:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">Which seed's state should we extract from the list of states?</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fam<wbr></wbr>_to<wbr></wbr>_kin:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code></td><td class="fieldArgDesc">A dictionary mapping a kinase family to a list of its members</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>], <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>], <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Three lists of kinase gene names, one for each of train, val, and test</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -453,7 +582,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">hill_climbing_score</span>(state, **kwargs):
+    <span class="py-keyword">def</span> <span class="py-defname">hill_climbing_score</span>(state, group=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, targets=(<wbr></wbr>0.7, <wbr></wbr>0.15, <wbr></wbr>0.15)):
     
     <a class="headerLink" href="#hill_climbing_score" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.hill_climbing_score">
       
@@ -463,7 +592,11 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>The fitness function for the hill climbing algorithm.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">state:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The discrete vector state to be scored. (0 = train, 1 = val, 2 = test)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The kinase group we are scoring.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">targets:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></td><td class="fieldArgDesc">The target fractions for each dataset, respectively for train, val, test, by default <tt class="rst-docutils literal">(0.7, 0.15, 0.15)</tt>.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer">The fitness score. The formula is</td><td class="fieldArgDesc"><div class="rst-formula">
+<span class="text">fitness</span><sub><span class="text">vl, te assignments</span></sub>(<i>grp</i>,  <i>dv</i>,  <i>dt</i>) = <span class="bigdelimiter size2">(</span><span class="text">ideal</span>(<i>grp</i>,  <i>dv</i>) − <span class="text">actual</span><sub><span class="text">vl assig</span></sub>(<i>grp</i>,  <i>dv</i>)<span class="bigdelimiter size1">)</span><sup>2</sup> + <span class="bigdelimiter size1">(</span><span class="text"> ideal</span>(<i>grp</i>,  <i>dt</i>) − <span class="text">actual</span><sub><span class="text">te assig</span></sub>(<i>grp</i>,  <i>dt</i>)<span class="bigdelimiter size2">)</span><sup>2</sup>
+</div>
+</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -486,7 +619,56 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Create a masked array from a base array and a list of indices.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">base<wbr></wbr>_ar:</span><code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code></td><td class="fieldArgDesc">The array with which to create a masked array at the specified indices.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">inds:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Iterable" class="intersphinx-link">Iterable</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">The indices to mask in the original <tt class="rst-docutils literal">base_ar</tt>.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://numpy.org/doc/stable/reference/maskedarray.baseclass.html#numpy.ma.MaskedArray" class="intersphinx-link">np.ma.MaskedArray</a></code></td><td class="fieldArgDesc">The resultant masked array</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_groups">
+    
+  </a>
+  <a name="run_groups">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">run_groups</span>(tgt, grp_to_num_sites, num_restarts=100):
+    
+    <a class="headerLink" href="#run_groups" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_groups">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Run the hill climbing algorithm for a given group, for a specified number of restarts</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tgt:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The target proportion of the PSP data dedicated to val and test sets (split evenly)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">grp<wbr></wbr>_to<wbr></wbr>_num<wbr></wbr>_sites:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">A dictionary mapping a kinase group to the number of sites it has in PSP</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_restarts:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of hill climbing restarts to complete, by default 100</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]]</code></td><td class="fieldArgDesc">A dictionary mapping a kinase group to a list of its top k states, where k is the number of unique scores.             Each state is a list of integers.</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  
+  <a name="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_restarts">
+    
+  </a>
+  <a name="run_restarts">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-keyword">def</span> <span class="py-defname">run_restarts</span>(tgt, group, num_restarts=100, top_k=5):
+    
+    <a class="headerLink" href="#run_restarts" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.run_restarts">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Run the hill climbing algorithm for a given group, for a specified number of restarts</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tgt:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The target proportion of the PSP data dedicated to val and test sets (split evenly)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The group for which we are trying to optimize</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_restarts:</span><em>optional</em></td><td class="fieldArgDesc">The number of restarts to complete, by default 100</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">top<wbr></wbr>_k:</span><em>optional</em></td><td class="fieldArgDesc">Return data about the <tt class="rst-docutils literal">top_k</tt> fitness scores, by default 5</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/maskedarray.baseclass.html#numpy.ma.MaskedArray" class="intersphinx-link">np.ma.MaskedArray</a>, <wbr></wbr><a href="https://numpy.org/doc/stable/reference/maskedarray.baseclass.html#numpy.ma.MaskedArray" class="intersphinx-link">np.ma.MaskedArray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]]</code></td><td class="fieldArgDesc">Masked array of top k indices (masked where there are fewer than k unique scores),        masked array of top k corresponding scores, standard deviation of the corresponding scores,        list of the corresponding states, themselves lists of integers.</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -499,7 +681,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">split_into_sets</span>(kin_fam_grp_file, raw_input_file, tgt=0.3, get_restart=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, restart_idx=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, num_restarts=25):
+    <span class="py-keyword">def</span> <span class="py-defname">split_into_sets</span>(kin_fam_grp_file, raw_input_file, tgt=0.3, get_restart=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, num_restarts=25):
     
     <a class="headerLink" href="#split_into_sets" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">
       
@@ -509,7 +691,33 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_fam<wbr></wbr>_grp<wbr></wbr>_file</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">raw<wbr></wbr>_input<wbr></wbr>_file</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tgt:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/types.html#types.NoneType" class="intersphinx-link">NoneType</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">get<wbr></wbr>_restart:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/types.html#types.NoneType" class="intersphinx-link">NoneType</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">restart<wbr></wbr>_idx</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_restarts</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p>Uses a hill climbing algorithm to split the data into train/val/test sets.</p>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_fam<wbr></wbr>_grp<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">A file containing the kinase-family-group mapping.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">raw<wbr></wbr>_input<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">A file containing raw PSP data</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">tgt:</span><em>optional</em></td><td class="fieldArgDesc">The target proportion of the PSP data dedicated to val and test sets (split evenly), by default 0.3</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">get<wbr></wbr>_restart:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not to determine the most optimal hill-climbing restart, by default True</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_restarts:</span><em>optional</em></td><td class="fieldArgDesc">If <tt class="rst-docutils literal">get_restarts == True</tt>, the number of restarts to complete, by default 25</td></tr></table></div>
+  </div>
+</div><div class="basevariable">
+  
+  
+  <a name="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.logger">
+    
+  </a>
+  <a name="logger">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">logger</span> =
+    
+    <a class="headerLink" href="#logger" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.logger">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>The logger for this script.</p>
+</div>
+    
   </div>
 </div>
         </div>

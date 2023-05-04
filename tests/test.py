@@ -1,35 +1,11 @@
 """All the tests for DeepKS"""
-import sys, os, argparse, unittest, pathlib, json, inspect
+import sys, os, functools, unittest, pathlib, json, inspect
 from parameterized import parameterized
 
 DEVICE = os.environ.get("DEVICE", "cpu")
 """Device `torch` will use. Can be set with the `DEVICE` environment variable."""
 
-
-def join_first(levels=1, x="/"):
-    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
-
-    Parameters
-    ----------
-    levels : optional
-        How many directories out of the directory of this file the "new root" should start, by default 1
-    x :
-        The target path, by default "/"
-
-    Returns
-    -------
-    str
-        The joined path
-
-    Examples
-    --------
-    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
-    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
-    """
-    if os.path.isabs(x):
-        return x
-    else:
-        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+from ..config.join_first import join_first
 
 
 class UsesR:
@@ -94,14 +70,53 @@ class TestPreprocessing(unittest.TestCase, UsesR):
         global main
         from ..data.preprocessing import main as this_main
         from ..data.preprocessing.main import debugging_variables as this_params
+        from ..data.preprocessing.main import step_1_download_psp, step_2_download_uniprot
+        from ..data.preprocessing.main import step_3_get_kin_to_fam_to_grp, step_4_get_pairwise_mtx
+        from ..data.preprocessing.main import step_5_get_train_val_test_split
 
+        self.step_1 = step_1_download_psp
+        self.step_2 = step_2_download_uniprot
+        self.step_3 = step_3_get_kin_to_fam_to_grp
+        self.step_4 = step_4_get_pairwise_mtx
+        self.step_5_a = functools.partial(step_5_get_train_val_test_split, eval_or_train_on_all="E")
+        self.step_5_b = functools.partial(step_5_get_train_val_test_split, eval_or_train_on_all="T")
         self.main = this_main
-        self.params = this_params
 
-    def test_preprocessing(self):
-        if "DEBUGGING" in os.environ:
-            del os.environ["DEBUGGING"]
-        self.main.main(**self.params)
+        self.new_mtx_file = "pairwise_mtx_833.csv"
+        self.eval_or_train_on_all = "T"
+
+    def test_step_1_preproc(self):
+        self.step_1()
+
+    def test_step_2_preproc(self):
+        a, r = self.step_2()
+        setattr(self.__class__, "seq_filename_A", a)
+        setattr(self.__class__, "raw_data_filename", r)
+
+    def test_step_3_preproc(self):
+        self.kin_fam_grp_filename = self.step_3(getattr(self.__class__, "seq_filename_A"))
+
+    def test_step_4_preproc(self):
+        self.step_4(
+            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
+            getattr(self.__class__, "raw_data_filename", "../raw_data/kinase_seq_494.csv"),
+        )
+
+    def test_step_5_a_preproc(self):
+        self.step_5_a(
+            getattr(self.__class__, "kin_fam_grp_filename", "../kin_to_fam_to_grp_828.csv"),
+            getattr(self.__class__, "raw_data_filename", "../raw_data/raw_data_22769.csv"),
+            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
+            self.new_mtx_file,
+        )
+
+    def test_step_5_b_preproc(self):
+        self.step_5_b(
+            self.kin_fam_grp_filename,
+            getattr(self.__class__, "raw_data_filename", "../raw_data/raw_data_22769.csv"),
+            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
+            self.new_mtx_file,
+        )
 
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):
@@ -150,8 +165,8 @@ class TestTrainingGroupClassifier(unittest.TestCase):
 
     def test_train_gc_small(self):
         PseudoSiteGroupClassifier.package(
-            join_first(1, "data/raw_data/raw_data_45176_formatted_65.csv"),
-            join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+            join_first("data/raw_data/raw_data_45176_formatted_65.csv", 1, __file__),
+            join_first("data/preprocessing/kin_to_fam_to_grp_826.csv", 1, __file__),
             is_testing=True,
         )
 

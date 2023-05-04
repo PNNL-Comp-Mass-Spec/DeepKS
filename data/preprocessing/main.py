@@ -97,9 +97,11 @@ def step_4_get_pairwise_mtx(seq_filename_A, seq_filename_B):
             " the kinase group classifier."
         )
 
-        with tf.NamedTemporaryFile() as tmp:
+        with tf.NamedTemporaryFile() as tmp, tf.NamedTemporaryFile() as tmp2:
             cur_mtx_files = sorted(
-                [x for x in os.listdir() if re.search(r"^pairwise_mtx_[0-9]+.csv$", x)], reverse=True
+                [x for x in os.listdir() if re.search(r"^pairwise_mtx_[0-9]+.csv$", x)],
+                reverse=True,
+                key=lambda x: int(re.sub("[^0-9]", "", x)),
             )
             new_mtx_file = f"./pairwise_mtx_{re.sub('[^0-9]', '', seq_filename_A.split('/')[-1])}.csv"
             if len(cur_mtx_files) > 0:
@@ -114,20 +116,20 @@ def step_4_get_pairwise_mtx(seq_filename_A, seq_filename_B):
                     if len(not_existing) == 0:
                         raise InterruptedError()
                     symbols_unk = new_seq_df[(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]).isin(not_existing)]
-                    new_seq_df.to_csv("temp.csv")
+                    new_seq_df.to_csv(tmp2.name)
                     # Get restricted combinations
-                    mtx_utils.make_fasta(df_in="temp.csv", fasta_out=tmp.name)
+                    mtx_utils.make_fasta(df_in=tmp2.name, fasta_out=tmp.name)
                     thin_mtx = get_pairwise.get_needle_pairwise_mtx(
                         tmp.name,
                         new_mtx_file,
-                        num_procs=8,
-                        restricted_combinations=[list(existing), list(not_existing)],
+                        num_processes=8,
+                        restricted_combinations=(list(existing), list(not_existing)),
                     )
                     with tf.NamedTemporaryFile() as small_fasta:
                         symbols_unk.to_csv(small_fasta.name, index=False)
                         small_fasta = mtx_utils.make_fasta(df_in=small_fasta.name, fasta_out=small_fasta.name)
                         with tf.NamedTemporaryFile() as needle_out:
-                            square_mtx = get_pairwise.get_needle_pairwise_mtx(small_fasta, needle_out.name, num_procs=8)
+                            square_mtx = get_pairwise.get_needle_pairwise_mtx(small_fasta, needle_out.name, num_processes=8)
                             pass
 
                     # Put it all together
@@ -140,7 +142,7 @@ def step_4_get_pairwise_mtx(seq_filename_A, seq_filename_B):
                 except InterruptedError:
                     print(colored("Info: No new sequences to add to the pairwise distance matrix."))
             else:
-                get_pairwise.get_needle_pairwise_mtx(tmp.name, new_mtx_file, num_procs=4, restricted_combinations=[])
+                get_pairwise.get_needle_pairwise_mtx(tmp.name, new_mtx_file, num_processes=4, restricted_combinations=None)
 
 
 def step_5_get_train_val_test_split(
@@ -157,21 +159,20 @@ def step_5_get_train_val_test_split(
 ):
     """Wrapper for `PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets` and `PreprocessingSteps.format_raw_data_DD.get_input_dataframe`."""
     if not DEBUGGING or 5 in perform_steps:
-        logger.status("Step 5: Creating Table of Targets and computing Decoys.")
         input_good = False
         while not input_good:
             if eval_or_train_on_all.lower() == "e":
                 input_good = True
-                logger.status("Step 5a: Must obtain train/val/test splits.")
+                logger.status("Step 5a: Obtaining train/val/test splits through hill climbing.")
                 PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets(
-                    kin_fam_grp_filename, data_filename, tgt=0.3, get_restart=True, num_restarts=600
+                    kin_fam_grp_filename, data_filename, tgt=0.3, get_restart=True, num_restarts=60 # TODO: change back to 600
                 )
                 pprint.pprint(data_gen_conf)
             elif eval_or_train_on_all.lower() == "t":
                 input_good = True
                 data_gen_conf = {"train_percentile": 65, "dataframe_generation_mode": "tr-all"}
-                logger.info(
-                    "Generating dataframe with the following configuration"
+                logger.status(
+                    "Step 5b: Generating dataframe with the following configuration"
                     f" dictionary:\n{pprint.pformat(data_gen_conf)}"
                 )
                 PreprocessingSteps.format_raw_data_DD.get_input_dataframe(

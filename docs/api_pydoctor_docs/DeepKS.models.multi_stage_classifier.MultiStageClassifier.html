@@ -183,7 +183,7 @@
         
 
         
-            <div class="itemName"><code><a href="#evaluation_preparation" class="internal-link" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.evaluation_preparation">evaluation<wbr></wbr>_preparation</a></code>
+            <div class="itemName"><code><a href="#group_classify_then_evaluate" class="internal-link" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.group_classify_then_evaluate">group<wbr></wbr>_classify<wbr></wbr>_then<wbr></wbr>_evaluate</a></code>
             </div>
         
 
@@ -311,16 +311,6 @@
         
 
         
-            <div class="itemName"><code><a href="DeepKS.models.multi_stage_classifier.html#join_first" class="internal-link" title="DeepKS.models.multi_stage_classifier.join_first">join<wbr></wbr>_first</a></code>
-            </div>
-        
-
-    </li><li class="">
-        
-        
-        
-
-        
             <div class="itemName"><code><a href="DeepKS.models.multi_stage_classifier.html#parse_args" class="internal-link" title="DeepKS.models.multi_stage_classifier.parse_args">parse<wbr></wbr>_args</a></code>
             </div>
         
@@ -410,7 +400,7 @@
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id86">
+          <table class="children sortable" id="id87">
   
   
   <tr class="method">
@@ -426,8 +416,8 @@
   </tr><tr class="method">
     
     <td>Method</td>
-    <td><code><a href="#evaluation_preparation" class="internal-link" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.evaluation_preparation">evaluation<wbr></wbr>_preparation</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td><code><a href="#group_classify_then_evaluate" class="internal-link" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.group_classify_then_evaluate">group<wbr></wbr>_classify<wbr></wbr>_then<wbr></wbr>_evaluate</a></code></td>
+    <td><span class="undocumented">No summary</span></td>
   </tr><tr class="method">
     
     <td>Method</td>
@@ -512,17 +502,17 @@
 </div><div class="basemethod">
   
   
-  <a name="DeepKS.models.multi_stage_classifier.MultiStageClassifier.evaluation_preparation">
+  <a name="DeepKS.models.multi_stage_classifier.MultiStageClassifier.group_classify_then_evaluate">
     
   </a>
-  <a name="evaluation_preparation">
+  <a name="group_classify_then_evaluate">
     
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">evaluation_preparation</span>(self, addl_args, Xy_formatted_input_file, predict_mode=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier={}, get_emp_eqn=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, cartesian_product=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, device=<span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, group_on=<span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>):
+    <span class="py-keyword">def</span> <span class="py-defname">group_classify_then_evaluate</span>(self, addl_args, Xy_formatted_input_file, predict_mode=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier={}, get_emp_eqn=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, cartesian_product=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, device=<span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, group_on=<span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>):
     
-    <a class="headerLink" href="#evaluation_preparation" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.evaluation_preparation">
+    <a class="headerLink" href="#group_classify_then_evaluate" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.group_classify_then_evaluate">
       
       
       ¶
@@ -530,7 +520,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">addl<wbr></wbr>_args</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg"><wbr></wbr>Xy_formatted_input_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">predict<wbr></wbr>_mode</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">bypass<wbr></wbr>_group<wbr></wbr>_classifier</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">get<wbr></wbr>_emp<wbr></wbr>_eqn</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cartesian<wbr></wbr>_product</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">device</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_on:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">addl<wbr></wbr>_args:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]</code></td><td class="fieldArgDesc">_description_</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg"><wbr></wbr>Xy_formatted_input_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">_description_</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">predict<wbr></wbr>_mode:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">_description_, by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">bypass<wbr></wbr>_group<wbr></wbr>_classifier:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code>, <em>optional</em></td><td class="fieldArgDesc">_description_, by default {}</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">get<wbr></wbr>_emp<wbr></wbr>_eqn:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">_description_, by default True</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cartesian<wbr></wbr>_product:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">_description_, by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">device:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">_description_, by default "cpu"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_on:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[</code>&amp;quot;kin&amp;quot;, &amp;quot;site&amp;quot;], <em>optional</em></td><td class="fieldArgDesc">_description_, by default "site"</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code>_type_</code></td><td class="fieldArgDesc">_description_</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   

@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
 import torch, argparse, socket
-from typing import Callable, Literal, Union
+from typing import Any, Callable, Literal, Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import group_classifier_definitions as grp_pred
@@ -36,31 +36,7 @@ pd.set_option("display.width", 240)
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)
 
-
-def join_first(levels=1, x="/"):
-    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
-
-    Parameters
-    ----------
-    levels : optional
-        How many directories out of the directory of this file the "new root" should start, by default 1
-    x :
-        The target path, by default "/"
-
-    Returns
-    -------
-    str
-        The joined path
-
-    Examples
-    --------
-    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
-    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
-    """
-    if os.path.isabs(x):
-        return x
-    else:
-        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+from ..config.join_first import join_first
 
 
 class MultiStageClassifier:
@@ -95,20 +71,46 @@ class MultiStageClassifier:
             f" individual_classifiers={self.individual_classifiers})"
         )
 
-    def evaluation_preparation(
+    def group_classify_then_evaluate(
         self,
-        addl_args,
+        addl_args: dict[str, Any],
         Xy_formatted_input_file: str,
-        predict_mode=False,
-        bypass_group_classifier={},
-        get_emp_eqn=True,
-        cartesian_product=False,
-        device="cpu",
+        predict_mode: bool = False,
+        bypass_group_classifier: dict | list = {},
+        get_emp_eqn: bool = True,
+        cartesian_product: bool = False,
+        device: str = "cpu",
         group_on: Literal["kin", "site"] = "site",
     ):
+        """
+
+        Parameters
+        ----------
+        addl_args : dict[str, Any]
+            _description_
+        Xy_formatted_input_file : str
+            _description_
+        predict_mode : bool, optional
+            _description_, by default False
+        bypass_group_classifier : dict, optional
+            _description_, by default {}
+        get_emp_eqn : bool, optional
+            _description_, by default True
+        cartesian_product : bool, optional
+            _description_, by default False
+        device : str, optional
+            _description_, by default "cpu"
+        group_on : Literal[&quot;kin&quot;, &quot;site&quot;], optional
+            _description_, by default "site"
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
         logger.status("Prediction Step [1/2]: Sending input kinases to group classifier")
         # Open XY_formatted_input_file
-        Xy_formatted_input_file = join_first(1, Xy_formatted_input_file)
+        Xy_formatted_input_file = join_first(Xy_formatted_input_file, 1, __file__)
         with open(Xy_formatted_input_file) as f:
             XY_chars = f.read()
         try:
@@ -382,7 +384,7 @@ class MultiStageClassifier:
                 efficient_to_csv(data_dict, f.name)
 
             # The "meat" of the prediction process.
-            res = self.evaluation_preparation(
+            res = self.group_classify_then_evaluate(
                 {"test": f.name, "device": device},
                 f.name,
                 predict_mode=True,
@@ -475,7 +477,7 @@ def parse_args() -> dict[str, Union[str, None]]:
         type=str,
         help="Specify Group Classifier and its hyperparameters file name",
         required=False,
-        default=join_first(0, "GC_params.json"),
+        default=join_first("GC_params.json", 0, __file__),
         metavar="<gc_params.json>",
     )
 
@@ -504,7 +506,7 @@ def parse_args() -> dict[str, Union[str, None]]:
         type=str,
         help="Specify Kinase-Family-Group file name",
         required=False,
-        default=join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+        default=join_first("data/preprocessing/kin_to_fam_to_grp_826.csv", 1, __file__),
         metavar="<kin_fam_grp.csv>",
     )
 
@@ -526,7 +528,7 @@ def parse_args() -> dict[str, Union[str, None]]:
             ), "'formatted' is not in the train or filename. Did you select the correct file?"
         except AssertionError as e:
             warnings.warn(str(e), UserWarning)
-        assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
+        assert os.path.exists(join_first(f, 1, __file__)), f"Input file '{join_first(f, 1, __file__)}' does not exist."
 
     if args["gc_training_params"] is not None:
         logger.warning("GC Training Params is not implemented yet. (May never be if not deemed necessary.) Ignoring.")
@@ -586,8 +588,8 @@ def efficient_to_csv(data_dict: dict, outfile: str):
 
 
 if __name__ == "__main__":
-    nn = IndividualClassifiers.load_all(join_first(1, "bin/deepks_nn_weights.11.cornichon"))
-    with open(join_first(1, "bin/deepks_gc_weights.2.cornichon"), "rb") as f:
+    nn = IndividualClassifiers.load_all(join_first("bin/deepks_nn_weights.11.cornichon", 1, __file__))
+    with open(join_first("bin/deepks_gc_weights.2.cornichon", 1, __file__), "rb") as f:
         gc: GroupClassifier = pickle.load(f)
 
     smart_save_msc(MultiStageClassifier(gc, nn))

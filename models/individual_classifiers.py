@@ -49,33 +49,7 @@ DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 MAX_SIZE_DS = 4128
 memory_multiplier = 2**6
 EVAL_BATCH_SIZE = 0
-
-
-def join_first(levels: int = 1, x: Any = "/"):
-    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
-
-    Parameters
-    ----------
-    levels : optional
-        How many directories out of the directory of this file the "new root" should start, by default 1
-    x :
-        The target path, by default "/"
-
-    Returns
-    -------
-    str
-        The joined path
-
-    Examples
-    --------
-    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
-    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
-    """
-    x = str(x)
-    if os.path.isabs(x):
-        return x
-    else:
-        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+from ..config.join_first import join_first
 
 
 def smart_save_nn(individual_classifier: IndividualClassifiers, optional_idx: int | None = None):
@@ -201,9 +175,9 @@ class IndividualClassifiers:
 
     @staticmethod
     def get_symbol_to_grp_dict(kin_fam_grp_file: str):
-        with open(join_first(0, "json/tok_dict.json"), "r") as f:
+        with open(join_first("json/tok_dict.json", 0, __file__), "r") as f:
             default_tok_dict = json.load(f)
-        kin_symbol_to_grp = pd.read_csv(join_first(0, kin_fam_grp_file))
+        kin_symbol_to_grp = pd.read_csv(join_first(kin_fam_grp_file, 0, __file__))
         kin_symbol_to_grp["Symbol"] = kin_symbol_to_grp["Kinase"].apply(DEL_DECOR) + "|" + kin_symbol_to_grp["Uniprot"]
         symbol_to_grp_dict = kin_symbol_to_grp.set_index("Symbol").to_dict()["Group"]
         return default_tok_dict, kin_symbol_to_grp, symbol_to_grp_dict
@@ -217,7 +191,7 @@ class IndividualClassifiers:
         cartesian_product: bool = False,
     ):
         which_groups_ordered = sorted(list(set(which_groups)))
-        Xy_formatted_input_file = join_first(1, Xy_formatted_input_file)
+        Xy_formatted_input_file = join_first(Xy_formatted_input_file, 1, __file__)
         Xy: Union[pd.DataFrame, dict]
         if not cartesian_product:
             Xy = pd.read_csv(Xy_formatted_input_file)
@@ -432,7 +406,7 @@ class IndividualClassifiers:
     def load_all(path, target_device="cpu") -> IndividualClassifiers:
         if not isinstance(target_device, str):
             target_device = str(target_device)
-        with open(join_first(1, path), "rb") as f:
+        with open(join_first(path, 1, __file__), "rb") as f:
             if "cuda" in target_device:
                 ic: IndividualClassifiers = pickle.load(f)
             elif (
@@ -604,7 +578,7 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
     device = args["device"]
 
     gc_file = args["pre_trained_gc"]
-    with open(join_first(1, gc_file), "rb") as f:
+    with open(join_first(gc_file, 1, __file__), "rb") as f:
         group_classifier: GroupClassifier = pickle.load(f)
 
     if isinstance(args["groups"], list):
@@ -616,10 +590,10 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
 
     assert device is not None
 
-    with open(join_first(0, args["ksr_params"])) as f:
+    with open(join_first(args["ksr_params"], 0, __file__)) as f:
         grp_to_model_args = json.load(f)
         default_grp_to_model_args = grp_to_model_args.get("default", grp_to_model_args.values().__iter__())
-    with open(join_first(0, args["nni_params"])) as f:
+    with open(join_first(args["nni_params"], 0, __file__)) as f:
         grp_to_interface_args = json.load(f)
         for grp in grp_to_interface_args:
             grp_to_interface_args[grp]["loss_fn"] = eval(str(grp_to_interface_args[grp]["loss_fn"]))
@@ -627,7 +601,7 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
             grp_to_interface_args[grp]["device"] = device
         default_grp_to_interface_args = grp_to_interface_args.get("default", grp_to_model_args.values().__iter__())
 
-    with open(join_first(0, args["ksr_training_params"])) as f:
+    with open(join_first(args["ksr_training_params"], 0, __file__)) as f:
         grp_to_training_args = json.load(f)
         default_training_args = grp_to_training_args.get("default", grp_to_model_args.values().__iter__())
 
@@ -646,8 +620,8 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
     assert val_filename is not None
     weighted, notes = classifier.train(
         which_groups=groups,
-        Xy_formatted_train_file=join_first(1, train_filename),
-        Xy_formatted_val_file=join_first(1, val_filename),
+        Xy_formatted_train_file=join_first(train_filename, 1, __file__),
+        Xy_formatted_val_file=join_first(val_filename, 1, __file__),
         group_classifier=group_classifier,
         cartesian_product=False,
         **training_kwargs,
@@ -709,7 +683,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
         type=str,
         help="Specify Kinase Substrate Relationship hyperparameters file name",
         required=False,
-        default=join_first(0, "hyperparameters/KSR_params.json"),
+        default=join_first("hyperparameters/KSR_params.json", 0, __file__),
         metavar="<ksr_params.json>",
     )
 
@@ -718,7 +692,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
         type=str,
         help="Specify Kinase Substrate Relationship training options file name",
         required=False,
-        default=join_first(0, "hyperparameters/KSR_training_params.json"),
+        default=join_first("hyperparameters/KSR_training_params.json", 0, __file__),
         metavar="<ksr_params.json>",
     )
 
@@ -727,7 +701,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
         type=str,
         help="Specify Nerual Net Interface options file name",
         required=False,
-        default=join_first(0, "hyperparameters/NNI_params.json"),
+        default=join_first("hyperparameters/NNI_params.json", 0, __file__),
         metavar="<ksr_params.json>",
     )
 
@@ -776,7 +750,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
             ), "'formatted' is not in the train or filename. Did you select the correct file?"
         except AssertionError as e:
             warnings.warn(str(e), UserWarning)
-        assert os.path.exists(join_first(1, f)), f"Input file '{join_first(1, f)}' does not exist."
+        assert os.path.exists(join_first(f, 1, __file__)), f"Input file '{join_first(f, 1, __file__)}' does not exist."
 
     return args
 

@@ -22,32 +22,7 @@ from .cfg import PRE_TRAINED_NN, PRE_TRAINED_GC
 from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
 from ..models.GroupClassifier import GroupClassifier
-
-
-def join_first(levels=1, x="/"):
-    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
-
-    Parameters
-    ----------
-    levels : optional
-        How many directories out of the directory of this file the "new root" should start, by default 1
-    x :
-        The target path, by default "/"
-
-    Returns
-    -------
-    str
-        The joined path
-
-    Examples
-    --------
-    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
-    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
-    """
-    if os.path.isabs(x):
-        return x
-    else:
-        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+from ..config.join_first import join_first
 
 
 NO_PARSE_NO_PRED: bool
@@ -181,7 +156,7 @@ def make_predictions(
         change_attr = lambda obj: (setattr(obj, "device", device), obj)[1]
 
         if pre_trained_msc:
-            with open(join_first(1, pre_trained_msc), "rb") as f:
+            with open(join_first(pre_trained_msc, 1, __file__), "rb") as f:
                 msc: MultiStageClassifier = dill.load(f, ignore=False)
                 msc.individual_classifiers.individual_classifiers = {
                     k: v.to(device) for k, v in msc.individual_classifiers.individual_classifiers.items()
@@ -190,10 +165,10 @@ def make_predictions(
                     k: change_attr(v) for k, v in msc.individual_classifiers.interfaces.items()
                 }
         else:
-            with open(join_first(1, pre_trained_gc), "rb") as f:
+            with open(join_first(pre_trained_gc, 1, __file__), "rb") as f:
                 group_classifier: GroupClassifier = pickle.load(f)
             individual_classifiers: IndividualClassifiers = IndividualClassifiers.load_all(
-                join_first(1, pre_trained_nn), target_device=device
+                join_first(pre_trained_nn, 1, __file__), target_device=device
             )
             msc = MultiStageClassifier(group_classifier, individual_classifiers)
         # nn_sample = list(individual_classifiers.interfaces.values())[0]
@@ -513,7 +488,7 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict["kinase_seqs"] = args_dict.pop("k").split(",")
         del args_dict["kf"]
     elif "kf" in args_dict:
-        with open(join_first(1, args_dict["kf"])) as f:
+        with open(join_first(args_dict["kf"], 1, __file__)) as f:
             args_dict["kinase_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["kf"].split("/")[-1].split(".")[0]
@@ -533,7 +508,7 @@ def parse_api() -> dict[str, typing.Any]:
         args_dict["site_seqs"] = args_dict.pop("s").split(",")
         del args_dict["sf"]
     elif "sf" in args_dict:
-        with open(join_first(1, args_dict["sf"])) as f:
+        with open(join_first(args_dict["sf"], 1, __file__)) as f:
             args_dict["site_seqs"] = [line.strip() for line in f]
         try:
             fn_relevant = args_dict["sf"].split("/")[-1].split(".")[0]
@@ -587,7 +562,7 @@ def parse_api() -> dict[str, typing.Any]:
             kinase_seq: {"Gene Name": "?", "Uniprot Accession ID": "?"} for kinase_seq in args_dict["kinase_seqs"]
         }
     else:
-        with open(join_first(1, args_dict["kin_info"])) as f:
+        with open(join_first(args_dict["kin_info"], 1, __file__)) as f:
             kinase_info_dict = json.load(f)
             try:
                 jsonschema.validate(
@@ -600,7 +575,7 @@ def parse_api() -> dict[str, typing.Any]:
                 print(colored("\nFor reference, the jsonschema.exceptions.ValidationError was:", "magenta"))
                 print(colored(str(e), "magenta"))
                 print(colored("\n\nMore info:\n\n", "magenta"))
-                with open(join_first(0, "kin-info_file_format.txt")) as f:
+                with open(join_first("kin-info_file_format.txt", 0, __file__)) as f:
                     print(colored(f.read(), "magenta"), file=sys.stderr)
 
                 informative_exception(e, "", False)
@@ -613,7 +588,7 @@ def parse_api() -> dict[str, typing.Any]:
             for site_seq in args_dict["site_seqs"]
         }
     else:
-        with open(join_first(1, args_dict["site_info"])) as f:
+        with open(join_first(args_dict["site_info"], 1, __file__)) as f:
             site_info_dict = json.load(f)
             try:
                 jsonschema.validate(
@@ -626,7 +601,7 @@ def parse_api() -> dict[str, typing.Any]:
                 )
             except jsonschema.exceptions.ValidationError:
                 emsg = f"\nError: Site information format is incorrect."
-                with open(join_first(0, "./site-info_file_format.txt")) as f:
+                with open(join_first("./site-info_file_format.txt", 0, __file__)) as f:
                     emsg += f.read()
                 logger.uerror(emsg)
                 sys.exit(1)

@@ -3,16 +3,16 @@
 import pandas as pd, textwrap as tw
 
 format_for_needle = (
-    lambda x: x.replace("|", "_")
-    .replace("(", "")
+    lambda x: x.replace("(", "")
     .replace(")", "")
+    .replace("|", "_")
     .replace("/", "--")
     .replace(" ", "---")
     .replace(":", "----")
 )
 """Simple lambda to filter out characters that cause problems for ``needle``"""
 
-eldeen_rof_tamrof = lambda x: x.replace("_", "|").replace("--", "/").replace("---", " ").replace("----", ":")
+eldeen_rof_tamrof = lambda x: x.replace("----", ":").replace("---", " ").replace("--", "/").replace("_", "|")
 """Simple lambda to reverse ``format_for_needle``"""
 
 

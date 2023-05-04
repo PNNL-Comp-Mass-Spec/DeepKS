@@ -136,7 +136,7 @@ def get_input_dataframe_core(
         derangement = [
             x if x is not None else len(decoy)
             for x in get_derangement(
-                order, sizes, kin_seq_file, distance_matrix_file, percentile, cache_derangement=True
+                order, sizes, distance_matrix_file, percentile, cache_derangement=True
             )
         ]
 
@@ -146,7 +146,7 @@ def get_input_dataframe_core(
     for col in ["original_kinase", "original_uniprot_id", "seq"]:
         decoy[col] = decoy[col].loc[derangement].reset_index(drop=True)
 
-    for i, r in decoy.iterrows():  # weak version
+    for i, r in decoy.iterrows():  # weak version # TODO: make this a strong version
         assert r["lab"] != r["original_kinase"]
     all_data = pd.concat([target, decoy], ignore_index=True)
     # xl = pd.read_csv("../raw_data/relevant_GENE_KIN_ACC_ID.csv")
@@ -188,7 +188,7 @@ def get_input_dataframe_core(
             index=False,
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
-    logger.info("Outputting formatted data file with size: {len(all_data_w_seqs)}")
+    logger.info(f"Outputting formatted data file with size: {len(all_data_w_seqs)}")
 
 
 if __name__ == "__main__":

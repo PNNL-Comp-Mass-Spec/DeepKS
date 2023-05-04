@@ -80,7 +80,7 @@ def get_needle_pairwise_mtx(
     fasta: str,
     outfile: str,
     subset: int = -1,
-    num_procs: int = 4,
+    num_processes: int = 4,
     restricted_combinations: tuple[list[str], list[str]] | None = None,
 ) -> pd.DataFrame:
     """Obtain a pairwise alignment matrix for a given fasta file.
@@ -93,7 +93,7 @@ def get_needle_pairwise_mtx(
         The output file to write the intermediate ``needleall`` results to
     subset : optional
         Use the first ``subset`` of sequences in the ``fasta`` file, or -1 to use all, by default -1
-    num_procs : optional
+    num_processes : optional
         The number of `multiprocessing` processes to use, to speed up computations, by default 4
     restricted_combinations : optional
         Only , by default []
@@ -124,7 +124,7 @@ def get_needle_pairwise_mtx(
         fastas_a = [i[0] for i in combos]
         fastas_b = [i[1] for i in combos]
         assert len(fastas_a) == len(fastas_b), "Unequal number of strings"
-        group_size = int(np.ceil(len(combos) / num_procs))
+        group_size = int(np.ceil(len(combos) / num_processes))
         for i in range(0, len(combos), group_size):
             strs_a.append(format_for_needle("".join(list(set(fastas_a[i : i + group_size])))))
             strs_b.append(format_for_needle("".join(list(set(fastas_b[i : i + group_size])))))
@@ -139,7 +139,7 @@ def get_needle_pairwise_mtx(
         fastas_b = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_b]
         smaller = fastas_a if len(fastas_a) < len(fastas_b) else fastas_b
         larger = fastas_a if len(fastas_a) >= len(fastas_b) else fastas_b
-        group_size_a = int(np.ceil(len(larger) / num_procs))
+        group_size_a = int(np.ceil(len(larger) / num_processes))
         for i in range(0, len(fastas_a), group_size_a):
             strs_a.append("".join(larger[i : i + group_size_a]))
         strs_b = ["".join(smaller) for _ in range(len(strs_a))]
@@ -147,9 +147,9 @@ def get_needle_pairwise_mtx(
     assert len(strs_a) == len(strs_b) > 0, "Unequal number of strings/len of strings is zero"
     args = [[strs_a[i], strs_b[i], outfile, i] for i in range(len(strs_a))]
     done = [False]
-    # progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_procs))
+    # progress_thread = threading.Thread(target=prog_bar_worker, args=(subset, done, num_processes))
     # progress_thread.start() TODO: Only have progress bar if verbose
-    with ThreadPool(num_procs) as p:
+    with ThreadPool(num_processes) as p:
         results = p.map(worker, args)
     done[0] = True
     # progress_thread.join()
@@ -222,7 +222,7 @@ def benchmark_performance(fasta_a_file: str, test_subsets: list[int]):
     for sub in test_subsets:
         tq.write(f"Running alignment for {sub} sequences...")
         start = time.time()
-        results = get_needle_pairwise_mtx(fasta_a_file, "tmp.txt", sub, num_procs=8)
+        results = get_needle_pairwise_mtx(fasta_a_file, "tmp.txt", sub, num_processes=8)
         results.to_csv(f"pairwise_mtx_{sub}.csv")
         tq.reset()
         # tq.write(results)
@@ -249,7 +249,7 @@ if __name__ == "__main__":
             "test_selected_combos.fasta",
             "tmp.txt",
             -1,
-            num_procs=1,
+            num_processes=1,
             restricted_combinations=(
                 # itertools.product(, )
                 ["S" + str(i) for i in range(1, 26)],

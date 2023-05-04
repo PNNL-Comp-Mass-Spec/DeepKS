@@ -13,32 +13,7 @@ from .roc_helpers import ROCHelpers
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 """See `ROCHelpers.protected_roc_auc_score`"""
 
-
-def join_first(levels: int = 1, x: Any = "/"):
-    """Helper function to join a target path to a pseudo-root path derived from the location of this file.
-
-    Parameters
-    ----------
-    levels : optional
-        How many directories out of the directory of this file the "new root" should start, by default 1
-    x :
-        The target path, by default "/"
-
-    Returns
-    -------
-    str
-        The joined path
-
-    Examples
-    --------
-    >>> join_first(1, "images/Phylo Families/phylo_families_Cairo.pdf")
-    "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/api/../images/Phylo Families/phylo_families_Cairo.pdf"
-    """
-    x = str(x)
-    if os.path.isabs(x):
-        return x
-    else:
-        return os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
+from ..config.join_first import join_first
 
 
 def heaviside_cutoff(outputs: torch.Tensor, cutoff: float) -> torch.Tensor:
@@ -145,7 +120,7 @@ class NNInterface:
     def write_model_summary(self):
         """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""
         logger.info(f"Writing model summary to file {self.model_summary_name}.")
-        self.model_summary_name = join_first(0, self.model_summary_name)
+        self.model_summary_name = join_first(self.model_summary_name, 0, __file__)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
                 str_rep = str(self)
