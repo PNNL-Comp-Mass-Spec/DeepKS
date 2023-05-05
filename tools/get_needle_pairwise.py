@@ -129,6 +129,11 @@ def get_needle_pairwise_mtx(
             strs_a.append(format_for_needle("".join(list(set(fastas_a[i : i + group_size])))))
             strs_b.append(format_for_needle("".join(list(set(fastas_b[i : i + group_size])))))
     else:
+        assert len(fastas) in {len(restricted_combinations[0]), len(restricted_combinations[1])}, (
+            "Was expecting that len(fastas) is either equal to len(restricted_combinations[0]) or"
+            " len(restricted_combinations[1]), but that was not the case; got"
+            f" {len(fastas)} not in {len(restricted_combinations[0]), len(restricted_combinations[1])}"
+        )
         name_to_seq = {
             format_for_needle(x.split("\n")[0].split(">")[1].upper()): "\n".join(x.split("\n")[1:]).strip()
             for x in fastas

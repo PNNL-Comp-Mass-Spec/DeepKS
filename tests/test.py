@@ -69,7 +69,6 @@ class TestPreprocessing(unittest.TestCase, UsesR):
     def setUp(self):
         global main
         from ..data.preprocessing import main as this_main
-        from ..data.preprocessing.main import debugging_variables as this_params
         from ..data.preprocessing.main import step_1_download_psp, step_2_download_uniprot
         from ..data.preprocessing.main import step_3_get_kin_to_fam_to_grp, step_4_get_pairwise_mtx
         from ..data.preprocessing.main import step_5_get_train_val_test_split
@@ -80,10 +79,6 @@ class TestPreprocessing(unittest.TestCase, UsesR):
         self.step_4 = step_4_get_pairwise_mtx
         self.step_5_a = functools.partial(step_5_get_train_val_test_split, eval_or_train_on_all="E")
         self.step_5_b = functools.partial(step_5_get_train_val_test_split, eval_or_train_on_all="T")
-        self.main = this_main
-
-        self.new_mtx_file = "pairwise_mtx_833.csv"
-        self.eval_or_train_on_all = "T"
 
     def test_step_1_preproc(self):
         self.step_1()
@@ -94,28 +89,30 @@ class TestPreprocessing(unittest.TestCase, UsesR):
         setattr(self.__class__, "raw_data_filename", r)
 
     def test_step_3_preproc(self):
-        self.kin_fam_grp_filename = self.step_3(getattr(self.__class__, "seq_filename_A"))
+        self.kin_fam_grp_filename = self.step_3(
+            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv")
+        )
 
     def test_step_4_preproc(self):
-        self.step_4(
+        new_mtx_filename = self.step_4(
             getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
-            getattr(self.__class__, "raw_data_filename", "../raw_data/kinase_seq_494.csv"),
         )
+        setattr(self.__class__, "new_mtx_file", new_mtx_filename)
 
     def test_step_5_a_preproc(self):
         self.step_5_a(
             getattr(self.__class__, "kin_fam_grp_filename", "../kin_to_fam_to_grp_828.csv"),
             getattr(self.__class__, "raw_data_filename", "../raw_data/raw_data_22769.csv"),
             getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
-            self.new_mtx_file,
+            getattr(self.__class__, "new_mtx_file", "../preprocessing/pairwise_mtx_828.csv"),
         )
 
     def test_step_5_b_preproc(self):
         self.step_5_b(
-            self.kin_fam_grp_filename,
+            getattr(self.__class__, "kin_fam_grp_filename", "../kin_to_fam_to_grp_828.csv"),
             getattr(self.__class__, "raw_data_filename", "../raw_data/raw_data_22769.csv"),
             getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
-            self.new_mtx_file,
+            getattr(self.__class__, "new_mtx_file", "../preprocessing/pairwise_mtx_828.csv"),
         )
 
 
@@ -175,7 +172,9 @@ class TestGenerateFigures(unittest.TestCase):
     def test_sunburst(self):
         from ..images.Sunburst import sunburst
 
-        sunburst.make_sunburst()
+        sunburst.make_sunburst(
+            "../../data/kin_to_fam_to_grp_828.csv", "../../data/raw_data/raw_data_22769.csv"
+        )  # TODO: Make this automatic or have config json file
 
 
 class TestMainAPIFromCMDL(unittest.TestCase):
@@ -427,7 +426,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--pre-trained-gc",
             "bin/deepks_gc_weights.-1.cornichon",
         ]
-        self.assertRaises(SystemExit, self.main.setup)
+        with self.assertRaises(SystemExit) as ar:
+            self.main.setup()
+
+        self.assertEqual(ar.exception.code, 1)
 
         sys.argv = [
             "python3 -m DeepKS.api.main",
@@ -445,7 +447,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--pre-trained-gc",
             "bin/deepks_gc_weights.-1.cornichon",
         ]
-        self.assertRaises(SystemExit, self.main.setup)
+        with self.assertRaises(SystemExit) as ar:
+            self.main.setup()
+
+        self.assertEqual(ar.exception.code, 1)
 
         sys.argv = [
             "python3 -m DeepKS.api.main",
@@ -463,7 +468,10 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             "--pre-trained-gc",
             "bin/deepks_gc_weights.-1.cornichon",
         ]
-        self.assertRaises(SystemExit, self.main.setup)
+        with self.assertRaises(SystemExit) as ar:
+            self.main.setup()
+
+        self.assertEqual(ar.exception.code, 1)
 
     def test_get_help(self):
         sys.argv = ["python3 -m DeepKS.api.main", "-h"]

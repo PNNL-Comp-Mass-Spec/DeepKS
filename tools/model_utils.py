@@ -178,29 +178,6 @@ class KSDataset(Dataset):
         return len(self.encoded_site)
 
 
-def make_plot(main_fn, fn):
-    figure(figsize=(15, 8))
-    lRs = logspace(-4, -0.5, 10)
-    results = []
-    for lR in lRs:
-        results.append(main_fn("data/syn_data_target_1000.csv", "data/syn_data_decoy_1000.csv", lR, 1))
-    json.dump(results, open("data/lr_results.json", "w"), indent=4)
-
-    # plot(lRs, [np[i] / ns[i] for i in range(len(lRs))], 'bo-',
-    #      label="Perfect classifier fraction", alpha=0.8)
-    # plot(lRs, [nc[i] / ns[i] for i in range(len(lRs))], 'ro-',
-    #      label="Converged classifier fraction", alpha=0.8)
-    # xscale("log")
-    # legend()
-    # ylim(0, 1)
-
-    # xlabel("Learning Rate")
-    # ylabel("Fraction")
-    # title("Num Epochs: %d | Train Batch Size: %d | Num Seeds: %d | Embed Dim: %d | Conv Thsh %.2f | Pool Max" %
-    #     (30, 2, 10, 15, 0.4))
-    # savefig(fn + ".png")
-
-
 class DLWeightPlot:
     def __init__(self):
         self.data = []

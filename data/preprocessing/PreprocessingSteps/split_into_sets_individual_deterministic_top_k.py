@@ -70,6 +70,7 @@ def core_ai(tgt: float, random_state: int, group: str) -> tuple[list[int], float
     best_state, best_fitness, _ = mlr.simulated_annealing(
         opt, max_attempts=1000, max_iters=1000, random_state=random_state, init_state=[0 for _ in range(num_fams)]
     )
+    best_state = best_state.tolist()
     assert isinstance(best_state, list)
     assert isinstance(best_fitness, float)
     return best_state, best_fitness

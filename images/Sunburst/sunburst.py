@@ -23,14 +23,14 @@ def remove_timestamps(bytes: bytes) -> bytes:  # So we don't get different versi
 
 
 # %% ### DATA FORMATTING ---
-def make_sunburst():
+def make_sunburst(kin_fam_grp_file, raw_data_file):
     # garbage graph
     fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
     fig.write_image(".gitig-garbage-graph.pdf")
     time.sleep(2)
     os.unlink(".gitig-garbage-graph.pdf")
 
-    kfg = pd.read_csv("../../data/preprocessing/kin_to_fam_to_grp_826.csv")
+    kfg = pd.read_csv(kin_fam_grp_file)
     kfg["Symbol"] = [re.sub(r"[\(\)\*]", "", x) for x in kfg["Kinase"] + "|" + kfg["Uniprot"]]
 
     kinase_to_family = kfg.set_index("Symbol").to_dict()["Family"]
@@ -61,7 +61,7 @@ def make_sunburst():
                 )
                 r["MLSet"] = label
 
-    num_sites_df = pd.read_csv("../../data/raw_data/raw_data_22588.csv").rename({"lab": "Kinase"}, axis="columns")
+    num_sites_df = pd.read_csv(raw_data_file).rename({"lab": "Kinase"}, axis="columns")
     new_df = (
         pd.merge(new_df, num_sites_df, how="left", on="Kinase").drop_duplicates(keep="first").reset_index(drop=True)
     )
@@ -176,8 +176,3 @@ def make_sunburst():
     # fig.show()
     with open("sunburst explainer simple.pdf", "wb") as f:
         f.write(remove_timestamps(fig.to_image(format="pdf", height=1000, width=1000)))
-
-
-# %% ### MAIN ---
-if __name__ == "__main__":
-    make_sunburst()

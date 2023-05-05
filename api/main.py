@@ -649,7 +649,7 @@ def setup(args: dict[str, typing.Any] = {}):
     None:
         Does not return anything; just calls `make_predictions`.
     """
-    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, SKGroupClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
+    global pickle, pprint, np, IndividualClassifiers, MultiStageClassifier, informative_exception, tqdm, itertools, collections, json, config, jsonschema
     from ..tools.informative_tb import informative_exception
 
     os.chdir(pathlib.Path(__file__).parent.resolve())
@@ -662,7 +662,6 @@ def setup(args: dict[str, typing.Any] = {}):
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
-    from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
 
     make_predictions(**args)
@@ -674,7 +673,6 @@ if __name__ == "__main__":
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
-    from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
 
     make_predictions(**args)
@@ -683,5 +681,4 @@ if NO_PARSE_NO_PRED:
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema, torch
     from ..models.individual_classifiers import IndividualClassifiers
     from ..models.multi_stage_classifier import MultiStageClassifier
-    from ..models.group_classifier_definitions import SKGroupClassifier
     from .. import config
