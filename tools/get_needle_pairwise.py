@@ -146,8 +146,14 @@ def get_needle_pairwise_mtx(
                 + "\n\nPlease ensure that the"
                 " sequence names in `restricted combinations` are identical to those in the fasta file."
             ) from None
-        smaller = fastas_a if len(fastas_a) < len(fastas_b) else fastas_b
-        larger = fastas_a if len(fastas_a) >= len(fastas_b) else fastas_b
+        if len(fastas_a) < len(fastas_b):
+            smaller = fastas_a
+        else:
+            smaller = fastas_b
+        if len(fastas_a) >= len(fastas_b):
+            larger = fastas_a
+        else:
+            larger = fastas_b
         group_size_a = int(np.ceil(len(larger) / num_processes))
         for i in range(0, len(fastas_a), group_size_a):
             strs_a.append("".join(larger[i : i + group_size_a]))

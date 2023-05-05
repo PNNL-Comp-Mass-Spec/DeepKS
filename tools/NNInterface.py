@@ -580,7 +580,10 @@ class NNInterface:
                 avg_loss += [loss.item()] * len(labels)
 
             avg_perf = sum(avg_perf) / len(avg_perf) if len(avg_perf) > 0 else 0.0
-            avg_loss = sum(avg_loss) / len(avg_loss) if len(avg_loss) > 0 else 0.0
+            if len(avg_loss) > 0:
+                avg_loss = sum(avg_loss) / len(avg_loss)
+            else:
+                avg_loss = 0.0
 
             return avg_perf, avg_loss, all_outputs, all_labels, all_preds
 

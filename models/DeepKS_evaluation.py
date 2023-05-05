@@ -26,7 +26,10 @@ join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolv
 
 
 def warning_handler(message, category, filename, lineno, file=None, line=None):
-    log = file if hasattr(file, "write") else sys.stderr
+    if hasattr(file, "write"):
+        log = file
+    else:
+        log = sys.stderr
     traceback.print_stack(file=log)
     if log is not None:
         log.write(warnings.formatwarning(message, category, filename, lineno, line=""))
@@ -177,7 +180,10 @@ class ROC(PerformancePlot, ABC):
             ntr.append(nt)
         thresholdses = ntr
 
-        roc_labels_list = roc_labels_list if len(roc_labels_list) > 0 else [f"ROC {i}" for i in range(len(fprses))]
+        if len(roc_labels_list) > 0:
+            roc_labels_list = roc_labels_list
+        else:
+            roc_labels_list = [f"ROC {i}" for i in range(len(fprses))]
         roc_col = roc_colors[0]
         cut_col = acc_colors[0]
         acc_col = cut_colors[0]
@@ -196,7 +202,10 @@ class ROC(PerformancePlot, ABC):
             tax.yaxis.label.set_color(cut_col)
             tax.tick_params(axis="y", colors=cut_col)
         aucs = []
-        pct_mult = 2 if plot_unified_line else 1
+        if plot_unified_line:
+            pct_mult = 2
+        else:
+            pct_mult = 1
         sd = sum([len(d) for d in scoreses])
         indent_amt = max(
             [
@@ -215,7 +224,10 @@ class ROC(PerformancePlot, ABC):
             assert len(fprs) == len(tprs) == len(thresholds), "Lengths of lists must be equal"
             mar = f"{roc_labels_list[i]}" if roc_labels_list[i] != "All Data" else None
             col = roc_colors[i]
-            alp = 0.65 if not diff_by_opacity else max(0.05, min(1, 1 / len(fprses)))
+            if not diff_by_opacity:
+                alp = 0.65
+            else:
+                alp = max(0.05, min(1, 1 / len(fprses)))
             unif = False
             is_focus = False
             linew = 1
@@ -244,7 +256,10 @@ class ROC(PerformancePlot, ABC):
                     )
                 is_signif = p < alpha_level
 
-                pct_mult = 2 if plot_unified_line else 1
+                if plot_unified_line:
+                    pct_mult = 2
+                else:
+                    pct_mult = 1
                 fancy_lab = (
                     f"{roc_labels_list[i]:>{indent_amt}}"
                     f" | AUC {aucscore:1.3f} — {100-int(alpha*100)}% CI = [{ci[0]:1.3f}, {ci[1]:1.3f}]"
@@ -282,17 +297,27 @@ class ROC(PerformancePlot, ABC):
                     text_angle_degrees -= 180
                 for j, (fp, tp) in enumerate(zip(fprs, tprs)):
                     if j % max(2, len(fprs) // 15) == 0 or (fp, tp) in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+                        if is_focus:
+                            fontsize = 1
+                            color = "red"
+                            arrowstyle = "->"
+                            linewidth = 0.4
+                        else:
+                            fontsize = 4
+                            color = "black"
+                            arrowstyle = "-"
+                            linewidth = 0.1
                         ax.annotate(
                             mar,
                             (fp, tp),
                             xytext=(fp + offset_x, tp + offset_y),
-                            fontsize=1 if not is_focus else 4,
-                            color="red" if is_focus else "black",
+                            fontsize=fontsize,
+                            color=color,
                             arrowprops=dict(
-                                arrowstyle="-" if not is_focus else "->",
+                                arrowstyle=arrowstyle,
                                 shrinkA=0,
                                 shrinkB=0,
-                                linewidth=0.1 if not is_focus else 0.4,
+                                linewidth=linewidth,
                                 alpha=0.5,
                             ),
                             bbox=dict(boxstyle="square", fc="w", ec="w", pad=-0.1, alpha=0.0),
@@ -320,6 +345,11 @@ class ROC(PerformancePlot, ABC):
                 taxacc.tick_params(axis="y", colors=acc_col)
                 taxacc.set_ylim(-0.05, 1.05)
 
+                if unif:
+                    alpha = 1
+                else:
+                    alpha = alp / 2
+
                 taxacc.plot(
                     jitter(fprs),
                     accs,
@@ -329,7 +359,7 @@ class ROC(PerformancePlot, ABC):
                     color=acc_colors[i],
                     linewidth=linew / 3,
                     markeredgewidth=0,
-                    alpha=alp / 2 if not unif else 1,
+                    alpha=alpha,
                 )
 
                 if show_zones:
@@ -340,6 +370,10 @@ class ROC(PerformancePlot, ABC):
                     collect = clct.PatchCollection([pat, pat2], match_original=True, zorder=-10)
                     ax.add_collection(collect)  # type: ignore
             if show_cutoff:
+                if unif:
+                    alpha = 1
+                else:
+                    alpha = alp / 2
                 tax = ax.twinx()
                 tax.set_ylabel("Cutoff")
                 tax.set_ylim(0, 1.1)
@@ -354,7 +388,7 @@ class ROC(PerformancePlot, ABC):
                     markersize=6,
                     linewidth=linew / 3,
                     markeredgewidth=0,
-                    alpha=alp / 2 if not unif else 1,
+                    alpha=alpha,
                 )
                 tax.set_ylim(-0.05, 1.05)
 

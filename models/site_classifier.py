@@ -33,7 +33,10 @@ class DeepSC(nn.Module):
         self.act = nn.ELU()
         self.drop = nn.Dropout(drop_p)
 
-        self.linear_layer_sizes: list[int] = linear_layer_sizes if linear_layer_sizes is not None else [10]
+        if linear_layer_sizes is not None:
+            self.linear_layer_sizes: list[int] = linear_layer_sizes
+        else:
+            self.linear_layer_sizes: list[int] = [10]
 
         # Create linear layers
         self.linear_layer_sizes.insert(0, 15 * emb_dim)
@@ -156,7 +159,10 @@ class SiteClassifier:
         },
     ):
         cpu_count_raw = os.cpu_count()
-        cpu_count = max(1, cpu_count_raw // 2) if cpu_count_raw is not None else 1
+        if cpu_count_raw is not None:
+            cpu_count = max(1, cpu_count_raw // 2)
+        else:
+            cpu_count = 1
         exec(f"import sklearn.{gc_hyperparameters['base_classifier'].split('.')[0]}")
         hps = {k: v for k, v in gc_hyperparameters.items() if k != "base_classifier"}
         try:

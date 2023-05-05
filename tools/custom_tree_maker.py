@@ -86,10 +86,16 @@ def main():
         )
         if desc is not None:
             desc = re.sub(r"¡(.*)¡", "<span class='warn'><i>\\1</i></span>", desc)
-            bg_class = "odd" if bg_class == "even" else "even"
+            if bg_class == "even":
+                bg_class = "odd"
+            else:
+                bg_class = "even"
             orig_line = orig_line.replace("\n", "").replace(" ", " ")
             try:
-                bolded = "" if not node.is_directory else ' class="dir"'
+                if not node.is_directory:
+                    bolded = ""
+                else:
+                    bolded = ' class="dir"'
                 new_line = (
                     "<code"
                     f" class='no-col'>{''.join(re.findall(r'[│─ ├└]', orig_line))}</code><code{bolded}>{re.findall(r'─ (.*)', orig_line)[0] if orig_line != '.' else '.'}</code>"

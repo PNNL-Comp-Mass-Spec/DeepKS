@@ -171,7 +171,10 @@ def get_input_dataframe_core(
         }
     )
 
-    extra = "" if mode == "no_alin" else "_alin"
+    if mode == "no_alin":
+        extra = "" 
+    else:
+        extra = "_alin"
     extra += f"_{percentile}"
     all_data_w_seqs = all_data_w_seqs.sort_values(
         by=["Class", "Kinase Sequence", "Gene Name of Kin Corring to Provided Sub Seq", "Site Sequence"],

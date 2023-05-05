@@ -137,8 +137,14 @@ def main(small_kin=None, small_site=None):
     )
     kinase_list = [kinase_symbol_to_kinase_sequence[x] for x in relevant_kinase_symbols]
     site_list = list(site_to_site_id.keys())
-    small_kin = len(kinase_list) if small_kin is None else small_kin
-    small_site = len(site_list) if small_site is None else small_site
+    if small_kin is None:
+        small_kin = len(kinase_list)
+    else:
+        small_kin = small_kin
+    if small_site is None:
+        small_site = len(site_list)
+    else:
+        small_site = small_site
     kinase_symbol_list = relevant_kinase_symbols[:small_kin]
     site_symbol_list = list(
         itertools.chain(*[[x] * len(symbol_to_location[x]) for x in list(symbol_to_location.keys())])

@@ -22,7 +22,11 @@ def exhaustive_pairwise_knn(
 
     res = []
     for query in queries:
-        top_k_order = np.argsort(query * (-1 if best_score_is_higher else 1))[:k]
+        if best_score_is_higher:
+            mult = -1
+        else:
+            mult = 1
+        top_k_order = np.argsort(query * mult)[:k]
         top_k_classes = known_true_classes[top_k_order]
         counts = collections.Counter(top_k_classes)
         count_items = sorted(list(counts.items()), key=lambda x: -x[1])

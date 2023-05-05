@@ -421,12 +421,16 @@ def parse_api() -> dict[str, typing.Any]:
 
         return arg_value
 
+    if torch.cuda.is_available():
+        default_device = "cuda:0"
+    else:
+        default_device = "cpu"
     ap.add_argument(
         "--device",
         type=str,
         help="Specify device. Choices are {'cpu', 'cuda:<gpu number>'}.",
         metavar="<device>",
-        default="cuda:0" if torch.cuda.is_available() else "cpu",
+        default=default_device,
     )
 
     ap.add_argument(

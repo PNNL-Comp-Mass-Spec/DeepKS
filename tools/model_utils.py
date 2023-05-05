@@ -189,7 +189,10 @@ class DLWeightPlot:
         self.titles.append(title)
 
     def plot_fig(self, diffs=False):
-        skipsize = 1 if not diffs else 2
+        if not diffs:
+            skipsize = 1
+        else:
+            skipsize = 2
         if diffs:
             self.dfs = [self.data[i] - self.data[i - 1] for i in range(1, len(self.data))]
         self.mainfig, axes_list = plt.subplots(

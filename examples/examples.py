@@ -34,7 +34,10 @@ def _main():
         )
     )
 
-    inds = range(len(EXAMPLES)) if "--ex-list" not in sys.argv else eval(sys.argv[sys.argv.index("--ex-list") + 1])
+    if "--ex-list" not in sys.argv:
+        inds = range(len(EXAMPLES))
+    else:
+        inds = eval(sys.argv[sys.argv.index("--ex-list") + 1])
 
     for i, example in zip(inds, [EXAMPLES[i] for i in inds]):
         if i > 0:

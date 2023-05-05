@@ -41,7 +41,10 @@ def raw_score_to_probability(
 
         m = -lr.coef_[0, 0]
         b = -lr.intercept_[0]
-        underlying_lm = lambda x: m * x + b if isinstance(x, (int, float)) else [m * x_ + b for x_ in x]
+        if isinstance(x, (int, float)):
+            underlying_lm = lambda x: m * x + b
+        else:
+            underlying_lm = [m * x_ + b for x_ in x]
 
         def underlying_sigmoid(x):
             logit = underlying_lm(x)

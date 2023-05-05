@@ -37,7 +37,11 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
         If there is an NA in the "gene_name" column of the input dataframe.
     """
     with open(df_in, "r") as f:
-        df = pd.read_csv(df_in, sep="," if "," in f.read() else "\t").iloc[:]
+        if "," in f.read():
+            sep = ","
+        else:
+            sep = "\t"
+        df = pd.read_csv(df_in, sep=sep).iloc[:]
     cols = set(df.columns)
     assert "kinase" in cols, 'Input df to `make_fasta` must have column "kinase."'
     assert "kinase_seq" in cols, 'Input df to `make_fasta` must have column "kinase_seq."'

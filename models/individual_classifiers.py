@@ -199,8 +199,14 @@ class IndividualClassifiers:
             with open(Xy_formatted_input_file, "r") as f:
                 Xy = json.load(f)
 
-        group_by = "site" if isinstance(group_classifier, SiteGroupClassifier) else "kin"
-        col = "Site Sequence" if group_by == "site" else "Gene Name of Provided Kin Seq"
+        if isinstance(group_classifier, SiteGroupClassifier):
+            group_by = "site"
+        else:
+            group_by = "kin"
+        if group_by == "site":
+            col = "Site Sequence"
+        else:
+            col = "Gene Name of Provided Kin Seq"
         Xy["Group"] = group_classifier_method(group_classifier, [x for x in Xy[col]])
         if which_groups_ordered == ["All - Use Preds"]:
             which_groups_ordered = sorted(list(set(Xy["Group"])))

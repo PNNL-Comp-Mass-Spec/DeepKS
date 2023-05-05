@@ -169,7 +169,10 @@ def ma_from_inds(base_ar: np.ndarray, inds: Iterable[int]) -> np.ma.MaskedArray:
         The resultant masked array
     """
     initial = np.ma.MaskedArray([base_ar[i] if not np.ma.is_masked(i) else np_ma_core.MaskedConstant() for i in inds])
-    post_processing = lambda x: x.astype(base_ar.dtype) if isinstance(base_ar, np.ndarray) else x
+    if isinstance(base_ar, np.ndarray):
+        post_processing = lambda x: x.astype(base_ar.dtype) 
+    else:
+        post_processing = x
     return post_processing(initial)
 
 

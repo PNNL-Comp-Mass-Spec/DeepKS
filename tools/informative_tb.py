@@ -36,7 +36,10 @@ def informative_exception(
     -------
         Does not return, but exits the program with the given exitcode.
     """
-    top_message += "" if not print_full_tb else " Full traceback above."
+    if not print_full_tb:
+        top_message += ""
+    else:
+        top_message += " Full traceback above."
     print("\n\n", file=sys.stderr)
     assert e.__traceback__ is not None
     traceback_: types.TracebackType = e.__traceback__

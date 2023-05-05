@@ -255,7 +255,10 @@ class MultiStageClassifier:
             kinase_seqs = (
                 kinase_seqs if not cartesian_product else [x for x in kinase_seqs for _ in range(len(site_seqs))]
             )
-            site_seqs = site_seqs if not cartesian_product else [x for _ in range(orig_kin_seq_len) for x in site_seqs]
+            if not cartesian_product:
+                site_seqs = site_seqs
+            else:
+                site_seqs = [x for _ in range(orig_kin_seq_len) for x in site_seqs]
             assert all(
                 [
                     len(x) == len(kinase_seqs)

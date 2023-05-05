@@ -342,7 +342,10 @@ class KinaseSubstrateRelationshipATTN(KSR):
             calculated_do_transpose.append(i == 0)
             calculated_do_flatten.append(False)
             calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
-            input_width = first_width if i == 0 else param["out_lengths"][i - 1]
+            if i == 0:
+                input_width = first_width
+            else:
+                input_width = param["out_lengths"][i - 1]
             calculated_pools.append(
                 cNNUtils.desired_conv_then_pool_shape(
                     length=input_width,

@@ -17,7 +17,13 @@ if __name__ == "__main__":
 os.chdir(pathlib.Path(__file__).parent.resolve())  # TODO: Do a better version of this
 
 
-DEBUGGING = False if "DEBUGGING" not in os.environ else True if os.environ["DEBUGGING"] == "1" else False
+if "DEBUGGING" not in os.environ:
+    DEBUGGING = False 
+else:
+    if os.environ["DEBUGGING"] == "1":
+        DEBUGGING = True 
+    else:
+        DEBUGGING = False
 """Whether or not to run in debugging mode; need to provide steps in `perform_steps` if True."""
 
 debug_var_names = [
@@ -44,10 +50,19 @@ debugging_variables = dict(zip(debug_var_names, debug_var_vals))
 """The debugging variables as a dictionary."""
 
 
-USE_XL_CACHE = False if "USE_XL_CACHE" not in os.environ else True if os.environ["USE_XL_CACHE"] == "1" else False
+if "USE_XL_CACHE" not in os.environ:
+    USE_XL_CACHE = False 
+else:
+    if os.environ["USE_XL_CACHE"] == "1":
+        USE_XL_CACHE = True 
+    else:
+        USE_XL_CACHE = False
 """Whether or not to use the cached version of the PSP database."""
 
-perform_steps = eval(sys.argv[sys.argv.index("--perform-steps") + 1]) if "--perform-steps" in sys.argv else {}
+if "--perform-steps" in sys.argv:
+    perform_steps = eval(sys.argv[sys.argv.index("--perform-steps") + 1]) 
+else:
+    perform_steps = {}
 """The steps to perform. If empty, all steps will be performed."""
 
 
@@ -98,7 +113,14 @@ def step_4_get_pairwise_mtx(seq_filename_A, *addl_seq_filenames):
         )
         
         dfs = [pd.read_csv(seq_f) for seq_f in list(addl_seq_filenames) + [seq_filename_A]]
-        dfs = [df.drop(columns="symbol") if "symbol" in df.columns else df for df in dfs]
+
+        dfs = []
+        for df in dfs:
+            if "symbol" in df.columns:
+                df = df.drop(columns="symbol")
+            else:
+                df = df
+            dfs.append(df)
         new_seq_df = pd.concat(dfs, ignore_index=True).drop_duplicates(keep="first").reset_index(drop=True)
         
         with tf.NamedTemporaryFile() as tmp, tf.NamedTemporaryFile() as tmp2:

@@ -73,7 +73,10 @@ class CustomLogger(logging.Logger):
         self.setLevel(self._level)
 
         # Create console handler and set level
-        self.handler = TqdmStreamHandler() if output_method == "console" else logging.FileHandler("logfile.log")
+        if output_method == "console":
+            self.handler = TqdmStreamHandler()
+        else:
+            self.handler = logging.FileHandler("logfile.log")
         self.handler.setLevel(
             logging_level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
         )
@@ -111,7 +114,10 @@ class CustomLogger(logging.Logger):
         self.handler.setLevel(new_level)
 
     def _update_logging_method(self, new_method: Literal["console", "logfile"]):
-        self.handler = logging.StreamHandler() if new_method == "console" else logging.FileHandler("logfile.log")
+        if new_method == "console":
+            self.handler = logging.StreamHandler()
+        else:
+            self.handler = logging.FileHandler("logfile.log")
         self.handler.setLevel(
             self._level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
         )
