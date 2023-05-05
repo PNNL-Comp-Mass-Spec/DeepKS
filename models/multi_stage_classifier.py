@@ -18,8 +18,6 @@ import torch, argparse, socket
 from typing import Any, Callable, Literal, Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
-from . import group_classifier_definitions as grp_pred
-from .group_classifier_definitions import check_is_fitted
 from . import individual_classifiers
 from ..tools.file_names import get as get_file_name
 from ..tools import make_fasta as dist_mtx_maker

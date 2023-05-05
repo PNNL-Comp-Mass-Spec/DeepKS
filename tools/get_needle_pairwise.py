@@ -129,19 +129,23 @@ def get_needle_pairwise_mtx(
             strs_a.append(format_for_needle("".join(list(set(fastas_a[i : i + group_size])))))
             strs_b.append(format_for_needle("".join(list(set(fastas_b[i : i + group_size])))))
     else:
-        assert len(fastas) in {len(restricted_combinations[0]), len(restricted_combinations[1])}, (
-            "Was expecting that len(fastas) is either equal to len(restricted_combinations[0]) or"
-            " len(restricted_combinations[1]), but that was not the case; got"
-            f" {len(fastas)} not in {len(restricted_combinations[0]), len(restricted_combinations[1])}"
-        )
         name_to_seq = {
             format_for_needle(x.split("\n")[0].split(">")[1].upper()): "\n".join(x.split("\n")[1:]).strip()
             for x in fastas
         }
         fastas_a = [format_for_needle(x) for x in restricted_combinations[0]]
         fastas_b = [format_for_needle(x) for x in restricted_combinations[1]]
-        fastas_a = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_a]
-        fastas_b = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_b]
+        try:
+            fastas_a = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_a]
+            fastas_b = [f">{x}\n{name_to_seq[x]}\n" for x in fastas_b]
+        except KeyError as e:
+            raise KeyError(
+                f"Error: The following sequence was not found in the fasta file:"
+                + "\n" * 2
+                + f"{e}"
+                + "\n\nPlease ensure that the"
+                " sequence names in `restricted combinations` are identical to those in the fasta file."
+            ) from None
         smaller = fastas_a if len(fastas_a) < len(fastas_b) else fastas_b
         larger = fastas_a if len(fastas_a) >= len(fastas_b) else fastas_b
         group_size_a = int(np.ceil(len(larger) / num_processes))

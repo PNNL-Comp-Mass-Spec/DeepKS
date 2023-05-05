@@ -65,7 +65,7 @@ class TestMisc(unittest.TestCase):
     #         restore.write(self.bu)
 
 
-class TestPreprocessing(unittest.TestCase, UsesR):
+class TestAAAPreprocessing(unittest.TestCase, UsesR):
     def setUp(self):
         global main
         from ..data.preprocessing import main as this_main

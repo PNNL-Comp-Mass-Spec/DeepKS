@@ -110,7 +110,7 @@ def step_4_get_pairwise_mtx(seq_filename_A, *addl_seq_filenames):
             if len(cur_mtx_files) > 0:
                 cur_mtx_file = cur_mtx_files[0]
                 cur_mtx = pd.read_csv(cur_mtx_file, index_col=0)
-                existing = set(cur_mtx.index)
+                existing = set(cur_mtx.index) - (set(cur_mtx.index) - set(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]))
                 not_existing = set(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]) - existing
                 new_mtx_file = f"./pairwise_mtx_{len(existing) + len(not_existing)}.csv"
                 if len(not_existing) == 0:
