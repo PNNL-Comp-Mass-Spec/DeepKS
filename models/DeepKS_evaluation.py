@@ -518,7 +518,7 @@ class SplitIntoGroupsROC(ROC):
                 torch.cuda.empty_cache()
             except Exception:
                 pass
-            new_info = info_dict_passthrough[grp]["PairIDs"]["test"]
+            new_info = info_dict_passthrough[grp]["PairIDs"]
             try:
                 all_predictions_outputs.update(
                     {

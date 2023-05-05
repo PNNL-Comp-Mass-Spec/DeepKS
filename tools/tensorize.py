@@ -172,9 +172,7 @@ def package(
     loader = torch.utils.data.DataLoader(model_utils.KSDataset(X_site, X_kin, y), batch_size=batch_size)
 
     if isinstance(data, pd.DataFrame):
-        ret_info_dict = {  # FIXME This section needs fixing
-            "kin_orders": data.loc[ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
-            "orig_symbols_order": data.loc[ids]["Gene Name of Kin Corring to Provided Sub Seq"].to_list(),
+        ret_info_dict = {
             "PairIDs": (
                 data.loc[ids]["pair_id"].to_list()
                 if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
@@ -186,10 +184,6 @@ def package(
             len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"]) if chunk_size is None else chunk_size
         )
         ret_info_dict = {
-            "kin_orders": ["N/A"],  # CHECK -- may not be correct in non-predict mode
-            "orig_symbols_order": [data["Gene Name of Provided Kin Seq"][i // len(data["Site Sequence"])] for i in ids][
-                desired_length * chunk_position : desired_length * (chunk_position + 1)
-            ],
             "PairIDs": data["pair_id"][desired_length * chunk_position : desired_length * (chunk_position + 1)],
         }
 

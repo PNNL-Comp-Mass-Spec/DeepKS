@@ -228,13 +228,11 @@ class KinaseSubstrateRelationshipATTNWSELF(KSR):
             input_width = first_width if i == 0 else param["out_lengths"][i - 1]
             calculated_pools.append(
                 cNNUtils.desired_conv_then_pool_shape(
-                    input_width,
-                    None,
-                    param["out_lengths"][i],
-                    None,
+                    length=input_width,
+                    desired_length=param["out_lengths"][i],
                     kernel_size=param["kernels"][i],
                     err_message=f"{kin_or_site} CNNs",
-                )[0]
+                )
             )
 
         return (

@@ -9,10 +9,11 @@ if __name__ == "__main__":
     logger.status("Loading Modules")
 
 def get_kin_to_fam_to_grp(relevant_kinases):
-    if isinstance(x, str):
-        up = lambda x: x.upper() 
-    else:
-        up = x
+    def up(x):
+        if isinstance(x, str):
+            return x.upper() 
+        else:
+            return x
     url = "http://www.kinhub.org/kinases.html"
     r = req.request("GET", url)
     if r.status_code == 200:

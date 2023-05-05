@@ -1,0 +1,71 @@
+{
+    "NON-TK": {
+        "model_class": "KinaseSubstrateRelationshipRNN",
+        "linear_layer_sizes": [
+            50,
+            25
+        ],
+        "emb_dim_kin": 22,
+        "emb_dim_site": 22,
+        "dropout_pr": 0.4,
+        "site_param_dict": {
+            "kernels": [
+                8
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                24
+            ]
+        },
+        "kin_param_dict": {
+            "kernels": [
+                100
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                24
+            ]
+        },
+        "attn_num_heads": 12
+    },
+    "TK": {
+        "model_class": "KinaseSubstrateRelationshipATTN",
+        "linear_layer_sizes": [
+            50,
+            25
+        ],
+        "emb_dim_kin": 22,
+        "emb_dim_site": 22,
+        "dropout_pr": 0.4,
+        "site_param_dict": {
+            "kernels": [
+                8
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                48
+            ]
+        },
+        "kin_param_dict": {
+            "kernels": [
+                100
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                48
+            ]
+        },
+        "num_recur_kin": 1,
+        "num_recur_site": 1,
+        "hidden_features_site": 10,
+        "hidden_features_kin": 10
+    }
+}

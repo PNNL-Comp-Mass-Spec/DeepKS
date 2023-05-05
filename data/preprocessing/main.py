@@ -112,10 +112,10 @@ def step_4_get_pairwise_mtx(seq_filename_A, *addl_seq_filenames):
             " the kinase group classifier."
         )
         
-        dfs = [pd.read_csv(seq_f) for seq_f in list(addl_seq_filenames) + [seq_filename_A]]
+        dfs_orig = [pd.read_csv(seq_f) for seq_f in list(addl_seq_filenames) + [seq_filename_A]]
 
         dfs = []
-        for df in dfs:
+        for df in dfs_orig:
             if "symbol" in df.columns:
                 df = df.drop(columns="symbol")
             else:
@@ -186,6 +186,7 @@ def step_5_get_train_val_test_split(
         "train_percentile": 65,
         "dataframe_generation_mode": "tr-all",
     },
+    num_restarts=60
 ):
     """Wrapper for `PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets` and `PreprocessingSteps.format_raw_data_DD.get_input_dataframe`."""
     if not DEBUGGING or 5 in perform_steps:
@@ -199,7 +200,7 @@ def step_5_get_train_val_test_split(
                     data_filename,
                     tgt=0.3,
                     get_restart=True,
-                    num_restarts=60,  # TODO: change back to 600
+                    num_restarts=num_restarts,  # TODO: change back to 600
                 )
                 pprint.pprint(data_gen_conf)
             elif eval_or_train_on_all.lower() == "t":

@@ -1,11 +1,19 @@
 """All the tests for DeepKS"""
+import pickle
 import sys, os, functools, unittest, pathlib, json, inspect
+import warnings
 from parameterized import parameterized
+from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
+
+from DeepKS.models.multi_stage_classifier import MultiStageClassifier
+from ..config.join_first import join_first
+from ..models.GroupClassifier import PseudoSiteGroupClassifier
+import __main__
+
+setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 
 DEVICE = os.environ.get("DEVICE", "cpu")
 """Device `torch` will use. Can be set with the `DEVICE` environment variable."""
-
-from ..config.join_first import join_first
 
 
 class UsesR:
@@ -14,20 +22,98 @@ class UsesR:
     pass
 
 
-from ..models.GroupClassifier import (
-    GroupClassifier,
-    GCPrediction,
-    SiteGroupClassifier,
-    KinGroupClassifier,
-    PseudoSiteGroupClassifier,
-)
+def pre_setUp(self: unittest.TestCase, root: str = join_first("", 1, __file__)):
+    init_snap = DirectorySnapshot(root)
+    setattr(self, "init_snap", init_snap)
 
-import __main__
 
-setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
+def post_tearDown(self: unittest.TestCase, root: str = join_first("", 1, __file__)):
+    after_snap = DirectorySnapshot(root)
+    try:
+        init_snap = getattr(self, "init_snap")
+    except AttributeError:
+        warnings.warn(
+            f"The test case {self} did not have an init_snap attribute (a snapshot of a directory before running the"
+            " test). Will not clean up any files that may have been created during the test."
+        )
+        init_snap = after_snap
+    diff = DirectorySnapshotDiff(init_snap, after_snap)
+    for file in diff.files_created:
+        os.remove(file)
+    for dir in diff.dirs_created:
+        os.rmdir(dir)
+
+
+class TestDiscovery(unittest.TestCase):
+    def setUp(self):
+        pre_setUp(self)
+
+    def tearDown(self):
+        post_tearDown(self)
+
+
+class TestEvaluation(unittest.TestCase):
+    def setUp(self):
+        pre_setUp(self)
+        from ..models.DeepKS_evaluation import eval_and_roc_workflow as this_eval_and_roc_workflow
+        from ..models.multi_stage_classifier import MultiStageClassifier as this_MultiStageClassifier
+        from ..models.individual_classifiers import IndividualClassifiers
+
+        self.eval_and_roc_workflow = this_eval_and_roc_workflow
+        self.MultiStageClassifier = this_MultiStageClassifier
+        this_load_all = IndividualClassifiers.load_all
+        self.load_all = this_load_all
+
+    def testEvaluation(self):
+        with open(join_first("bin/deepks_gc_weights.-1.cornichon", 1, __file__), "rb") as gcf:
+            gc = pickle.load(gcf)
+        nn = self.load_all(join_first("bin/deepks_nn_weights.-1.cornichon", 1, __file__), DEVICE)
+        msc = MultiStageClassifier(gc, nn)
+        self.eval_and_roc_workflow(
+            msc,
+            join_first("data/kin_to_fam_to_grp_828.csv", 1, __file__),
+            join_first("tests/sample_inputs/small_val_or_test.csv", 1, __file__),
+            join_first("tests/sample_inputs/msc_resave.-1.cornichon", 1, __file__),
+            force_recompute=True,
+            bypass_gc=False,
+        )
+
+    def tearDown(self):
+        post_tearDown(self)
+
+
+class TestTuning(unittest.TestCase):
+    def setUp(self):
+        pre_setUp(self)
+        from ..models.individual_classifiers import main as train_main
+        from ..tools.Tuner import main as this_main
+
+        self.train_main = train_main
+        self.main = this_main
+        self.cmdl = [
+            "--train",
+            "tests/sample_inputs/small_train.csv",
+            "--val",
+            "tests/sample_inputs/small_val_or_test.csv",
+            "--device",
+            DEVICE,
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
+            "--groups",
+            "NON-TK",
+        ]
+
+    def testTuning(self):
+        self.main(self.cmdl, self.train_main, num_samples=3, max_epoch=5)
+
+    def tearDown(self):
+        post_tearDown(self)
 
 
 class TestMisc(unittest.TestCase):
+    def setUp(self):
+        pre_setUp(self)
+
     # def setUp(self):
     #     from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
 
@@ -63,10 +149,13 @@ class TestMisc(unittest.TestCase):
     #     # restore backup
     #     with open(os.path.join(self.parent, self.real_file), "wb") as restore:
     #         restore.write(self.bu)
+    def tearDown(self):
+        post_tearDown(self)
 
 
 class TestAAAPreprocessing(unittest.TestCase, UsesR):
     def setUp(self):
+        pre_setUp(self)
         global main
         from ..data.preprocessing import main as this_main
         from ..data.preprocessing.main import step_1_download_psp, step_2_download_uniprot
@@ -115,14 +204,18 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
             getattr(self.__class__, "new_mtx_file", "../preprocessing/pairwise_mtx_828.csv"),
         )
 
+    def tearDown(self):
+        post_tearDown(self)
+
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):
     def setUp(self):
+        pre_setUp(self)
         from ..models.individual_classifiers import main as this_main
 
         self.main = this_main
 
-    def test_train_nn_small(self):
+    def test_train_nn(self):
         sys.argv = [
             "python3 -m DeepKS.models.individual_classifiers",
             "--train",
@@ -137,7 +230,7 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
         ]
         self.main()
 
-    def test_train_nn_small_from_another_dir(self):
+    def test_train_nn_another_dir_LSTM(self):
         old_dir = os.getcwd()
         os.chdir(pathlib.Path(__file__).parent.parent.parent.resolve())
         sys.argv = [
@@ -150,14 +243,35 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             DEVICE,
             "--pre-trained-gc",
             "bin/deepks_gc_weights.-1.cornichon",
-            "--s-test",
+            "--ksr-params",
+            "test/sample_inputs/KSR_params_RNN.json",
         ]
         self.main()
         os.chdir(old_dir)
 
+    def test_train_nn_ATTNWSELF(self):
+        sys.argv = [
+            "python3 -m DeepKS.models.individual_classifiers",
+            "--train",
+            "tests/sample_inputs/small_train.csv",
+            "--val",
+            "tests/sample_inputs/small_val_or_test.csv",
+            "--device",
+            DEVICE,
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
+            "--ksr-params",
+            "test/sample_inputs/KSR_params_ATTNWSELF.json",
+        ]
+        self.main()
+
+    def tearDown(self):
+        post_tearDown(self)
+
 
 class TestTrainingGroupClassifier(unittest.TestCase):
     def setUp(self):
+        pre_setUp(self)
         pass
 
     def test_train_gc_small(self):
@@ -167,8 +281,14 @@ class TestTrainingGroupClassifier(unittest.TestCase):
             is_testing=True,
         )
 
+    def tearDown(self):
+        post_tearDown(self)
+
 
 class TestGenerateFigures(unittest.TestCase):
+    def setUp(self):
+        pre_setUp(self)
+
     def test_sunburst(self):
         from ..images.Sunburst import sunburst
 
@@ -176,9 +296,13 @@ class TestGenerateFigures(unittest.TestCase):
             "../../data/kin_to_fam_to_grp_828.csv", "../../data/raw_data/raw_data_22769.csv"
         )  # TODO: Make this automatic or have config json file
 
+    def tearDown(self):
+        post_tearDown(self)
+
 
 class TestMainAPIFromCMDL(unittest.TestCase):
     def setUp(self):
+        pre_setUp(self)
         from ..api import main as this_main
 
         self.main = this_main
@@ -479,6 +603,9 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             self.main.setup()
             self.assertEqual(ar.exception.code, 0)
 
+    def tearDown(self):
+        post_tearDown(self)
+
 
 with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "examples.json")) as f:
     EXAMPLES = json.load(f)
@@ -489,6 +616,7 @@ with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "examples.json")
 
 class TestExamples(unittest.TestCase):
     def setUp(self):
+        pre_setUp(self)
         from ..api import main as this_main
 
         self.main = this_main
@@ -499,6 +627,9 @@ class TestExamples(unittest.TestCase):
         # print(f"{ex=}")
         sys.argv = list(ex)
         self.main.setup()
+
+    def tearDown(self):
+        post_tearDown(self)
 
 
 api_and_training_suite = unittest.TestSuite()

@@ -394,17 +394,7 @@ class BasicTuner(Tuner):
         return list(zip(kern_options, pool_options, channel_options))
 
 
-if __name__ == "__main__":
-    from ..models.individual_classifiers import main as train_main
-
-    from ..models.GroupClassifier import (
-        PseudoSiteGroupClassifier,
-    )
-
-    import __main__
-
-    setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
-
+def main(cmdl: list[str], train_fn: Callable, num_samples: int = 200, max_epoch: int = 20):
     cnn_kin_one_layer_options = BasicTuner.get_one_layer_cnn(
         4128, *[np.unique(np.logspace(3, 7, 5, base=2, dtype=int))] * 3
     )
@@ -436,7 +426,7 @@ if __name__ == "__main__":
     training_params = {
         "lr_decay_amount": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
         "lr_decay_freq": [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        "num_epochs": [5, 10, 15, 20],
+        "num_epochs": sorted(list(set([min(x, max_epoch) for x in [1, 3, 5, 10, 15, 20]]))),
         "metric": ["roc"],
     }
     interface_params = {
@@ -450,11 +440,39 @@ if __name__ == "__main__":
 
     all_params = training_params | interface_params | model_params
     which_map = collections.defaultdict(list)
-    for k, v in all_params.items():
+    for k in all_params.keys():
         for param_dict in ["model_params", "training_params", "interface_params"]:
             if k in eval(param_dict):
                 which_map[param_dict].append(k)
 
+    st = BasicTuner(
+        num_sim_procs=1,
+        train_fn=train_fn,
+        config_dict=all_params,
+        which_map=which_map,
+        num_samples=num_samples,
+        start_at=0,
+        random_seed=142,
+        collapse=[[]],
+        num_gpu=None,
+        max_output_width=512,
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        all_args = st.generate_args_for_go(cmdl, tmpdir)
+        st.go(all_args, loss_chances=5, loss_below=-np.emath.logn(np.e, 0.5), val_le=0.52)
+
+
+if __name__ == "__main__":
+    from ..models.individual_classifiers import main as train_main
+
+    from ..models.GroupClassifier import (
+        PseudoSiteGroupClassifier,
+    )
+
+    import __main__
+
+    setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
     cmdl = [
         "--train",
         "data/raw_data_31834_formatted_65_26610.csv",
@@ -467,20 +485,4 @@ if __name__ == "__main__":
         "--groups",
         "NON-TK",
     ]
-
-    st = BasicTuner(
-        num_sim_procs=1,
-        train_fn=train_main,
-        config_dict=all_params,
-        which_map=which_map,
-        num_samples=200,
-        start_at=0,
-        random_seed=142,
-        collapse=[[]],
-        num_gpu=None,
-        max_output_width=512,
-    )
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        all_args = st.generate_args_for_go(cmdl, tmpdir)
-        st.go(all_args, loss_chances=5, loss_below=-np.emath.logn(np.e, 0.5), val_le=0.52)
+    main(cmdl, train_main, num_samples=3, max_epoch=5)
