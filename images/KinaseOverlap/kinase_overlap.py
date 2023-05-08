@@ -11,7 +11,6 @@ import textwrap as tw
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams['font.family'] = 'FPL Neu'
-%config InlineBackend.figure_formats = ['svg']
 
 # %%
 with open("Uniprot_ST_Kinases.xlsx", "wb") as st:

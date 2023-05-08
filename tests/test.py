@@ -68,10 +68,14 @@ def post_tearDown(self: unittest.TestCase | ModuleType, root: str = join_first("
 
 
 class TestDiscovery(unittest.TestCase):
+    """Test the `DeepKS.discovery` module."""
+
     ...
 
 
 class TestEvaluation(unittest.TestCase):
+    """Test the `DeepKS.models.DeepKS_evaluation` module."""
+
     def setUp(self):
         from ..models.DeepKS_evaluation import eval_and_roc_workflow as this_eval_and_roc_workflow
         from ..models.multi_stage_classifier import MultiStageClassifier as this_MultiStageClassifier
@@ -98,6 +102,8 @@ class TestEvaluation(unittest.TestCase):
 
 
 class TestTuning(unittest.TestCase):
+    """Test the `DeepKS.tools.Tuner` module."""
+
     def setUp(self):
         from ..models.individual_classifiers import main as train_main
         from ..tools.Tuner import main as this_main
@@ -122,6 +128,8 @@ class TestTuning(unittest.TestCase):
 
 
 class TestMisc(unittest.TestCase):
+    """Test Miscellaneous functions."""
+
     # def setUp(self):
     #     from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
 
@@ -160,6 +168,8 @@ class TestMisc(unittest.TestCase):
 
 
 class TestAAAPreprocessing(unittest.TestCase, UsesR):
+    """Run the preprocessing pipeline. (AAA is in the name to make sure this runs first.)"""
+
     def setUp(self):
         global main
         from ..data.preprocessing import main as this_main
@@ -219,6 +229,8 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
 
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):
+    """Test training different neural network models"""
+
     def setUp(self):
         from ..models.individual_classifiers import main as this_main
 
@@ -276,6 +288,8 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
 
 
 class TestTrainingGroupClassifier(unittest.TestCase):
+    """Test training the group classifier"""
+
     def setUp(self):
         pass
 
@@ -288,6 +302,8 @@ class TestTrainingGroupClassifier(unittest.TestCase):
 
 
 class TestGenerateFigures(unittest.TestCase):
+    """Test generating figures"""
+
     def test_sunburst(self):
         from ..images.Sunburst import sunburst
 
@@ -297,6 +313,8 @@ class TestGenerateFigures(unittest.TestCase):
 
 
 class TestMainAPIFromCMDL(unittest.TestCase):
+    """Test the main API (the main purpose) of `DeepKS`."""
+
     def setUp(self):
         from ..api import main as this_main
 
@@ -607,6 +625,8 @@ with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "examples.json")
 
 
 class TestExamples(unittest.TestCase):
+    """Test the provided DeepKS examples."""
+
     def setUp(self):
         from ..api import main as this_main
 

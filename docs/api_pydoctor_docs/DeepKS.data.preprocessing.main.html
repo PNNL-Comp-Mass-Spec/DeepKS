@@ -592,7 +592,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_4_get_pairwise_mtx</span>(seq_filename_A, seq_filename_B):
+    <span class="py-keyword">def</span> <span class="py-defname">step_4_get_pairwise_mtx</span>(seq_filename_A, *addl_seq_filenames):
     
     <a class="headerLink" href="#step_4_get_pairwise_mtx" title="DeepKS.data.preprocessing.main.step_4_get_pairwise_mtx">
       
@@ -616,7 +616,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_5_get_train_val_test_split</span>(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, eval_or_train_on_all, data_gen_conf={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">held_out_percentile</span><span class="rst-variable-quote">'</span>: 95, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">train_percentile</span><span class="rst-variable-quote">'</span>: 65, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dataframe_generation_mode</span><span class="rst-variable-quote">'</span>: <span class="rst-variable-quote">'</span><span class="rst-variable-string">tr-all</span><span class="rst-variable-quote">'</span>}):
+    <span class="py-keyword">def</span> <span class="py-defname">step_5_get_train_val_test_split</span>(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, eval_or_train_on_all, data_gen_conf={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">held_out_percentile</span><span class="rst-variable-quote">'</span>: 95, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">train_percentile</span><span class="rst-variable-quote">'</span>: 65, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dataframe_generation_mode</span><span class="rst-variable-quote">'</span>: <span class="rst-variable-quote">'</span><span class="rst-variable-string">tr-all</span><span class="rst-variable-quote">'</span>}, num_restarts=60):
     
     <a class="headerLink" href="#step_5_get_train_val_test_split" title="DeepKS.data.preprocessing.main.step_5_get_train_val_test_split">
       
@@ -640,7 +640,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">DEBUGGING</span> =
+    <span class="py-defname">DEBUGGING</span>: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> =
     
     <a class="headerLink" href="#DEBUGGING" title="DeepKS.data.preprocessing.main.DEBUGGING">
       
@@ -652,8 +652,7 @@
     
     <div><p>Whether or not to run in debugging mode; need to provide steps in <code><a href="#perform_steps" class="internal-link" title="DeepKS.data.preprocessing.main.perform_steps">perform_steps</a></code> if True.</p>
 </div>
-    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>(False if 'DEBUGGING' not in os.environ else True if os.environ['DEBUGGING'
-    ] == '1' else False)</code></pre></td></tr></table>
+    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code><a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a></code></pre></td></tr></table>
   </div>
 </div><div class="baseconstant">
   
@@ -666,7 +665,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">USE_XL_CACHE</span> =
+    <span class="py-defname">USE_XL_CACHE</span>: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> =
     
     <a class="headerLink" href="#USE_XL_CACHE" title="DeepKS.data.preprocessing.main.USE_XL_CACHE">
       
@@ -678,8 +677,7 @@
     
     <div><p>Whether or not to use the cached version of the PSP database.</p>
 </div>
-    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>(False if 'USE_XL_CACHE' not in os.environ else True if os.environ[
-    'USE_XL_CACHE'] == '1' else False)</code></pre></td></tr></table>
+    <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code><a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a></code></pre></td></tr></table>
   </div>
 </div><div class="basevariable">
   

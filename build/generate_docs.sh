@@ -1,3 +1,6 @@
+#!/bin/zsh
+
+cd ..
 pydoctor \
     --docformat numpy \
     --project-name DeepKS \
