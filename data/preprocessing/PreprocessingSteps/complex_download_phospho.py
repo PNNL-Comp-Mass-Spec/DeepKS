@@ -42,5 +42,5 @@ async def async_get(url, session):
         print("Unable to get url {} due to {} --- {}.".format(url, e.__class__.__name__, e))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     asyncio.run(complex_download_phospho())

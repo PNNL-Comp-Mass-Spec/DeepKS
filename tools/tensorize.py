@@ -10,7 +10,7 @@ from ..config.logging import get_logger
 
 logger = get_logger()
 """The logger for this module."""
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     logger.status("Loading Modules...")
 
 
@@ -490,6 +490,3 @@ def pad(tok_list: list[int], max_len: int, map_dict: dict[str, int]) -> list[int
     assert "<PADDING>" in map_dict, "Padding token not in map_dict."
     return tok_list + [map_dict["<PADDING>"] for _ in range(max_len - len(tok_list))]
 
-
-if __name__ == "__main__":
-    pass

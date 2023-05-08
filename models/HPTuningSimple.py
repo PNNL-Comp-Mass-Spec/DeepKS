@@ -13,7 +13,7 @@ def my_tune(hp_ss, num_samples=50, num_sim_procs=1, collapse=[[]]):
     st.go()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     print("Is CUDA available?", torch.cuda.is_available(), flush=True)
     # assert torch.cuda.is_available()
     multiprocessing.set_start_method("spawn")

@@ -53,5 +53,5 @@ def _main():
     logger.info("All Examples Complete.")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     _main()

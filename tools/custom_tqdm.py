@@ -40,7 +40,7 @@ class CustomTqdm(tqdm.tqdm):
             super().__init__(iterable, **kwargs_to_use, disable=True)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     import time
 
     for i in CustomTqdm(range(100), desc="Test Description"):

@@ -12,7 +12,7 @@ if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"])
 logger = logging.get_logger()
 """The logger for this module."""
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading initial libraries and modules")
 
 import os, pathlib, typing, argparse, textwrap, re, json, warnings, jsonschema, jsonschema.exceptions, socket, io
@@ -671,7 +671,7 @@ def setup(args: dict[str, typing.Any] = {}):
     make_predictions(**args)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     args = parse_api()  # Parse arguments before loading "heavy" modules
     logger.status("Loading more libraries and modules")
     import cloudpickle as pickle, pprint, numpy as np, tqdm, itertools, collections, json, jsonschema

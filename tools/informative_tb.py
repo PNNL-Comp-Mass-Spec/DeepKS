@@ -178,7 +178,7 @@ def get_exception_description(exception_type: str) -> str:
 """
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def fn_a():
         fn_b()

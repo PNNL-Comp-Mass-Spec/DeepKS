@@ -38,7 +38,7 @@ def empirical_expected_value(size, fraction):
     return my_jaccard(part_a, part_b)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main(*[f"../{x}_kins_large.json" for x in ["tr", "vl", "te"]])
     # X = []
     # Y = []

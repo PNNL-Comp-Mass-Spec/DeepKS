@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     from ..tools.splash.write_splash import write_splash
 
     write_splash("main_nn_trainer")
@@ -13,7 +13,7 @@ from ..config.logging import get_logger
 
 logger = get_logger()
 """Logger for this module"""
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules...")
 
 
@@ -761,5 +761,5 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
     return args
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

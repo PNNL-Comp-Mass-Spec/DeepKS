@@ -39,5 +39,5 @@ def format_for_excel(mtx_file, raw_data_file):
     mtx.to_csv("excel_art_formatted.csv")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     format_for_excel("../../data/preprocessing/mtx_822.csv", "../../data/raw_data/raw_data_22473.csv")

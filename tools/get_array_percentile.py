@@ -79,7 +79,7 @@ def get_array_percentile(
     return a
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     base = np.arange(100).reshape(10, 10)
     print(base)
     print(get_array_percentile(base, 50, 0, (1, 0)))

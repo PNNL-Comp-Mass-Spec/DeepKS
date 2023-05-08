@@ -175,7 +175,7 @@ def memory_efficient_np_to_sparse(base: np.ndarray, chunk_multiplier: int = 10) 
     return reshaped
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def test_mem_eff_np_to_sparse():
         a = np.random.randint(0, 100, (1000, 1000))

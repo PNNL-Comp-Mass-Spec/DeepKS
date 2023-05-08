@@ -415,7 +415,7 @@ def get_assignment_info_dict(kin_fam_grp_file, raw_input_file, jt, jv, jte):
     return ret_dict
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     import os, pathlib
 
     where_am_i = pathlib.Path(__file__).parent.resolve()

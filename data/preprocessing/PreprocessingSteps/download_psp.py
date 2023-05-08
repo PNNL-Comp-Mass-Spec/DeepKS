@@ -6,7 +6,7 @@ from ....config.logging import get_logger
 
 logger = get_logger()
 """The logger for this module."""
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     logger.status("Loading Modules")
 
 def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug.xlsx")):
@@ -109,5 +109,5 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
     table.to_excel(outfile, index=False)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     get_phospho()

@@ -255,7 +255,7 @@ def benchmark_performance(fasta_a_file: str, test_subsets: list[int]):
     # plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     with tempfile.TemporaryDirectory() as td:
         # fn = mtx_utils.make_fasta("../data/raw_data/kinase_seq_822.txt", td)
         # test_subsets = [822]

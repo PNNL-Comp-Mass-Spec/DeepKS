@@ -124,5 +124,5 @@ async def main():
     all_df.to_csv(f"../data/raw_data/kinase_seq_{len(all_df)}.csv", index=False)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     asyncio.run(main())

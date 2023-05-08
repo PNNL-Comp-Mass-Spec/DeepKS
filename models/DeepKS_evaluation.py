@@ -707,7 +707,7 @@ def get_multi_stage_classifier():
         raise FileNotFoundError("No cache found")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     import cloudpickle
 
     # main()

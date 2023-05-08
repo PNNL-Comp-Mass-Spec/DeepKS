@@ -1,5 +1,5 @@
 """Defines the `MultiStageClassifier` class, which allows group pre-classification before neural network classification."""
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     from ..tools.splash.write_splash import write_splash
     from termcolor import colored
 
@@ -9,7 +9,7 @@ from ..config.logging import get_logger
 
 logger = get_logger()
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
 
 
@@ -588,7 +588,7 @@ def efficient_to_csv(data_dict: dict, outfile: str):
             lines_written += 1
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     nn = IndividualClassifiers.load_all(join_first("bin/deepks_nn_weights.11.cornichon", 1, __file__))
     with open(join_first("bin/deepks_gc_weights.2.cornichon", 1, __file__), "rb") as f:
         gc: GroupClassifier = pickle.load(f)

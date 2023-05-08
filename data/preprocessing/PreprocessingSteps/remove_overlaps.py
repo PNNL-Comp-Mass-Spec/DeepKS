@@ -56,7 +56,7 @@ def validate_data(input_files):
         assert len(set(entry)) == 1
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     import os, pathlib
 
     where_am_i = pathlib.Path(__file__).parent.resolve()

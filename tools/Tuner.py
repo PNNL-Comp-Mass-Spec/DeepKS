@@ -473,7 +473,7 @@ def main(cmdl: list[str], train_fn: Callable, num_samples: int = 200, max_epoch:
         st.go(all_args, loss_chances=5, loss_below=-np.emath.logn(np.e, 0.5), val_le=0.52)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     from ..models.individual_classifiers import main as train_main
 
     from ..models.GroupClassifier import (

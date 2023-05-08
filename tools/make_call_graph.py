@@ -74,7 +74,7 @@ class DeepKSCallGraph:
             function()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     from . import make_call_graph_demonstrator
 
     DeepKSCallGraph(other_output={"output_file": "./demonstrated_call_graph.png"}).make_call_graph(

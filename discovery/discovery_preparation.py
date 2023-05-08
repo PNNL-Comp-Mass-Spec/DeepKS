@@ -346,5 +346,5 @@ async def seq_request(gene_names=None, uniprot_ids=None, outfile=None) -> Union[
         return sequences_table
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     format_kin_and_site_lists(*main())

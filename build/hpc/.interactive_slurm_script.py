@@ -51,5 +51,5 @@ def main():
 		print("Error with `interactive_slurm_script.py`:", e)
 		raise RuntimeError()
 		
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
 	main()

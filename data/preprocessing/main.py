@@ -11,7 +11,7 @@ from ...config.logging import get_logger
 
 logger = get_logger()
 """The logger for this script."""
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     logger.status("Loading Modules")
 
 # Change working directory to the directory of this file
@@ -247,5 +247,5 @@ def main(
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main(**debugging_variables)

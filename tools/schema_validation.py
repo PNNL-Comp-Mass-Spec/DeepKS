@@ -42,7 +42,7 @@ bypass_gc = {
 SiteSchemaBypassGC = deepcopy(SiteSchema)
 SiteSchemaBypassGC["patternProperties"]["^.+$"]["properties"].update(bypass_gc)
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     sample = {
         "ABCDEFGHIJKLMNO": {"Uniprot Accession ID": ["P12345"], "Gene Name": ["ABC1"]},
         "PQRSTUVWXYZAABB": {"Uniprot Accession ID": ["P98765", "Q55555"], "Gene Name": ["PQR2", "XYZ3"]},

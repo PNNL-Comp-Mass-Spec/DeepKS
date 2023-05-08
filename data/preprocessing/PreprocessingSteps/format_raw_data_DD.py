@@ -19,7 +19,7 @@ random.seed(0)
 from ....config.logging import get_logger
 
 logger = get_logger()
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     logger.status("Loading Modules")
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
@@ -194,7 +194,7 @@ def get_input_dataframe_core(
     logger.info(f"Outputting formatted data file with size: {len(all_data_w_seqs)}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     if mode == "no_alin":
         kin_seq_file = (
             join_first(3, "data/raw_data/kinase_seq_826.csv")

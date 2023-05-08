@@ -221,7 +221,7 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     logger = CustomLogger(logging_level=logging.DEBUG)
     logger.debug("This is a debug message.")
     logger.vstatus("This is a vanishing status message.")

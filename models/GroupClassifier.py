@@ -8,7 +8,7 @@ AA = set(list("ACDEFGHIKLMNPQRSTVWXY"))
 from ..config.logging import get_logger
 
 logger = get_logger()
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
 
 join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
@@ -132,7 +132,7 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         smart_save_gc(pgc, -1 if is_testing else None)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     PseudoSiteGroupClassifier.package(
         join_first(1, "data/raw_data/raw_data_45176_formatted_65.csv"),
         join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),

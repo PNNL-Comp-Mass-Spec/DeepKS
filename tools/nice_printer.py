@@ -89,7 +89,7 @@ def _base_singleton_shortener(node, max_str_len, sep, indent="", next_len=0.0, c
     print(indent + old_node_str, end=sep, file=FILE)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     random.seed(42)
     # test_obj = {
     #     "a": [1, 2, 3, 4, 5, 6, {"A": "B", "CC": list(range(200))}],
