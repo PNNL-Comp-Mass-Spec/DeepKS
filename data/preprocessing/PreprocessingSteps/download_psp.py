@@ -98,10 +98,11 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
                 print("Exiting unsuccessfully.")
                 exit(1)
         except Exception as e:
-            print(
-                f"Error: {e.__class__.__name__}{'' if e.__str__() == '' else f' ({e.__str__()})'}. Retrying after 5"
-                " seconds..."
-            )
+            if e.__str__() == '':
+                extra = ''
+            else:
+                extra = f' ({e.__str__()})'
+            logger.warning(f"Issue: {e.__class__.__name__}{extra}. Retrying after 5 seconds...")
 
     table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
     logger.info(f"Info: Number of unique uniprot IDs in PSP: {len(table['KIN_ACC_ID'].unique())}")

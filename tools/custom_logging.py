@@ -77,9 +77,10 @@ class CustomLogger(logging.Logger):
             self.handler = TqdmStreamHandler()
         else:
             self.handler = logging.FileHandler("logfile.log")
-        self.handler.setLevel(
-            logging_level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
-        )
+        if isinstance(self.handler, logging.StreamHandler):
+            self.handler.setLevel(logging_level)
+        else:
+            self.handler.setLevel(max(self._level, STATUS))
 
         # Create formatter
         formatter = CustomFormatter()
@@ -118,9 +119,10 @@ class CustomLogger(logging.Logger):
             self.handler = logging.StreamHandler()
         else:
             self.handler = logging.FileHandler("logfile.log")
-        self.handler.setLevel(
-            self._level if isinstance(self.handler, logging.StreamHandler) else max(self._level, STATUS)
-        )
+            if isinstance(self.handler, logging.StreamHandler):
+                self.handler.setLevel(self._level)
+            else:
+                self.handler.setLevel(max(self._level, STATUS))
 
     def _blankit(self):
         if self.last_log and self.last_log == "vstatus":

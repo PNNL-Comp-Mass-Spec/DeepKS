@@ -19,7 +19,6 @@ def main():
     NUM_KIN_ASSERT_AVAIL = 303
     NUM_RANDOM_KINS = 10
     SEED = 42
-    SHORTEN = lambda x: {k: v if len(str(v)) <= 80 else str(v)[:77] + "..." for k, v in x.items()}  # type: ignore
 
     # %% PROCESSING KINASES ---
     kin_seq_file = "../../data/raw_data/kinase_seq_918.csv"
@@ -34,10 +33,14 @@ def main():
 
     nature_map = {"Other": "OTHER", "FAM20": "ATYPICAL", "PIKK": "ATYPICAL", "PDHK": "ATYPICAL", "Alpha": "ATYPICAL"}
 
-    uniprot_id_to_known_group = {
-        k: v if v in set_of_ok_group_names else nature_map[v] if v in nature_map else (None, v)
-        for k, v in uniprot_id_to_known_group.items()
-    }
+    uniprot_id_to_known_group = {}
+    for k, v in uniprot_id_to_known_group.items():
+        if v in set_of_ok_group_names:
+            uniprot_id_to_known_group[k] = v
+        elif v in nature_map:
+            uniprot_id_to_known_group[k] = nature_map[v]
+        else:
+            uniprot_id_to_known_group[k] = (None, v)
 
     for k, v in uniprot_id_to_known_group.items():
         if isinstance(v, tuple) and v[1] is None:
@@ -68,13 +71,20 @@ def main():
     }
     assert all([x is not None for x in sampled_kin_to_seq.values()])
     sampled_kin_to_seq = collections.OrderedDict(sorted(sampled_kin_to_seq.items(), key=lambda x: x[0]))
-    sampled_kin_to_uniprot = {
-        k: matrix_name_to_uniprot_id[k] if k in matrix_name_to_uniprot_id else None for k in kins_sample
-    }
-    sampled_kin_to_known_group = {
-        k: uniprot_id_to_known_group[matrix_name_to_uniprot_id[k]] if k in matrix_name_to_uniprot_id else None
-        for k in kins_sample
-    }
+    sampled_kin_to_uniprot = {}
+    for k in kins_sample:
+        if k in matrix_name_to_uniprot_id:
+            sampled_kin_to_uniprot[k] = matrix_name_to_uniprot_id[k]
+        else:
+            sampled_kin_to_uniprot[k] = None
+
+    sampled_kin_to_known_group = {}
+    for k in kins_sample:
+        if k in matrix_name_to_uniprot_id:
+            sampled_kin_to_known_group[k] = uniprot_id_to_known_group[matrix_name_to_uniprot_id[k]]
+        else:
+            sampled_kin_to_known_group[k] = None
+
     assert all([x is not None for x in sampled_kin_to_uniprot.values()])
     assert all([x is not None for x in sampled_kin_to_known_group.values()])
     sampled_kin_to_uniprot = collections.OrderedDict(sorted(sampled_kin_to_uniprot.items(), key=lambda x: x[0]))

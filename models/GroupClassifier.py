@@ -20,9 +20,11 @@ def smart_save_gc(group_classifier: GroupClassifier, optional_idx: int | None = 
     for file in os.listdir(bin_):
         if v := re.search(r"deepks_gc_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(1)) + 1)
-    save_path = os.path.join(
-        bin_, f"deepks_gc_weights.{max_version if optional_idx is None else optional_idx}.cornichon"
-    )
+    if optional_idx is not None:
+        file_name_numb = optional_idx
+    else:
+        file_name_numb = max_version
+    save_path = os.path.join(bin_, f"deepks_gc_weights.{file_name_numb}.cornichon")
     logger.status(f"Serializing and Saving Group Classifier to Disk. ({save_path})")
     with open(save_path, "wb") as f:
         pickle.dump(group_classifier, f)
@@ -110,7 +112,14 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         tk_grp = "TK"
         # acceptable_center_aa = set.union(stk_aa, tk_aa)
         # assert all(x[7] in acceptable_center_aa for x in list_form)
-        return [GCPrediction(tk_grp) if x[7] in tk_aa else GCPrediction(stk_grp) for x in list_form]
+        res = []
+        for x in list_form:
+            if x[7] in tk_aa:
+                res.append(GCPrediction(tk_grp))
+            else:
+                res.append(GCPrediction(stk_grp))
+
+        return res
 
     @staticmethod
     def package(train_file: str, kin_fam_grp: str, is_testing: bool = False):
@@ -126,10 +135,19 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         for _, r in fddf.iterrows():
             site_to_grp[r["Site Sequence"]].add(kin_to_grp[r["Gene Name of Kin Corring to Provided Sub Seq"]])
 
-        pgc = PseudoSiteGroupClassifier(
-            list(site_to_grp.keys()), ["TK" if x.upper()[7] == "Y" else "NON-TK" for x in list(site_to_grp.keys())]
-        )
-        smart_save_gc(pgc, -1 if is_testing else None)
+        grp_list = []
+        for x in list(site_to_grp.keys()):
+            if x.upper()[7] == "Y":
+                grp_list.append("TK")
+            else:
+                grp_list.append("NON-TK")
+
+        pgc = PseudoSiteGroupClassifier(list(site_to_grp.keys()), grp_list)
+        if is_testing:
+            opt_idx = -1
+        else:
+            opt_idx = None
+        smart_save_gc(pgc, opt_idx)
 
 
 if __name__ == "__main__":  # pragma: no cover

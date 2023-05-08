@@ -145,7 +145,9 @@ class KinaseSubstrateRelationshipClassic(KSR):
         self.activation = nn.ELU()
         self.dropout = nn.Dropout(dropout_pr)
 
-        self.linear_layer_sizes: list[int] = linear_layer_sizes if linear_layer_sizes is not None else []
+        self.linear_layer_sizes: list[int] = []
+        if linear_layer_sizes is not None:
+            self.linear_layer_sizes = linear_layer_sizes
 
         # Create linear layers
         self.linear_layer_sizes.insert(0, combined_flat_size)
@@ -188,17 +190,22 @@ class KinaseSubstrateRelationshipClassic(KSR):
         for i in range(num_conv):
             calculated_do_transpose.append(i == 0)
             calculated_do_flatten.append(i == num_conv - 1)
-            calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
-            input_width = first_width if i == 0 else param["out_lengths"][i - 1]
+            if i == 0:
+                calculated_in_channel = emb
+            else:
+                calculated_in_channel = param["out_channels"][i - 1]
+            calculated_in_channels.append(calculated_in_channel)
+            if i == 0:
+                input_width = first_width
+            else:
+                input_width = param["out_lengths"][i - 1]
             calculated_pools.append(
                 cNNUtils.desired_conv_then_pool_shape(
-                    input_width,
-                    None,
-                    param["out_lengths"][i],
-                    None,
+                    length=input_width,
+                    desired_length=param["out_lengths"][i],
                     kernel_size=param["kernels"][i],
                     err_message=f"{kin_or_site} CNNs",
-                )[0]
+                )
             )
 
         return (

@@ -32,6 +32,11 @@ def my_pop(df, index):
     df.drop(index, inplace=True)
     return row
 
+def toupper(x):
+    if isinstance(x, str):
+        return x.upper()
+    else:
+        return x
 
 def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
     assert "held_out_percentile" in config or config.get("dataframe_generation_mode") == "tr-all"
@@ -44,11 +49,13 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
     train_percentile = config["train_percentile"]
     dataframe_generation_mode = config["dataframe_generation_mode"]
 
+
+
     all_data = (
         pd.read_csv(input_fn)
         .sort_values(by=["num_sites", "lab", "seq"], ascending=[False, True, True])
         .reset_index(drop=True)
-        .applymap(lambda x: x.upper() if isinstance(x, str) else x)
+        .applymap(toupper)
     )
     if dataframe_generation_mode == "tr-val-te":
         for ML_set, percentile in [
@@ -133,12 +140,12 @@ def get_input_dataframe_core(
         logger.info("Using derangement found in cache.")
     else:
         logger.warning("Computing derangement instead of using cache.")
-        derangement = [
-            x if x is not None else len(decoy)
-            for x in get_derangement(
-                order, sizes, distance_matrix_file, percentile, cache_derangement=True
-            )
-        ]
+        derangement = []
+        for x in get_derangement(order, sizes, distance_matrix_file, percentile, cache_derangement=True):
+            if x is not None:
+                derangement.append(x)
+            else:
+                derangement.append(len(decoy))
 
     logger.status("Done processing derangement.")
     logger.status("assembling final data.")
@@ -153,11 +160,7 @@ def get_input_dataframe_core(
     # kin_name_dict = {str(kai) : str(k).upper() for k, kai in zip(xl['GENE'], xl['KIN_ACC_ID'])}
 
     kin_seqs_dict = pd.read_csv(kin_seq_file)
-    kin_seqs_dict["kinase"] = (
-        kin_seqs_dict["gene_name"].apply(lambda x: x.upper() if isinstance(x, str) else x)
-        + "|"
-        + kin_seqs_dict["kinase"]
-    )
+    kin_seqs_dict["kinase"] = (kin_seqs_dict["gene_name"].apply(toupper) + "|" + kin_seqs_dict["kinase"])
     kin_seqs_dict = kin_seqs_dict.set_index("kinase").to_dict()["kinase_seq"]
 
     all_data_w_seqs = pd.DataFrame(

@@ -58,9 +58,11 @@ def smart_save_nn(individual_classifier: IndividualClassifiers, optional_idx: in
     for file in os.listdir(bin_):
         if v := re.search(r"deepks_nn_weights\.((|-)\d+)\.cornichon", file):
             max_version = max(max_version, int(v.group(1)) + 1)
-    savepath = os.path.join(
-        bin_, f"deepks_nn_weights.{max_version if optional_idx is None else optional_idx}.cornichon"
-    )
+    if optional_idx is not None:
+        file_name_numb = optional_idx
+    else:
+        file_name_numb = max_version
+    savepath = os.path.join(bin_, f"deepks_nn_weights.{file_name_numb}.cornichon")
     logger.status(f"Serializing and Saving Neural Networks to Disk. ({savepath})")
     IndividualClassifiers.save_all(individual_classifier, savepath)
 
@@ -247,8 +249,11 @@ class IndividualClassifiers:
                     group_df_inner["Gene Name of Provided Kin Seq"] = [
                         Xy["Gene Name of Provided Kin Seq"][i] for i in put_in_indices
                     ]
-
-                segment_size = len(Xy["Kinase Sequence" if group_by == "site" else "Site Sequence"])
+                if group_by == "site":
+                    oposite_grp = "Kinase Sequence"
+                else:
+                    oposite_grp = "Site Sequence"
+                segment_size = len(Xy[oposite_grp])
                 group_df_inner["pair_id"] = [
                     Xy["pair_id"][i * segment_size + j] for i in put_in_indices for j in range(segment_size)
                 ]
@@ -509,18 +514,23 @@ class IndividualClassifiers:
                     pass
                 new_info = info_dict_passthrough[grp]["PairIDs"]
                 try:
-                    all_predictions_outputs.update(
-                        {
-                            pair_id: (
-                                jumbled_predictions[0][i],
-                                jumbled_predictions[1][i],
-                                jumbled_predictions[2][i],
-                                jumbled_predictions[3][i],
-                                self.__dict__["grp_to_emp_eqn"].get(grp) if get_emp_eqn else None,
-                            )
-                            for pair_id, i in zip(new_info, range(len(new_info)))
-                        }
-                    )
+                    if get_emp_eqn:
+                        grp_to_emp_eqn = self.__dict__["grp_to_emp_eqn"].get(grp)
+                    else:
+                        grp_to_emp_eqn = None
+                    for pair_id, i in zip(new_info, range(len(new_info))):
+                        all_predictions_outputs.update(
+                            {
+                                pair_id: (
+                                    jumbled_predictions[0][i],
+                                    jumbled_predictions[1][i],
+                                    jumbled_predictions[2][i],
+                                    jumbled_predictions[3][i],
+                                    grp_to_emp_eqn,
+                                )
+                            }
+                        )
+
                 except KeyError:
                     raise AttributeError(
                         "`--convert-raw-to-prob` was set but the attribute `grp_to_emp_eqn` (aka a"
@@ -634,7 +644,11 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
     )
 
     if args["s"] or args["s_test"]:
-        smart_save_nn(classifier, -1 if args["s_test"] else None)
+        if args["s_test"]:
+            opt_idx = -1
+        else:
+            opt_idx = None
+        smart_save_nn(classifier, opt_idx)
     return weighted, notes
 
 

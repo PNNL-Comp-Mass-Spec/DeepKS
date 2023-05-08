@@ -341,7 +341,11 @@ class KinaseSubstrateRelationshipATTN(KSR):
         for i in range(num_conv):
             calculated_do_transpose.append(i == 0)
             calculated_do_flatten.append(False)
-            calculated_in_channels.append(emb if i == 0 else param["out_channels"][i - 1])
+            if i == 0:
+                calculated_in_channel = emb
+            else:
+                calculated_in_channel = param["out_channels"][i - 1]
+            calculated_in_channels.append(calculated_in_channel)
             if i == 0:
                 input_width = first_width
             else:

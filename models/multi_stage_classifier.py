@@ -5,6 +5,7 @@ if __name__ == "__main__":  # pragma: no cover
 
     write_splash("main_gc_trainer")
 
+from xmlrpc.client import boolean
 from ..config.logging import get_logger
 
 logger = get_logger()
@@ -23,7 +24,7 @@ from ..tools.file_names import get as get_file_name
 from ..tools import make_fasta as dist_mtx_maker
 from sklearn.neural_network import MLPClassifier
 from termcolor import colored
-from .GroupClassifier import GroupClassifier
+from .GroupClassifier import GroupClassifier, SiteGroupClassifier
 
 from .individual_classifiers import IndividualClassifiers
 
@@ -123,7 +124,11 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        unq_symbols = input_file["Site Sequence" if group_on != "kin" else "Kinase Sequence"].drop_duplicates()
+        if group_on != "kin":
+            opposite_grp = "Kinase Sequence"
+        else:
+            opposite_grp = "Site Sequence"
+        unq_symbols = input_file[opposite_grp].drop_duplicates()
         unq_symbols_inds = unq_symbols.index.tolist()
         unq_symbols = unq_symbols.tolist()
 
@@ -164,19 +169,13 @@ class MultiStageClassifier:
         res = {}
         self.individual_classifiers.evaluations = {}
         if bypass_group_classifier:
-            print(
-                colored(
-                    (
-                        "Info: Group Classifier Accuracy"
-                        f" {'(since we have known groups) ' if bypass_group_classifier else ''}—"
-                        # f" {self.group_classifier.test(groups_true, groups_prediction)}"
-                    ),
-                    "blue",
-                )
-            )
-            # assert isinstance(emp_eqn, Callable)
+            logger.info("Info: Group Classifier Accuracy (since we have known groups)")
         if predict_mode:
-            addl_args["test" if "test_json" not in addl_args else "test_json"] = Xy_formatted_input_file
+            if "test_json" not in addl_args:
+                key = "test"
+            else:
+                key = "test_json"
+            addl_args[key] = Xy_formatted_input_file
             print(
                 colored(
                     (
@@ -216,15 +215,28 @@ class MultiStageClassifier:
         if "dict" in predictions_output_format or re.search(r"(sqlite|csv)", predictions_output_format):
             logger.status("Copying Results to Dictionary.")
 
-            base_kinase_gene_names = [kin_info[k]["Gene Name"] if k in kin_info else "?" for k in kinase_seqs]
-            base_kinase_uniprot_accession = [
-                kin_info[k]["Uniprot Accession ID"] if k in kin_info else "?" for k in kinase_seqs
-            ]
-            base_site_gene_names = [site_info[s]["Gene Name"] if s in site_info else "?" for s in site_seqs]
-            base_site_uniprot_accession = [
-                site_info[s]["Uniprot Accession ID"] if s in site_info else "?" for s in site_seqs
-            ]
-            base_site_location = [site_info[s]["Location"] if s in site_info else "?" for s in site_seqs]
+            base_kinase_gene_names = []
+            base_kinase_uniprot_accession = []
+            for k in kinase_seqs:
+                if k in kin_info:
+                    base_kinase_gene_names.append(kin_info[k]["Gene Name"])
+                    base_kinase_uniprot_accession.append(kin_info[k]["Uniprot Accession ID"])
+                else:
+                    base_kinase_gene_names.append("?")
+                    base_kinase_uniprot_accession.append("?")
+
+            base_site_gene_names = []
+            base_site_location = []
+            base_site_uniprot_accession = []
+            for s in site_seqs:
+                if s in site_info:
+                    base_site_gene_names.append(site_info[s]["Gene Name"])
+                    base_site_location.append(site_info[s]["Location"])
+                    base_site_uniprot_accession.append(site_info[s]["Uniprot Accession ID"])
+                else:
+                    base_site_gene_names.append("?")
+                    base_site_location.append("?")
+                    base_site_uniprot_accession.append("?")
 
             kinase_gene_names = (
                 base_kinase_gene_names
@@ -252,9 +264,8 @@ class MultiStageClassifier:
                 else [x for _ in range(len(kinase_seqs)) for x in base_site_location]
             )
             orig_kin_seq_len = len(kinase_seqs)
-            kinase_seqs = (
-                kinase_seqs if not cartesian_product else [x for x in kinase_seqs for _ in range(len(site_seqs))]
-            )
+            if cartesian_product:
+                kinase_seqs = [x for x in kinase_seqs for _ in range(len(site_seqs))]
             if not cartesian_product:
                 site_seqs = site_seqs
             else:
@@ -283,39 +294,42 @@ class MultiStageClassifier:
                 f" {len(site_location)=})"
             )
 
-            ret = [
-                {
-                    "Kinase Uniprot Accession": kua,
-                    "Site Uniprot Accession": sua,
-                    "Site Location": sl,
-                    "Kinase Gene Name": kgn,
-                    "Site Gene Name": sgn,
-                    "Prediction": p,
-                }
-                | (
-                    (
-                        (
-                            ({} if not scores else {"Score": sc})
-                            | ({} if not group_output else {"Kinase Group Prediction": gp})
-                        )
-                        | ({} if suppress_seqs_in_output else {"Kinase Sequence": k, "Site Sequence": s})
-                    )
+            ret = []
+            for k, s, sc, gp, p, kgn, sgn, kua, sua, sl in zip(
+                kinase_seqs,
+                site_seqs,
+                numerical_scores,
+                group_predictions,
+                boolean_predictions,
+                kinase_gene_names,
+                site_gene_names,
+                kinase_uniprot_accession,
+                site_uniprot_accession,
+                site_location,
+            ):
+                ret.append(
+                    {
+                        "Kinase Uniprot Accession": kua,
+                        "Site Uniprot Accession": sua,
+                        "Site Location": sl,
+                        "Kinase Gene Name": kgn,
+                        "Site Gene Name": sgn,
+                        "Prediction": p,
+                    }
                 )
-                for k, s, p, sc, gp, kgn, sgn, kua, sua, sl in zip(
-                    kinase_seqs,
-                    site_seqs,
-                    boolean_predictions,
-                    numerical_scores,
-                    group_predictions,
-                    kinase_gene_names,
-                    site_gene_names,
-                    kinase_uniprot_accession,
-                    site_uniprot_accession,
-                    site_location,
-                )
-            ]
+                if scores:
+                    ret[-1]["Score"] = sc
+                if group_output:
+                    ret[-1]["Kinase Group Prediction"] = gp
+                if not suppress_seqs_in_output:
+                    ret[-1]["Kinase Sequence"] = k
+                    ret[-1]["Site Sequence"] = s
+
         else:
-            ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)] if scores else boolean_predictions
+            if scores:
+                ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)]
+            else:
+                ret = boolean_predictions
         if predictions_output_format not in ["inorder", "dictionary"]:
             file_name = (
                 f"{str(pathlib.Path(__file__).parent.resolve())}/"
@@ -363,19 +377,25 @@ class MultiStageClassifier:
             site_id_to_seq
         ), "Error: site_seq_to_id and site_id_to_seq are not the same length"
 
+        if cartesian_product:
+            pair_id_range = range(len(kinase_seqs) * len(site_seqs))
+        else:
+            if isinstance(self.group_classifier, SiteGroupClassifier):
+                pair_id_range = range(len(site_seqs))
+            else:
+                pair_id_range = range(len(kinase_seqs))
         data_dict = {
             "Gene Name of Provided Kin Seq": [seq_to_id[k] for k in kinase_seqs],
             "Gene Name of Kin Corring to Provided Sub Seq": [site_seq_to_id[s] for s in site_seqs],
             "Kinase Sequence": kinase_seqs,
             "Site Sequence": site_seqs,
-            "pair_id": [
-                f"Pair # {i}" for i in range(len(kinase_seqs) * len(site_seqs) if cartesian_product else len(site_seqs))
-            ],
+            "pair_id": [f"Pair # {i}" for i in pair_id_range],
             "Class": [-1],
             "Num Seqs in Orig Kin": ["N/A"],
         }
 
-        data_dict = (data_dict | {"known_groups": bypass_group_classifier}) if bypass_group_classifier else data_dict
+        if bypass_group_classifier:
+            data_dict.update({"known_groups": bypass_group_classifier})
 
         with tf.NamedTemporaryFile("w") as f:
             if cartesian_product:
@@ -418,7 +438,12 @@ class MultiStageClassifier:
                             UserWarning,
                         )
                         mapped_numerical_scores.append(x)
-            boolean_predictions = ["False Phos. Pair" if not x[1][0] else "True Phos. Pair" for x in res]
+            boolean_predictions = []
+            for x in res:
+                if x[1][0]:
+                    boolean_predictions.append("True Phos. Pair")
+                else:
+                    boolean_predictions.append("False Phos. Pair")
         logger.status("Predictions Complete!")
         return self._package_results(
             predictions_output_format,
@@ -520,7 +545,15 @@ def parse_args() -> dict[str, Union[str, None]]:
         exit(1)
 
     device_eligibility(args["device"])
-    extra_files = (["val"] if args.get("val") else []) + (["gc_params"] if args.get("gc_params") else [])
+    if args.get("gc_params"):
+        has_gc_params = ["gc_params"]
+    else:
+        has_gc_params = []
+    if args.get("val"):
+        has_val = ["val"]
+    else:
+        has_val = []
+    extra_files = has_gc_params + has_val
     for fn in ["train", "kin_fam_grp"] + extra_files:
         f = str(args[fn])
         try:

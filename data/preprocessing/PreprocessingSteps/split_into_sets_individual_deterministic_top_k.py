@@ -16,6 +16,12 @@ logger = get_logger()
 # newstream = open("debug_non_det.log", "a")
 np.set_printoptions(linewidth=240)
 
+def toupper(x):
+    if isinstance(x, str):
+        return x.upper()
+    else:
+        return x
+
 def get_kin_assignments_from_state(
     states: dict[str, list[list[int]]], which_seed: int, fam_to_kin: dict[str, list[int]]
 ) -> tuple[list[str], list[str], list[str]]:
@@ -107,11 +113,20 @@ def run_restarts(
     argsorted = np.argsort(scores, kind="stable")
     scores = np.array(sorted(scores))
     unq_top_k_ids = get_inds_of_unq_top_k(scores, top_k)
-    ma = ma_from_inds(scores, unq_top_k_ids)  # ma = min(scores)
-    mai = np.ma.MaskedArray(
-        [argsorted[i] if type(i) == np.int64 else None for i in unq_top_k_ids],
-        mask=[False if type(i) == np.int64 else True for i in unq_top_k_ids],
-    )  # mai = scores.index(ma)
+    ma = ma_from_inds(scores, unq_top_k_ids)
+    pre_masked = []
+    for i in unq_top_k_ids:
+        if type(i) == np.int64:
+            pre_masked.append(argsorted[i])
+        else:
+            pre_masked.append(None)
+    pre_mask = []
+    for i in unq_top_k_ids:
+        if type(i) == np.int64:
+            pre_mask.append(False)
+        else:
+            pre_mask.append(True)
+    mai = np.ma.MaskedArray(pre_masked, mask=pre_mask)
     sd: float = float(np.std(scores))
     state = [states[argsorted[i]] for i in range(len(argsorted))]
     logger.info(
@@ -168,11 +183,17 @@ def ma_from_inds(base_ar: np.ndarray, inds: Iterable[int]) -> np.ma.MaskedArray:
     -------
         The resultant masked array
     """
-    initial = np.ma.MaskedArray([base_ar[i] if not np.ma.is_masked(i) else np_ma_core.MaskedConstant() for i in inds])
+    mask_data = []
+    for i in inds:
+        if np.ma.is_masked(i):
+            np_ma_core.MaskedConstant()
+        else:
+            mask_data.append(base_ar[i])
+    initial = np.ma.MaskedArray(mask_data)
     if isinstance(base_ar, np.ndarray):
         post_processing = lambda x: x.astype(base_ar.dtype) 
     else:
-        post_processing = x
+        post_processing = lambda x: x
     return post_processing(initial)
 
 
@@ -272,7 +293,7 @@ def split_into_sets(
         pd.read_csv(raw_input_file)[["lab", "num_sites", "uniprot_id"]]
         .rename(columns={"lab": "Kinase", "uniprot_id": "Uniprot"})
         .drop_duplicates()
-        .applymap(lambda x: x.upper() if isinstance(x, str) else x)
+        .applymap(toupper)
     )
     num_sites_join = pd.merge(kin_fam_grp, raw, how="left", on="Uniprot")
     assert not any(num_sites_join["num_sites"].isna())

@@ -128,9 +128,12 @@ class ROC(PerformancePlot, ABC):
         title_extra="",
         roc_lab_extra="",
     ):
-        jitter = lambda x: (
-            x if float(jitter_amount) == 0.0 else [xi + jitter_amount * random.random() - jitter_amount / 2 for xi in x]
-        )
+        def jitter(x):
+            if float(jitter_amount) == 0.0:
+                return x
+            else:
+                return [xi + jitter_amount * random.random() - jitter_amount / 2 for xi in x]
+
         jitter_amount = plotting_kwargs.get("jitter_amount", 0.0)
         diff_by_opacity = plotting_kwargs.get("diff_by_opacity", False)
         show_zones = plotting_kwargs.get("show_zones", False)
@@ -207,22 +210,26 @@ class ROC(PerformancePlot, ABC):
         else:
             pct_mult = 1
         sd = sum([len(d) for d in scoreses])
-        indent_amt = max(
-            [
-                len(r)
-                for r in roc_labels_list
-                + [
-                    "Random",
-                    "Mean Value" if plot_mean_value_line else "",
-                    "Emph. Curve" if focus_on is not None else "",
-                ]
-            ]
-        )
+
+        addl_roc_labels = ["Random"]
+        if plot_mean_value_line:
+            addl_roc_labels.append("Mean Value")
+        else:
+            addl_roc_labels.append("")
+        if focus_on is not None:
+            addl_roc_labels.append("Emph. Curve")
+        else:
+            addl_roc_labels.append("")
+        indent_amt = max([len(r) for r in roc_labels_list + addl_roc_labels])
         for i, (fprs, tprs, thresholds, truths, scores) in enumerate(
             zip(fprses, tprses, thresholdses, truthses, scoreses)
         ):
             assert len(fprs) == len(tprs) == len(thresholds), "Lengths of lists must be equal"
-            mar = f"{roc_labels_list[i]}" if roc_labels_list[i] != "All Data" else None
+            if roc_labels_list[i] == "All Data":
+                mar = None
+            else:
+                mar = f"{roc_labels_list[i]}"
+
             col = roc_colors[i]
             if not diff_by_opacity:
                 alp = 0.65
@@ -399,9 +406,11 @@ class ROC(PerformancePlot, ABC):
             lab = f"{'Mean Value':>{indent_amt}} | AUC {AUCavg:1.3f}"
             ax.plot(Xavg, Yavg, color="grey", linewidth=2, label=lab)
 
-        random_model_label = (
-            f"{'Random':>{indent_amt}}{'' if not fancy_legend else ' | AUC 0.5    ' + ' ' * 29 + '| n =     ∞'}"
-        )
+        if fancy_legend:
+            extra = " | AUC 0.5    " + " " * 29 + "| n =     ∞"
+        else:
+            extra = ""
+        random_model_label = f"{'Random':>{indent_amt}}{extra}"
         ax.plot([0, 1], [0, 1], color="black", lw=0.4, linestyle="--", label=random_model_label)
 
         ax.yaxis.label.set_color(roc_col)
@@ -492,9 +501,16 @@ class SplitIntoGroupsROC(ROC):
         pred_items = ()
         simulated_bypass_acc = 1
         random.seed(42)
-        kin_to_grp_simulated_acc = {
-            k: v if random.random() < simulated_bypass_acc else "CMGC" for k, v in kin_to_grp.items()  # FIXME
-        }
+        kin_to_grp_simulated_acc = {}
+        for k, v in kin_to_grp.items():
+            if random.random() < simulated_bypass_acc:
+                kin_to_grp_simulated_acc[k] = v
+            else:
+                kin_to_grp_simulated_acc[k] = "CMGC"
+
+        kwargs = {}
+        if bypass_gc:
+            kwargs["bypass_gc"] = kin_to_grp_simulated_acc
         for grp, loader in multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
             which_groups=groups,
             Xy_formatted_input_file=test_filename,
@@ -503,7 +519,7 @@ class SplitIntoGroupsROC(ROC):
             seen_groups_passthrough=seen_groups,
             device=torch.device(device),
             cartesian_product=cartesian_product,
-            **({"bypass_gc": kin_to_grp_simulated_acc} if bypass_gc else {}),
+            **kwargs,
         ):
             jumbled_predictions = multi_stage_classifier.individual_classifiers.interfaces[grp].predict(
                 loader,
@@ -625,10 +641,14 @@ class SplitIntoGroupsROC(ROC):
 
         truthses = []
         scorses = []
+        if get_emp_eqn:
+            out_key = "outputs_emp_prob"
+        else:
+            out_key = "outputs"
         for group in groups:
             truths, scores = (
                 ground_truth_groups_to_outputs_labels[group]["labels"],
-                ground_truth_groups_to_outputs_labels[group]["outputs_emp_prob" if get_emp_eqn else "outputs"],
+                ground_truth_groups_to_outputs_labels[group][out_key],
             )
             truthses.append(truths)
             scorses.append(scores)

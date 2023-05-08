@@ -126,11 +126,20 @@ def get_derangement(
     except AssertionError as ae:
         raise RuntimeError(str(ae))
 
-    ma = [x if x != -1 else None for x in ma]
+    ma_tmp = []
+    for x in ma:
+        if x == -1:
+            ma_tmp.append(None)
+        else:
+            ma_tmp.append(x)
+    ma = ma_tmp
     permuted: list[tuple[int, Union[int, None]]] = list(zip(range(len(ma)), ma))
 
     def pi(p: Union[int, None]) -> Union[int, None]:
-        return neworder[p] if p is not None else None
+        if p is not None:
+            return neworder[p]
+        else:
+            return None
 
     decoded: list[tuple[Union[None, int], Union[None, int]]] = [(pi(x), pi(y)) for x, y in permuted]
     unscrambled = [x[1] for x in sorted(decoded)]

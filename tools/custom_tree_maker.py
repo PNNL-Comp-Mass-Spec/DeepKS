@@ -78,12 +78,16 @@ def main():
                 f"{'/'.join(reversed(path_to_node))} found in file tree, but there was no corresponding entry in"
                 " tree_description.txt."
             )
-            # print(f"{path_to_node=}")
-        to_restore_line = (
-            (to_restore_line if desc is None else to_restore_line.replace("\n", "") + ";" + desc)
-            if to_restore_line is not None
-            else None
-        )
+
+        if desc is not None:
+            if to_restore_line is not None:
+                if desc is not None:
+                    to_restore_line = to_restore_line.replace("\n", "") + ";" + desc
+                else:
+                    to_restore_line = None
+            else:
+                to_restore_line = None
+
         if desc is not None:
             desc = re.sub(r"¡(.*)¡", "<span class='warn'><i>\\1</i></span>", desc)
             if bg_class == "even":
@@ -96,9 +100,14 @@ def main():
                     bolded = ""
                 else:
                     bolded = ' class="dir"'
+                if orig_line != ".":
+                    new_line_component = re.findall(r"─ (.*)", orig_line)[0]
+                else:
+                    new_line_component = "."
                 new_line = (
                     "<code"
-                    f" class='no-col'>{''.join(re.findall(r'[│─ ├└]', orig_line))}</code><code{bolded}>{re.findall(r'─ (.*)', orig_line)[0] if orig_line != '.' else '.'}</code>"
+                    f" class='no-col'>{''.join(re.findall(r'[│─ ├└]', orig_line))}</code>"
+                    f"<code{bolded}>{new_line_component}</code>"
                 )
 
                 if i != 0 and tree_repr[i - 1].depth > node.depth:
@@ -144,7 +153,11 @@ class GraphFromTextNode:
         self.index_in_list = index_in_list
 
     def __str__(self):
-        return f"(({self.text}|{self.description.strip() if self.description is not None else None}))"
+        if self.description is not None:
+            stripped = self.description.strip()
+        else:
+            stripped = None
+        return f"(({self.text}|{stripped}))"
 
     def __repr__(self):
         return self.__str__()
@@ -221,11 +234,11 @@ def graph_from_text(lines) -> GraphFromText:
 
     line_nodes = []
     for i, line in enumerate(lines):
-        line_nodes.append(
-            GraphFromTextNode(
-                line.split(";")[0], get_depth(line), i, ";".join(line.split(";")[1:]) if ";" in line else None
-            )
-        )
+        if ";" in line:
+            desc = ";".join(line.split(";")[1:])
+        else:
+            desc = None
+        line_nodes.append(GraphFromTextNode(line.split(";")[0], get_depth(line), i, desc))
 
     cur_node: GraphFromTextNode = line_nodes[0]
     graph = GraphFromText(cur_node)

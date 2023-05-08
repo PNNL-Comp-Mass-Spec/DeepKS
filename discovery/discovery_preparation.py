@@ -69,7 +69,10 @@ def main(small_kin=None, small_site=None):
         if gene_name in gene_name_to_sequence:
             sequence = gene_name_to_sequence[gene_name]
             for site in all_phos_sites_to_loc[gene_name]:
-                middle = int(site[1:]) if site[1:].isnumeric() else -1
+                if site[1:].isnumeric():
+                    middle = int(site[1:])
+                else:
+                    middle = -1
                 if middle == -1 or middle >= len(sequence):
                     warn_num += 1
                     print(

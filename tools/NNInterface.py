@@ -46,10 +46,13 @@ def expand_metric(met: str) -> str:
     -------
         The expanded metric
     """
-    return "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
+    if met == "roc":
+        return "ROC AUC"
+    elif met == "acc":
+        return "Accuracy"
+    else:
+        return met
 
-
-expand_metric = lambda met: "ROC AUC" if met == "roc" else "Accuracy" if met == "acc" else met
 
 from ..config.logging import get_logger
 from ..tools.custom_logging import CustomLogger
