@@ -52,7 +52,11 @@ def make_fasta(df_in: str, fasta_out: str) -> str:
     df["kinase"] = df["kinase"].replace(float("NaN"), "")
 
     for _, r in df.iterrows():
-        rows.append(format_for_needle(">" + r["gene_name"] + ("|" if r["kinase"] != "" else "") + r["kinase"]))
+        if r["kinase"] != "":
+            sep = "|"
+        else:
+            sep = ""
+        rows.append(format_for_needle(">" + r["gene_name"] + sep + r["kinase"]))
         rows.append("\n")
         rows.append(tw.fill(r["kinase_seq"]))
         rows.append("\n")

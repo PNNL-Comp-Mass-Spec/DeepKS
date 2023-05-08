@@ -32,7 +32,16 @@ def encode_label(labels: list[int], mode: Literal["mlt_cls", "scalar"]) -> Union
         case "mlt_cls":
             unq_labels = sorted(list(set(labels)))
             label_dim = len(unq_labels)
-            new_labels = [[0 if i == j else 1 for i in range(label_dim)] for j in labels]
+            new_labels = []
+            for j in labels:
+                inner = []
+                for i in range(label_dim):
+                    if i == j:
+                        x = 0
+                    else:
+                        x = 1
+                    inner.append(x)
+                new_labels.append(inner)
             return new_labels
         case "scalar":
             return labels
@@ -170,21 +179,23 @@ def package(
         dataloader, metadata dictionary
     """
     loader = torch.utils.data.DataLoader(model_utils.KSDataset(X_site, X_kin, y), batch_size=batch_size)
+    if group_by == "kin":
+        other_group = "Site Sequence"
+    else:
+        other_group = "Kinase Sequence"
 
     if isinstance(data, pd.DataFrame):
-        ret_info_dict = {
-            "PairIDs": (
-                data.loc[ids]["pair_id"].to_list()
-                if ("pair_id" in (data.columns if isinstance(data, pd.DataFrame) else data))
-                else [f"N/A # {i}" for i in range(len(ids))]
-            ),
-        }
+        if "pair_id" in data.columns:
+            pair_ids = data.loc[ids]["pair_id"].to_list()
+        else:
+            pair_ids = [f"N/A # {i}" for i in range(len(ids))]
+        ret_info_dict = {"PairIDs": pair_ids}
     else:
-        desired_length = (
-            len(data["Site Sequence" if group_by == "kin" else "Kinase Sequence"]) if chunk_size is None else chunk_size
-        )
+        if chunk_size is None:
+            chunk_size = len(data[other_group])
+
         ret_info_dict = {
-            "PairIDs": data["pair_id"][desired_length * chunk_position : desired_length * (chunk_position + 1)],
+            "PairIDs": data["pair_id"][chunk_size * chunk_position : chunk_size * (chunk_position + 1)],
         }
 
     update_dict = {
@@ -294,7 +305,15 @@ def data_to_tensor(
             data = data_intermediary
 
     data = data.copy()
-    class_col = ("Kinase Sequence" if mc else "Class") if not kin_seq_to_group else "Group"
+
+    if kin_seq_to_group:
+        class_col = "Group"
+    else:
+        if mc:
+            class_col = "Kinase Sequence"
+        else:
+            class_col = "Class"
+
     class_labels = sorted(list(set(data[class_col])))
     if set(class_labels) in [{0, 1}, {1}, {0}]:
         remapping_class_label_dict = {0: 0, 1: 1}
@@ -388,7 +407,11 @@ def data_to_tensor(
                 ]
             )
             X_kin = X_kin.to(device)
-            y = torch.IntTensor(encode_label(data_shuffled[class_col].values.tolist(), "mlt_cls" if mc else "scalar"))
+            if mc:
+                encoding = "mlt_cls"
+            else:
+                encoding = "scalar"
+            y = torch.IntTensor(encode_label(data_shuffled[class_col].values.tolist(), encoding))
             y = y.to(device)
 
         else:  # data is a dict
@@ -411,9 +434,18 @@ def data_to_tensor(
                 class_tensor_data.append(torch.IntTensor([-1]))  # CHECK -- May not be right for non-predict mode.
 
             blank = torch.IntTensor()
-            X_kin = torch.stack(kin_tensor_data).to(device) if len(kin_tensor_data) > 0 else blank
-            X_site = torch.stack(site_tensor_data).to(device) if len(site_tensor_data) > 0 else blank
-            y = torch.cat(class_tensor_data).to(device) if len(class_tensor_data) > 0 else blank
+            if len(kin_tensor_data) == 0:
+                X_kin = blank
+            else:
+                X_kin = torch.stack(kin_tensor_data).to(device)
+            if len(site_tensor_data) == 0:
+                X_site = blank
+            else:
+                X_site = torch.stack(site_tensor_data).to(device)
+            if len(class_tensor_data) == 0:
+                y = blank
+            else:
+                y = torch.cat(class_tensor_data).to(device)
 
         yield package(
             X_site=X_site,

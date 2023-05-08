@@ -1,6 +1,6 @@
 {
     "NON-TK": {
-        "model_class": "KinaseSubstrateRelationshipRNN",
+        "model_class": "KinaseSubstrateRelationshipLSTM",
         "linear_layer_sizes": [
             50,
             25
@@ -30,10 +30,13 @@
                 24
             ]
         },
-        "attn_num_heads": 12
+        "num_recur_kin": 1,
+        "num_recur_site": 1,
+        "hidden_features_site": 10,
+        "hidden_features_kin": 10
     },
     "TK": {
-        "model_class": "KinaseSubstrateRelationshipATTN",
+        "model_class": "KinaseSubstrateRelationshipLSTM",
         "linear_layer_sizes": [
             50,
             25

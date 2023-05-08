@@ -62,7 +62,7 @@ def post_tearDown(self: unittest.TestCase | ModuleType, root: str = join_first("
     }
     for file in diff.files_modified:
         for ptn in do_not_warn_files:
-            if re.search(ptn, file):
+            if not re.search(ptn, file):
                 warnings.warn(f"File `{file}` was modified during the running of the Object {self}.")
                 continue
 

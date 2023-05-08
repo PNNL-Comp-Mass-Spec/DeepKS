@@ -5,7 +5,7 @@ from termcolor import colored
 from ..config import logging
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
-    if __name__ == "__main__":
+    if __name__ == "__main__":  # pragma: no cover
         logging.splash("main_api")
 
 

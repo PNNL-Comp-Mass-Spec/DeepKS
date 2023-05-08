@@ -1,11 +1,11 @@
 """Module to perform hyperparameter tuning on `torch.nn.Module` -based neural networks."""
 
 import collections
-import multiprocessing, itertools, random, time, os, sigfig, signal, warnings, re, json, pathlib, functools
+import itertools, random, os, sigfig, signal, json, pathlib
 import pandas as pd
-import tempfile, pprint
+import tempfile
 import numpy as np
-from typing import Any, Callable, Collection, MutableSequence, Iterable, Protocol, Union
+from typing import Any, Callable, Collection, Iterable, Protocol, Union
 from prettytable import PrettyTable
 from beautifultable import BeautifulTable
 from numpyencoder import NumpyEncoder
@@ -99,13 +99,20 @@ class Tuner(Protocol):
         for i in range(start_at, num_samples):
             running = {}
             for k, v in config_dict.items():
-                choice_ = random.choice(v if isinstance(v, list) else v.tolist())
+                if isinstance(v, np.ndarray):
+                    choice_ = random.choice(v.tolist())
+                else:
+                    choice_ = random.choice(v)
                 running[k] = choice_
             if i >= start_at:
                 self.sampled_config_dicts.append(running)
 
+        if num_samples > 1:
+            addl_s = "s"
+        else:
+            addl_s = ""
         logger.info(
-            f"{num_samples:,} configuration{'s' if num_samples > 1 else ''} out of a possible ~"
+            f"{num_samples:,} configuration{addl_s} out of a possible ~"
             f" 10^{np.sum([np.log10(len(v)) for v in config_dict.values()]):,.1f} were randomly sampled."
         )
 
@@ -133,6 +140,7 @@ class Tuner(Protocol):
     def init_pool(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+    @abstractmethod
     def go(self, args_collection: list[list], **kwargs):
         ...
 
@@ -231,36 +239,38 @@ class BasicTuner(Tuner):
             start_at,
         )
 
-        self.model_params = [
-            {
-                "default": {
-                    k: int(v) if type(v) == np.int64 else v
-                    for k, v in sampled_config_dict.items()
-                    if k in which_map["model_params"]
-                }
-            }
-            for sampled_config_dict in self.sampled_config_dicts
-        ]
-        self.training_params = [
-            {
-                "default": {
-                    k: int(v) if type(v) == np.int64 else v
-                    for k, v in sampled_config_dict.items()
-                    if k in which_map["training_params"]
-                }
-            }
-            for sampled_config_dict in self.sampled_config_dicts
-        ]
-        self.interface_params = [
-            {
-                "default": {
-                    k: int(v) if type(v) == np.int64 else v
-                    for k, v in sampled_config_dict.items()
-                    if k in which_map["interface_params"]
-                }
-            }
-            for sampled_config_dict in self.sampled_config_dicts
-        ]
+        self.model_params = []
+        for sampled_config_dict in self.sampled_config_dicts:
+            d = {}
+            for k, v in sampled_config_dict.items():
+                if k in which_map["model_params"]:
+                    if type(v) == np.int64:
+                        d[k] = int(v)
+                    else:
+                        d[k] = v
+            self.model_params.append({"default": d})
+
+        self.training_params = []
+        for sampled_config_dict in self.sampled_config_dicts:
+            d = {}
+            for k, v in sampled_config_dict.items():
+                if k in which_map["training_params"]:
+                    if type(v) == np.int64:
+                        d[k] = int(v)
+                    else:
+                        d[k] = v
+            self.training_params.append({"default": d})
+
+        self.interface_params = []
+        for sampled_config_dict in self.sampled_config_dicts:
+            d = {}
+            for k, v in sampled_config_dict.items():
+                if k in which_map["interface_params"]:
+                    if type(v) == np.int64:
+                        d[k] = int(v)
+                    else:
+                        d[k] = v
+            self.interface_params.append({"default": d})
 
         assert (
             len(self.model_params) == len(self.training_params) == len(self.interface_params) == num_samples - start_at

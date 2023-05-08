@@ -38,14 +38,13 @@ def _base_iterable_shortener(node, max_items, max_str_len, cur_indent):
         elif any([isinstance(v, ty) for ty in [list, tuple, set, frozenset]]):
             _base_iterable_shortener(v, max_items, max_str_len, cur_indent + SUBSEQUENT_INDENT)
         else:
-            _base_singleton_shortener(
-                v,
-                max_str_len,
-                ", " if e != len(node) - 1 else "",
-                next_len=(next_len := len(str(node[e + 1])) if e < len(node) - 1 else len(str(node[e]))),
-                cur_indent=cur_indent,
-                indent_exception=e == 0,
-            )
+            if e != len(node) - 1:
+                comma = ", "
+                next_len = len(str(node[e + 1]))
+            else:
+                next_len = len(str(node[e]))
+                comma = ""
+            _base_singleton_shortener(v, max_str_len, comma, "", next_len, cur_indent, e == 0)
             if e in {max_items, len(node) - 1} and next_len > max_str_len and e != 0:
                 print(" " * cur_indent, end="", file=FILE)
         if e >= max_items:
@@ -78,14 +77,16 @@ def _base_dict_shortener(node, max_items, max_str_len, cur_indent, addl_end="", 
 
 def _base_singleton_shortener(node, max_str_len, sep, indent="", next_len=0.0, cur_indent=0, indent_exception=False):
     old_node_str = str(node)
-    new_str = old_node_str[: max_str_len - cur_indent] + "... " if len(old_node_str) > max_str_len else old_node_str
+    if len(old_node_str) > max_str_len:
+        old_node_str = old_node_str[: max_str_len - cur_indent] + "... "
+
     do_indent = False
     if next_len > max_str_len - cur_indent and len(old_node_str) > max_str_len:
         sep = sep + "\n"
         do_indent = not indent_exception
     if do_indent:
         indent += " " * cur_indent
-    print(indent + new_str, end=sep, file=FILE)
+    print(indent + old_node_str, end=sep, file=FILE)
 
 
 if __name__ == "__main__":

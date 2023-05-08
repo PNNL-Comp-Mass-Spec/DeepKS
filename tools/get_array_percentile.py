@@ -62,7 +62,10 @@ def get_array_percentile(
     else:
         pctls_upper = np.percentile(arr, upper, axis=[x for x in axes])
 
-    pctls_lower = np.percentile(arr, lower, axis=[x for x in axes] if isinstance(axes, Collection) else axes)
+    if isinstance(axes, Collection):
+        pctls_lower = np.percentile(arr, lower, axis=[x for x in axes])
+    else:
+        pctls_lower = np.percentile(arr, lower, axis=axes)
 
     for ax in axes_to_expand_into:
         pctls_upper = np.expand_dims(pctls_upper, ax)

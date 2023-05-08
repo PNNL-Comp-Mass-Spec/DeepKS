@@ -2,6 +2,7 @@
 """
 
 from __future__ import annotations
+from cProfile import label
 import json, torch, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, tqdm, io
 import os, itertools, pathlib, typing
 from typing import Any, Tuple, Union, Literal, Iterable
@@ -168,7 +169,7 @@ class NNInterface:
             raise
         return self.representation
 
-    def report_progress(
+    def report_prog(
         self,
         paradigm: str,
         epoch: int,
@@ -215,13 +216,20 @@ class NNInterface:
         else:
             method = CustomLogger.info
 
+        if isinstance(batch_num, str):
+            batch_str = "All"
+            prepend_str = "(Means) "
+        elif isinstance(batch_num, int):
+            batch_str = batch_num + 1
+            prepend_str = ""
+        else:
+            raise TypeError(f"batch_num must be either a string or an int, not {type(batch_num)}")
+
         method(
             logger,
             (
-                f"{'(Means) ' if 'mean' in paradigm.lower() else ''}Chunk [{chunk_num + 1}] | Epoch"
-                f" [{epoch + 1}/{num_epochs}] | Batch"
-                f" [{batch_num + 1 if isinstance(batch_num, int) else 'All'}/{total_step}] | Loss {loss:.4f} |"
-                f" {expand_metric(metric)} {score:.2f}"
+                f"{prepend_str}Chunk [{chunk_num + 1}] | Epoch [{epoch + 1}/{num_epochs}] | Batch"
+                f" [{batch_str}/{total_step}] | Loss {loss:.4f} | {expand_metric(metric)} {score:.2f}"
             ),
         )
 
@@ -313,7 +321,8 @@ class NNInterface:
                     # Forward pass
                     logger.vstatus("Train Step A - Forward propogating.")
                     outputs = self.model.forward(*X)
-                    outputs = outputs if outputs.size() != torch.Size([]) else outputs.reshape([1])
+                    if outputs.size() == torch.Size([]):
+                        outputs = outputs.reshape([1])
                     try:
                         torch.cuda.empty_cache()
                     except Exception:
@@ -343,7 +352,7 @@ class NNInterface:
                     # Report Progress
                     performance_score = None
                     performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
-                    self.report_progress(
+                    self.report_prog(
                         "Train",
                         epoch,
                         num_epochs,
@@ -364,18 +373,17 @@ class NNInterface:
             except AssertionError as e:
                 logger.warning(str(e))
 
-            mean_loss = (sum(losses) / len(losses)) if losses else float("NaN")
-            self.report_progress(
-                "Mean Train",
-                epoch,
-                num_epochs,
-                "",
-                chunk_num,
-                total_step,
-                mean_loss,
-                (sum(train_scores) / len(train_scores)) if train_scores else float("NaN"),
-                metric,
-            )
+            if losses:
+                mean_loss = sum(losses) / len(losses)
+            else:
+                mean_loss = float("NaN")
+
+            if train_scores:
+                mean_score = sum(train_scores) / len(train_scores)
+            else:
+                mean_score = float("NaN")
+
+            self.report_prog("Mean Train", epoch, num_epochs, "", chunk_num, total_step, mean_loss, mean_score, metric)
 
             score, all_outputs = -1, [-1]
             # Validate
@@ -384,7 +392,7 @@ class NNInterface:
                 logger.status("Validating")
                 total_step = len(val_dl)
                 score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
-                self.report_progress("Validation", epoch, num_epochs, 0, 0, 1, val_loss, score, metric)
+                self.report_prog("Validation", epoch, num_epochs, 0, 0, 1, val_loss, score, metric)
             assert score >= 0
 
             logger.status(f" ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n")
@@ -555,7 +563,9 @@ class NNInterface:
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)
-                outputs = outputs.unsqueeze(0) if outputs.dim() == 0 else outputs
+
+                if outputs.dim() == 0:
+                    outputs = outputs.unsqueeze(0)
 
                 match self.criterion:
                     case torch.nn.CrossEntropyLoss():
@@ -579,7 +589,11 @@ class NNInterface:
                 avg_perf += [performance] * len(labels)
                 avg_loss += [loss.item()] * len(labels)
 
-            avg_perf = sum(avg_perf) / len(avg_perf) if len(avg_perf) > 0 else 0.0
+            if len(avg_perf) > 0:
+                avg_perf = sum(avg_perf) / len(avg_perf)
+            else:
+                avg_perf = 0.0
+
             if len(avg_loss) > 0:
                 avg_loss = sum(avg_loss) / len(avg_loss)
             else:
@@ -602,20 +616,26 @@ class NNInterface:
         print(" " * os.get_terminal_size().columns, end="\r")
         logger.status("Testing")
         performance, _, outputs, labels, predictions = self.eval(test_loader, cutoff, metric, display_pb=False)
-        print(
-            colored(
-                f"""{f"Test Info: {expand_metric(metric)}: {performance:.3f} {'%' if metric == 'acc' else ''}"}""",
-                "blue",
-            )
-        )
+        if metric == "acc":
+            pct = "%"
+        else:
+            pct = ""
+        logger.teinfo(f"{expand_metric(metric)}: {performance:.3f} {pct}")
 
         if print_sample_predictions:
             tab = PrettyTable(["Input Index", "Ground Truth Label", "Prediction"], min_width=20)
             num_rows = min(10, len(labels))
             tab.title = f"Info: First {num_rows} labels mapped to predictions"
             for i in range(num_rows):
-                pred_print = predictions[i] if not int_label_to_str_label else int_label_to_str_label[predictions[i]]
-                lab_print = labels[i] if not int_label_to_str_label else int_label_to_str_label[labels[i]]
+                if not int_label_to_str_label:
+                    pred_print = predictions[i]
+                else:
+                    pred_print = int_label_to_str_label[predictions[i]]
+
+                if not int_label_to_str_label:
+                    lab_print = labels[i]
+                else:
+                    lab_print = int_label_to_str_label[labels[i]]
                 tab.add_row([i, lab_print, pred_print])
             logger.teinfo(str(tab))
 
@@ -662,7 +682,10 @@ class NNInterface:
         inp_sizes: list[list[int]] = []
         assert isinstance(dl, torch.utils.data.DataLoader), "dl must be a DataLoader, was {}".format(type(dl))
         dll = list(dl)
-        iterab = dll[0] if not leave_out_last else dll[0][:-1]
+        if not leave_out_last:
+            iterab = dll[0]
+        else:
+            iterab = dll[0][:-1]
         for X in iterab:
             assert isinstance(X, torch.Tensor)
             inp_sizes.append(list(X.size()))
@@ -686,7 +709,11 @@ class NNInterface:
         types = []
         assert isinstance(dl, torch.utils.data.DataLoader)
         dll = list(dl)
-        iterab = dll[0] if not leave_out_last else dll[0][:-1]
+        if not leave_out_last:
+            iterab = dll[0]
+        else:
+            iterab = dll[0][:-1]
+
         for X in iterab:
             assert isinstance(X, torch.Tensor)
             types.append(X.dtype)

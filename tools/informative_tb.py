@@ -63,10 +63,16 @@ def informative_exception(
         print("", file=sys.stderr)
         # print(colored("".join(traceback.format_tb(traceback_)), "magenta"), file=sys.stderr)
     extr = traceback.extract_tb(traceback_)
+
+    if FAKE_TERM_WIDTH <= 0:
+        width = int(0.75 * os.get_terminal_size().columns)
+    else:
+        width = FAKE_TERM_WIDTH
+
     print("\n", file=sys.stderr)
     print(colored(f"{top_message}\n", "red"), file=sys.stderr)
     print(
-        colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"),
+        colored("=" * width, "red"),
         file=sys.stderr,
     )
     print(
@@ -76,7 +82,7 @@ def informative_exception(
                     f"  * Error Type: {e.__class__.__name__} (Description:"
                     f" {get_exception_description(e.__class__.__name__)})"
                 ),
-                width=int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH),
+                width=width,
                 subsequent_indent=" " * 8,
             ),
             "magenta",
@@ -109,7 +115,7 @@ def informative_exception(
     local_variable_nice_io.seek(0)
     print(colored(f"  * Local Variables:\n{local_variable_nice_io.read()}", "magenta"), file=sys.stderr)
     print(
-        colored("=" * int(0.75 * os.get_terminal_size().columns if FAKE_TERM_WIDTH <= 0 else FAKE_TERM_WIDTH), "red"),
+        colored("=" * width, "red"),
         file=sys.stderr,
     )
     print()
@@ -161,7 +167,10 @@ def get_exception_description(exception_type: str) -> str:
     else:
         doc_dict = json.load(open(cached, "r"))
 
-    return doc_dict[exception_type] if exception_type in doc_dict else "No description found."
+    if exception_type in doc_dict:
+        return doc_dict[exception_type]
+    else:
+        return "No description found."
 
 
 """

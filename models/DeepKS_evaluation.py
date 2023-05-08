@@ -68,7 +68,7 @@ class PerformancePlot(ABC):  # ABC = Abstract Base Class
         self,
         save_name,
         file_name_kwargs=dict(
-            directory=join_first(1, "images/Evaluation and Results/ROC"),
+            directory=join_first(1, "images/EvaluationandResults/ROC"),
             prefix=f"<Class Name>_plot",
             suffix="pdf",
             prefix_sep="_",
@@ -661,7 +661,7 @@ def eval_and_roc_workflow(
             "plot_unified_line": True,
         },
     )
-    roc.save_plot(join_first(1, "images/Evaluation and Results/"))
+    roc.save_plot(join_first(1, "images/EvaluationandResults/"))
 
 
 def test():
