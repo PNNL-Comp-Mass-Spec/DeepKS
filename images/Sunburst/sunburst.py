@@ -1,7 +1,7 @@
 # %% ### IMPORTS ---
 import pandas as pd, json, re, os, pathlib, plotly.graph_objects as go, plotly.express as px, time
 from matplotlib import rcParams
-
+from ...config.join_first import join_first
 rcParams["font.family"] = "P052-Roman"
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -30,7 +30,7 @@ def make_sunburst(kin_fam_grp_file, raw_data_file):
     time.sleep(2)
     os.unlink(".gitig-garbage-graph.pdf")
 
-    kfg = pd.read_csv(kin_fam_grp_file)
+    kfg = pd.read_csv(join_first(kin_fam_grp_file, 2, __file__))
     kfg["Symbol"] = [re.sub(r"[\(\)\*]", "", x) for x in kfg["Kinase"] + "|" + kfg["Uniprot"]]
 
     kinase_to_family = kfg.set_index("Symbol").to_dict()["Family"]
@@ -61,7 +61,7 @@ def make_sunburst(kin_fam_grp_file, raw_data_file):
                 )
                 r["MLSet"] = label
 
-    num_sites_df = pd.read_csv(raw_data_file).rename({"lab": "Kinase"}, axis="columns")
+    num_sites_df = pd.read_csv(join_first(raw_data_file, 2, __file__)).rename({"lab": "Kinase"}, axis="columns")
     new_df = (
         pd.merge(new_df, num_sites_df, how="left", on="Kinase").drop_duplicates(keep="first").reset_index(drop=True)
     )

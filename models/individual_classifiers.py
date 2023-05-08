@@ -596,10 +596,10 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
 
     assert device is not None
 
-    with open(join_first(args["ksr_params"], 0, __file__)) as f:
+    with open(join_first(args["ksr_params"], 1, __file__)) as f:
         grp_to_model_args = json.load(f)
         default_grp_to_model_args = grp_to_model_args.get("default", grp_to_model_args.values().__iter__())
-    with open(join_first(args["nni_params"], 0, __file__)) as f:
+    with open(join_first(args["nni_params"], 1, __file__)) as f:
         grp_to_interface_args = json.load(f)
         for grp in grp_to_interface_args:
             grp_to_interface_args[grp]["loss_fn"] = eval(str(grp_to_interface_args[grp]["loss_fn"]))
@@ -607,7 +607,7 @@ def main(args_pass_in: Union[None, list[str]] = None, **training_kwargs) -> tupl
             grp_to_interface_args[grp]["device"] = device
         default_grp_to_interface_args = grp_to_interface_args.get("default", grp_to_model_args.values().__iter__())
 
-    with open(join_first(args["ksr_training_params"], 0, __file__)) as f:
+    with open(join_first(args["ksr_training_params"], 1, __file__)) as f:
         grp_to_training_args = json.load(f)
         default_training_args = grp_to_training_args.get("default", grp_to_model_args.values().__iter__())
 
@@ -689,7 +689,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
         type=str,
         help="Specify Kinase Substrate Relationship hyperparameters file name",
         required=False,
-        default=join_first("hyperparameters/KSR_params.json", 0, __file__),
+        default=join_first("models/hyperparameters/KSR_params.json", 1, __file__),
         metavar="<ksr_params.json>",
     )
 
@@ -698,7 +698,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
         type=str,
         help="Specify Kinase Substrate Relationship training options file name",
         required=False,
-        default=join_first("hyperparameters/KSR_training_params.json", 0, __file__),
+        default=join_first("models/hyperparameters/KSR_training_params.json", 1, __file__),
         metavar="<ksr_params.json>",
     )
 
@@ -707,7 +707,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
         type=str,
         help="Specify Nerual Net Interface options file name",
         required=False,
-        default=join_first("hyperparameters/NNI_params.json", 0, __file__),
+        default=join_first("models/hyperparameters/NNI_params.json", 1, __file__),
         metavar="<ksr_params.json>",
     )
 

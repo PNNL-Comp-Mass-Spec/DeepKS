@@ -2,7 +2,7 @@ import re, io, pandas as pd, requests as req
 
 HELD_OUT_FAMILY = "SGK"
 
-
+from ....config.join_first import join_first
 from ....config.logging import get_logger
 logger = get_logger()
 if __name__ == "__main__":
@@ -140,8 +140,8 @@ def get_kin_to_fam_to_grp(relevant_kinases):
     held_out_df = combined_df[combined_df["Family"] == HELD_OUT_FAMILY]
     combined_df.drop(held_out_df.index, axis=0, inplace=True)
 
-    combined_df.to_csv(fn := f"../kin_to_fam_to_grp_{len(combined_df)}.csv", index=False)
-    held_out_df.to_csv(f"../kin_to_fam_to_grp_{len(held_out_df)}.csv", index=False)
+    combined_df.to_csv(fn := join_first(f"kin_to_fam_to_grp_{len(combined_df)}.csv", 1, __file__), index=False)
+    held_out_df.to_csv(join_first(f"kin_to_fam_to_grp_{len(held_out_df)}.csv", 1, __file__), index=False)
     return fn
 
 

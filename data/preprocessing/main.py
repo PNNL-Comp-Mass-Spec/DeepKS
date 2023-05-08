@@ -4,6 +4,7 @@ import os, re, pathlib, pprint, tempfile as tf, pandas as pd, sys
 from . import PreprocessingSteps
 from ...tools import system_tools, get_needle_pairwise as get_pairwise
 from ...tools import make_fasta as mtx_utils
+from ...config.join_first import join_first
 from termcolor import colored
 
 from ...config.logging import get_logger
@@ -99,7 +100,8 @@ def step_3_get_kin_to_fam_to_grp(seq_filename_A):
         logger.status(
             "Step 3: Determining Kinase Family and Group Classifications (from http://www.kinhub.org/kinases.html)."
         )
-        kin_fam_grp_filename = PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp(seq_filename_A).split("/")[:-1]
+        res = PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp(seq_filename_A)
+        kin_fam_grp_filename = res
         return kin_fam_grp_filename
     return None
 
