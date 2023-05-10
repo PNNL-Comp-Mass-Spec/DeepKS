@@ -125,8 +125,8 @@ class TestMisc(unittest.TestCase):
         unittest.TextTestRunner().run(suite)
 
 
-class Test_Preprocessing(unittest.TestCase, UsesR):
-    """Run the preprocessing pipeline. (_ is in the name to make sure this runs first.)"""
+class TestAAAPreprocessing(unittest.TestCase, UsesR):
+    """Run the preprocessing pipeline. (AAA is in the name to make sure this runs first.)"""
 
     def setUp(self):
         global main
