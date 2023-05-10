@@ -1,8 +1,7 @@
 """All the tests for DeepKS"""
-import pickle, atexit, re, sys, os, functools, unittest, pathlib, json, inspect, warnings
-from types import ModuleType
+import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect
+from git.repo import Repo
 from parameterized import parameterized
-from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff
 
 from DeepKS.models.multi_stage_classifier import MultiStageClassifier
 from ..config.join_first import join_first
@@ -24,47 +23,27 @@ class UsesR:
 
 
 def setUpModule():
-    # print("Set Up")
-    pre_setUp(sys.modules[__name__])
+    pre_setUp()
 
 
 def tearDownModule():
-    # print("Tear Down")
-    post_tearDown(sys.modules[__name__])
+    post_tearDown()
 
 
-def pre_setUp(self: unittest.TestCase | ModuleType, root: str = join_first("", 1, __file__)):
-    init_snap = DirectorySnapshot(root)
-    setattr(self, "init_snap", init_snap)
+def pre_setUp(root: str = join_first("", 1, __file__)):
+    repo = Repo(root)
+    repo.git.add("--all")
 
 
-def post_tearDown(self: unittest.TestCase | ModuleType, root: str = join_first("", 1, __file__)):
-    after_snap = DirectorySnapshot(root)
-    try:
-        init_snap = getattr(self, "init_snap")
-    except AttributeError:
-        warnings.warn(
-            f"The Object {self} did not have an init_snap attribute (a snapshot of a directory before running the"
-            " Object). Will not clean up any files that may have been created during the Object."
-        )
-        init_snap = after_snap
-    diff = DirectorySnapshotDiff(init_snap, after_snap)
-    for file in diff.files_created:
-        os.remove(file)
-    for dir in diff.dirs_created:
-        os.rmdir(dir)
-    do_not_warn_files = {
-        r"__pycache__",
-        r"ipynb_checkpoints",
-        r"\.DS_Store",
-        r"pytest_cache",
-        r"\.pyc",
-    }
-    for file in diff.files_modified:
-        for ptn in do_not_warn_files:
-            if not re.search(ptn, file):
-                warnings.warn(f"File `{file}` was modified during the running of the Object {self}.")
-                continue
+def post_tearDown(root: str = join_first("", 1, __file__)):
+    repo = Repo(root)
+    for item in repo.index.diff(None):
+        # check if item is a file
+        if os.path.isfile(os.path.join(root, item.a_path)):
+            # discard the changes to the file
+            repo.git.checkout("--", item.a_path)
+    # discard any untracked, new files in the repo
+    repo.git.clean("-df")
 
 
 class TestDiscovery(unittest.TestCase):
@@ -73,7 +52,7 @@ class TestDiscovery(unittest.TestCase):
     ...
 
 
-class TestEvaluation(unittest.TestCase):
+class TestEvaluationn(unittest.TestCase):
     """Test the `DeepKS.models.DeepKS_evaluation` module."""
 
     def setUp(self):
@@ -146,8 +125,8 @@ class TestMisc(unittest.TestCase):
         unittest.TextTestRunner().run(suite)
 
 
-class TestAAAPreprocessing(unittest.TestCase, UsesR):
-    """Run the preprocessing pipeline. (AAA is in the name to make sure this runs first.)"""
+class Test_Preprocessing(unittest.TestCase, UsesR):
+    """Run the preprocessing pipeline. (_ is in the name to make sure this runs first.)"""
 
     def setUp(self):
         global main
@@ -160,8 +139,14 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
         self.step_2 = step_2_download_uniprot
         self.step_3 = step_3_get_kin_to_fam_to_grp
         self.step_4 = step_4_get_pairwise_mtx
-        self.step_5_a = functools.partial(step_5_get_train_val_test_split, eval_or_train_on_all="E", num_restarts=6)
-        self.step_5_b = functools.partial(step_5_get_train_val_test_split, eval_or_train_on_all="T")
+        self.step_5_a = functools.partial(step_5_get_train_val_test_split, part="a", num_restarts=6)
+        self.step_5_b = functools.partial(step_5_get_train_val_test_split, part="b")
+        self.step_5_c = functools.partial(step_5_get_train_val_test_split, part="c")
+
+        self.backup_kinase_seq_filename = join_first("data/raw_data/kinase_seq_833.csv", 1, __file__)
+        self.backup_kin_fam_grp_filename = join_first("data/preprocessing/kin_to_fam_to_grp_828.csv", 1, __file__)
+        self.backup_raw_data_filename = join_first("data/raw_data/raw_data_22769.csv", 1, __file__)
+        self.backup_new_mtx_filename = join_first("data/preprocessing/pairwise_mtx_833.csv", 1, __file__)
 
     # def test_all_preproc(self):
     #     self.step_1()
@@ -181,30 +166,34 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
         setattr(self.__class__, "raw_data_filename", r)
 
     def test_step_3_preproc(self):
-        kin_fam_grp_filename = self.step_3(getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"))
+        kin_fam_grp_filename = self.step_3(getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename))
         setattr(self.__class__, "kin_fam_grp_filename", kin_fam_grp_filename)
 
     def test_step_4_preproc(self):
         new_mtx_filename = self.step_4(
-            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
+            getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename),
         )
         setattr(self.__class__, "new_mtx_file", new_mtx_filename)
 
-    def test_step_5_a_preproc(self):
-        self.step_5_a(
-            getattr(self.__class__, "kin_fam_grp_filename", "../kin_to_fam_to_grp_828.csv"),
-            getattr(self.__class__, "raw_data_filename", "../raw_data/raw_data_22769.csv"),
-            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
-            getattr(self.__class__, "new_mtx_file", "../preprocessing/pairwise_mtx_828.csv"),
+    def step_5_args(self):
+        ls = (
+            getattr(self.__class__, "kin_fam_grp_filename", self.backup_kin_fam_grp_filename),
+            getattr(self.__class__, "raw_data_filename", self.backup_raw_data_filename),
+            getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename),
+            getattr(self.__class__, "new_mtx_file", self.backup_new_mtx_filename),
         )
+        for fn in ls:
+            assert os.path.exists(fn), f"{fn} does not exist."
+        return ls
+
+    def test_step_5_a_preproc(self):
+        self.step_5_a(*self.step_5_args())
 
     def test_step_5_b_preproc(self):
-        self.step_5_b(
-            getattr(self.__class__, "kin_fam_grp_filename", "../kin_to_fam_to_grp_828.csv"),
-            getattr(self.__class__, "raw_data_filename", "../raw_data/raw_data_22769.csv"),
-            getattr(self.__class__, "seq_filename_A", "../raw_data/kinase_seq_833.csv"),
-            getattr(self.__class__, "new_mtx_file", "../preprocessing/pairwise_mtx_828.csv"),
-        )
+        self.step_5_b(*self.step_5_args())
+
+    def test_step_5_c_preproc(self):
+        self.step_5_c(*self.step_5_args())
 
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):

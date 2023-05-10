@@ -1,6 +1,7 @@
 """The main script for preprocessing the data."""
 
 import os, re, pathlib, pprint, tempfile as tf, pandas as pd, sys
+from typing import Literal
 from . import PreprocessingSteps
 from ...tools import system_tools, get_needle_pairwise as get_pairwise
 from ...tools import make_fasta as mtx_utils
@@ -11,7 +12,7 @@ from ...config.logging import get_logger
 
 logger = get_logger()
 """The logger for this script."""
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
 
 # Change working directory to the directory of this file
@@ -19,16 +20,16 @@ os.chdir(pathlib.Path(__file__).parent.resolve())  # TODO: Do a better version o
 
 
 if "USE_XL_CACHE" not in os.environ:
-    USE_XL_CACHE = False 
+    USE_XL_CACHE = False
 else:
     if os.environ["USE_XL_CACHE"] == "1":
-        USE_XL_CACHE = True 
+        USE_XL_CACHE = True
     else:
         USE_XL_CACHE = False
 """Whether or not to use the cached version of the PSP database."""
 
 if "--perform-steps" in sys.argv:
-    perform_steps = eval(sys.argv[sys.argv.index("--perform-steps") + 1]) 
+    perform_steps = eval(sys.argv[sys.argv.index("--perform-steps") + 1])
 else:
     perform_steps = {}
 """The steps to perform. If empty, all steps will be performed."""
@@ -72,7 +73,7 @@ def step_4_get_pairwise_mtx(seq_filename_A, *addl_seq_filenames):
         "Step 4: Getting pairwise distance matrix for all sequences to assess similarity and to be used later in"
         " the kinase group classifier."
     )
-    
+
     dfs_orig = [pd.read_csv(seq_f) for seq_f in list(addl_seq_filenames) + [seq_filename_A]]
 
     dfs = []
@@ -83,7 +84,7 @@ def step_4_get_pairwise_mtx(seq_filename_A, *addl_seq_filenames):
             df = df
         dfs.append(df)
     new_seq_df = pd.concat(dfs, ignore_index=True).drop_duplicates(keep="first").reset_index(drop=True)
-    
+
     with tf.NamedTemporaryFile() as tmp, tf.NamedTemporaryFile() as tmp2:
         cur_mtx_files = sorted(
             [x for x in os.listdir() if re.search(r"^pairwise_mtx_[0-9]+.csv$", x)],
@@ -93,7 +94,9 @@ def step_4_get_pairwise_mtx(seq_filename_A, *addl_seq_filenames):
         if len(cur_mtx_files) > 0:
             cur_mtx_file = cur_mtx_files[0]
             cur_mtx = pd.read_csv(cur_mtx_file, index_col=0)
-            existing = set(cur_mtx.index) - (set(cur_mtx.index) - set(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]))
+            existing = set(cur_mtx.index) - (
+                set(cur_mtx.index) - set(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"])
+            )
             not_existing = set(new_seq_df["gene_name"] + "|" + new_seq_df["kinase"]) - existing
             new_mtx_file = f"./pairwise_mtx_{len(existing) + len(not_existing)}.csv"
             if len(not_existing) == 0:
@@ -141,19 +144,17 @@ def step_5_get_train_val_test_split(
     data_filename,
     seq_filename_A,
     new_mtx_file,
-    eval_or_train_on_all,
+    part: Literal["a", "b", "c"],
     data_gen_conf={
         "held_out_percentile": 95,
         "train_percentile": 65,
         "dataframe_generation_mode": "tr-all",
     },
-    num_restarts=60
+    num_restarts=60,
 ):
     """Wrapper for `PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets` and `PreprocessingSteps.format_raw_data_DD.get_input_dataframe`."""
-    input_good = False
-    while not input_good:
-        if eval_or_train_on_all.lower() == "e":
-            input_good = True
+    match part:
+        case "a":
             logger.status("Step 5a: Obtaining train/val/test splits through hill climbing.")
             PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets(
                 kin_fam_grp_filename,
@@ -163,8 +164,7 @@ def step_5_get_train_val_test_split(
                 num_restarts=num_restarts,  # TODO: change back to 600
             )
             pprint.pprint(data_gen_conf)
-        elif eval_or_train_on_all.lower() == "t":
-            input_good = True
+        case "b":
             data_gen_conf = {"train_percentile": 65, "dataframe_generation_mode": "tr-all"}
             logger.status(
                 "Step 5b: Generating dataframe with the following configuration"
@@ -176,8 +176,19 @@ def step_5_get_train_val_test_split(
                 distance_matrix_file=new_mtx_file,
                 config=data_gen_conf,
             )
-        else:
-            logger.warning("Bad input. Trying again...")
+        case "c":
+            data_gen_conf = {
+                "train_percentile": 65,
+                "held_out_percentile": 95,
+                "dataframe_generation_mode": "tr-val-te",
+            }
+            logger.status("Step 5c: Splitting into train/val/test files.")
+            PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
+                input_fn=data_filename,
+                kin_seq_file=seq_filename_A,
+                distance_matrix_file=new_mtx_file,
+                config=data_gen_conf,
+            )
 
 
 def main(

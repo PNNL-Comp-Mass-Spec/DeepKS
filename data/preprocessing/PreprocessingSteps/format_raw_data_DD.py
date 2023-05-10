@@ -1,5 +1,6 @@
 import pathlib, os, traceback
 from typing import Union
+from matplotlib import testing
 from termcolor import colored
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
@@ -17,12 +18,12 @@ mode = cfg.get_mode()
 random.seed(0)
 
 from ....config.logging import get_logger
+from ....config.join_first import join_first
 
 logger = get_logger()
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
 
-join_first = lambda levels, x: os.path.join(pathlib.Path(__file__).parent.resolve(), *[".."] * levels, x)
 
 def my_pop(df, index):
     """
@@ -32,24 +33,21 @@ def my_pop(df, index):
     df.drop(index, inplace=True)
     return row
 
+
 def toupper(x):
     if isinstance(x, str):
         return x.upper()
     else:
         return x
 
+
 def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
     assert "held_out_percentile" in config or config.get("dataframe_generation_mode") == "tr-all"
     assert "train_percentile" in config
     assert "dataframe_generation_mode" in config
-    if "held_out_percentile" in config:
-        held_out_percentile = config["held_out_percentile"]
-    else:
-        held_out_percentile = None
+    held_out_percentile = config.get("held_out_percentile")
     train_percentile = config["train_percentile"]
     dataframe_generation_mode = config["dataframe_generation_mode"]
-
-
 
     all_data = (
         pd.read_csv(input_fn)
@@ -59,9 +57,9 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
     )
     if dataframe_generation_mode == "tr-val-te":
         for ML_set, percentile in [
-            ("../te_kins.json", held_out_percentile),
-            ("../vl_kins.json", held_out_percentile),
-            ("../tr_kins.json", train_percentile),
+            (join_first("../te_kins.json", 0, __file__), held_out_percentile),
+            (join_first("../vl_kins.json", 0, __file__), held_out_percentile),
+            (join_first("../tr_kins.json", 0, __file__), train_percentile),
         ]:
             kins = [x.replace("(", "").replace(")", "").replace("*", "") for x in json.load(open(ML_set, "r"))]
             all_df = (
@@ -74,7 +72,9 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
                 .drop("lab", axis=1, inplace=False)
                 .rename(columns={"lab_updated": "lab"}, inplace=False)
             )
-            get_input_dataframe_core(all_df, input_fn, kin_seq_file, distance_matrix_file, percentile)
+            get_input_dataframe_core(
+                all_df, input_fn, kin_seq_file, percentile, distance_matrix_file, testing_mode=False
+            )
 
     elif dataframe_generation_mode == "tr-all":
         get_input_dataframe_core(
@@ -104,10 +104,16 @@ def get_input_dataframe_core(
     )
     start_dict = {}
     end_dict = {}
+
     for i, r in all_data.iterrows():
-        if r["lab"] + "|" + r["uniprot_id"] not in start_dict:
-            start_dict[r["lab"] + "|" + r["uniprot_id"]] = i
-        end_dict[r["lab"] + "|" + r["uniprot_id"]] = i
+        if "|" not in r["lab"]:
+            test_str = r["lab"] + "|" + r["uniprot_id"]
+            all_data.at[i, "lab"] = test_str
+        else:
+            test_str = r["lab"]
+        if test_str not in start_dict:
+            start_dict[test_str] = i
+        end_dict[test_str] = i
 
     sizes = []
     order = []
@@ -135,7 +141,7 @@ def get_input_dataframe_core(
     for df in [target, decoy]:
         df["original_kinase"] = target["lab"]
         df["original_uniprot_id"] = target["uniprot_id"]
-        
+
     if os.path.exists(f"{sum(sizes)}.derangement") and not testing_mode:
         derangement = json.load(open(f"{sum(sizes)}.derangement"))
         logger.info("Using derangement found in cache.")
@@ -161,22 +167,22 @@ def get_input_dataframe_core(
     # kin_name_dict = {str(kai) : str(k).upper() for k, kai in zip(xl['GENE'], xl['KIN_ACC_ID'])}
 
     kin_seqs_dict = pd.read_csv(kin_seq_file)
-    kin_seqs_dict["kinase"] = (kin_seqs_dict["gene_name"].apply(toupper) + "|" + kin_seqs_dict["kinase"])
+    kin_seqs_dict["kinase"] = kin_seqs_dict["gene_name"].apply(toupper) + "|" + kin_seqs_dict["kinase"]
     kin_seqs_dict = kin_seqs_dict.set_index("kinase").to_dict()["kinase_seq"]
 
     all_data_w_seqs = pd.DataFrame(
         {
-            "Gene Name of Kin Corring to Provided Sub Seq": all_data["original_kinase"] + "|" + all_data["original_uniprot_id"],
-            "Gene Name of Provided Kin Seq": all_data["lab"] + "|" + all_data["uniprot_id"],
+            "Gene Name of Kin Corring to Provided Sub Seq": all_data["original_kinase"],
+            "Gene Name of Provided Kin Seq": all_data["lab"],
             "Num Seqs in Orig Kin": all_data["num_sites"],
             "Class": all_data["Class"],
             "Site Sequence": all_data["seq"],
-            "Kinase Sequence": [kin_seqs_dict[k][:] for k in all_data["lab"] + "|" + all_data["uniprot_id"]],
+            "Kinase Sequence": [kin_seqs_dict[k][:] for k in all_data["lab"]],
         }
     )
 
     if mode == "no_alin":
-        extra = "" 
+        extra = ""
     else:
         extra = "_alin"
     extra += f"_{percentile}"
@@ -196,19 +202,3 @@ def get_input_dataframe_core(
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
     logger.info(f"Outputting formatted data file with size: {len(all_data_w_seqs)}")
-
-
-if __name__ == "__main__": # pragma: no cover
-    if mode == "no_alin":
-        kin_seq_file = (
-            join_first(3, "data/raw_data/kinase_seq_826.csv")
-        )
-    else:
-        raise RuntimeError("mode not supported")
-
-    get_input_dataframe(
-        "../../raw_data/raw_data_22588.csv",
-        kin_seq_file,
-        "../pairwise_mtx_826.csv",
-        {"train_percentile": 65, "dataframe_generation_mode": "tr-all"},
-    )
