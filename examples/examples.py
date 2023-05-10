@@ -3,7 +3,7 @@
 import sys, termcolor, os, pathlib, warnings, json
 from ..api import main
 from termcolor import colored
-
+from ..config.join_first import join_first
 from ..config.logging import get_logger
 
 logger = get_logger()
@@ -12,7 +12,7 @@ logger = get_logger()
 DEVICE = os.environ.get("DEVICE", "cpu")
 """The device to use for training. Can be configured with the `DEVICE` environment variable."""
 
-with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "tests/examples.json")) as f:
+with open(join_first("tests/examples.json", 1, __file__)) as f:
     EXAMPLES = json.load(f)
     """Global list of lists that are command line arguments, each of which is an example."""
     for ex in EXAMPLES:

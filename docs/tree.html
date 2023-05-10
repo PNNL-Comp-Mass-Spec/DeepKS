@@ -1,263 +1,411 @@
 <!DOCTYPE html>
-<html>
+    <html>
 
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-    <style>
-        /* From extension vscode.github */
-        /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <style>
+            /* From extension vscode.github */
+            /*---------------------------------------------------------------------------------------------
+    *  Copyright (c) Microsoft Corporation. All rights reserved.
+    *  Licensed under the MIT License. See License.txt in the project root for license information.
+    *--------------------------------------------------------------------------------------------*/
 
-        .vscode-dark img[src$=\#gh-light-mode-only],
-        .vscode-light img[src$=\#gh-dark-mode-only] {
-            display: none;
-        }
-    </style>
+            .vscode-dark img[src$=\#gh-light-mode-only],
+            .vscode-light img[src$=\#gh-dark-mode-only] {
+                display: none;
+            }
+        </style>
 
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-    </style>
-    <style>
-        .task-list-item {
-            list-style-type: none;
-        }
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+            }
+        </style>
+        <style>
+            .task-list-item {
+                list-style-type: none;
+            }
 
-        .task-list-item-checkbox {
-            margin-left: -20px;
-            vertical-align: middle;
-            pointer-events: none;
-        }
-    </style>
+            .task-list-item-checkbox {
+                margin-left: -20px;
+                vertical-align: middle;
+                pointer-events: none;
+            }
 
-</head>
+            .inner-div {
+                display: inline-block;
+            }
+        </style>
 
-<body class="vscode-body vscode-light" style="white-space: nowrap;">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@600&display=swap');
-        code {
-            font-family: 'Fira Code';
-            color: rgb(16, 87, 48);
-            font-size: 1.04em;
-            font-style: normal;
-            background-color: rgba(0, 0, 0, 0.08);
-            border-radius: 2.5px;
-            display: inline-block;
-            padding-block: 1px;
-            padding-inline: 1px;
-            line-height: 1;
-        }
+    </head>
 
-        .no-col {
-            background-color: transparent;
-            color: inherit;
-        }
+    <body class="vscode-body vscode-light" style="white-space: nowrap;">
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@600&display=swap');
 
-        p {
-            line-height: 1.45em;
-            font-style: oblique;
-        }
-        html, body{
-            margin: 0px;
-            padding: 0px;
+            div {
+                margin: 10px;
+                font-size: 12px;
+            }
+
+            div > div > code {
+                vertical-align: baseline;
+            }
+
+            a > code.only-border {
+                vertical-align: baseline;
+            }
+
+            code {
+                font-family: 'Fira Code';
+                color: rgb(40, 40, 40);
+                font-style: normal;
+                border-radius: 2.5px;
+                display: inline-block;
+                padding-block: 1px;
+                padding-inline: 1px;
+                white-space: pre;
+                line-height: 1em;
+                vertical-align: middle;
+            }
             
-        }
+            .lines {
+                padding-block: 0px;
+                padding-inline: 0px;
+                font-size: 19px;
+                font-weight: 300;
+            }
+            .no-col {
+                background-color: transparent;
+                color: inherit;
+            }
 
-        .even {
-            background-color:rgba(0, 0, 0, 0)
-        }
-        .odd {
-            background-color:rgba(122, 116, 183, 0.055)
-        }
-        .dir {
-            font-weight: 600;
-        }
-        .warn {
-            color: rgba(255, 60, 0, 0.871);
-            font-weight: bold;
-            text-decoration: underline;
-            text-decoration-style: wavy;
-            text-decoration-thickness: 1px;
-        }
+            .only-border {
+                background-color: transparent;
+                color: rgba( 0, 0, 128 , 1);
+                text-decoration: underline;
+                text-decoration-thickness: 1px;
+            }
 
-    </style>
-    <div style="overflow:scroll; height:500px; overscroll-behavior: contain;">
-<div style='display:table-row' class=even><code class='no-col'></code><code class="dir">.</code> ▷  This is the root directory of the DeepKS package.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code>.gitattributes</code> ▷  Contains Git LFS information.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">.github</code> ▷  Contains Github issue templates.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code class="dir">ISSUE_TEMPLATE</code> ▷  Issue templates subdirectory.</div>
-<div style='display:table-row' class=even><code class='no-col'>│       ├── </code><code>user-error.md</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│       ├── </code><code>user-unexpected-output.md</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code>.gitignore</code> ▷  Contains files to be ignored by Git.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code>.gitlab-ci.yml</code> ▷  Used by Gitlab pages.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code>Gemfile</code> ▷  Used for Gitlab Pages.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">api</code> ▷  Contains the API for the DeepKS package.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>cfg.py</code> ▷  Contains configuration paths for the API.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>default_paths.cfg.json</code> ▷  Contains data read by <code>./cfg.py</code></div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>kin-info_file_format.txt</code> ▷  Contains information about how kin-info files need to be formatted.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>main.py</code> ▷  Main API entry point.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>site-info_file_format.txt</code> ▷  Contains information about how site-info files need to be formatted.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">architectures</code> ▷  Contains the architectures used in this package.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>HP_config_DB.tsv</code> ▷  Database of hyperparameter configurations.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">bin</code> ▷  Contains various binary files (typically machine learning previously trained models).</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>deepks_gc_weights.0.0.1.gherkin</code> ▷  Model file for the group classifier.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>deepks_nn_weights.0.0.1.gherkin</code> ▷  Model file for the neural networks.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">build</code> ▷  Contains auxiliary build files.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>build_and_nvidia_script.sh</code> ▷  Shell script used to enable CUDA on HPC/apptainer.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>cuda_wsl_installer.sh</code> ▷  Shell script used to install CUDA on WSL.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│       ├── </code><code>.interactive_slurm_script.py</code> ▷  Script to interactively initialize a Slurm job on a High Performance Computing cluster.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">config</code> ▷  Contains global configuration files for the DeepKS package.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>cfg.py</code> ▷  Global configuration module. Has functions to set/get prediction modes and perform directory changes.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>mode.cfg</code> ▷  Contains the current settings (prediction mode, verbosity mode <span class='warn'><i>Not implemented yet.</i></span>). This is read by <code>./cfg.py</code>.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">data</code> ▷  Contains the data used in this package.  Train/val/test model inputs are of the form <code>raw_data_X_formatted_Y_Z.csv</code>, where X, Y, and Z (optional) are numbers that represent the initial number of inputs, the percentile cutoff for similarity (see data preprocessing details), and the number of inputs after overlaps were removed (again, see data preprocessing details), respectively.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code class="dir">preprocessing</code> ▷  Used to preprocess data into a format acceptable by the API and <code>torch</code>.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code class="dir">PreprocessingSteps</code> ▷  Contains the preprocessing steps used to generate the data in this directory.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   ├── </code><code>.lintr</code> ▷  Contains information about what to and what not to lint in R.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   │   ├── </code><code>Kinase_Inference_Testing.R</code> ▷  Reads PSP data from excel file and creates raw data tables. </div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   ├── </code><code>ML_data_pipeline.R</code> ▷  Reads raw data tables, downloads sequences from the internet and creates intermediate data tables.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   │   ├── </code><code class="dir">cache</code> ▷  Stores cached information about kinase groups from the internet. (Example Below.)</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   │   ├── </code><code>kinbase-cache.json</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   │   ├── </code><code>compare_different_scored_splits.py</code> ▷  Utility that compares the similarity of different train/val/test splits.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   ├── </code><code>complex_download_phospho.py</code> ▷  Script to get kinase groups and families by species. <span class='warn'><i>Not working.</i></span> Will probably not be fixed. </div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   │   ├── </code><code>download_psp.py</code> ▷  Module to download most recent version of PhosphositePlus Database from the internet.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   ├── </code><code>format_raw_data_DD.py</code> ▷  Module to transform intermediate data tables into tensors that can be read by <code>torch</code>. (The "DD" stands for "Double Data,", i.e., taking X inputs and outputting 2X inputs.)</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   │   ├── </code><code>get_kin_fam_grp.py</code> ▷  Download kinase group and kinase family information from the internet.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   ├── </code><code>psp_exceptions.json</code> ▷  File of exceptions and modifications that have to be made to the PSP excel file.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   │   ├── </code><code>remove_overlaps.py</code> ▷  Script to remove instances of kinase-substrate pairs where the site is present in the training, validation, and test sets.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   │   ├── </code><code>split_into_sets_individual_deterministic_top_k.py</code> ▷  Algorithms to split the data into training, validation and test sets, based on kinase groups and families.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>kin_to_fam_to_grp_826.csv</code> ▷  Example of a kinase-family-group table with 826 entries.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>main.py</code> ▷  The entrypoint for the preprocessing pipeline.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>make_clean.py</code> ▷  Script to clean up data directory from files that can be regenerated using provided scripts.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>pairwise_mtx_918.csv</code> ▷  Example of a pairwise distance matrix (918 kinases x 918 kinases).</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>te_kins.json</code> ▷  List of kinases used in the test set (Uniprot gene names).</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>tr_kins.json</code> ▷  List of kinases used in the training set (Uniprot gene names).</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>vl_kins.json</code> ▷  List of kinases used in the validation set (Uniprot gene names).</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code class="dir">raw_data</code> ▷  Contains raw and intermediate data. Files of the format <code>kinase_seq_X.csv</code> contain rows with Uniprot accession ID, Uniprot gene name, and kinase sequence, where X is the number of rows. Files of the format <code>raw_data_Y.csv</code> contain slightly processed and pruned data from the PSP excel download, where Y is the number of rows.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>PSP_script_download.xlsx</code> ▷  Modified PSP data table.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code class="dir">cache</code> ▷  Cache storing uniprot kinase sequences.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>kinase_seq_494.csv</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>kinase_seq_826.csv</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>kinase_seq_918.csv</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>raw_data_22473.csv</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>raw_data_22588.csv</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>raw_data_31834_formatted_65_26610.csv</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>raw_data_45176_formatted_65.csv</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>raw_data_6406_formatted_95_5616.csv</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>raw_data_6500_formatted_95_5698.csv</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">discovery</code> ▷  Contains files and subdirectories used for the discovery of new kinase-substrate predictions.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code class="dir">all_human_pairs</code> ▷  Contains files used to generate the predictions for all human kinase-substrate pairs.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>download_necessary_kinases.py</code> ▷  Download necessary kinase sequences from Uniprot.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>phosphosites_base.txt</code> ▷  Base file containing all human phosphosites.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>run_main_api.sh</code> ▷  Convenience script to run the main API to predict all human kinase-substrate pairs.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>sequences_table.csv</code> ▷  Intermediate file as a product of <code>./download_necessary_kinases.py</code>.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>discovery_preparation.py</code> ▷  Contains scripts to process discovery data into a form that can be accepted by the API.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code class="dir">nature_atlas</code> ▷  Contains files used to validate DeepKS against the <a href='https://www.nature.com/articles/s41586-022-05575-3'> Nature Atlas paper</a>.</div>
-<div style='display:table-row' class=even><code class='no-col'>│       ├── </code><code>atlas_vs_deepks_1_processing.ipynb</code> ▷  Notebook containing scripts to enable comparison between DeepKS and Atlas.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│       ├── </code><code>atlas_vs_deepks_2_figures.ipynb</code> ▷  Notebook containing scripts to plot figures representing the comparison between DeepKS and Atlas.</div>
-<div style='display:table-row' class=even><code class='no-col'>│       ├── </code><code>atlas_vs_deepks_3_corroboration.ipynb</code> ▷  Notebook containing scripts to corroborate the PSP database and Atlas's results.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│       ├── </code><code>get_sites_and_kinases.py</code> ▷  Script that helps extract the necessary kinase sequences and site sequences from Atlas's data.</div>
-<div style='display:table-row' class=even><code class='no-col'>│       ├── </code><code>scrape.py</code> ▷  Script that is a precursor for <code>./atlas_vs_deepks_3_corroboration.ipynb</code> that gets Atlas predictions for the PSP database sites.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">docs</code> ▷  Contains files used to generate the documentation.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code class="dir">api_pydoctor_docs</code> ▷  Contains API-reference documentation generated by the <code>pydoctor</code> package.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>cuda_installation.html</code> ▷  HTML rendering of the CUDA installation guide.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>cuda_installation.md</code> ▷  Markdown version of the CUDA installation guide.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>index.html</code> ▷  HTML rendering of the main documentation page; Used by Github pages to generate main webpage.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>index.md</code> ▷  Markdown version of the main documentation page.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>quickstart.html</code> ▷  HTML rendering of the quickstart guide.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>quickstart.md</code> ▷  Markdown version of the quickstart guide.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>tree.html</code> ▷  HTML file that displays a tree of DeepKS Repository.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>tree_description.txt</code> ▷  Similar to <code>tree.html</code>'s tree listing, but stripped down to be essentially key-value pairs of <i>file/dir</i> ⟼ <i>description</i> in the format <code>my_file.txt;A sample description of &#x3C;code&#x3E;my_file.txt&#x3C;&#x2F;code&#x3E;</code>, where <code>&#x3C;code&#x3E;&#x3C;&#x2F;code&#x3E;</code> tags wrap monospace text.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>tree_template.html</code> ▷  Template for the layout of this tree listing.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">examples</code> ▷  Examples one can run to get a feel for the API.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>__main__.py</code> ▷  Entrypoint wrapper for running examples. Calls <code>./examples.py</code>.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>examples.pdf</code> ▷  PDF of how the example output should look.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>examples.py</code> ▷  Contains examples of how to use the API.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">images</code> ▷  Contains subdirectories with scripts to generate images, graphs, and diagrams for DeepKS.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">models</code> ▷  Directory containing the implementation of components of the DeepKS model.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>HPTuningSimple.py</code> ▷   may not work.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>group_classifier_definitions.py</code> ▷  Contains python definitions of the group classifiers (<code>class SKGroupClassifier</code>).</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>individual_classifiers.py</code> ▷  Contains python definitions of the individual neural network classifiers (<code>class IndividualClassifier</code>).</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code class="dir">json</code> ▷  Contains auxillary <code>.json</code> files used by the model.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>hp_tuning_grids.json</code> ▷  Contains hyperparameter tuning grids for the neural networks.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>tok_dict.json</code> ▷  Contains the token dictionary (mapping amino acid character + ["X", padding token, n-gram size]) used to tensorize neural network input data.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>main.py</code> ▷  Contains definitions of the PyTorch neural network models used in DeepKS.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>multi_stage_classifier.py</code> ▷  Contains python definitions of the multi-stage classifier (<code>class MultiStageClassifier</code>) that combines the group and individual classifiers.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>train_multi_stage_classifier.sh</code> ▷  Convenience script for training the group classifier (as a step in multi-stage classification process).</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">out</code> ▷  Directory containing resultant predictions from the DeepKS model. (Examples below.)</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>results_2023-02-21@17`48`33.3@+00`00.sqlite</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>results_2023-02-22@22`44`25.2@+00`00.csv</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">public</code> ▷  Used for Gitlab pages.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code>readme.md</code> ▷  Holds the icon one can click to view the Git(hub|lab) documentation pages.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code>requirements.txt</code> ▷  Used to install python dependencies.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">splash</code> ▷  Module used to generate splash screens.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>main_api.splash</code> ▷  Splash screen for the API.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>main_gc_trainer.splash</code> ▷  Splash screen for the group classifier trainer.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>main_nn_trainer.splash</code> ▷  Splash screen for the neural network trainer.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code>write_splash.py</code> ▷  Script that actually prints the splash screens to the terminal.</div>
-<div style='display:table-row' class=even><code class='no-col'>├── </code><code class="dir">tests</code> ▷  Unit tests for the project.</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   ├── </code><code class="dir">sample_inputs</code> ▷  Sample inputs for the unit tests.</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>kin-info-known-groups.json</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>kin-info.json</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>kins.txt</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>site-info.json</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   │   ├── </code><code>sites-prod.txt</code>
-</div>
-<div style='display:table-row' class=odd><code class='no-col'>│   │   ├── </code><code>sites.txt</code>
-</div>
-<div style='display:table-row' class=even><code class='no-col'>│   ├── </code><code>test.py</code> ▷  Main testing script to run.</div>
-<div style='display:table-row' class=odd><code class='no-col'>├── </code><code class="dir">tools</code> ▷  Miscellaneous tools used in the project.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>NNInterface.py</code> ▷  Definition of large class (<code>class NNInterface</code>) that provides a clean user interface for NN training, predict, plotting, saving, among other things.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>SimpleTuner.py</code> ▷  Definition of the <code>class SimpleTuner</code> that provides a clean user interface for hyperparameter tuning.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>bipartite_derangement.py</code> ▷  Contains functions that generate derangements using bipartite graphs.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>cached_docs.json</code> ▷  Used to cache documentation for <code>./informative_tb</code>.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>custom_tree_maker.py</code> ▷  Custom module to make flexible file trees.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>file_names.py</code> ▷  Module that creates time-stamped files with a prefix and suffix.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>formal_layers.py</code> ▷  Contains definitions for wrapper classes for PyTorch layers that don't have a formal definition in PyTorch. For example, <code>class Flatten</code> is a wrapper for <code>torch.nn.Flatten</code>.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>get_array_percentile.py</code> ▷  Given a <code>numpy</code> array, returns boolean array representing whether each element is in the top <code>percentile</code> of the array.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>get_needle_pairwise.py</code> ▷  Script to get pairwise distances using EMBOSS's <code>needle</code> program.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>informative_tb.py</code> ▷  Script to print a more informative, user-friendly traceback.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>make_call_graph.py</code> ▷  Create a call graph to understand the flow of a program.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>make_call_graph_demonstrator.py</code> ▷  Helper file in the demonstration the use of <code>./make_call_graph.py</code>.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>make_fasta.py</code> ▷  Utility to create a FASTA file from an input dataframe of sequences.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>model_utils.py</code> ▷  Contains various functions that support the neural network definitions in <code>DeepKS/models/main.py</code>.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>parse.py</code> ▷  Contains parsing functions for parsing command line when training/testing the neural network component of DeepKS.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>raw_score_to_prob.py</code> ▷  Utility to convert raw scores into probabilities.</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>roc_lambda.py</code> ▷  Utility to find the weight average line in an ROC plot.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>schema_validation.py</code> ▷  Script that validates a JSON file against a JSON schema. Specifically used to validate the JSON files that contain site and kinase information (metadata).</div>
-<div style='display:table-row' class=even><code class='no-col'>    ├── </code><code>system_tools.py</code> ▷  Script containing a wrapper for <code>subprocess.run</code> that can print and/or capture the output of a command.</div>
-<div style='display:table-row' class=odd><code class='no-col'>    ├── </code><code>tensorize.py</code> ▷  Script that converts a CSV or <code>pandas.DataFrame</code> into a <code>torch.Tensor</code>, moves it to the computation device, and creates a <code>torch.utils.data.DataLoader</code>s.</div>
-    </div>
+            div {
+                font-style: oblique;
+                padding: 0px;
+                margin: 0px;
+            }
+            html, body{
+                margin: 0px;
+                padding: 0px;
+                color: black;
+                display: inline-block;
+            }
 
-</body>
+            div.even, div.oddd {
+                padding-right: 10px;
+            }
 
-</html>
+            p {
+                margin: 0px;
+                font-style: oblique;
+                display: inline;
+                vertical-align: middle;
+            }
+
+            .even {
+                background-color: #e1e4e8;
+            }
+            .oddd {
+                background-color: #f5f5f5;
+            }
+            .dir {
+                font-weight: 600;
+            }
+            .warn {
+                color: rgba(255, 60, 0, 0.871);
+                font-weight: bold;
+                text-decoration: underline;
+                text-decoration-style: wavy;
+                text-decoration-thickness: 1px;
+            }
+
+        </style>
+        <div class='oddd'><code class='no-col lines'></code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'></span> ❖ </code><div style='display: inline; vertical-align: middle;'>The root directory of the DeepKS package.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'>.pre-commit-config.yaml</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'>Gemfile ❖ </code><div style='display: inline; vertical-align: middle;'>Used for Gitlab Pages.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'>readme.md ❖ </code><div style='display: inline; vertical-align: middle;'>Holds the icon one can click to view the Git(hub|lab) documentation pages.</div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'>requirements.txt ❖ </code><div style='display: inline; vertical-align: middle;'>Used to install python dependencies.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'>saved_dict_repr_file.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>api</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.api.html"><code class='only-border'>DeepKS.api</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>cfg.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.api.cfg.html"><code class='only-border'>DeepKS.api.cfg</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>default_paths.cfg.json ❖ </code><div style='display: inline; vertical-align: middle;'>Contains data read by <code>./cfg.py</code></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>kin-info_file_format.txt ❖ </code><div style='display: inline; vertical-align: middle;'>Contains information about how kin-info files need to be formatted.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>main.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.api.main.html"><code class='only-border'>DeepKS.api.main</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>run_main_api.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'>site-info_file_format.txt ❖ </code><div style='display: inline; vertical-align: middle;'>Contains information about how site-info files need to be formatted.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>architectures</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains the architectures used in this package.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>HP_config_DB.tsv ❖ </code><div style='display: inline; vertical-align: middle;'>Database of hyperparameter configurations.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>architecture (IC-DEFAULT).txt-NON-TK</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'>architecture (IC-DEFAULT).txt-TK</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>bin</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains various binary files (typically machine learning previously trained models).</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>deepks_gc_weights.-1.cornichon</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ └ </code><code class='no-col'>deepks_nn_weights.-1.cornichon</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>build</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains auxiliary build files.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>build_and_nvidia_script.sh ❖ </code><div style='display: inline; vertical-align: middle;'>Shell script used to enable CUDA on HPC/apptainer.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>cuda_wsl_installer.sh ❖ </code><div style='display: inline; vertical-align: middle;'>Shell script used to install CUDA on WSL.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>generate_docs.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>remove-symlinks.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>selective_black.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>hpc</span></code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   └ </code><code class='no-col'>.interactive_slurm_script.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.build.hpc..html"><code class='only-border'>DeepKS.build.hpc.</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>config</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.config.html"><code class='only-border'>DeepKS.config</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>API_IMPORT_MODE.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>cfg.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.config.cfg.html"><code class='only-border'>DeepKS.config.cfg</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>join_first.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.config.join_first.html"><code class='only-border'>DeepKS.config.join_first</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>logging.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.config.logging.html"><code class='only-border'>DeepKS.config.logging</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>logging_config.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'>mode.cfg ❖ </code><div style='display: inline; vertical-align: middle;'>Contains the current settings (prediction mode, verbosity mode <span class='warn'>Not implemented yet.</span>). This is read by <code>./cfg.py</code>.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>data</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.data.html"><code class='only-border'>DeepKS.data</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>kin_to_fam_to_grp_5.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>kin_to_fam_to_grp_821.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_162_group_classifier_formatted.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_209_group_classifier_formatted.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_31834_formatted_65_26610.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_446_group_classifier_formatted.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_45176_formatted_65.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_6406_formatted_95_5616.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_6500_formatted_95_5698.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_trunc_100.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_trunc_105.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>raw_data_trunc_200.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>preprocessing</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.data.preprocessing.html"><code class='only-border'>DeepKS.data.preprocessing</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>22769.derangement</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>Kinase_Substrate_Dataset.gz</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>fam_to_num_seq.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>kin_to_fam_to_grp_5.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>kin_to_fam_to_grp_817.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>kin_to_fam_to_grp_821.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>kin_to_fam_to_grp_826.csv ❖ </code><div style='display: inline; vertical-align: middle;'>Example of a kinase-family-group table with 826 entries.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>main.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.main.html"><code class='only-border'>DeepKS.data.preprocessing.main</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>make_clean.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.make_clean.html"><code class='only-border'>DeepKS.data.preprocessing.make_clean</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>needleall.error</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-0</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-1</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-2</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-3</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-4</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-5</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-6</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_1658.csv-TID-7</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_822.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>pairwise_mtx_826.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>site_to_group_13588.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>te_kins.json ❖ </code><div style='display: inline; vertical-align: middle;'>List of kinases used in the test set (Uniprot gene names).</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>te_kins_large.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>temp.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>tr_kins.json ❖ </code><div style='display: inline; vertical-align: middle;'>List of kinases used in the training set (Uniprot gene names).</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>tr_kins_large.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>vl_kins.json ❖ </code><div style='display: inline; vertical-align: middle;'>List of kinases used in the validation set (Uniprot gene names).</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>vl_kins_large.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>PreprocessingSteps</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>.lintr ❖ </code><div style='display: inline; vertical-align: middle;'>Contains information about what to and what not to lint in R.</div></div>
+<div class='even'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>Kinase_Inference_Testing.R ❖ </code><div style='display: inline; vertical-align: middle;'>Reads PSP data from excel file and creates raw data tables.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>ML_data_pipeline.R ❖ </code><div style='display: inline; vertical-align: middle;'>Reads raw data tables, downloads sequences from the internet and creates intermediate data tables.</div></div>
+<div class='even'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>compare_different_scored_splits.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.compare_different_scored_splits.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.compare_different_scored_splits</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>complex_download_phospho.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.complex_download_phospho.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.complex_download_phospho</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>download_psp.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.download_psp.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.download_psp</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>format_raw_data_DD.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data_DD.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data_DD</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>get_kin_fam_grp.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>psp_exceptions.json ❖ </code><div style='display: inline; vertical-align: middle;'>File of exceptions and modifications that have to be made to the PSP excel file.</div></div>
+<div class='even'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>remove_overlaps.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.remove_overlaps.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.remove_overlaps</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>split_into_sets_individual_deterministic_top_k.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.html"><code class='only-border'>DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │   └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>cache</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Stores cached information about kinase groups from the internet. (Example Below.)</div></div>
+<div class='oddd'><code class='no-col lines'>│ │     └ </code><code class='no-col'>kinbase-cache.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>raw_data</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains raw and intermediate data. Files of the format <code>kinase_seq_X.csv</code> contain rows with Uniprot accession ID, Uniprot gene name, and kinase sequence, where X is the number of rows. Files of the format <code>raw_data_Y.csv</code> contain slightly processed and pruned data from the PSP excel download, where Y is the number of rows.</div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>PSP_script_download.xlsx ❖ </code><div style='display: inline; vertical-align: middle;'>Modified PSP data table.</div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>duplicates.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>kinase_seq_494.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>kinase_seq_822.txt</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>kinase_seq_826.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>kinase_seq_918.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>raw_data_22473.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>raw_data_22588.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>raw_data_45176_formatted_65.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>cache</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Cache storing uniprot kinase sequences.</div></div>
+<div class='oddd'><code class='no-col lines'>│     └ </code><code class='no-col'>UNIPROT_kinase_sequences.fasta</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>discovery</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.discovery.html"><code class='only-border'>DeepKS.discovery</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>discovery_preparation.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.discovery.discovery_preparation.html"><code class='only-border'>DeepKS.discovery.discovery_preparation</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>all_human_pairs</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.discovery.all_human_pairs.html"><code class='only-border'>DeepKS.discovery.all_human_pairs</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>download_necessary_kinases.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.discovery.all_human_pairs.download_necessary_kinases.html"><code class='only-border'>DeepKS.discovery.all_human_pairs.download_necessary_kinases</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>phosphosites_base.txt ❖ </code><div style='display: inline; vertical-align: middle;'>Base file containing all human phosphosites.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>run_main_api.sh ❖ </code><div style='display: inline; vertical-align: middle;'>Convenience script to run the main API to predict all human kinase-substrate pairs.</div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>sequences_table.csv ❖ </code><div style='display: inline; vertical-align: middle;'>Intermediate file as a product of <code>./download_necessary_kinases.py</code>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>nature_atlas</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.discovery.nature_atlas.html"><code class='only-border'>DeepKS.discovery.nature_atlas</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>atlas_vs_deepks_1_processing.ipynb ❖ </code><div style='display: inline; vertical-align: middle;'>Notebook containing scripts to enable comparison between DeepKS and Atlas.</div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>atlas_vs_deepks_2_figures.ipynb ❖ </code><div style='display: inline; vertical-align: middle;'>Notebook containing scripts to plot figures representing the comparison between DeepKS and Atlas.</div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>atlas_vs_deepks_3_corroboration.ipynb ❖ </code><div style='display: inline; vertical-align: middle;'>Notebook containing scripts to corroborate the PSP database and Atlas's results.</div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>compact_kinase_info_10.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>compact_site_info_86201.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>fast.ipynb</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>get_sites_and_kinases.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.discovery.nature_atlas.get_sites_and_kinases.html"><code class='only-border'>DeepKS.discovery.nature_atlas.get_sites_and_kinases</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>kinase_list_10.txt</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>run_main_api.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>scrape.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.discovery.nature_atlas.scrape.html"><code class='only-border'>DeepKS.discovery.nature_atlas.scrape</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│   └ </code><code class='no-col'>site_list_7890.txt</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>docs</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains files used to generate the documentation.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>API Docs Icon.png ❖ </code><div style='display: inline; vertical-align: middle;'>An icon used to link to the API reference documentation.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>cuda_installation.html ❖ </code><div style='display: inline; vertical-align: middle;'>HTML rendering of the CUDA installation guide.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>cuda_installation.md ❖ </code><div style='display: inline; vertical-align: middle;'>Markdown version of the CUDA installation guide.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>index.html ❖ </code><div style='display: inline; vertical-align: middle;'>HTML rendering of the main documentation page; Used by Github pages to generate main webpage.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>index.md ❖ </code><div style='display: inline; vertical-align: middle;'>Markdown version of the main documentation page.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>path_to_desc.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>quickstart.html ❖ </code><div style='display: inline; vertical-align: middle;'>HTML rendering of the quickstart guide.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>quickstart.md ❖ </code><div style='display: inline; vertical-align: middle;'>Markdown version of the quickstart guide.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>tree.html ❖ </code><div style='display: inline; vertical-align: middle;'>HTML file that displays a tree of DeepKS Repository.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>api_pydoctor_docs</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains API-reference documentation generated by the <code>pydoctor</code> package.</div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>index.html ❖ </code><div style='display: inline; vertical-align: middle;'>The main page of the API-reference documentation.</div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>no_timestamp_templates</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Directory containing templates for pydoctor documentation.</div></div>
+<div class='even'><code class='no-col lines'>│   └ </code><code class='no-col'>footer.html ❖ </code><div style='display: inline; vertical-align: middle;'>A new footer template that does not include a timestamp (for git purposes).</div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>examples</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.examples.html"><code class='only-border'>DeepKS.examples</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>__main__.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.examples.__main__.html"><code class='only-border'>DeepKS.examples.__main__</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>examples.pdf ❖ </code><div style='display: inline; vertical-align: middle;'>PDF of how the example output should look.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>examples.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.examples.examples.html"><code class='only-border'>DeepKS.examples.examples</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'>examples_api_call_graph.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.examples.examples_api_call_graph.html"><code class='only-border'>DeepKS.examples.examples_api_call_graph</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>images</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.html"><code class='only-border'>DeepKS.images</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>Inverse_stride_derivation.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>Animation</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.Animation.html"><code class='only-border'>DeepKS.images.Animation</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ └ </code><code class='no-col'>AlgorithmAnimation.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.Animation.AlgorithmAnimation.html"><code class='only-border'>DeepKS.images.Animation.AlgorithmAnimation</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>EvaluationandResults</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.EvaluationandResults.html"><code class='only-border'>DeepKS.images.EvaluationandResults</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>plot_probabilities.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.EvaluationandResults.plot_probabilities.html"><code class='only-border'>DeepKS.images.EvaluationandResults.plot_probabilities</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>ROC</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.EvaluationandResults.ROC.html"><code class='only-border'>DeepKS.images.EvaluationandResults.ROC</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>SplitIntoGroupsROC_plot_2023-05-05@18`43`36.0@-04`00.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │   ├ </code><code class='no-col'>fast_images.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.EvaluationandResults.ROC.fast_images.html"><code class='only-border'>DeepKS.images.EvaluationandResults.ROC.fast_images</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │   └ </code><code class='no-col'>test_roc.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.EvaluationandResults.ROC.test_roc.html"><code class='only-border'>DeepKS.images.EvaluationandResults.ROC.test_roc</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>ExcelMatrix</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.ExcelMatrix.html"><code class='only-border'>DeepKS.images.ExcelMatrix</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ └ </code><code class='no-col'>format_matrix_for_excel.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.ExcelMatrix.format_matrix_for_excel.html"><code class='only-border'>DeepKS.images.ExcelMatrix.format_matrix_for_excel</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>GroupDistributions</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.GroupDistributions.html"><code class='only-border'>DeepKS.images.GroupDistributions</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>get_group_distribution_diagrams.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.GroupDistributions.get_group_distribution_diagrams.html"><code class='only-border'>DeepKS.images.GroupDistributions.get_group_distribution_diagrams</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>proportional_distribution_reprod.svg</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ └ </code><code class='no-col'>relative_distributions_reprod.svg</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>KinaseOverlap</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.KinaseOverlap.html"><code class='only-border'>DeepKS.images.KinaseOverlap</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>Uniprot_ST_Kinases.xlsx</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>Uniprot_Y_Kinases.xlsx</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>human_kinase_overlap.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>kinase_overlap.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.KinaseOverlap.kinase_overlap.html"><code class='only-border'>DeepKS.images.KinaseOverlap.kinase_overlap</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>psp_human_kinase_table.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>psp_kinase_table.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>PhyloFamilies</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.PhyloFamilies.html"><code class='only-border'>DeepKS.images.PhyloFamilies</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>.lintr</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>phylo_families.R</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>phylo_families_Cairo.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>Sankey</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.Sankey.html"><code class='only-border'>DeepKS.images.Sankey</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>big_sankey.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>flows.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>make_sankey.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.Sankey.make_sankey.html"><code class='only-border'>DeepKS.images.Sankey.make_sankey</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>SimilarityHist</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.SimilarityHist.html"><code class='only-border'>DeepKS.images.SimilarityHist</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>GMM.ipynb</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>similarity_hist.ipynb</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>similarity_hist.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.SimilarityHist.similarity_hist.html"><code class='only-border'>DeepKS.images.SimilarityHist.similarity_hist</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>Stripes</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.Stripes.html"><code class='only-border'>DeepKS.images.Stripes</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>motif_site_diagrams.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.Stripes.motif_site_diagrams.html"><code class='only-border'>DeepKS.images.Stripes.motif_site_diagrams</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>NewerVersion</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.Stripes.NewerVersion.html"><code class='only-border'>DeepKS.images.Stripes.NewerVersion</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ │   └ </code><code class='no-col'>motif_site_diagrams.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.Stripes.NewerVersion.motif_site_diagrams.html"><code class='only-border'>DeepKS.images.Stripes.NewerVersion.motif_site_diagrams</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>Sunburst</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.images.Sunburst.html"><code class='only-border'>DeepKS.images.Sunburst</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>Onion Explainer.xlsx</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>sunburst explainer simple.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>sunburst explainer.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>sunburst.pdf</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   └ </code><code class='no-col'>sunburst.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.images.Sunburst.sunburst.html"><code class='only-border'>DeepKS.images.Sunburst.sunburst</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>models</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.models.html"><code class='only-border'>DeepKS.models</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>DeepKS_evaluation.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.DeepKS_evaluation.html"><code class='only-border'>DeepKS.models.DeepKS_evaluation</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>GC_params.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>GroupClassifier.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.GroupClassifier.html"><code class='only-border'>DeepKS.models.GroupClassifier</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>KSRProtocol.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.KSRProtocol.html"><code class='only-border'>DeepKS.models.KSRProtocol</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>KinaseSubstrateRelationshipATTN.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.KinaseSubstrateRelationshipATTN.html"><code class='only-border'>DeepKS.models.KinaseSubstrateRelationshipATTN</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>KinaseSubstrateRelationshipATTNWSELF.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.html"><code class='only-border'>DeepKS.models.KinaseSubstrateRelationshipATTNWSELF</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>KinaseSubstrateRelationshipClassic.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.KinaseSubstrateRelationshipClassic.html"><code class='only-border'>DeepKS.models.KinaseSubstrateRelationshipClassic</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>KinaseSubstrateRelationshipLSTM.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.KinaseSubstrateRelationshipLSTM.html"><code class='only-border'>DeepKS.models.KinaseSubstrateRelationshipLSTM</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>cached_docs.json ❖ </code><div style='display: inline; vertical-align: middle;'>Cache of official python <code>Exception</code> documents.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>data_dict_output_test.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>extract.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.extract.html"><code class='only-border'>DeepKS.models.extract</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>individual_classifiers.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.individual_classifiers.html"><code class='only-border'>DeepKS.models.individual_classifiers</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>logos.ipynb</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>multi_stage_classifier.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.multi_stage_classifier.html"><code class='only-border'>DeepKS.models.multi_stage_classifier</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>site_classifier.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.site_classifier.html"><code class='only-border'>DeepKS.models.site_classifier</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>training_call_graph.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.models.training_call_graph.html"><code class='only-border'>DeepKS.models.training_call_graph</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>convenience scripts</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains bash scripts that can be used to train the models. Each call the relevant python module with the correct command-line arguments.</div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>train_individual_classifiers.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>train_multi_stage_classifier.sh</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>hyperparameters</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Directory containing hyperparameter configurations for the neural networks.</div></div>
+<div class='even'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>KSR_params.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ │ ├ </code><code class='no-col'>KSR_training_params.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ │ └ </code><code class='no-col'>NNI_params.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>json</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Contains auxillary <code>.json</code> files used by the model.</div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>hp_tuning_grids.json ❖ </code><div style='display: inline; vertical-align: middle;'>Contains hyperparameter tuning grids for the neural networks.</div></div>
+<div class='oddd'><code class='no-col lines'>│   └ </code><code class='no-col'>tok_dict.json ❖ </code><div style='display: inline; vertical-align: middle;'>Contains the token dictionary (mapping amino acid character + ["X", padding token, n-gram size]) used to tensorize neural network input data.</div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>out</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Directory containing resultant predictions from the DeepKS model. (Examples below.)</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>results_2023-05-03@19`00`32.0@-04`00.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>results_2023-05-03@19`00`34.4@-04`00.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│ └ </code><code class='no-col'>results_2023-05-03@19`00`36.6@-04`00.sqlite</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>public</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Used for Gitlab pages.</div></div>
+<div class='oddd'><code class='no-col lines'>├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>tests</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.tests.html"><code class='only-border'>DeepKS.tests</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ ├ </code><code class='no-col'>examples.json ❖ </code><div style='display: inline; vertical-align: middle;'>File containing a list of lists, each of which are the command-line arguments for an example run.</div></div>
+<div class='oddd'><code class='no-col lines'>│ ├ </code><code class='no-col'>test.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tests.test.html"><code class='only-border'>DeepKS.tests.test</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>│ └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>sample_inputs</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Sample inputs for the unit tests.</div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>kin-info-known-groups.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>kin-info.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>kins.txt</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>site-info.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>sites-prod.txt</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>sites.txt</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   ├ </code><code class='no-col'>small_train.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│   ├ </code><code class='no-col'>small_val_or_test.csv</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│   └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>sample_hp_configs</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Directory containing sample hyperparameter/model configurations</div></div>
+<div class='even'><code class='no-col lines'>│     ├ </code><code class='no-col'>KSR_params_ATTNWSELF.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>│     ├ </code><code class='no-col'>KSR_params_Classic.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>│     └ </code><code class='no-col'>KSR_params_RNN.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='oddd'><code class='no-col lines'>└ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>tools</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.tools.html"><code class='only-border'>DeepKS.tools</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>NNInterface.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.NNInterface.html"><code class='only-border'>DeepKS.tools.NNInterface</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>Tuner.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.Tuner.html"><code class='only-border'>DeepKS.tools.Tuner</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>bipartite_derangement.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.bipartite_derangement.html"><code class='only-border'>DeepKS.tools.bipartite_derangement</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>cached_docs.json ❖ </code><div style='display: inline; vertical-align: middle;'>Used to cache documentation for <code>./informative_tb</code>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>custom_logging.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.custom_logging.html"><code class='only-border'>DeepKS.tools.custom_logging</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>custom_tqdm.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.custom_tqdm.html"><code class='only-border'>DeepKS.tools.custom_tqdm</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>file_names.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.file_names.html"><code class='only-border'>DeepKS.tools.file_names</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>formal_layers.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.formal_layers.html"><code class='only-border'>DeepKS.tools.formal_layers</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>get_array_percentile.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.get_array_percentile.html"><code class='only-border'>DeepKS.tools.get_array_percentile</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>get_needle_pairwise.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.get_needle_pairwise.html"><code class='only-border'>DeepKS.tools.get_needle_pairwise</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>informative_tb.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.informative_tb.html"><code class='only-border'>DeepKS.tools.informative_tb</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>legacy_plotting.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.legacy_plotting.html"><code class='only-border'>DeepKS.tools.legacy_plotting</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>make_call_graph.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.make_call_graph.html"><code class='only-border'>DeepKS.tools.make_call_graph</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>make_call_graph_demonstrator.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.make_call_graph_demonstrator.html"><code class='only-border'>DeepKS.tools.make_call_graph_demonstrator</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>make_fasta.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.make_fasta.html"><code class='only-border'>DeepKS.tools.make_fasta</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>model_utils.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.model_utils.html"><code class='only-border'>DeepKS.tools.model_utils</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>new_treemaker.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.new_treemaker.html"><code class='only-border'>DeepKS.tools.new_treemaker</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>nice_printer.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.nice_printer.html"><code class='only-border'>DeepKS.tools.nice_printer</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>raw_score_to_prob.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.raw_score_to_prob.html"><code class='only-border'>DeepKS.tools.raw_score_to_prob</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>roc_helpers.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.roc_helpers.html"><code class='only-border'>DeepKS.tools.roc_helpers</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>schema_validation.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.schema_validation.html"><code class='only-border'>DeepKS.tools.schema_validation</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'>system_tools.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.system_tools.html"><code class='only-border'>DeepKS.tools.system_tools</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  ├ </code><code class='no-col'>tensorize.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.tensorize.html"><code class='only-border'>DeepKS.tools.tensorize</code></a>.</div></div>
+<div class='oddd'><code class='no-col lines'>  ├ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>splash</span> ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top", href="api_pydoctor_docs/DeepKS.tools.splash.html"><code class='only-border'>DeepKS.tools.splash</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  │ ├ </code><code class='no-col'>main_api.splash ❖ </code><div style='display: inline; vertical-align: middle;'>Splash screen for the main api</div></div>
+<div class='oddd'><code class='no-col lines'>  │ ├ </code><code class='no-col'>main_gc_trainer.splash ❖ </code><div style='display: inline; vertical-align: middle;'>Splash screen for the group classifier trainer</div></div>
+<div class='even'><code class='no-col lines'>  │ ├ </code><code class='no-col'>main_nn_trainer.splash ❖ </code><div style='display: inline; vertical-align: middle;'>Splash screen for the neural network trainer</div></div>
+<div class='oddd'><code class='no-col lines'>  │ └ </code><code class='no-col'>write_splash.py ❖ </code><div style='display: inline; vertical-align: middle;'>See <a target="_top" href="api_pydoctor_docs/DeepKS.tools.splash.write_splash.html"><code class='only-border'>DeepKS.tools.splash.write_splash</code></a>.</div></div>
+<div class='even'><code class='no-col lines'>  └ </code><code class='no-col'><span style='font-weight: bold; font-size: 14px;'>tunings</span> ❖ </code><div style='display: inline; vertical-align: middle;'>Directory containing hyperparameter tuning configurations and their associated scores. (Examples below)</div></div>
+<div class='oddd'><code class='no-col lines'>    ├ </code><code class='no-col'>a_tuning_2023-05-05@18`24`53.0@-04`00.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+<div class='even'><code class='no-col lines'>    └ </code><code class='no-col'>a_tuning_2023-05-05@18`28`15.5@-04`00.json</code><div style='display: inline; vertical-align: middle;'></div></div>
+
+
+    </body>
+
+    </html>
+    
