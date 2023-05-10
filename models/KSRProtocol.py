@@ -9,7 +9,7 @@ class KSRProtocol(Protocol):
 
     def __init__(self, **kwargs) -> None:
         """KSRs should have a varible number of keyword initialization arguments."""
-        ...
+        ...  # pragma: no cover
 
     def forward(self, site_seq: torch.LongTensor, kin_seq: torch.LongTensor) -> torch.FloatTensor:
         """KSRs should have a forward method that takes in a site sequence and a kinase sequence and returns a tensor of logits.
@@ -26,7 +26,7 @@ class KSRProtocol(Protocol):
             The logits, as a torch.FloatTensor of shape ``(batch_size, seq_len, 1)``
 
         """
-        ...
+        ...  # pragma: no cover
 
     def __call__(self, site_seq: torch.LongTensor, kin_seq: torch.LongTensor) -> torch.FloatTensor:
         """KSRs should be callable, taking in a site sequence and a kinase sequence and returning a tensor of logits. Should be alias for ``forward``.
@@ -43,7 +43,7 @@ class KSRProtocol(Protocol):
             The logits, as a torch.FloatTensor of shape ``(batch_size, seq_len, 1)``
 
         """
-        ...
+        ...  # pragma: no cover
 
 
 class KSR(torch.nn.Module, KSRProtocol, ABC):

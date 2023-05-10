@@ -11,12 +11,6 @@ from .join_first import join_first
 import warnings
 
 
-def splash(splash_file):
-    """Wrapper for `write_splash`. Same Parameters."""
-
-    write_splash(splash_file)
-
-
 def get_logger():
     """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file.
     """

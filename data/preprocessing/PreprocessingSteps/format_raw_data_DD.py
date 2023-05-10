@@ -97,6 +97,7 @@ def get_input_dataframe_core(
     percentile: Union[int, float],
     distance_matrix_file: str,
     write_file=True,
+    testing_mode=True,
 ):
     all_data = section_df.sort_values(by=["num_sites", "lab", "uniprot_id"], ascending=[False, True, True]).reset_index(
         drop=True
@@ -134,8 +135,8 @@ def get_input_dataframe_core(
     for df in [target, decoy]:
         df["original_kinase"] = target["lab"]
         df["original_uniprot_id"] = target["uniprot_id"]
-
-    if os.path.exists(f"{sum(sizes)}.derangement"):
+        
+    if os.path.exists(f"{sum(sizes)}.derangement") and not testing_mode:
         derangement = json.load(open(f"{sum(sizes)}.derangement"))
         logger.info("Using derangement found in cache.")
     else:
