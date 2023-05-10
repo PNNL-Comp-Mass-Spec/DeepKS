@@ -124,7 +124,7 @@ class MultiStageClassifier:
             true_symbol_to_grp_dict = None
 
         ### Get group predictions
-        if group_on != "kin":
+        if group_on == "kin":
             opposite_grp = "Kinase Sequence"
         else:
             opposite_grp = "Site Sequence"
@@ -474,102 +474,6 @@ def device_eligibility(arg_value):
             f"Device '{arg_value}' does not exist on this machine (hostname: {socket.gethostname()}).\n"
             f"Choices are {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
         )
-
-
-def parse_args() -> dict[str, Union[str, None]]:
-    logger.status("Parsing Arguments")
-
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--device",
-        type=str,
-        help=(
-            "Specify device. Choices are"
-            f" {sorted(set(['cpu']).union([f'cuda:{i}' for i in range(torch.cuda.device_count())]))}."
-        ),
-        metavar="<device>",
-        default="cuda:0" if torch.cuda.is_available() else "cpu",
-    )
-    parser.add_argument(
-        "--train", type=str, help="Specify train file name", required=True, metavar="<train_file_name.csv>"
-    )
-    parser.add_argument(
-        "--val", type=str, help="Specify validation file name", required=False, metavar="<val_file_name.csv>"
-    )
-
-    parser.add_argument(
-        "--gc-params",
-        type=str,
-        help="Specify Group Classifier and its hyperparameters file name",
-        required=False,
-        default=join_first("GC_params.json", 0, __file__),
-        metavar="<gc_params.json>",
-    )
-
-    parser.add_argument(
-        "--gc-training-params",
-        type=str,
-        help="Specify Kinase Substrate Relationship training options file name",
-        required=False,
-        default=None,
-        metavar="<gc_params.json>",
-        add_help=False,
-    )
-
-    parser.add_argument(
-        "--nni-params",
-        type=str,
-        help="Specify Nerual Net Interface options file name",
-        required=False,
-        default=None,
-        metavar="<gc_params.json>",
-        add_help=False,
-    )
-
-    parser.add_argument(
-        "--kin-fam-grp",
-        type=str,
-        help="Specify Kinase-Family-Group file name",
-        required=False,
-        default=join_first("data/preprocessing/kin_to_fam_to_grp_826.csv", 1, __file__),
-        metavar="<kin_fam_grp.csv>",
-    )
-
-    parser.add_argument("-s", action="store_true", help="Include to save state", required=False)
-
-    try:
-        args = vars(parser.parse_args())
-    except Exception as e:
-        print(e)
-        exit(1)
-
-    device_eligibility(args["device"])
-    if args.get("gc_params"):
-        has_gc_params = ["gc_params"]
-    else:
-        has_gc_params = []
-    if args.get("val"):
-        has_val = ["val"]
-    else:
-        has_val = []
-    extra_files = has_gc_params + has_val
-    for fn in ["train", "kin_fam_grp"] + extra_files:
-        f = str(args[fn])
-        try:
-            assert "formatted" in f or f.endswith(
-                ".json"
-            ), "'formatted' is not in the train or filename. Did you select the correct file?"
-        except AssertionError as e:
-            warnings.warn(str(e), UserWarning)
-        assert os.path.exists(join_first(f, 1, __file__)), f"Input file '{join_first(f, 1, __file__)}' does not exist."
-
-    if args["gc_training_params"] is not None:
-        logger.warning("GC Training Params is not implemented yet. (May never be if not deemed necessary.) Ignoring.")
-    if args["nni_params"] is not None:
-        logger.warning("NNI Params is not implemented yet. (May never be if not deemed necessary.) Ignoring.")
-
-    return args
 
 
 def smart_save_msc(msc: MultiStageClassifier):

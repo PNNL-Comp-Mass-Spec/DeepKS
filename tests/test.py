@@ -130,41 +130,20 @@ class TestTuning(unittest.TestCase):
 class TestMisc(unittest.TestCase):
     """Test Miscellaneous functions."""
 
-    # def setUp(self):
-    #     from ..models.individual_classifiers import smart_save_nn as this_smart_save_nn, IndividualClassifiers
+    class TestTreeMaker(unittest.TestCase):
+        """Test Tree Maker."""
 
-    #     self.smart_save_nn = this_smart_save_nn
-    #     self.IndividualClassifiers = IndividualClassifiers
-    #     self.real_file = "UNITTESTVERSIONdeepks_nn_weights.-1.cornichon"
-    #     self.parent = os.path.join(pathlib.Path(__file__).parent.parent.resolve(), "bin")
-    #     # make backup
-    #     assert os.path.exists(os.path.join(self.parent, self.real_file))
-    #     with open(os.path.join(self.parent, self.real_file), "rb") as fl:
-    #         self.bu = fl.read()
+        def setUp(self) -> None:
+            from ..tools.new_treemaker import main as this_main
 
-    def test_identity_placeholder(self):
-        assert True, "Identity"
+            self.main = this_main
 
-    # def test_smart_save_nn(self):
-    #     self.sample_files = ["UNITTESTVERSIONdeepks_nn_weights.0.cornichon",
-    #                     "UNITTESTVERSIONdeepks_nn_weights.2.cornichon",
-    #                     "UNITTESTVERSIONdeepks_nn_weights.5.cornichon"]
-    #     self.old_dir = os.getcwd()
-    #     os.chdir(self.parent)
-    #     assert os.path.exists(self.real_file)
-    #     for f in self.sample_files:
-    #         with open(f, "w") as fl:
-    #             fl.write("This is a test nn weight file.")
+        def test_tree_maker(self):
+            self.main()
 
-    #     self.smart_save_nn(self.IndividualClassifiers.load_all(self.real_file))
-    #     assert os.path.exists(os.path.join(self.parent, "deepks_nn_weights.6.cornichon"))
-
-    # def tearDown(self):
-    #     [os.unlink(f) for f in self.sample_files + ["deepks_nn_weights.6.cornichon"]]
-    #     os.chdir(self.old_dir)
-    #     # restore backup
-    #     with open(os.path.join(self.parent, self.real_file), "wb") as restore:
-    #         restore.write(self.bu)
+    def test_TestTreeMaker(self):
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(self.TestTreeMaker)
+        unittest.TextTestRunner().run(suite)
 
 
 class TestAAAPreprocessing(unittest.TestCase, UsesR):
@@ -283,6 +262,22 @@ class TestTrainingIndividualClassifiers(unittest.TestCase):
             "bin/deepks_gc_weights.-1.cornichon",
             "--ksr-params",
             "tests/sample_inputs/sample_hp_configs/KSR_params_ATTNWSELF.json",
+        ]
+        self.main()
+
+    def test_train_nn_classic(self):
+        sys.argv = [
+            "python3 -m DeepKS.models.individual_classifiers",
+            "--train",
+            "tests/sample_inputs/small_train.csv",
+            "--val",
+            "tests/sample_inputs/small_val_or_test.csv",
+            "--device",
+            DEVICE,
+            "--pre-trained-gc",
+            "bin/deepks_gc_weights.-1.cornichon",
+            "--ksr-params",
+            "tests/sample_inputs/sample_hp_configs/KSR_params_Classic.json",
         ]
         self.main()
 
@@ -617,7 +612,7 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             self.assertEqual(ar.exception.code, 0)
 
 
-with open(os.path.join(pathlib.Path(__file__).parent.resolve(), "examples.json")) as f:
+with open(join_first("examples.json", 0, __file__)) as f:
     EXAMPLES = json.load(f)
     for ex in EXAMPLES:
         if "DEVICE_PLACEHOLDER" in ex:
@@ -638,6 +633,9 @@ class TestExamples(unittest.TestCase):
         # print(f"{ex=}")
         sys.argv = list(ex)
         self.main.setup()
+
+    def test_examples_as_module(self):
+        from ..examples import __main__
 
 
 api_and_training_suite = unittest.TestSuite()
