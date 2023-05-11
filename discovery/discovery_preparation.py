@@ -7,10 +7,10 @@ import warnings
 from typing import Union
 
 np.set_printoptions(precision=3, edgeitems=10, linewidth=180)
-pd.set_option("display.max_columns", 100)
-pd.set_option("display.max_rows", 100)
-pd.set_option("display.width", 180)
-pd.set_option("display.min_rows", 50)
+# pd.set_option("display.max_columns", 100)
+# pd.set_option("display.max_rows", 100)
+# pd.set_option("display.width", 180)
+# pd.set_option("display.min_rows", 50)
 UNIPROT_REQUEST_SIZE = 300
 ORGANISM = "9606"
 os.chdir(pathlib.Path(__file__).parent.resolve())

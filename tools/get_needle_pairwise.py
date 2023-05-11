@@ -198,9 +198,9 @@ def get_needle_pairwise_mtx(
     ), "Matrix is not square/the right size"
     if pd.isna(df_results.values).any():
         with warnings.catch_warnings():  # TODO: Show warnings if Verbose
-            pd.set_option("display.max_rows", 1000)
-            pd.set_option("display.max_columns", 1000)
-            pd.set_option("display.width", 140)
+            # pd.set_option("display.max_rows", 1000)
+            # pd.set_option("display.max_columns", 1000)
+            # pd.set_option("display.width", 140)
             warnings.formatwarning = warning_on_one_line
             warnings.warn(
                 (
@@ -212,9 +212,9 @@ def get_needle_pairwise_mtx(
                 RuntimeWarning,
             )
             df_results = df_results.fillna(0.0)
-            pd.set_option("display.max_rows", 50)
-            pd.set_option("display.max_columns", 15)
-            pd.set_option("display.width", 120)
+            # pd.set_option("display.max_rows", 50)
+            # pd.set_option("display.max_columns", 15)
+            # pd.set_option("display.width", 120)
 
     return df_results
 

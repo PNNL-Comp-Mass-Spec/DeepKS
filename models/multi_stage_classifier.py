@@ -28,9 +28,9 @@ from .GroupClassifier import GroupClassifier, SiteGroupClassifier
 
 from .individual_classifiers import IndividualClassifiers
 
-pd.set_option("display.max_columns", 100)
-pd.set_option("display.max_rows", 100000)
-pd.set_option("display.width", 240)
+# pd.set_option("display.max_columns", 100)
+# pd.set_option("display.max_rows", 100000)
+# pd.set_option("display.width", 240)
 
 where_am_i = pathlib.Path(__file__).parent.resolve()
 os.chdir(where_am_i)

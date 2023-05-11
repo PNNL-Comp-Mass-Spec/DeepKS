@@ -75,34 +75,27 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
     done = False
     while not done and tries <= MAX_TRIES:
         tries += 1
-        try:
-            r = requests.get(new_url, timeout=10)
-            if r.status_code == 200:
-                done = True
-                gene_names = {x["primaryAccession"]: x["genes"][0]["geneName"]["value"] for x in r.json()["results"]}
-                for i, r in table.iterrows():
-                    if bool(re.search(".*-[0-9]+$", r["KIN_ACC_ID"])):
-                        gn = gene_names["-".join(r["KIN_ACC_ID"].split("-")[:-1])]
-                    else:
-                        gn = gene_names[r["KIN_ACC_ID"]]
-                    table.at[i, "GENE"] = gn
-            else:
-                print(f"Error: {r.status_code}")
-                if r.status_code == 400:
-                    print(r.json()["messages"])
-                    print(
-                        "^^^The message above is likely due to a PSP entry not being compatible with the Uniprot"
-                        " Database.\nPlease determine which entry is causing the problem and add it appropriately to"
-                        f" {pathlib.Path(__file__).parent.resolve()}/psp_exceptions.json."
-                    )
-                print("Exiting unsuccessfully.")
-                exit(1)
-        except Exception as e:
-            if e.__str__() == '':
-                extra = ''
-            else:
-                extra = f' ({e.__str__()})'
-            logger.warning(f"Issue: {e.__class__.__name__}{extra}. Retrying after 5 seconds...")
+        r = requests.get(new_url, timeout=10)
+        if r.status_code == 200:
+            done = True
+            gene_names = {x["primaryAccession"]: x["genes"][0]["geneName"]["value"] for x in r.json()["results"]}
+            for i, r in table.iterrows():
+                if bool(re.search(".*-[0-9]+$", r["KIN_ACC_ID"])):
+                    gn = gene_names["-".join(r["KIN_ACC_ID"].split("-")[:-1])]
+                else:
+                    gn = gene_names[r["KIN_ACC_ID"]]
+                table.at[i, "GENE"] = gn
+        else:
+            print(f"Error: {r.status_code}")
+            if r.status_code == 400:
+                print(r.json()["messages"])
+                print(
+                    "^^^The message above is likely due to a PSP entry not being compatible with the Uniprot"
+                    " Database.\nPlease determine which entry is causing the problem and add it appropriately to"
+                    f" {pathlib.Path(__file__).parent.resolve()}/psp_exceptions.json."
+                )
+            print("Exiting unsuccessfully.")
+            exit(1)
 
     table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
     logger.info(f"Info: Number of unique uniprot IDs in PSP: {len(table['KIN_ACC_ID'].unique())}")
