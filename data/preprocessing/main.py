@@ -34,6 +34,7 @@ else:
     perform_steps = {}
 """The steps to perform. If empty, all steps will be performed."""
 
+print(sys.argv)
 
 def step_1_download_psp(outfile="../raw_data/PSP_script_download.xlsx"):
     """Wrapper for `PreprocessingSteps.download_psp.get_phospho`. Same Parameters."""
@@ -191,7 +192,7 @@ def step_5_get_train_val_test_split(
             )
 
 def step_6_drop_overlapping_sites(train_file: str, val_file: str, test_file: str):
-    PreprocessingSteps.remove_overlaps
+    PreprocessingSteps.remove_overlaps.main(train_file, val_file, test_file)
 
 
 def main(

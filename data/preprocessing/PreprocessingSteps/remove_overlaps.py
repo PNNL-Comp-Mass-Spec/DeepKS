@@ -6,7 +6,7 @@ from ....config.join_first import join_first
 random.seed(0)
 
 
-def remove_legitimate_duplicates(input_files, rel_sizes):
+def remove_legitimate_duplicates(*input_files, rel_sizes):
     in_dict = collections.defaultdict(list)
     for inpf in input_files:
         seqs = pd.read_csv(inpf)["Site Sequence"].to_list()
@@ -59,11 +59,7 @@ def validate_data(input_files):
 
 def main(*files):
     rel_sizes = {
-        y: int(x) for y, x in [(z, re.sub(r"\.\.\/raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in *files]
+        y: int(x) for y, x in [(z, re.sub(r".*raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in files]
     }
-    in_dict = remove_legitimate_duplicates(*files, rel_sizes)
+    in_dict = remove_legitimate_duplicates(*files, rel_sizes=rel_sizes)
     validate_data(in_dict)
-
-
-if __name__ == "__main__": # pragma: no cover
-    main()

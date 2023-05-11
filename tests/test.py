@@ -1,5 +1,5 @@
 """All the tests for DeepKS"""
-import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect, time
+import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect, time, signal
 from git.repo import Repo
 from parameterized import parameterized
 
@@ -13,7 +13,20 @@ setattr(__main__, "PseudoSiteGroupClassifier", PseudoSiteGroupClassifier)
 DEVICE = os.environ.get("DEVICE", "cpu")
 """Device `torch` will use. Can be set with the `DEVICE` environment variable."""
 
-atexit.register(lambda: tearDownModule())
+
+# atexit.register(lambda: tearDownModule())
+def int_handler(signal, frame):
+    tearDownModule()
+    raise KeyboardInterrupt
+
+
+def term_handler(signal, frame):
+    tearDownModule()
+    raise KeyboardInterrupt
+
+
+signal.signal(signal.SIGINT, int_handler)
+signal.signal(signal.SIGTERM, term_handler)
 
 
 class UsesR:
@@ -36,7 +49,7 @@ def pre_setUp(root: str = join_first("", 1, __file__)):
 
 
 def post_tearDown(root: str = join_first("", 1, __file__)):
-    if '--keep' in sys.argv:
+    if "KEEP" in os.environ:
         return
     repo = Repo(root)
     for item in repo.index.diff(None):
@@ -152,7 +165,16 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
         self.backup_kin_fam_grp_filename = join_first("data/preprocessing/kin_to_fam_to_grp_828.csv", 1, __file__)
         self.backup_raw_data_filename = join_first("data/raw_data/raw_data_22769.csv", 1, __file__)
         self.backup_new_mtx_filename = join_first("data/preprocessing/pairwise_mtx_833.csv", 1, __file__)
-        self.backup_tr_fi_vl_fi_te_fi = tuple(lambda fn: join_first(fn, 1, __file__), ["data/raw_data/raw_data_30070_formatted_65.csv", "data/raw_data/raw_data_6896_formatted_95.csv", "data/raw_data/raw_data_8364_formatted_95.csv"])
+        self.backup_tr_fi_vl_fi_te_fi = tuple(
+            map(
+                lambda fn: join_first(fn, 1, __file__),
+                [
+                    "data/raw_data/raw_data_30070_formatted_65.csv",
+                    "data/raw_data/raw_data_6896_formatted_95.csv",
+                    "data/raw_data/raw_data_8364_formatted_95.csv",
+                ],
+            )
+        )
 
     # def test_all_preproc(self):
     #     self.step_1()
@@ -199,7 +221,7 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
         self.step_5_b(*self.step_5_args())
 
     def test_step_5_c_preproc(self):
-        setattr(self.__class__, "tr_fi_vl_fi_te_fi", self.step_5_c(*self.step_5_args())
+        setattr(self.__class__, "tr_fi_vl_fi_te_fi", self.step_5_c(*self.step_5_args()))
 
     def test_step_6_preproc(self):
         self.step_6(*getattr(self.__class__, "tr_fi_vl_fi_te_fi", self.backup_tr_fi_vl_fi_te_fi))
