@@ -1,5 +1,9 @@
+"""DeepKS model containing a `torch.nn.MultiheadAttention` layer for the site and kinase independently, \
+which are used as a self-attention mechanism. These then get fed into non-self-`torch.nn.MultiheadAttention` \
+layer after the CNN layer(s)."""
+
 import os, pathlib, torch, torch.nn as nn
-from ..tools.formal_layers import Concatenation, Multiply, Transpose, Squeeze
+from ..tools.formal_layers import Transpose, Squeeze
 from ..tools.model_utils import cNNUtils as cNNUtils
 from .KSRProtocol import KSR
 from typing import Literal, Tuple, Union
@@ -88,6 +92,10 @@ class MultipleCNN(nn.Module):
 
 # Convolutional neural network (two convolutional layers)
 class KinaseSubstrateRelationshipATTNWSELF(KSR):
+    """DeepKS model containing a `torch.nn.MultiheadAttention` layer for the site and kinase independently, \
+    which are used as a self-attention mechanism. These then get fed into non-self-`torch.nn.MultiheadAttention` \
+    layer after the CNN layer(s)."""
+
     def __init__(
         self,
         num_classes: int = 1,

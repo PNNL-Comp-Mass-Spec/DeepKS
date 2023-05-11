@@ -1,3 +1,6 @@
+"""Contains functionality to take raw PSP data and format it into a dataframe that can be used by the model \
+(first by `tools.tensorize`)."""
+
 import pathlib, os, traceback
 from typing import Union
 from matplotlib import testing
@@ -203,5 +206,5 @@ def get_input_dataframe_core(
             index=False,
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
-    logger.info(f"Outputting formatted data file with size: {len(all_data_w_seqs)}")
-    return df_name
+        logger.info(f"Outputting formatted data file with size: {len(all_data_w_seqs)}")
+        return df_name

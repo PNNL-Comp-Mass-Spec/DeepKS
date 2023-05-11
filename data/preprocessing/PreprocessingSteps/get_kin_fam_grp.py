@@ -1,3 +1,4 @@
+"""Get Kinase-to-Family-to-Group Mapping"""
 import re, io, pandas as pd, requests as req
 
 HELD_OUT_FAMILY = "SGK"

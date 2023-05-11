@@ -1,7 +1,10 @@
+"""Legacy module to download kinase-family-group mappings in a complex way from http://kinase.com/web/current/kinbase/.\
+ Not used currently."""
+
 import re, requests, pandas as pd, tqdm, aiohttp, asyncio
 
 
-async def complex_download_phospho():
+async def complex_download_phospho(): # pragma: no cover
     global pb, lock
     url = "http://kinase.com/web/current/kinbase/"
     r = requests.get(url)
@@ -28,7 +31,7 @@ async def complex_download_phospho():
     pd.concat(tabs, axis=0, ignore_index=True).drop("Select", axis=1)
 
 
-async def async_get(url, session):
+async def async_get(url, session): # pragma: no cover
     global pb, lock
     try:
         async with session.get(url=url) as r:

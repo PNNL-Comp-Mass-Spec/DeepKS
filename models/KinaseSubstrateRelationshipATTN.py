@@ -1,10 +1,10 @@
-"""Definition of the current KinaseSubstrateRelationshipATTN model."""
-
+"""DeepKS model containing a `torch.nn.MultiheadAttention` layer as the attention layer. Otherwise analogous to \
+    `models.KinaseSubstrateRelationshipClassic`."""
 import torch, torch.nn as nn
 from ..tools.formal_layers import Transpose, Squeeze
 from ..tools.model_utils import cNNUtils as cNNUtils
 from .KSRProtocol import KSR
-from typing import Literal, Tuple, Union
+from typing import Literal, Tuple
 from pprint import pformat
 
 torch.use_deterministic_algorithms(True)
@@ -35,7 +35,7 @@ class MHAttention(nn.Module):
             The number of attention heads.
         do_transform : bool, optional
             Whether or not to do a linear transform on the input tensors before running data through `forward`, by default False
-        q_k_v_transform_in_features : Union[Tuple, None], optional
+        q_k_v_transform_in_features :  optional
             The Q in-dimension, the K in-dimension, and the V in-dimension for the linear transform, by default None. Cannot be None if `do_transform` is True.
         """
         self.do_transform = do_transform
@@ -167,7 +167,8 @@ class MultipleCNN(nn.Module):
 
 # Convolutional neural network (two convolutional layers)
 class KinaseSubstrateRelationshipATTN(KSR):
-    """The main model for the kinase-substrate relationship prediction task."""
+    """DeepKS model containing a `torch.nn.MultiheadAttention` layer as the attention layer. Otherwise analogous to \
+    `models.KinaseSubstrateRelationshipClassic`."""
 
     def __init__(
         self,

@@ -1,5 +1,5 @@
 #!/bin/zsh
-
+rm -rf docs/api_pydoctor_docs/
 cd ..
 pydoctor \
     --docformat numpy \

@@ -1,3 +1,4 @@
+"""Original, long-standing DeepKS model containing CNNs and a simple dot-product-based attention layer."""
 import os, pathlib, torch, torch.nn as nn
 from ..tools.formal_layers import Concatenation, Multiply, Transpose, Squeeze
 from ..tools.model_utils import cNNUtils as cNNUtils
@@ -65,6 +66,8 @@ class MultipleCNN(nn.Module):
 
 # Convolutional neural network (two convolutional layers)
 class KinaseSubstrateRelationshipClassic(KSR):
+    """Original, long-standing DeepKS model containing CNNs and a simple dot-product-based attention layer."""
+
     def __init__(
         self,
         num_classes: int = 1,

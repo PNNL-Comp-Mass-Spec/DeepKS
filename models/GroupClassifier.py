@@ -1,3 +1,6 @@
+"""Contains the abstract base class `GroupClassifier` for a group classifier. Also contains the (currently used) \
+    concrete subclass `PseudoSiteGroupClassifier`."""
+
 from __future__ import annotations
 import numpy as np, pandas as pd, abc, warnings, re, collections, pickle, os, pathlib
 from typing import Union
@@ -31,15 +34,15 @@ def smart_save_gc(group_classifier: GroupClassifier, optional_idx: int | None = 
 
 
 class GCPredictionABC(abc.ABC):
-    """Wrapper for a a group prediction"""
+    """Wrapper for a group prediction"""
 
-    pass
+    ...
 
 
 class GCPrediction(str, GCPredictionABC):
-    """Wrapper for a a group prediction that is just a string."""
+    """Wrapper for a group prediction that is just a string."""
 
-    pass
+    ...
 
 
 class GroupClassifier(abc.ABC):
@@ -47,46 +50,106 @@ class GroupClassifier(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self, sequences: list[str], ground_truth: list[str]) -> None:
+        """Initializes the Group Classifier.
+
+        Parameters
+        ----------
+        sequences :
+            Sequences for which we have ground truth.
+        ground_truth :
+            Corresponding ground truth for the sequences.
+
+        Raises
+        ------
+        AssertionError
+            If the length of ``sequences`` and ``ground_truth`` are not equal.
+        """
         self.sequences = sequences
+        """Sequences for which we have ground truth."""
         self.ground_truth = ground_truth
+        """Corresponding ground truth for the sequences."""
+        assert len(self.sequences) == len(self.ground_truth)
 
         self.sequences_to_ground_truths = dict(zip(self.sequences, self.ground_truth))
+        """Dictionary mapping sequences to their ground truth."""
 
-        self.all_groups = list(set(self.ground_truth))
+        self.all_groups = sorted(list(set(self.ground_truth)))
+        """(sorted) list of all groups in the ground truth."""
 
     @staticmethod
     @abc.abstractmethod
-    def get_ground_truth(self_: GroupClassifier, X: Union[np.ndarray, list[str]]) -> list[GCPrediction]:
-        pass
+    def get_ground_truth(self_cls: GroupClassifier, X: Union[np.ndarray, list[str]]) -> list[GCPrediction]:
+        """Gets the ground truth for the sequences in ``X``.
+
+        Parameters
+        ----------
+        self_cls :
+            The group classifier for which we want to get the ground truth.
+        X :
+            Sequences for which we want to get the ground truth.
+
+        """
+        ...
 
     @staticmethod
     @abc.abstractmethod
     def simulated_predict(
-        self_: GroupClassifier, X: Union[np.ndarray, list[str]], simulated_acc: float = 0.8
+        self_cls: GroupClassifier, X: Union[np.ndarray, list[str]], simulated_acc: float = 0.8
     ) -> list[GCPrediction]:
-        pass
+        """Simulates predictions for the sequences in ``X``.
+
+        Parameters
+        ----------
+        self_cls :
+            The group classifier for which we want to simulate predictions.
+        X :
+            Sequences for which we want to get the simulated predictions.
+        simulated_acc :
+            The simulated accuracy of the predictions.
+        """
+        ...
 
     @staticmethod
     @abc.abstractmethod
-    def predict(self_, X: Union[np.ndarray, list[str]]) -> list[GCPrediction]:
-        pass
+    def predict(self_cls, X: Union[np.ndarray, list[str]]) -> list[GCPrediction]:
+        """Gets the group-classification predictions for the sequences in ``X``.
+
+        Parameters
+        ----------
+        self_cls :
+            The group classifier for which we want to get the predictions.
+        X : Union[np.ndarray, list[str]]
+            Sequences for which we want to get the predictions.
+
+        Returns
+        -------
+            List of predictions corresponding to the sequences in ``X``.
+        """
+        ...
 
 
 class SiteGroupClassifier(GroupClassifier, abc.ABC):
+    """Empty class denoting that the group classifier is grouping on sites."""
+
     pass
 
 
 class KinGroupClassifier(GroupClassifier, abc.ABC):
+    """Empty class denoting that the group classifier is grouping on kinases."""
+
     pass
 
 
 class PseudoSiteGroupClassifier(SiteGroupClassifier):
+    """A group classifier that groups on the presence of a tyrosine at the center of the sequence. The predictions \
+        are, hence, either 'TK' or 'NON-TK'."""
+
     def __init__(self, sequences, ground_truth) -> None:
         super().__init__(sequences, ground_truth)
 
     @staticmethod
     def simulated_predict(
-        self_: GroupClassifier, X: Union[np.ndarray, list[str]], simulated_acc: float = 0.8
+        self_cls: GroupClassifier, X: Union[np.ndarray, list[str]], simulated_acc: float = 0.8
     ) -> list[GCPrediction]:
         return []
 
@@ -95,12 +158,12 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         return all([xi in AA for xi in x])
 
     @staticmethod
-    def get_ground_truth(self_: GroupClassifier, X: Union[np.ndarray, list[str]]):
+    def get_ground_truth(self_cls: GroupClassifier, X: Union[np.ndarray, list[str]]):
         warnings.warn(colored("Warning: Using ground truth groups. (Normal for training/val/simulated gc)", "yellow"))
-        return PseudoSiteGroupClassifier.predict(self_, X)
+        return PseudoSiteGroupClassifier.predict(self_cls, X)
 
     @staticmethod
-    def predict(self_: GroupClassifier, X: Union[np.ndarray, list[str]]):
+    def predict(self_cls: GroupClassifier, X: Union[np.ndarray, list[str]]):
         all(PseudoSiteGroupClassifier.is_aa(x) for x in X)
         list_form = [x for x in X]
         assert all(isinstance(x, str) for x in list_form)

@@ -1,3 +1,5 @@
+"""Contains functionality to write a splash screen to the terminal."""
+
 import pathlib
 
 parent = pathlib.Path(__file__).parent.resolve()

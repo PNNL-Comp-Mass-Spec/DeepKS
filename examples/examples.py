@@ -24,14 +24,9 @@ def _main():
     """Main example function that runs examples"""
     os.chdir(pathlib.Path(__file__).parent.resolve())
 
-    print(
-        colored(
-            (
-                "Info: This is an example script for DeepKS. To inspect the sample input files, check the"
-                " 'DeepKS/tests/sample_inputs/' directory."
-            ),
-            "blue",
-        )
+    logger.info(
+        "This is an example script for DeepKS. To inspect the sample input files, check the"
+        " 'DeepKS/tests/sample_inputs/' directory."
     )
 
     if "--ex-list" not in sys.argv:
@@ -43,9 +38,10 @@ def _main():
         if i > 0:
             for _ in range(4):
                 print()
-        print(colored(f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from `/`:", "yellow"))
-        print()
-        print(termcolor.colored(" ".join(example) + "\n", "yellow"))
+        logger.status(
+            f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from `/`:\n{' '.join(example)}"
+            + "\n"
+        )
         sys.argv = example
         with warnings.catch_warnings():
             main.setup()

@@ -1,3 +1,6 @@
+"""Contains functionality to analyze the Jaccard Similarities of the train, test, and val sets between different \ 
+splittings of the entire dataset."""
+
 import json, itertools, pandas as pd, random
 
 

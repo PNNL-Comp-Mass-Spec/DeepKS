@@ -153,7 +153,7 @@ def step_5_get_train_val_test_split(
     },
     num_restarts=60,
 ) -> tuple[str, str, str] | None:
-    """Wrapper for `PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets` and `PreprocessingSteps.format_raw_data_DD.get_input_dataframe`."""
+    """Wrapper for `PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets` and `PreprocessingSteps.format_raw_data.get_input_dataframe`."""
     match part:
         case "a":
             logger.status("Step 5a: Obtaining train/val/test splits through hill climbing.")
@@ -171,20 +171,15 @@ def step_5_get_train_val_test_split(
                 "Step 5b: Generating dataframe with the following configuration"
                 f" dictionary:\n{pprint.pformat(data_gen_conf)}"
             )
-            return PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
+            return PreprocessingSteps.format_raw_data.get_input_dataframe(
                 input_fn=data_filename,
                 kin_seq_file=seq_filename_A,
                 distance_matrix_file=new_mtx_file,
                 config=data_gen_conf,
             )
         case "c":
-            data_gen_conf = {
-                "train_percentile": 65,
-                "held_out_percentile": 95,
-                "dataframe_generation_mode": "tr-val-te",
-            }
             logger.status("Step 5c: Splitting into train/val/test files.")
-            return PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
+            return PreprocessingSteps.format_raw_data.get_input_dataframe(
                 input_fn=data_filename,
                 kin_seq_file=seq_filename_A,
                 distance_matrix_file=new_mtx_file,
@@ -195,26 +190,31 @@ def step_6_drop_overlapping_sites(train_file: str, val_file: str, test_file: str
     PreprocessingSteps.remove_overlaps.main(train_file, val_file, test_file)
 
 
-def main(
-    seq_filename_B,
-    data_filename,
-    new_mtx_file,
-    eval_or_train_on_all,
-    seq_filename_A=None,
-    kin_fam_grp_filename=None,
-):
+def main():
     """The main function for preprocessing the data. Does the following:
     1. Downloads PSP
     2. Downloads Uniprot data
     3. Maps kinases to families and groups
     4. Gets pairwise distance matrix
-    5. Gets train/val/test split
+    5a. Gets train/val/test split through hill climbing
+    5b. Provides one file with all inputs
+    5c. Provides, tr, vl, te files (analagous to 5b)
+    6. Drops overlapping sites
     """
 
     step_1_download_psp()
     seq_filename_A, data_filename = step_2_download_uniprot()
     kin_fam_grp_filename = step_3_get_kin_to_fam_to_grp(seq_filename_A)
-    step_4_get_pairwise_mtx(seq_filename_A, seq_filename_B)
+    new_mtx_file = step_4_get_pairwise_mtx(seq_filename_A)
     step_5_get_train_val_test_split(
-        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, eval_or_train_on_all
+        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='a'
     )
+    step_5_get_train_val_test_split(
+        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='b'
+    )
+    
+    fn_res = step_5_get_train_val_test_split(
+        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='c'
+    )
+    assert fn_res is not None
+    step_6_drop_overlapping_sites(*fn_res)
