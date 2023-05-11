@@ -152,7 +152,7 @@ def step_5_get_train_val_test_split(
         "dataframe_generation_mode": "tr-all",
     },
     num_restarts=60,
-):
+) -> tuple[str, str, str] | None:
     """Wrapper for `PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets` and `PreprocessingSteps.format_raw_data_DD.get_input_dataframe`."""
     match part:
         case "a":
@@ -171,7 +171,7 @@ def step_5_get_train_val_test_split(
                 "Step 5b: Generating dataframe with the following configuration"
                 f" dictionary:\n{pprint.pformat(data_gen_conf)}"
             )
-            PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
+            return PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
                 input_fn=data_filename,
                 kin_seq_file=seq_filename_A,
                 distance_matrix_file=new_mtx_file,
@@ -184,7 +184,7 @@ def step_5_get_train_val_test_split(
                 "dataframe_generation_mode": "tr-val-te",
             }
             logger.status("Step 5c: Splitting into train/val/test files.")
-            PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
+            return PreprocessingSteps.format_raw_data_DD.get_input_dataframe(
                 input_fn=data_filename,
                 kin_seq_file=seq_filename_A,
                 distance_matrix_file=new_mtx_file,
