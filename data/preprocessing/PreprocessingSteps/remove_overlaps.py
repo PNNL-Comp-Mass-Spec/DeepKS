@@ -1,4 +1,7 @@
-import pandas as pd, random, collections, re, os
+"""Contains functionality to assign each site to exactly one of the train, test, or val sets"""
+
+import pandas as pd, random, collections, re, os, pathlib
+from ....config.join_first import join_first
 
 random.seed(0)
 
@@ -10,18 +13,17 @@ def remove_legitimate_duplicates(input_files, rel_sizes):
         for i in range(len(seqs)):
             in_dict[seqs[i]].append((inpf, i))
 
-    rld = in_dict
     to_drop = collections.defaultdict(list)
 
-    for seq in rld:
-        if len(s := set([x[0] for x in rld[seq]])) > 1:
+    for seq in in_dict:
+        if len(s := set([x[0] for x in in_dict[seq]])) > 1:
             ls = list(s)
             keep = random.sample(
                 [i for i in range(len(s))],
                 k=1,
                 counts=[int(y / min([1 / rel_sizes[x] for x in ls])) for y in [1 / rel_sizes[x] for x in ls]],
             )[0]
-            for instance in rld[seq]:
+            for instance in in_dict[seq]:
                 if instance[0] != ls[keep]:
                     # print("delete:", instance)
                     to_drop[instance[0]].append(instance[1])
@@ -55,20 +57,13 @@ def validate_data(input_files):
     for entry in val_dict.values():
         assert len(set(entry)) == 1
 
+def main(*files):
+    rel_sizes = {
+        y: int(x) for y, x in [(z, re.sub(r"\.\.\/raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in *files]
+    }
+    in_dict = remove_legitimate_duplicates(*files, rel_sizes)
+    validate_data(in_dict)
+
 
 if __name__ == "__main__": # pragma: no cover
-    import os, pathlib
-
-    where_am_i = pathlib.Path(__file__).parent.resolve()
-    os.chdir(where_am_i)
-
-    inp_list = [
-        "../raw_data_31834_formatted_65.csv",
-        "../raw_data_6500_formatted_95.csv",
-        "../raw_data_6406_formatted_95.csv",
-    ]
-    rel_sizes = {
-        y: int(x) for y, x in [(z, re.sub(r"\.\.\/raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in inp_list]
-    }
-    rld = remove_legitimate_duplicates(inp_list, rel_sizes)
-    validate_data(rld)
+    main()

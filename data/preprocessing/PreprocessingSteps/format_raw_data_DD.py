@@ -55,6 +55,7 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
         .reset_index(drop=True)
         .applymap(toupper)
     )
+    files_out = []
     if dataframe_generation_mode == "tr-val-te":
         for ML_set, percentile in [
             (join_first("../te_kins.json", 0, __file__), held_out_percentile),
@@ -72,22 +73,23 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
                 .drop("lab", axis=1, inplace=False)
                 .rename(columns={"lab_updated": "lab"}, inplace=False)
             )
-            get_input_dataframe_core(
+            files_out.append(get_input_dataframe_core(
                 all_df, input_fn, kin_seq_file, percentile, distance_matrix_file, testing_mode=False
-            )
+            ))
 
     elif dataframe_generation_mode == "tr-all":
-        get_input_dataframe_core(
+        files_out.append(get_input_dataframe_core(
             section_df=all_data,
             input_fn=input_fn,
             kin_seq_file=kin_seq_file,
             percentile=train_percentile,
             distance_matrix_file=distance_matrix_file,
             write_file=True,
-        )
+        ))
 
     else:
         raise ValueError("`dataframe_generation_mode` is not one of `tr-val-te` or `tr-all`.")
+    return tuple(files_out)
 
 
 def get_input_dataframe_core(
@@ -193,7 +195,7 @@ def get_input_dataframe_core(
 
     if write_file:
         all_data_w_seqs.to_csv(
-            "/".join(
+            df_name := "/".join(
                 input_fn.split("/")[:-1]
                 + [re.sub("([0-9]+)", f"{len(all_data_w_seqs)}", input_fn.split("/")[-1]).replace(".csv", "")]
             )
@@ -202,3 +204,4 @@ def get_input_dataframe_core(
         )
         # orig_data.to_csv(fn.replace("_formatted", ""), index=False)
     logger.info(f"Outputting formatted data file with size: {len(all_data_w_seqs)}")
+    return df_name

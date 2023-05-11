@@ -1,5 +1,5 @@
 """All the tests for DeepKS"""
-import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect
+import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect, time
 from git.repo import Repo
 from parameterized import parameterized
 
@@ -36,6 +36,8 @@ def pre_setUp(root: str = join_first("", 1, __file__)):
 
 
 def post_tearDown(root: str = join_first("", 1, __file__)):
+    if '--keep' in sys.argv:
+        return
     repo = Repo(root)
     for item in repo.index.diff(None):
         # check if item is a file
@@ -134,19 +136,23 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
         from ..data.preprocessing.main import step_1_download_psp, step_2_download_uniprot
         from ..data.preprocessing.main import step_3_get_kin_to_fam_to_grp, step_4_get_pairwise_mtx
         from ..data.preprocessing.main import step_5_get_train_val_test_split
+        from ..data.preprocessing.main import step_6_drop_overlapping_sites
 
         self.step_1 = step_1_download_psp
         self.step_2 = step_2_download_uniprot
         self.step_3 = step_3_get_kin_to_fam_to_grp
         self.step_4 = step_4_get_pairwise_mtx
+        # functools.partial means "run the function that is in the first argument, but always pass the given additional arguments to it"
         self.step_5_a = functools.partial(step_5_get_train_val_test_split, part="a", num_restarts=6)
         self.step_5_b = functools.partial(step_5_get_train_val_test_split, part="b")
         self.step_5_c = functools.partial(step_5_get_train_val_test_split, part="c")
+        self.step_6 = step_6_drop_overlapping_sites
 
         self.backup_kinase_seq_filename = join_first("data/raw_data/kinase_seq_833.csv", 1, __file__)
         self.backup_kin_fam_grp_filename = join_first("data/preprocessing/kin_to_fam_to_grp_828.csv", 1, __file__)
         self.backup_raw_data_filename = join_first("data/raw_data/raw_data_22769.csv", 1, __file__)
         self.backup_new_mtx_filename = join_first("data/preprocessing/pairwise_mtx_833.csv", 1, __file__)
+        self.backup_tr_fi_vl_fi_te_fi = tuple(lambda fn: join_first(fn, 1, __file__), ["data/raw_data/raw_data_30070_formatted_65.csv", "data/raw_data/raw_data_6896_formatted_95.csv", "data/raw_data/raw_data_8364_formatted_95.csv"])
 
     # def test_all_preproc(self):
     #     self.step_1()
@@ -193,7 +199,10 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
         self.step_5_b(*self.step_5_args())
 
     def test_step_5_c_preproc(self):
-        self.step_5_c(*self.step_5_args())
+        setattr(self.__class__, "tr_fi_vl_fi_te_fi", self.step_5_c(*self.step_5_args())
+
+    def test_step_6_preproc(self):
+        self.step_6(*getattr(self.__class__, "tr_fi_vl_fi_te_fi", self.backup_tr_fi_vl_fi_te_fi))
 
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):

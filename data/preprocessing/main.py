@@ -190,6 +190,9 @@ def step_5_get_train_val_test_split(
                 config=data_gen_conf,
             )
 
+def step_6_drop_overlapping_sites(train_file: str, val_file: str, test_file: str):
+    PreprocessingSteps.remove_overlaps
+
 
 def main(
     seq_filename_B,

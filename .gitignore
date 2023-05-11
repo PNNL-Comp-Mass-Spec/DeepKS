@@ -98,3 +98,4 @@ tools/fix_flashing.py
 .gitignore
 tools/fix_flashing_b.py
 !docs/API Docs Icon.png
+.coverage
