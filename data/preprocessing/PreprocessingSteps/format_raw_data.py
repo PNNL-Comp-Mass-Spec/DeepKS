@@ -77,7 +77,7 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
                 .rename(columns={"lab_updated": "lab"}, inplace=False)
             )
             files_out.append(get_input_dataframe_core(
-                all_df, input_fn, kin_seq_file, percentile, distance_matrix_file, testing_mode=False
+                all_df, input_fn, kin_seq_file, percentile, distance_matrix_file, testing_mode=True
             ))
 
     elif dataframe_generation_mode == "tr-all":

@@ -176,12 +176,13 @@ def step_5_get_train_val_test_split(
                 config=data_gen_conf,
             )
         case "c":
+            config = data_gen_conf | {"dataframe_generation_mode": "tr-val-te"}
             logger.status("Step 5c: Splitting into train/val/test files.")
             return PreprocessingSteps.format_raw_data.get_input_dataframe(
                 input_fn=data_filename,
                 kin_seq_file=seq_filename_A,
                 distance_matrix_file=new_mtx_file,
-                config=data_gen_conf,
+                config=config,
             )
 
 def step_6_drop_overlapping_sites(train_file: str, val_file: str, test_file: str):
@@ -215,4 +216,6 @@ def main():
         kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='c'
     )
     assert fn_res is not None
+    assert isinstance(fn_res, tuple)
+    assert len(fn_res) == 3
     step_6_drop_overlapping_sites(*fn_res)

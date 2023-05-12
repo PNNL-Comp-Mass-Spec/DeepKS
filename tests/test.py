@@ -20,13 +20,15 @@ def int_handler(signal, frame):
     raise KeyboardInterrupt
 
 
-def term_handler(signal, frame):
+def kill_handler(signal, frame):
     tearDownModule()
-    raise KeyboardInterrupt
 
 
 signal.signal(signal.SIGINT, int_handler)
-signal.signal(signal.SIGTERM, term_handler)
+signal.signal(signal.SIGTERM, kill_handler)
+# signal.signal(signal.SIGKILL, kill_handler)
+signal.signal(signal.SIGQUIT, kill_handler)
+# signal.signal(signal.SIGSTOP, kill_handler)
 
 
 class UsesR:

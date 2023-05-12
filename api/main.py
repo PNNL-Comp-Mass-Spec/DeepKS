@@ -143,8 +143,9 @@ def make_predictions(
         logger.status("Loading previously trained models...")
 
         if (pre_trained_nn or pre_trained_gc) and pre_trained_msc:
-            logger.info("Prioritizing `pre_trained_msc` (since it was provided) over `pre_trained_nn` and"
-                        " `pre_trained_gc`.")
+            logger.info(
+                "Prioritizing `pre_trained_msc` (since it was provided) over `pre_trained_nn` and `pre_trained_gc`."
+            )
         change_attr = lambda obj: (setattr(obj, "device", device), obj)[1]
 
         if pre_trained_msc:
@@ -540,8 +541,9 @@ def parse_api() -> dict[str, typing.Any]:
     if not (
         re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]
     ):
-        logger.info("`--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                    " json/csv/sqlite.")
+        logger.info(
+            "`--suppress-seqs-in-output` is being ignored because the predictions output format is not json/csv/sqlite."
+        )
 
     args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
     args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]
