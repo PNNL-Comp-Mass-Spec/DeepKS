@@ -17,7 +17,7 @@ TRAIN_INFO = 21
 """Information about performance in the training process."""
 VAL_INFO = 23
 """Information about performance in the validation process."""
-TEST_INFO = 25
+TEST_INFO = RESINFO = 25
 """Information about performance in the testing process."""
 USER_ERROR = 35
 """An error that is caused and/or partially expected by the user."""
@@ -32,6 +32,7 @@ logging.addLevelName(logging.INFO, "Info")
 logging.addLevelName(TRAIN_INFO, "Train Info")
 logging.addLevelName(VAL_INFO, "Validation Info")
 logging.addLevelName(TEST_INFO, "Test Result Info")
+logging.addLevelName(RESINFO, "Results Info")
 logging.addLevelName(logging.WARNING, "Warning")
 logging.addLevelName(USER_ERROR, "User Error")
 logging.addLevelName(logging.ERROR, "Unexpected Non-Accounted-For Error")
@@ -42,6 +43,7 @@ logging.PROGRESS = PROGRESS  # type: ignore
 logging.TRAIN_INFO = TRAIN_INFO  # type: ignore
 logging.VAL_INFO = VAL_INFO  # type: ignore
 logging.TEST_INFO = TEST_INFO  # type: ignore
+logging.RESINFO = RESINFO  # type: ignore
 logging.USER_ERROR = USER_ERROR  # type: ignore
 
 
@@ -93,21 +95,23 @@ class CustomLogger(logging.Logger):
 
         self.last_log = None
 
-        self.VANISHING_STATUS = 9
+        self.VANISHING_STATUS = VANISHING_STATUS
         """A status that is overwritten by the next logging statement."""
-        self.STATUS = 10
+        self.STATUS = STATUS
         """A status that is not overwritten by the next logging statement."""
-        self.PROGRESS = 15
+        self.PROGRESS = PROGRESS
         """Whether or not to show progress bars."""
-        self.TRAIN_INFO = 21
+        self.TRAIN_INFO = TRAIN_INFO
         """Information about performance in the training process."""
-        self.VAL_INFO = 23
+        self.VAL_INFO = VAL_INFO
         """Information about performance in the validation process."""
-        self.TEST_INFO = 25
+        self.TEST_INFO = TEST_INFO
         """Information about performance in the testing process."""
-        self.USER_ERROR = 35
+        self.RESINFO = RESINFO
+        """Information about performance in the testing process."""
+        self.USER_ERROR = USER_ERROR
         """An error that is caused and/or partially expected by the user."""
-        self.ERROR = 45
+        self.ERROR = ERROR
         """A totally unexpected error."""
 
     def _update_logging_level(self, new_level: int):
@@ -129,6 +133,7 @@ class CustomLogger(logging.Logger):
             print(" " * os.get_terminal_size().columns, end="\r")
 
     def debug(self, msg, *args, **kwargs):
+        """Log debugging statements."""
         if self._upper_level >= logging.DEBUG:
             self._blankit()
             if self.isEnabledFor(logging.DEBUG):
@@ -136,6 +141,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "debug"
 
     def vstatus(self, msg, *args, **kwargs):
+        """Log a status that is overwritten by the next logging statement."""
         if self._upper_level >= VANISHING_STATUS:
             self._blankit()
             if self.isEnabledFor(VANISHING_STATUS):
@@ -143,6 +149,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "vstatus"
 
     def status(self, msg, *args, **kwargs):
+        """Log a status that is not overwritten by the next logging statement."""
         if self._upper_level >= STATUS:
             self._blankit()
             if self.isEnabledFor(STATUS):
@@ -150,6 +157,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "status"
 
     def info(self, msg, *args, **kwargs):
+        """Log information."""
         if self._upper_level >= logging.INFO:
             self._blankit()
             if self.isEnabledFor(logging.INFO):
@@ -157,6 +165,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "info"
 
     def trinfo(self, msg, *args, **kwargs):
+        """Log information about performance in the training process."""
         if self._upper_level >= TRAIN_INFO:
             self._blankit()
             if self.isEnabledFor(TRAIN_INFO):
@@ -164,6 +173,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "trinfo"
 
     def valinfo(self, msg, *args, **kwargs):
+        """Log information about performance in the validation process."""
         if self._upper_level >= VAL_INFO:
             self._blankit()
             if self.isEnabledFor(VAL_INFO):
@@ -171,13 +181,23 @@ class CustomLogger(logging.Logger):
             self.last_log = "valinfo"
 
     def teinfo(self, msg, *args, **kwargs):
+        """Log information about performance in the testing process."""
         if self._upper_level >= TEST_INFO:
             self._blankit()
             if self.isEnabledFor(TEST_INFO):
                 self._log(TEST_INFO, msg, args, **kwargs)
             self.last_log = "teinfo"
 
+    def resinfo(self, msg, *args, **kwargs):
+        """Log information that are prediction results."""
+        if self._upper_level >= RESINFO:
+            self._blankit()
+            if self.isEnabledFor(RESINFO):
+                self._log(RESINFO, msg, args, **kwargs)
+            self.last_log = "resinfo"
+
     def warning(self, msg, *args, **kwargs):
+        """Log warnings."""
         if self._upper_level >= logging.WARNING:
             self._blankit()
             if self.isEnabledFor(logging.WARNING):
@@ -185,6 +205,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "warning"
 
     def error(self, msg, *args, **kwargs):
+        """Log errors."""
         if self._upper_level >= logging.ERROR:
             self._blankit()
             if self.isEnabledFor(logging.ERROR):
@@ -192,6 +213,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "error"
 
     def uerror(self, msg, *args, **kwargs):
+        """Log errors that are caused and/or partially anticipated by the user."""
         if self._upper_level >= USER_ERROR:
             self._blankit()
             if self.isEnabledFor(USER_ERROR):
@@ -200,6 +222,8 @@ class CustomLogger(logging.Logger):
 
 
 class CustomFormatter(logging.Formatter):
+    """Logging Formatter to add colors and styles for easy identification."""
+
     format_vanish = "{levelname}: {message}\033[F"
     format_neutral = "{levelname}: {message}"
     format_danger = "{levelname}: {message} ({filename}:{lineno})"
@@ -212,6 +236,7 @@ class CustomFormatter(logging.Formatter):
         logging.TRAIN_INFO: colored(format_neutral, "cyan"),  # type: ignore
         logging.VAL_INFO: colored(format_neutral, "cyan", attrs=["bold"]),  # type: ignore
         logging.TEST_INFO: colored(format_neutral, "cyan", attrs=["bold", "underline"]),  # type: ignore
+        logging.RESINFO: colored(format_neutral, "cyan", attrs=["bold", "underline"]),  # type: ignore
         logging.WARNING: colored(format_danger, "yellow"),
         logging.USER_ERROR: colored(format_danger, "red"),  # type: ignore
         logging.ERROR: colored(format_danger, "red", attrs=["bold"]),

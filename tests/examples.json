@@ -29,7 +29,11 @@
         "--pre-trained-nn",
         "bin/deepks_nn_weights.-1.cornichon",
         "--pre-trained-gc",
-        "bin/deepks_gc_weights.-1.cornichon"
+        "bin/deepks_gc_weights.-1.cornichon",
+        "--kin-info",
+        "tests/sample_inputs/kin-info.json",
+        "--site-info",
+        "tests/sample_inputs/site-info.json"
     ],
     [
         "python3 -m DeepKS.api.main",

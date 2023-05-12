@@ -562,7 +562,7 @@ class NNInterface:
                 X = [x.to(self.device) for x in X]
 
                 if not isinstance(ible, tqdm.tqdm):
-                    logger.vstatus(f"Status: Forward propogating through NN -- Batch [{b + 1}/{len(dll)}]")
+                    logger.vstatus(f"Forward propogating through NN -- Batch [{b + 1}/{len(dll)}]")
 
                 labels = labels.to(self.device)
                 outputs = self.model.forward(*X)

@@ -213,13 +213,18 @@ def make_predictions(
 
         if verbose:
             assert res is not None
-            msg = "\n<" * 16 + " REQUESTED RESULTS " + ">" * 16 + "\n"
+            msg_orig = msg = "\n" + "<" * 16 + " REQUESTED RESULTS " + ">" * 16 + "\n"
             if all(isinstance(r, dict) for r in res):
                 msg += pprint.pformat([dict(collections.OrderedDict(sorted(r.items()))) for r in res], sort_dicts=False)
             else:
                 msg += pprint.pformat(res, sort_dicts=False)
-            msg += "\n" + "<" * int(np.floor(len(msg) / 2)) + ">" * int(np.ceil(len(msg) / 2)) + "\n"
-            logger.info(msg)
+            msg += (
+                "\n"
+                + ("<" * ((len(msg_orig) - 2) // 2))
+                + (">" * (len(msg_orig) - 2 - ((len(msg_orig) - 2) // 2)))
+                + "\n"
+            )
+            logger.resinfo(msg)
         logger.status("Done!\n")
         return res
     except Exception as e:

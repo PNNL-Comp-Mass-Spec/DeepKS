@@ -1,10 +1,13 @@
 """The main example script"""
 
-import sys, termcolor, os, pathlib, warnings, json
+import logging
+import sys, os, pathlib, warnings, json
 from ..api import main
-from termcolor import colored
 from ..config.join_first import join_first
 from ..config.logging import get_logger
+import atexit
+from termcolor import colored
+
 
 logger = get_logger()
 """The logger for this script."""
@@ -26,7 +29,7 @@ def _main():
 
     logger.info(
         "This is an example script for DeepKS. To inspect the sample input files, check the"
-        " 'DeepKS/tests/sample_inputs/' directory."
+        " 'DeepKS/tests/sample_inputs/' directory.\n\n"
     )
 
     if "--ex-list" not in sys.argv:
@@ -35,12 +38,10 @@ def _main():
         inds = eval(sys.argv[sys.argv.index("--ex-list") + 1])
 
     for i, example in zip(inds, [EXAMPLES[i] for i in inds]):
-        if i > 0:
-            for _ in range(4):
-                print()
+        print()
         logger.status(
-            f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from `/`:\n{' '.join(example)}"
-            + "\n"
+            f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from the directory"
+            f" '/':\n{colored('$', 'black', attrs=['bold'])} {colored(' '.join(example), 'green')}\n"
         )
         sys.argv = example
         with warnings.catch_warnings():

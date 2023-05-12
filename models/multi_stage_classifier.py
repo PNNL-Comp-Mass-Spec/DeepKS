@@ -335,7 +335,7 @@ class MultiStageClassifier:
                 f"{str(pathlib.Path(__file__).parent.resolve())}/"
                 f"../out/{get_file_name('results', re.sub(r'.*?_json', 'json', predictions_output_format))}"
             )
-            logger.info("Writing results to {file_name}")
+            logger.info(f"Writing results to {file_name}")
             table = pd.DataFrame(ret)
             if "json" in predictions_output_format:
                 table.to_json(open(file_name, "w"), orient="records", indent=3)
@@ -515,12 +515,8 @@ def efficient_to_csv(data_dict: dict, outfile: str):
     with open(outfile, "w") as f:
         f.write(headers + "\n")
         lines_written = 1
-        for _, row_tuple in tqdm.tqdm(
-            enumerate(zip(*data_dict.values())),
-            total=max_len,
-            desc=colored("Status: Writing prediction queries to tempfile.", "cyan"),
-            colour="cyan",
-        ):
+        logger.status("Writing prediction queries to tempfile.")
+        for _, row_tuple in enumerate(zip(*data_dict.values())):
             f.write(",".join([str(x) for x in row_tuple]) + "\n")
             lines_written += 1
 
