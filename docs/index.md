@@ -116,7 +116,7 @@
 </style>
 <div class="tab-cont">
 <div class="tab-cell" style="float:left; width:var(--pctg);">
-<div class="tab-cell-inner" style="margin-left:12px; margin-right:6px;">
+<div class="tab-cell-inner" style="margin-left:12px; margin-right:6px;", id='outer'>
 
 # Table of Contents
 
@@ -250,39 +250,7 @@ Use the following command to actually start the examples:
 
 <pre><code class="language-bash">python3 -m DeepKS.examples</code></pre>
 <p>This will run a few examples of DeepKS. You should see the following output (with more lines at the end):</p>
-<pre class = "bash-output bash-output">
-<span style="color:blue;">Info: This is an example script for DeepKS. To inspect the sample input files, check the 'DeepKS/tests/sample_inputs/' directory.</span>
-<span style="color:goldenrod;">[Example 1/4] Simulating the following command line from `/`:</span>
-
-<span style="color:goldenrod;">python3 -m DeepKS.api.main -k TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD -s VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA -p inorder -v
-</span>
-<span style="color:green;">Status: Loading Modules...</span>
-<span style="color:green;">Status: Validating inputs.</span>
-<span style="color:blue;">Info: Inputs are valid!</span>
-<span style="color:green;">Status: Loading previously trained models...</span>
-<span style="color:green;">Status: Beginning Prediction Process...</span>
-<span style="color:green;">Status: Aligning Novel Kinase Sequences (for the purpose of the group classifier).</span>
-<span style="color:green;">Status: Done Aligning Novel Kinase Sequences.</span>
-<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
-<span style="color:blue;">...(Re)loading Tensors into Device for Next Chunk...</span>
-<span style="color:blue;">...(Re)loading Tensors into Device for Next Chunk...</span>
-
-
-<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
-<span style="color:green;">Status: Predictions Complete!</span>
-
-&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; REQUESTED RESULTS &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
-
-['False Phos. Pair', 'False Phos. Pair', 'False Phos. Pair']
-
-&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
-
-<span style="color:green;">Status: Done!
-</span>
-.
-.
-.
-</pre>
+<iframe src='example_output.html', height = '750px', width = '100%' id='exiframe'></iframe>
 
 # Full `DeepKS` Specification
 Below is a link to view the full code specification for `DeepKS`. This contains documentation for the functions in this package.
@@ -434,5 +402,5 @@ Other supporting diagrams can be made from the submodules of `DeepKS.images`. TO
 </div>
 </div>
 <script>
-document.querySelector("head > title:nth-child(2)").innerHTML = "DeepKS Manual" 
+document.querySelector("head > title:nth-child(2)").innerHTML = "DeepKS Manual";
 </script>

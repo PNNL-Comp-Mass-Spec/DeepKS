@@ -235,8 +235,8 @@ class CustomFormatter(logging.Formatter):
         logging.INFO: colored(format_neutral, "blue"),
         logging.TRAIN_INFO: colored(format_neutral, "cyan"),  # type: ignore
         logging.VAL_INFO: colored(format_neutral, "cyan", attrs=["bold"]),  # type: ignore
-        logging.TEST_INFO: colored(format_neutral, "cyan", attrs=["bold", "underline"]),  # type: ignore
-        logging.RESINFO: colored(format_neutral, "cyan", attrs=["bold", "underline"]),  # type: ignore
+        logging.TEST_INFO: colored(format_neutral, "cyan", attrs=["bold"]),  # type: ignore
+        logging.RESINFO: colored(format_neutral, "cyan", attrs=["bold"]),  # type: ignore
         logging.WARNING: colored(format_danger, "yellow"),
         logging.USER_ERROR: colored(format_danger, "red"),  # type: ignore
         logging.ERROR: colored(format_danger, "red", attrs=["bold"]),

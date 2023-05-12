@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- This file was created with the aha Ansi HTML Adapter. https://github.com/theZiz/aha -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8"/>
+<title>stdin</title>
+</head>
+<body>
+<pre style='background-color: #ebe9c27f; display: inline-block;'>
+8888888888                                                    888                   
+888                                                           888                   
+888                                                           888                   
+8888888      888  888    8888b.    88888b.d88b.    88888b.    888    .d88b.    .d8888b  
+888          `Y8bd8P'       &quot;88b   888 &quot;888 &quot;88b   888 &quot;88b   888   d8P  Y8b   88K      
+888            X88K     .d888888   888  888  888   888  888   888   88888888   &quot;Y8888b. 
+888          .d8&quot;&quot;8b.   888  888   888  888  888   888 d88P   888   Y8b.            X88 
+8888888888   888  888   &quot;Y888888   888  888  888   88888P&quot;    888    &quot;Y8888     88888P' 
+                                                   888                            
+                                                   888                            
+                                                   888                            
+
+
+By Ben Drucker @ PNNL BSD
+
+<span style="color:blue;">Info: This is an example script for DeepKS. To inspect the sample input files, check the 'DeepKS/tests/sample_inputs/' directory.
+
+</span>
+
+<span style="color:green;">Status: [Example 1/4] Simulating the following command line from the directory '/':
+</span><span style="font-weight:bold;color:green;"></span><span style="font-weight:bold;color:dimgray;">$</span> <span style="color:green;">python3 -m DeepKS.api.main -k TCHKGIDKMMRMQHAMLPLQMYLCF,YVMLYNNGPLWGRNDMMSCKSYVHD,HHMCEFCCAMCPQDGWHLMTAFGHD -s VQQEPGWTCYLFSYV,NHSVNQHWANFTCNR,ALVVNQRDKSYNAQA -p inorder -v --device cpu --pre-trained-nn bin/deepks_nn_weights.-1.cornichon --pre-trained-gc bin/deepks_gc_weights.-1.cornichon</span>
+
+<span style="color:green;">Status: Parsing Arguments</span>
+<span style="color:blue;">Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not json/csv/sqlite.</span>
+<span style="color:green;">Status: Validating inputs.</span>
+<span style="color:blue;">Info: Inputs are valid!</span>
+<span style="color:green;">Status: Loading previously trained models...</span>
+<span style="color:green;">Status: Beginning Prediction Process...</span>
+<span style="color:green;">Status: Writing prediction queries to tempfile.</span>
+<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
+<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
+<span style="color:green;">Status: Predictions Complete!</span>
+<span style="font-weight:bold;"></span><span style="font-weight:bold;color:#489FAC;">Results Info: 
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; REQUESTED RESULTS &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+['True Phos. Pair', 'True Phos. Pair', 'True Phos. Pair']
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</span>
+<span style="color:green;">Status: Done!
+</span>
+
+<span style="color:green;">Status: [Example 2/4] Simulating the following command line from the directory '/':
+</span><span style="font-weight:bold;color:green;"></span><span style="font-weight:bold;color:dimgray;">$</span> <span style="color:green;">python3 -m DeepKS.api.main -kf tests/sample_inputs/kins.txt -sf tests/sample_inputs/sites.txt -p dictionary -v --device cpu --pre-trained-nn bin/deepks_nn_weights.-1.cornichon --pre-trained-gc bin/deepks_gc_weights.-1.cornichon --kin-info tests/sample_inputs/kin-info.json --site-info tests/sample_inputs/site-info.json</span>
+
+<span style="color:green;">Status: Parsing Arguments</span>
+<span style="color:blue;">Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not json/csv/sqlite.</span>
+<span style="color:green;">Status: Validating inputs.</span>
+<span style="color:blue;">Info: Inputs are valid!</span>
+<span style="color:green;">Status: Loading previously trained models...</span>
+<span style="color:green;">Status: Beginning Prediction Process...</span>
+<span style="color:green;">Status: Writing prediction queries to tempfile.</span>
+<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
+<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
+                                                                                                                                                                <span style="color:green;">Status: Predictions Complete!</span>
+<span style="color:green;">Status: Copying Results to Dictionary.</span>
+<span style="font-weight:bold;"></span><span style="font-weight:bold;color:#489FAC;">Results Info: 
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; REQUESTED RESULTS &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+[{'Kinase Gene Name': ['KIN-1'],
+  'Kinase Sequence': 'NEGWVSQFKQYLVDTDHNVTRRTAAYLFHYVARTWPECVHIDNMDMTNIVDFHCRVIQLSKNFDFTWCFNCWWWWRGGMEAKPEYYYPHLMIDEMQRCID',
+  'Kinase Uniprot Accession': ['KIN-ID1'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN1'],
+  'Site Location': ['S1'],
+  'Site Sequence': 'AYGEKEHCANCHNIV',
+  'Site Uniprot Accession': ['SITE-ID1']},
+ {'Kinase Gene Name': ['KIN-2', 'Kin-2-Alternate-GN'],
+  'Kinase Sequence': 'RIDNKWVLPRKSWQQNEEAMCAPVNCAHFKTYPINHYQYWGAAACCTFTGHISKGEWETPYMKSFFMTEPMYQSKTSGEQKRSTEAWGGHLWFHPTWHHD',
+  'Kinase Uniprot Accession': ['KIN-ID2', 'Kin-2-Alternate-ID'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN2'],
+  'Site Location': ['S2'],
+  'Site Sequence': 'CHEFIPAKIPTNNIS',
+  'Site Uniprot Accession': ['SITE-ID2']},
+ {'Kinase Gene Name': ['KIN-3'],
+  'Kinase Sequence': 'DVMDPLCFMATIRISWPLHPHRVLRKASWAYMSAYDVTQSKYLQQRVTDDMFATIFCMKLYAVCWCFCRCFWLPAKVKCWYNMTLVTDTGFDVVFTGHVS',
+  'Kinase Uniprot Accession': ['KIN-ID3'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN3'],
+  'Site Location': ['S3'],
+  'Site Sequence': 'MKNMWMPMHWELTGC',
+  'Site Uniprot Accession': ['SITE-ID3']},
+ {'Kinase Gene Name': ['KIN-4'],
+  'Kinase Sequence': 'PPILEPPKDDYNDWDEIFYIQTYSCFGSCLILWPMGVTQCTAGNTFNQTSKTASTGLDGCFRAGNPLTYKLWIMKYLLNCIYCALWSYQMCAKFQFDKCN',
+  'Kinase Uniprot Accession': ['KIN-ID4'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN4'],
+  'Site Location': ['S4'],
+  'Site Sequence': 'MWYRQSCWHVRMHPF',
+  'Site Uniprot Accession': ['SITE-ID4']},
+ {'Kinase Gene Name': ['KIN-5'],
+  'Kinase Sequence': 'VNHKNIYSKKCCRYSDDHLTNPYWKYYEESFRRLYMHGCLLLSSGEPKSEHFAKCKTGDFLCPIASMGMDEKNNLYMTLNWATWHDGIEGRTGIPKQHPT',
+  'Kinase Uniprot Accession': ['KIN-ID5'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN5'],
+  'Site Location': ['S5'],
+  'Site Sequence': 'VGRLFIKMQSSVECE',
+  'Site Uniprot Accession': ['SITE-ID5']},
+ {'Kinase Gene Name': ['KIN-6'],
+  'Kinase Sequence': 'MGLAHHDIQFGRYLVCNFKKAAHNAKWRKWLGDQFDDYHTCVQCDCHPKRFQMPFWKQVYRDMFHGGMIRNWERQVLAGWIWRSLSYCCSNNPDNEKQHI',
+  'Kinase Uniprot Accession': ['KIN-ID6'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN6'],
+  'Site Location': ['S6'],
+  'Site Sequence': 'MVYEFSKRQFHDHLA',
+  'Site Uniprot Accession': ['SITE-ID6']},
+ {'Kinase Gene Name': ['KIN-7'],
+  'Kinase Sequence': 'GQQYGAIQTIEDGEKSNYCHHPHWHPAIQDRFVSHMDYQGAAAKMHGGTYDCQWPFFSFHKFDFGCAVNKFKQMVAWCAHNFTNGDIEMKQKPVHEQSHL',
+  'Kinase Uniprot Accession': ['KIN-ID7'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN7'],
+  'Site Location': ['S7'],
+  'Site Sequence': 'DSAYWVHWEMLARGP',
+  'Site Uniprot Accession': ['SITE-ID7']},
+ {'Kinase Gene Name': ['KIN-8'],
+  'Kinase Sequence': 'TKINIGRCEGPREFYCPDRIFEYRRFATKRQCPMLVNFMNRYQLQVPMIFVNLSVNAIWKWHFRITHQGQTKRLDHDWRGHGTHEWMNPMTYQPAQPYQF',
+  'Kinase Uniprot Accession': ['KIN-ID8'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN8'],
+  'Site Location': ['S8'],
+  'Site Sequence': 'LCALESTAAWAHWCA',
+  'Site Uniprot Accession': ['SITE-ID8']},
+ {'Kinase Gene Name': ['KIN-9'],
+  'Kinase Sequence': 'FKCIEIDRWTTMDQITVFAWQHYWGTCKIRGPHIAKIKMYDYDVPYELMPEGSRPNFKYWHMCHLKRYWQRCSSVPNDEHNIIICGAWTAMMRLMADQYQ',
+  'Kinase Uniprot Accession': ['KIN-ID9'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN9'],
+  'Site Location': ['S9'],
+  'Site Sequence': 'KRLQKYQTDNKFCYT',
+  'Site Uniprot Accession': ['SITE-ID9']},
+ {'Kinase Gene Name': ['KIN-10'],
+  'Kinase Sequence': 'LRGNAEICNHRTWGAVYECTPPVRWKNDEHRLCMVMNDWFTQTMDVKWQMDIEWGTEWNRCIHMQSGNDLSFCFETAQAPFFMATWNPWRQGWLHKKKVQ',
+  'Kinase Uniprot Accession': ['KIN-ID10'],
+  'Prediction': 'True Phos. Pair',
+  'Site Gene Name': ['SITE-GN10'],
+  'Site Location': ['S10'],
+  'Site Sequence': 'DGEFPLIWEPLNAYQ',
+  'Site Uniprot Accession': ['SITE-ID10']}]
+&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+</span>
+<span style="color:green;">Status: Done!
+</span>
+
+<span style="color:green;">Status: [Example 3/4] Simulating the following command line from the directory '/':
+</span><span style="font-weight:bold;color:green;"></span><span style="font-weight:bold;color:dimgray;">$</span> <span style="color:green;">python3 -m DeepKS.api.main -kf tests/sample_inputs/kins.txt -sf tests/sample_inputs/sites-prod.txt -p dictionary_json --kin-info tests/sample_inputs/kin-info.json --site-info tests/sample_inputs/site-info.json --scores --normalize-scores --cartesian-product --device cpu --pre-trained-nn bin/deepks_nn_weights.-1.cornichon --pre-trained-gc bin/deepks_gc_weights.-1.cornichon</span>
+
+<span style="color:green;">Status: Parsing Arguments</span>
+<span style="color:blue;">Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not json/csv/sqlite.</span>
+<span style="color:blue;">Info: Setting `--group-on` to 'site' as default since `--cartesian-product` was set.</span>
+<span style="color:green;">Status: Validating inputs.</span>
+<span style="color:blue;">Info: Inputs are valid!</span>
+<span style="color:green;">Status: Loading previously trained models...</span>
+<span style="color:green;">Status: Beginning Prediction Process...</span>
+<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
+<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
+                                                                                                                                                                                                                                                                                                                                <span style="color:green;">Status: Predictions Complete!</span>
+<span style="color:green;">Status: Copying Results to Dictionary.</span>
+<span style="color:blue;">Info: Writing results to /Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/models/../out/results_2023-05-12@12`57`12.9@-04`00.json</span>
+<span style="color:green;">Status: Done!
+</span>
+
+<span style="color:green;">Status: [Example 4/4] Simulating the following command line from the directory '/':
+</span><span style="font-weight:bold;color:green;"></span><span style="font-weight:bold;color:dimgray;">$</span> <span style="color:green;">python3 -m DeepKS.api.main -kf tests/sample_inputs/kins.txt -sf tests/sample_inputs/sites-prod.txt -p csv --kin-info tests/sample_inputs/kin-info-known-groups.json --site-info tests/sample_inputs/site-info.json --scores --normalize-scores --cartesian-product --groups --bypass-group-classifier --device cpu --pre-trained-nn bin/deepks_nn_weights.-1.cornichon --pre-trained-gc bin/deepks_gc_weights.-1.cornichon</span>
+
+<span style="color:green;">Status: Parsing Arguments</span>
+<span style="color:blue;">Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not json/csv/sqlite.</span>
+<span style="color:blue;">Info: Setting `--group-on` to 'site' as default since `--cartesian-product` was set.</span>
+<span style="color:green;">Status: Validating inputs.</span>
+<span style="color:blue;">Info: Inputs are valid!</span>
+<span style="color:green;">Status: Loading previously trained models...</span>
+<span style="color:green;">Status: Beginning Prediction Process...</span>
+<span style="color:green;">Status: Prediction Step [1/2]: Sending input kinases to group classifier</span>
+<span style="color:blue;">Info: Info: Group Classifier Accuracy (since we have known groups)</span>
+<span style="color:green;">Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on step [1/2]</span>
+                                                                                                                                                                                                                                                                                                                                <span style="color:green;">Status: Predictions Complete!</span>
+<span style="color:green;">Status: Copying Results to Dictionary.</span>
+<span style="color:blue;">Info: Writing results to /Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/models/../out/results_2023-05-12@12`57`14.8@-04`00.csv</span>
+<span style="color:green;">Status: Done!
+</span>
+<span style="color:blue;">Info: All Examples Complete.</span>
+</pre>
+</body>
+</html>

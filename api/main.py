@@ -6,7 +6,7 @@ from ..config import logging
 
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
     if __name__ == "__main__":  # pragma: no cover
-        logging.splash("main_api")
+        logging.write_splash("main_api")
 
 
 logger = logging.get_logger()
@@ -140,19 +140,11 @@ def make_predictions(
         logger.info("Inputs are valid!")
 
         # Create (load) multi-stage classifier
-        print(colored("Status: Loading previously trained models...", "green"))
+        logger.status("Loading previously trained models...")
 
         if (pre_trained_nn or pre_trained_gc) and pre_trained_msc:
-            print(
-                colored(
-                    (
-                        "Info: Prioritizing `pre_trained_msc` (since it was provided) over `pre_trained_nn` and"
-                        " `pre_trained_gc`."
-                    ),
-                    "blue",
-                )
-            )
-
+            logger.info("Prioritizing `pre_trained_msc` (since it was provided) over `pre_trained_nn` and"
+                        " `pre_trained_gc`.")
         change_attr = lambda obj: (setattr(obj, "device", device), obj)[1]
 
         if pre_trained_msc:
@@ -544,21 +536,12 @@ def parse_api() -> dict[str, typing.Any]:
     #         )
     if "json" in args_dict["predictions_output_format"] and args_dict["verbose"]:
         args_dict["verbose"] = False
-        print(
-            colored('Info: Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
-        )
+        logger.info('Verbose mode is being set to "False" because the predictions output format is JSON.', "blue")
     if not (
         re.search(r"(json|csv|sql)", args_dict["predictions_output_format"]) and args_dict["suppress_seqs_in_output"]
     ):
-        print(
-            colored(
-                (
-                    "Info: `--suppress-seqs-in-output` is being ignored because the predictions output format is not"
-                    " json/csv/sqlite."
-                ),
-                "blue",
-            )
-        )
+        logger.info("`--suppress-seqs-in-output` is being ignored because the predictions output format is not"
+                    " json/csv/sqlite.")
 
     args_dict["kinase_seqs"] = [x.strip() for x in args_dict["kinase_seqs"] if x != ""]
     args_dict["site_seqs"] = [x.strip() for x in args_dict["site_seqs"] if x != ""]

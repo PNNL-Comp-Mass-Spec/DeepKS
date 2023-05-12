@@ -34,8 +34,6 @@ else:
     perform_steps = {}
 """The steps to perform. If empty, all steps will be performed."""
 
-print(sys.argv)
-
 def step_1_download_psp(outfile="../raw_data/PSP_script_download.xlsx"):
     """Wrapper for `PreprocessingSteps.download_psp.get_phospho`. Same Parameters."""
     logger.status("Step 1: Download most recent version of the PhosphositePlus database.")
@@ -50,11 +48,11 @@ def step_2_download_uniprot():
         logger.status("Rscript not found in PATH. Please install R and ensure it is in PATH.")
         exit(1)
     logger.status("Step 2b: Running R scripts.")
-    print("\n~~~~ R MESSAGES ~~~~\n")
+    logger.info("\n~~~~ R MESSAGES ~~~~\n")
     seq_filename_A, data_filename = tuple(
         system_tools.os_system_and_get_stdout("Rscript PreprocessingSteps/ML_data_pipeline.R", prepend="[R] ")
     )
-    print("\n~~~~ END R MESSAGES ~~~~\n")
+    logger.info("\n~~~~ END R MESSAGES ~~~~\n")
     return seq_filename_A, data_filename
 
 

@@ -5,7 +5,6 @@ import json, atexit
 
 
 def exit_fn():
-    print("Exiting")
     with open(join_first("config/logging_config.json", 1, __file__), "w") as f:
         json.dump({}, f, indent=3)
 

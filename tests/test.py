@@ -179,57 +179,58 @@ class TestAAAPreprocessing(unittest.TestCase, UsesR):
             )
         )
 
-    # def test_all_preproc(self):
-    #     self.step_1()
-    #     seq_filename_A, raw_data_filename = self.step_2()
-    #     kin_fam_grp_filename = self.step_3(seq_filename_A)
-    #     new_mtx_filename = self.step_4(seq_filename_A)
-    #     step_5_args = kin_fam_grp_filename, raw_data_filename, seq_filename_A, new_mtx_filename
-    #     self.step_5_a(*step_5_args)
-    #     self.step_5_b(*step_5_args)
     def test_steps_1_to_6_preproc(self):
         self.main()
 
-    # def test_step_1_preproc(self):
-    #     self.step_1()
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_1_preproc(self):
+        self.step_1()
 
-    # def test_step_2_preproc(self):
-    #     a, r = self.step_2()
-    #     setattr(self.__class__, "seq_filename_A", a)
-    #     setattr(self.__class__, "raw_data_filename", r)
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_2_preproc(self):
+        a, r = self.step_2()
+        setattr(self.__class__, "seq_filename_A", a)
+        setattr(self.__class__, "raw_data_filename", r)
 
-    # def test_step_3_preproc(self):
-    #     kin_fam_grp_filename = self.step_3(getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename))
-    #     setattr(self.__class__, "kin_fam_grp_filename", kin_fam_grp_filename)
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_3_preproc(self):
+        kin_fam_grp_filename = self.step_3(getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename))
+        setattr(self.__class__, "kin_fam_grp_filename", kin_fam_grp_filename)
 
-    # def test_step_4_preproc(self):
-    #     new_mtx_filename = self.step_4(
-    #         getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename),
-    #     )
-    #     setattr(self.__class__, "new_mtx_file", new_mtx_filename)
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_4_preproc(self):
+        new_mtx_filename = self.step_4(
+            getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename),
+        )
+        setattr(self.__class__, "new_mtx_file", new_mtx_filename)
 
-    # def step_5_args(self):
-    #     ls = (
-    #         getattr(self.__class__, "kin_fam_grp_filename", self.backup_kin_fam_grp_filename),
-    #         getattr(self.__class__, "raw_data_filename", self.backup_raw_data_filename),
-    #         getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename),
-    #         getattr(self.__class__, "new_mtx_file", self.backup_new_mtx_filename),
-    #     )
-    #     for fn in ls:
-    #         assert os.path.exists(fn), f"{fn} does not exist."
-    #     return ls
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def step_5_args(self):
+        ls = (
+            getattr(self.__class__, "kin_fam_grp_filename", self.backup_kin_fam_grp_filename),
+            getattr(self.__class__, "raw_data_filename", self.backup_raw_data_filename),
+            getattr(self.__class__, "seq_filename_A", self.backup_kinase_seq_filename),
+            getattr(self.__class__, "new_mtx_file", self.backup_new_mtx_filename),
+        )
+        for fn in ls:
+            assert os.path.exists(fn), f"{fn} does not exist."
+        return ls
 
-    # def test_step_5_a_preproc(self):
-    #     self.step_5_a(*self.step_5_args())
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_5_a_preproc(self):
+        self.step_5_a(*self.step_5_args())
 
-    # def test_step_5_b_preproc(self):
-    #     self.step_5_b(*self.step_5_args())
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_5_b_preproc(self):
+        self.step_5_b(*self.step_5_args())
 
-    # def test_step_5_c_preproc(self):
-    #     setattr(self.__class__, "tr_fi_vl_fi_te_fi", self.step_5_c(*self.step_5_args()))
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_5_c_preproc(self):
+        setattr(self.__class__, "tr_fi_vl_fi_te_fi", self.step_5_c(*self.step_5_args()))
 
-    # def test_step_6_preproc(self):
-    #     self.step_6(*getattr(self.__class__, "tr_fi_vl_fi_te_fi", self.backup_tr_fi_vl_fi_te_fi))
+    @unittest.skip("Covered by test_steps_1_to_6_preproc")
+    def test_step_6_preproc(self):
+        self.step_6(*getattr(self.__class__, "tr_fi_vl_fi_te_fi", self.backup_tr_fi_vl_fi_te_fi))
 
 
 class TestTrainingIndividualClassifiers(unittest.TestCase):
