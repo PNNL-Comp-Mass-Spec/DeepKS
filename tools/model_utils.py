@@ -19,6 +19,70 @@ class cNNUtils:
     """General useful utilities for working with CNNs"""
 
     @staticmethod
+    def calculate_cNN_params(model_self, kin_or_site: Literal["kin", "site"]) -> tuple[list, list, list, list]:
+        """Calculates the parameters for the CNN(s) for either the kinase or site sequence.
+
+        Parameters
+        ----------
+        kin_or_site :
+            Either "kin" or "site".
+
+        Returns
+        -------
+            Calculated pool sizes, in channels, whether to flatten, and whether to transpose, for each CNN layer.
+
+        Raises
+        ------
+        ValueError
+            If ``kin_or_site`` is not ``kin`` or ``site``.
+        """
+        if kin_or_site == "kin":
+            param = model_self.kin_param_dict
+            emb = model_self.emb_dim_kin
+            first_width = model_self.kin_len
+            num_conv = model_self.num_conv_kin
+        elif kin_or_site == "site":
+            param = model_self.site_param_dict
+            emb = model_self.emb_dim_site
+            first_width = model_self.site_len
+            num_conv = model_self.num_conv_site
+        else:
+            raise ValueError("kin_or_site must be 'kin' or 'site'")
+
+        calculated_pools = []
+        calculated_in_channels = []
+        calculated_do_flatten = []
+        calculated_do_transpose = []
+
+        for i in range(num_conv):
+            calculated_do_transpose.append(i == 0)
+            calculated_do_flatten.append(False)
+            if i == 0:
+                calculated_in_channel = emb
+            else:
+                calculated_in_channel = param["out_channels"][i - 1]
+            calculated_in_channels.append(calculated_in_channel)
+            if i == 0:
+                input_width = first_width
+            else:
+                input_width = param["out_lengths"][i - 1]
+            calculated_pools.append(
+                cNNUtils.desired_conv_then_pool_shape(
+                    length=input_width,
+                    desired_length=param["out_lengths"][i],
+                    kernel_size=param["kernels"][i],
+                    err_message=f"{kin_or_site} CNNs",
+                )
+            )
+
+        return (
+            calculated_pools,
+            calculated_in_channels,
+            calculated_do_flatten,
+            calculated_do_transpose,
+        )
+
+    @staticmethod
     def id_params(config, db_file="../architectures/HP_config_DB.tsv", index_column=0):
         db = pd.read_csv(db_file, sep="\t")
         config = str(config).replace("\n", ";; ")

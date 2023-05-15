@@ -1,0 +1,72 @@
+{
+    "NON-TK": {
+        "model_class": "KinaseSubstrateRelationshipGRU",
+        "linear_layer_sizes": [
+            50,
+            25
+        ],
+        "emb_dim_kin": 22,
+        "emb_dim_site": 22,
+        "gru_hidden_dim_kin": 256,
+        "gru_hidden_dim_site": 256,
+        "dropout_pr": 0.4,
+        "site_param_dict": {
+            "kernels": [
+                8
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                12
+            ]
+        },
+        "kin_param_dict": {
+            "kernels": [
+                32
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                12
+            ]
+        },
+        "attn_num_heads": 12
+    },
+    "TK": {
+        "model_class": "KinaseSubstrateRelationshipGRU",
+        "linear_layer_sizes": [
+            50,
+            25
+        ],
+        "emb_dim_kin": 22,
+        "emb_dim_site": 22,
+        "gru_hidden_dim_kin": 256,
+        "gru_hidden_dim_site": 256,
+        "dropout_pr": 0.4,
+        "site_param_dict": {
+            "kernels": [
+                8
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                48
+            ]
+        },
+        "kin_param_dict": {
+            "kernels": [
+                32
+            ],
+            "out_lengths": [
+                8
+            ],
+            "out_channels": [
+                48
+            ]
+        },
+        "attn_num_heads": 12
+    }
+}
