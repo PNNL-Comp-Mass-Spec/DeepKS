@@ -9,7 +9,7 @@ from types import NoneType
 import os, itertools, pathlib, typing
 from typing import Any, Tuple, Union, Literal, Iterable
 from prettytable import PrettyTable
-from torchinfo import summary
+from torchinfo_modified import summary
 from termcolor import colored
 from .roc_helpers import ROCHelpers
 from .estimate_memory import MemoryCalculator
@@ -146,14 +146,8 @@ class NNInterface:
             else:
                 raise e from None
 
-        def loss_steps(output):
-            if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                self.criterion(output, torch.zeros_like(output))
-            elif isinstance(self.criterion, torch.nn.CrossEntropyLoss):
-                self.criterion(output, torch.zeros_like(output[0]).long())
-
         self.mem_per_input = MemoryCalculator.calculate_memory(
-            self.model, [x[0] for x in dummy_input], loss_steps=loss_steps, device=self.device
+            self.model, [x[0] for x in dummy_input], device=self.device
         )
         return self.mem_per_input
 
@@ -170,13 +164,14 @@ class NNInterface:
             self.model_summary_name.write(str(self))
 
     def __str__(self):
-        """Gets the model summary as a string by using `torchinfo.summary` and returns it.
+        """Gets the model summary as a string by using `torchinfo_modified.summary` and returns it.
 
         Returns
         -------
         str:
             The model summary as a string
         """
+        assert self.inp_size is not None
         try:
             self.representation = (
                 "\n"
@@ -197,7 +192,7 @@ class NNInterface:
             )
             """The model summary as a string; the string representation of ``self``"""
             self.model_summary = ms
-            """The model summary as a `torchinfo.summary.Summary` object"""
+            """The model summary as a `torchinfo_modified.summary.Summary` object"""
             try:
                 torch.cuda.empty_cache()
             except Exception:
