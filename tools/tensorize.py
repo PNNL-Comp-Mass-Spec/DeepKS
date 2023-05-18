@@ -225,8 +225,7 @@ def data_to_tensor(
     cartesian_product: bool = False,
     group_by: Literal["site", "kin"] = "site",
     kin_seq_to_group: dict = {},
-    bytes_per_input: int = 1_400_000,
-    bytes_per_input_multiplier: int = 1,
+    bytes_per_input: float = 2e6,
 ) -> Generator[tuple[torch.utils.data.DataLoader, dict[str, Any]], None, None]:
     """Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.
 
@@ -362,8 +361,6 @@ def data_to_tensor(
     assert all(isinstance(x, str) for x in data["Kinase Sequence"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
-    bytes_per_input *= bytes_per_input_multiplier
-
     if str(device) == str(torch.device("cpu")) or "mps" in str(device):
         free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) / 1.25
         # print(colored(f"{psutil.virtual_memory().available=}{psutil.swap_memory().free=}", "yellow"))
@@ -398,12 +395,14 @@ def data_to_tensor(
 
         actual_partition_size = end_idx - begin_idx
         if isinstance(data_shuffled, pd.DataFrame):
-            X_site = torch.IntTensor([encode_seq(x, tok_dict) for x in data_shuffled["Site Sequence"].values])
+            X_site = torch.IntTensor(
+                [encode_seq(x, tok_dict) for x in data_shuffled["Site Sequence"].values[begin_idx:end_idx]]
+            )
             X_site = X_site.to(device)
             X_kin = torch.IntTensor(
                 [
                     pad(encode_seq(x, tok_dict), max_kin_length, tok_dict)
-                    for x in data_shuffled["Kinase Sequence"].values
+                    for x in data_shuffled["Kinase Sequence"].values[begin_idx:end_idx]
                 ]
             )
             X_kin = X_kin.to(device)
@@ -411,7 +410,7 @@ def data_to_tensor(
                 encoding = "mlt_cls"
             else:
                 encoding = "scalar"
-            y = torch.IntTensor(encode_label(data_shuffled[class_col].values.tolist(), encoding))
+            y = torch.IntTensor(encode_label(data_shuffled[class_col].values[begin_idx:end_idx].tolist(), encoding))
             y = y.to(device)
 
         else:  # data is a dict

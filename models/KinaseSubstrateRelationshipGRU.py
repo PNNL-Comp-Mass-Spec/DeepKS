@@ -406,8 +406,8 @@ class KinaseSubstrateRelationshipGRU(KSR):
         emb_site = self.emb_site(site_seq)
         emb_kin = self.emb_kin(kin_seq)  # (batch_size, seq_len, emb_dim)
 
-        _, grued_site = self.gru_site(emb_site)
-        _, grued_kin = self.gru_kin(emb_kin)  # (num_gru_layers == 1, batch_size, hidden_dim)
+        del_1, grued_site = self.gru_site(emb_site)
+        del_2, grued_kin = self.gru_kin(emb_kin)  # (num_gru_layers == 1, batch_size, hidden_dim)
 
         grued_site_flat = self.squeeze_0(grued_site)
         grued_kin_flat = self.squeeze_0(grued_kin)  # (batch_size, hidden_dim)

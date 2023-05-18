@@ -126,6 +126,20 @@ class TestTuning(unittest.TestCase):
 class TestMisc(unittest.TestCase):
     """Test Miscellaneous functions."""
 
+    class TestMemoryCalculator(unittest.TestCase):
+        """Test the NN Memory Calculator"""
+
+        def setUp(self) -> None:
+            from ..tools.estimate_memory import main as this_main, main2 as this_main2
+
+            self.main, self.main2 = this_main, this_main2
+
+        def test_memory_calculator_1(self):
+            self.assertEqual(82548, self.main())
+
+        def test_memory_calculator_2(self):
+            self.assertEqual(55018, self.main2())
+
     class TestTreeMaker(unittest.TestCase):
         """Test Tree Maker."""
 
@@ -139,6 +153,10 @@ class TestMisc(unittest.TestCase):
 
     def test_TestTreeMaker(self):
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(self.TestTreeMaker)
+        unittest.TextTestRunner().run(suite)
+
+    def test_TestMemoryCalculator(self):
+        suite = unittest.defaultTestLoader.loadTestsFromTestCase(self.TestMemoryCalculator)
         unittest.TextTestRunner().run(suite)
 
 

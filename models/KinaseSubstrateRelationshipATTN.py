@@ -377,7 +377,7 @@ class KinaseSubstrateRelationshipATTN(KSR):
         transp_out_site = self.transpose(cnn_out_site)
         transp_out_kin = self.transpose(cnn_out_kin)
 
-        attn_out, _ = self.attn(transp_out_site, transp_out_kin)
+        attn_out, attn_del = self.attn(transp_out_site, transp_out_kin)
         attn_transp_out = self.transpose(attn_out)
         avg_pool_out = self.post_attn_avg_pool(attn_transp_out)
 

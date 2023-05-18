@@ -4,12 +4,15 @@
 from __future__ import annotations
 from cProfile import label
 import json, torch, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, tqdm, io
+import nntplib
+from types import NoneType
 import os, itertools, pathlib, typing
 from typing import Any, Tuple, Union, Literal, Iterable
 from prettytable import PrettyTable
-from torchinfo_modified import summary
+from torchinfo import summary
 from termcolor import colored
 from .roc_helpers import ROCHelpers
+from .estimate_memory import MemoryCalculator
 
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 """See `ROCHelpers.protected_roc_auc_score`"""
@@ -121,6 +124,39 @@ class NNInterface:
         if inp_size is not None and inp_types is None and isinstance(self.model_summary_name, str):
             self.write_model_summary()
 
+    def get_bytes_per_input(self) -> int:
+        if hasattr(self, "mem_per_input"):
+            return int(getattr(self, "mem_per_input"))
+        if self.inp_size is None:
+            raise ValueError("Cannot calculate bytes per input without input size.")
+        if self.inp_types is None:
+            raise ValueError("Cannot calculate bytes per input without input types.")
+        assert all(isinstance(x, list) for x in self.inp_size)
+        assert len(self.inp_size) == len(self.inp_types)
+        try:
+            dummy_input = [
+                torch.randn(*insz, dtype=intp).to(self.device) for insz, intp in zip(self.inp_size, self.inp_types)
+            ]
+        except RuntimeError as e:
+            if '"normal_kernel_cpu"' in str(e):
+                dummy_input = [
+                    torch.randint(0, 100, insz, dtype=intp).to(self.device)
+                    for insz, intp in zip(self.inp_size, self.inp_types)
+                ]
+            else:
+                raise e from None
+
+        def loss_steps(output):
+            if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+                self.criterion(output, torch.zeros_like(output))
+            elif isinstance(self.criterion, torch.nn.CrossEntropyLoss):
+                self.criterion(output, torch.zeros_like(output[0]).long())
+
+        self.mem_per_input = MemoryCalculator.calculate_memory(
+            self.model, [x[0] for x in dummy_input], loss_steps=loss_steps, device=self.device
+        )
+        return self.mem_per_input
+
     def write_model_summary(self):
         """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""
         logger.info(f"Writing model summary to file {self.model_summary_name}.")
@@ -149,7 +185,7 @@ class NNInterface:
                     ms := summary(
                         self.model,
                         device=self.device,
-                        input_size=self.inp_size,
+                        input_size=[[100] + x[1:] for x in self.inp_size],
                         dtypes=self.inp_types,
                         col_names=["input_size", "output_size", "num_params", "trainable"],
                         row_settings=["var_names"],

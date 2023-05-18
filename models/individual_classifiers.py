@@ -275,6 +275,7 @@ class IndividualClassifiers:
     ):
         notes = ""
         pass_through_scores = {}
+
         gen_train = self.get_group_dataframes(
             which_groups,
             Xy_formatted_train_file,
@@ -302,6 +303,18 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_tr]["n_gram"]
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
+            dummy = list(
+                data_to_tensor(
+                    partial_group_df_vl,
+                    tokdict=self.default_tok_dict,
+                    n_gram=ng,
+                    device=self.device,
+                    maxsize=MAX_SIZE_DS,
+                )
+            )[0]
+            self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(dummy[0])
+            self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(dummy[0])
+            bpi = self.interfaces[group_tr].get_bytes_per_input()
             try:
                 val_loader, _ = list(
                     data_to_tensor(
@@ -310,6 +323,7 @@ class IndividualClassifiers:
                         n_gram=ng,
                         device=self.device,
                         maxsize=MAX_SIZE_DS,
+                        bytes_per_input=bpi,
                     )
                 )[0]
             except ValueError as e:
@@ -324,13 +338,9 @@ class IndividualClassifiers:
                     n_gram=ng,
                     device=self.device,
                     maxsize=MAX_SIZE_DS,
+                    bytes_per_input=bpi,
                 )
             )
-
-            train_loader_peak = train_generator.peek()
-
-            self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(train_loader_peak[0])
-            self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(train_loader_peak[0])
             msm = self.grp_to_interface_args[group_tr]["model_summary_name"]
             assert isinstance(msm, str), "Model summary name must be a string"
             self.interfaces[group_tr].model_summary_name = msm + "-" + group_tr.upper()
@@ -386,6 +396,19 @@ class IndividualClassifiers:
             ng = self.grp_to_interface_args[group_te]["n_gram"]
             assert isinstance(ng, int), "N-gram must be an integer"
             seen_groups_passthrough.append(group_te)
+            dummy = list(
+                data_to_tensor(
+                    partial_group_df_te,
+                    tokdict=self.default_tok_dict,
+                    n_gram=ng,
+                    device=device,
+                    maxsize=MAX_SIZE_DS,
+                    cartesian_product=cartesian_product,
+                )
+            )[0]
+            self.interfaces[group_te].inp_size = self.interfaces[group_te].get_input_size(dummy[0])
+            self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
+            bpi = self.interfaces[group_te].get_bytes_per_input()
             for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,
@@ -393,6 +416,7 @@ class IndividualClassifiers:
                 device=device,
                 maxsize=MAX_SIZE_DS,
                 cartesian_product=cartesian_product,
+                bytes_per_input=bpi,
             ):
                 info_dict_passthrough[group_te] = info_dict
                 info_dict_passthrough["on_chunk"] = info_dict["on_chunk"]
