@@ -4,7 +4,6 @@
 from __future__ import annotations
 from cProfile import label
 import json, torch, torch.nn, torch.utils.data, sklearn.metrics, numpy as np, tqdm, io
-import nntplib
 from types import NoneType
 import os, itertools, pathlib, typing
 from typing import Any, Tuple, Union, Literal, Iterable
@@ -12,7 +11,7 @@ from prettytable import PrettyTable
 from torchinfo_modified import summary
 from termcolor import colored
 from .roc_helpers import ROCHelpers
-from .estimate_memory import MemoryCalculator
+from .estimate_memory_old import MemoryCalculator
 
 protected_roc_auc_score = ROCHelpers.protected_roc_auc_score
 """See `ROCHelpers.protected_roc_auc_score`"""
@@ -146,8 +145,20 @@ class NNInterface:
             else:
                 raise e from None
 
+        def loss_steps(t: torch.Tensor, num_labs=1):
+            if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+                l = self.criterion(t)
+                ll = l(t, torch.rand(t.shape[0]))
+                ll.backward()
+            elif isinstance(self.criterion, torch.nn.BCELoss):
+                l = self.criterion(t)
+                ll = l(t, torch.rand(t.shape[0], num_labs))
+                ll.backward()
+            else:
+                raise NotImplementedError("Need `torch.nn.BCEWithLogitsLoss` or `torch.nn.BCELoss`.")
+
         self.mem_per_input = MemoryCalculator.calculate_memory(
-            self.model, [x[0] for x in dummy_input], device=self.device
+            self.model, [x[0] for x in dummy_input], loss_steps=loss_steps, device=self.device
         )
         return self.mem_per_input
 
