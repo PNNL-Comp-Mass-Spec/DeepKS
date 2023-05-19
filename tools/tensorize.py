@@ -226,6 +226,7 @@ def data_to_tensor(
     group_by: Literal["site", "kin"] = "site",
     kin_seq_to_group: dict = {},
     bytes_per_input: float = 2e6,
+    bytes_constant: float = 100e6,
 ) -> Generator[tuple[torch.utils.data.DataLoader, dict[str, Any]], None, None]:
     """Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.
 
@@ -362,7 +363,7 @@ def data_to_tensor(
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
     if str(device) == str(torch.device("cpu")) or "mps" in str(device):
-        free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) / 1.25
+        free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) - bytes_constant
         # print(colored(f"{psutil.virtual_memory().available=}{psutil.swap_memory().free=}", "yellow"))
     else:
         assert "cuda" in str(device), "Device must be either 'cpu' or a cuda device."

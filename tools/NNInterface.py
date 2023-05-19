@@ -72,8 +72,8 @@ class NNInterface:
         model_to_train: torch.nn.Module,
         loss_fn: torch.nn.modules.loss._Loss,
         optim: torch.optim.Optimizer,
-        inp_size=None,
-        inp_types=None,
+        inp_size: list | None = None,
+        inp_types: list | None = None,
         model_summary_name=None,
         device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
     ):
@@ -123,9 +123,9 @@ class NNInterface:
         if inp_size is not None and inp_types is None and isinstance(self.model_summary_name, str):
             self.write_model_summary()
 
-    def get_bytes_per_input(self) -> int:
+    def get_bytes_per_input(self) -> tuple[int, int]:
         if hasattr(self, "mem_per_input"):
-            return int(getattr(self, "mem_per_input"))
+            return getattr(self, "mem_per_input")
         if self.inp_size is None:
             raise ValueError("Cannot calculate bytes per input without input size.")
         if self.inp_types is None:
@@ -157,10 +157,10 @@ class NNInterface:
             else:
                 raise NotImplementedError("Need `torch.nn.BCEWithLogitsLoss` or `torch.nn.BCELoss`.")
 
-        self.mem_per_input = MemoryCalculator.calculate_memory(
+        self.mem_per_input, self.constant_req_mem = MemoryCalculator.calculate_memory(
             self.model, [x[0] for x in dummy_input], loss_steps=loss_steps, device=self.device
         )
-        return self.mem_per_input
+        return self.mem_per_input, self.constant_req_mem
 
     def write_model_summary(self):
         """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""

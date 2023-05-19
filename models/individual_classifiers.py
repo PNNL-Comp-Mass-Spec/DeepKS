@@ -314,7 +314,7 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(dummy[0])
             self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(dummy[0])
-            bpi = self.interfaces[group_tr].get_bytes_per_input()
+            bpi, bc = self.interfaces[group_tr].get_bytes_per_input()
             try:
                 val_loader, _ = list(
                     data_to_tensor(
@@ -324,6 +324,7 @@ class IndividualClassifiers:
                         device=self.device,
                         maxsize=MAX_SIZE_DS,
                         bytes_per_input=bpi,
+                        bytes_constant=bc,
                     )
                 )[0]
             except ValueError as e:
@@ -339,6 +340,7 @@ class IndividualClassifiers:
                     device=self.device,
                     maxsize=MAX_SIZE_DS,
                     bytes_per_input=bpi,
+                    bytes_constant=bc,
                 )
             )
             msm = self.grp_to_interface_args[group_tr]["model_summary_name"]
@@ -408,7 +410,7 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_te].inp_size = self.interfaces[group_te].get_input_size(dummy[0])
             self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
-            bpi = self.interfaces[group_te].get_bytes_per_input()
+            bpi, bc = self.interfaces[group_te].get_bytes_per_input()
             for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,
@@ -417,6 +419,7 @@ class IndividualClassifiers:
                 maxsize=MAX_SIZE_DS,
                 cartesian_product=cartesian_product,
                 bytes_per_input=bpi,
+                bytes_constant=bc,
             ):
                 info_dict_passthrough[group_te] = info_dict
                 info_dict_passthrough["on_chunk"] = info_dict["on_chunk"]
@@ -536,13 +539,13 @@ class IndividualClassifiers:
                     torch.cuda.empty_cache()
                 except Exception:
                     pass
-                new_info = info_dict_passthrough[grp]["PairIDs"]
+                new_info: list = info_dict_passthrough[grp]["PairIDs"]
                 try:
                     if get_emp_eqn:
                         grp_to_emp_eqn = self.__dict__["grp_to_emp_eqn"].get(grp)
                     else:
                         grp_to_emp_eqn = None
-                    for pair_id, i in zip(new_info, range(len(new_info))):
+                    for pair_id, i in zip(new_info, range(len(new_info))):  # type: ignore  # Why does this give warning?
                         all_predictions_outputs.update(
                             {
                                 pair_id: (
@@ -571,8 +574,8 @@ class IndividualClassifiers:
 
         else:  # Not predict mode
             if addl_args["load_include_eval"] is None:  # Need to eval
-                grp_to_info_pass_through_info_dict = {}
-                grp_to_loaders = {
+                grp_to_info_pass_through_info_dict = {}  # TODO
+                grp_to_loaders = {  # type: ignore
                     grp: loader
                     for grp, loader in self.obtain_group_and_loader(
                         which_groups=self.groups,

@@ -1,9 +1,11 @@
+import gc
 import tempfile
 import numpy as np, torch, os, sys, ast
 from typing import Callable, Protocol
 from torch.profiler import profile
 import inspect
 from copy import deepcopy
+import multiprocessing
 
 from DeepKS.config.join_first import join_first
 import tracemalloc
@@ -12,6 +14,26 @@ import memory_profiler
 
 logger = get_logger()
 """The logger for this module"""
+
+import numpy as np
+
+
+def inner(fn, v, *args, **kwargs):
+    interv = 0.001
+    mp = []
+    while len(mp) < 10 or max(mp) == min(mp):
+        mp = memory_profiler.memory_usage(proc=(fn, args, kwargs), interval=interv)  # type: ignore
+        interv /= 10
+    v.value = int((max(mp) - min(mp)) * 1024 * 1024)
+
+
+def rep_mem_wrapper(fn, *args, **kwargs):
+    gc.collect()
+    v = multiprocessing.Value("d")
+    p = multiprocessing.Process(target=inner, args=(fn, v, *args), kwargs=kwargs)
+    p.start()
+    p.join()
+    return v.value  # type: ignore
 
 
 class MemoryCalculator(Protocol):
@@ -27,7 +49,7 @@ class MemoryCalculator(Protocol):
         reps: int = 1,
         safety_factor: float = 1.25,
         device: torch.device = torch.device("cpu"),
-    ) -> int:
+    ) -> tuple[int, int]:
         """Calculate the memory needed for a model and input, for a backward and forward pass
 
         Parameters
@@ -48,21 +70,53 @@ class MemoryCalculator(Protocol):
 
         Returns
         -------
-            The number of bytes of memory needed for a model and input, for a backward and forward pass
+            Tuple of (the number of bytes of memory needed for each additional input to a model, the number of bytes of memory needed for a single input --- aka the constant memory requirement.)
 
         """
         pass_through_cuda = []
-        runit = lambda: MemoryCalculator._calculate_memory_core(
+        runit_one = lambda: MemoryCalculator._calculate_memory_core(
+            model, input_like_no_batch, loss_steps, 1, device, pass_through_cuda
+        )
+        runit_many = lambda: MemoryCalculator._calculate_memory_core(
             model, input_like_no_batch, loss_steps, calculating_batch_size, device, pass_through_cuda
         )
-        mp = memory_profiler.memory_usage(proc=runit, interval=0.01)  # type: ignore
 
         if not pass_through_cuda:
-            res = max(mp) - min(mp)
+            one_tot_mem = rep_mem_wrapper(
+                MemoryCalculator._calculate_memory_core,
+                model,
+                input_like_no_batch,
+                loss_steps,
+                1,
+                device,
+                pass_through_cuda,
+            )
+            many_tot_mem = rep_mem_wrapper(
+                MemoryCalculator._calculate_memory_core,
+                model,
+                input_like_no_batch,
+                loss_steps,
+                calculating_batch_size,
+                device,
+                pass_through_cuda,
+            )
+            assert many_tot_mem > one_tot_mem
+
         else:
-            res = pass_through_cuda[0]
-        logger.info(f"MB Needed Per Input = {res:,.3f}")
-        return res
+            runit_one()
+            one_tot_mem = pass_through_cuda[0]
+            del pass_through_cuda[0]
+            runit_many()
+            many_tot_mem = pass_through_cuda[0]
+
+        ## one_tot_mem = constant_mem + var_mem
+        ## many_tot_mem = constant_mem + var_mem * calculating_batch_size
+        ## many_tot_mem - one_tot_mem = var_mem * (calculating_batch_size - 1)
+        ## var_mem = (many_tot_mem - one_tot_mem) / (calculating_batch_size - 1)
+        var_mem = int((many_tot_mem - one_tot_mem) / (calculating_batch_size - 1)) + 1
+        constant_mem = int(one_tot_mem - var_mem) + 1
+        logger.info(f"MB Needed Per Additional Input = {var_mem / 1024 / 1024:,.3f}")
+        return var_mem, constant_mem
 
     @staticmethod
     def _calculate_memory_core(
@@ -88,7 +142,7 @@ class MemoryCalculator(Protocol):
             The batch size to use when calculating memory requirements
         device :
             The device to use when calculating memory requirements"""
-        print("here")
+
         if "cuda" in str(device):
             torch.cuda.reset_peak_memory_stats()
         try:
@@ -113,7 +167,6 @@ class MemoryCalculator(Protocol):
 
         lt = (model.to(device))(*input_)
         loss_steps(lt)
-
         if "cuda" in str(device):
             pass_through_cuda.append(torch.cuda.max_memory_allocated())
 
@@ -207,25 +260,27 @@ class SampleModel(torch.nn.Module):
         return self.ll(X).squeeze(1)
 
 
+class Concat(torch.nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def forward(self, x, y):
+        return torch.concat([x, y], dim=1)
+
+
+class Squeeze(torch.nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def forward(self, X):
+        return torch.squeeze(X, dim=-1)
+
+
 class SampleModel0(torch.nn.Module):
     def __init__(self, ll_size_1, ll_size_2, out_size):
         super().__init__()
         self.ll1 = torch.nn.Linear(ll_size_1, out_size, dtype=torch.float32)
         self.ll2 = torch.nn.Linear(ll_size_2, out_size, dtype=torch.float32)
-
-        class Concat(torch.nn.Module):
-            def __init__(self, *args, **kwargs) -> None:
-                super().__init__(*args, **kwargs)
-
-            def forward(self, x, y):
-                return torch.concat([x, y], dim=1)
-
-        class Squeeze(torch.nn.Module):
-            def __init__(self, *args, **kwargs) -> None:
-                super().__init__(*args, **kwargs)
-
-            def forward(self, X):
-                return torch.squeeze(X, dim=-1)
 
         self.concat = Concat()
         self.squeeze = Squeeze()
@@ -254,19 +309,20 @@ def get_user_defined_variables():
     return user_defined_vars
 
 
+def loss(outputs):
+    l = torch.nn.BCEWithLogitsLoss()
+    ll = l(outputs, torch.rand(outputs.shape[0]))
+    ll.backward()
+
+
 def main():
-    model = SampleModel0(1000, 500, 1)
+    model = SampleModel0(100000, 50000, 1)
     torch.random.manual_seed(0)
     torch.use_deterministic_algorithms(True)
-    input1 = torch.randn(1000, dtype=torch.float32)
-    input2 = torch.randn(500, dtype=torch.float32)
+    input1 = torch.randn(100000, dtype=torch.float32)
+    input2 = torch.randn(50000, dtype=torch.float32)
 
-    def loss(outputs):
-        l = torch.nn.BCEWithLogitsLoss()
-        ll = l(outputs, torch.rand(outputs.shape[0]))
-        ll.backward()
-
-    return MemoryCalculator.calculate_memory(model, [input1, input2], loss, calculating_batch_size=1000) / 1024 / 1024
+    return MemoryCalculator.calculate_memory(model, [input1, input2], loss, calculating_batch_size=10)[0] / 1024 / 1024
 
 
 def main2():
@@ -280,7 +336,7 @@ def main2():
         ll = l(outputs, torch.rand(outputs.shape[0]))
         ll.backward()
 
-    return MemoryCalculator.calculate_memory(model, [input], loss, calculating_batch_size=100) / 1024 / 1024
+    return MemoryCalculator.calculate_memory(model, [input], loss, calculating_batch_size=100)[0] / 1024 / 1024
 
 
 if __name__ == "__main__":
