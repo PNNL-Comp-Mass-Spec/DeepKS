@@ -65,8 +65,7 @@ logger = get_logger()
 
 
 class NNInterface:
-    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network
-    """
+    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network"""
 
     def __init__(
         self,
@@ -210,6 +209,7 @@ class NNInterface:
         num_epochs: int,
         batch_num: Union[int, str],
         chunk_num: int,
+        total_chunks: int,
         total_step: int,
         loss: float,
         score: float,
@@ -262,8 +262,9 @@ class NNInterface:
         method(
             logger,
             (
-                f"{prepend_str}Chunk [{chunk_num + 1}] | Epoch [{epoch + 1}/{num_epochs}] | Batch"
-                f" [{batch_str}/{total_step}] | Loss {loss:.4f} | {expand_metric(metric)} {score:.2f}"
+                f"{prepend_str}Epoch [{epoch + 1}/{num_epochs}] | Batch [{batch_str}/{total_step}] | "
+                f"Memory Chunk [{chunk_num + 1}/{total_chunks}] | "
+                f"Loss {loss:.4f} | {expand_metric(metric)} {score:.2f}"
             ),
         )
 
@@ -343,18 +344,17 @@ class NNInterface:
             chunk_num = -1
             for train_loader, info_dict in cycler:
                 chunk_num += 1
-                if chunk_num == info_dict["total_chunks"]:
-                    chunk_num -= 1
-                    break
                 batch_num = 0
                 for batch_num, (*X, labels) in enumerate(train_loader):
                     total_step = len(train_loader)
+                    print([x.device for x in X])
                     X = [x.to(self.device) for x in X]
                     labels = labels.to(self.device)
 
                     # Forward pass
                     logger.vstatus("Train Step A - Forward propogating.")
                     outputs = self.model.forward(*X)
+                    del X
                     if outputs.size() == torch.Size([]):
                         outputs = outputs.reshape([1])
                     try:
@@ -386,12 +386,14 @@ class NNInterface:
                     # Report Progress
                     performance_score = None
                     performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
+                    del outputs
                     self.report_prog(
                         "Train",
                         epoch,
                         num_epochs,
                         batch_num,
                         chunk_num,
+                        info_dict["total_chunks"],
                         total_step,
                         torch.mean(loss).item(),
                         performance_score,
@@ -401,7 +403,11 @@ class NNInterface:
 
                     lowest_loss = min(lowest_loss, loss.item())
                     losses.append(loss.item())
+                    del loss
                     train_scores.append(performance_score)
+                if chunk_num == info_dict["total_chunks"] - 1:
+                    chunk_num -= 1
+                    break
             try:
                 assert len(train_scores) != 0, "No Data Trained"
             except AssertionError as e:
@@ -417,7 +423,18 @@ class NNInterface:
             else:
                 mean_score = float("NaN")
 
-            self.report_prog("Mean Train", epoch, num_epochs, "", chunk_num, total_step, mean_loss, mean_score, metric)
+            self.report_prog(
+                "Mean Train",
+                epoch,
+                num_epochs,
+                "",
+                chunk_num,
+                info_dict["total_chunks"],
+                total_step,
+                mean_loss,
+                mean_score,
+                metric,
+            )
 
             score, all_outputs = -1, [-1]
             # Validate
@@ -426,7 +443,7 @@ class NNInterface:
                 logger.status("Validating")
                 total_step = len(val_dl)
                 score, val_loss, _, all_outputs, _ = self.eval(val_dl, cutoff, metric, display_pb=False)
-                self.report_prog("Validation", epoch, num_epochs, 0, 0, 1, val_loss, score, metric)
+                self.report_prog("Validation", epoch, num_epochs, 0, 0, 0, 1, val_loss, score, metric)
             assert score >= 0
 
             logger.status(f" ---------< Epoch {epoch + 1}/{num_epochs} Done >---------\n")

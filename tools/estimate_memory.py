@@ -8,15 +8,14 @@ logger = get_logger()
 
 
 class MemoryCalculator(Protocol):
-    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device
-    """
+    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device"""
 
     @staticmethod
     def calculate_memory(
         model: torch.nn.Module,
         input_like_no_batch: list[torch.Tensor],
         calculating_batch_size: int = 100,
-        safety_factor: float = 1.25,
+        safety_factor: float = 1,
         device: torch.device = torch.device("cpu"),
     ) -> int:
         """Calculate the memory needed for a model and input, for a backward and forward pass
@@ -46,7 +45,7 @@ class MemoryCalculator(Protocol):
                 for inp in input_like_no_batch
             ]
         except RuntimeError as e:
-            if '"normal_kernel_cpu"' in str(e):
+            if "not implemented for 'Int'" in str(e):
                 input_ = [
                     torch.randint(
                         0, 1, (calculating_batch_size, *inp.shape), dtype=input_like_no_batch[0].dtype, device=device

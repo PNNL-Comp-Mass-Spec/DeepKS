@@ -4,7 +4,7 @@
         "optim": "torch.optim.Adam",
         "model_summary_name": "../architectures/architecture (IC-DEFAULT).txt",
         "lr": 0.003,
-        "batch_size": 256,
+        "batch_size": 1024,
         "n_gram": 1
     }
 }

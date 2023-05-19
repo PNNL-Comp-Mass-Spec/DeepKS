@@ -10,10 +10,10 @@
         "dropout_pr": 0.4,
         "site_param_dict": {
             "kernels": [
-                8
+                4
             ],
             "out_lengths": [
-                8
+                6
             ],
             "out_channels": [
                 24
@@ -24,13 +24,13 @@
                 100
             ],
             "out_lengths": [
-                8
+                6
             ],
             "out_channels": [
                 24
             ]
         },
-        "attn_num_heads": 12
+        "attn_num_heads": 4
     },
     "TK": {
         "model_class": "KinaseSubstrateRelationshipATTN",
@@ -43,10 +43,10 @@
         "dropout_pr": 0.4,
         "site_param_dict": {
             "kernels": [
-                8
+                4
             ],
             "out_lengths": [
-                8
+                12
             ],
             "out_channels": [
                 48
@@ -57,7 +57,7 @@
                 100
             ],
             "out_lengths": [
-                8
+                12
             ],
             "out_channels": [
                 48

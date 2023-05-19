@@ -133,7 +133,7 @@ def package(
     ids: list[int],
     batch_size: int,
     group_by: Literal["kin", "site"],
-    num_partitions: int,
+    num_chunks: int,
     max_kin_length: int,
     remapping_class_label_dict_inv: dict | None,
     class_labels: list[str | int],
@@ -159,7 +159,7 @@ def package(
         The batch size to use
     group_by : optional
         Whether or not the groups in the group classifier are classifying by site or kinase, by default "site"
-    num_partitions :
+    num_chunks :
         The number of partitions to be used
     max_kin_length :
         The maximum kinase sequence length
@@ -205,7 +205,7 @@ def package(
         "maxsize": max_kin_length,
         "tok_dict": tok_dict,
         "on_chunk": chunk_position,
-        "total_chunks": num_partitions,
+        "total_chunks": num_chunks,
     }
     ret_info_dict.update(update_dict)
 
@@ -361,57 +361,73 @@ def data_to_tensor(
     assert all(isinstance(x, str) for x in data["Kinase Sequence"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
-    if str(device) == str(torch.device("cpu")) or "mps" in str(device):
-        free_ram_and_swap_B = (psutil.virtual_memory().available + psutil.swap_memory().free) / 1.25
-        # print(colored(f"{psutil.virtual_memory().available=}{psutil.swap_memory().free=}", "yellow"))
-    else:
-        assert "cuda" in str(device), "Device must be either 'cpu' or a cuda device."
-        free_ram_and_swap_B = torch.cuda.mem_get_info(device)[0]
+    free_ram_and_swap_B = (
+        psutil.virtual_memory().available + psutil.swap_memory().free
+    )  # amount of CPU memory available
+    if "cuda" in str(device):
+        free_GPU_mem = torch.cuda.mem_get_info(device)[0]
+        # Make sure gpu can fit whole batch
+        max_batch_len_GPU = free_GPU_mem // (bytes_per_input)
+        try:
+            assert max_batch_len_GPU >= batch_size, (
+                "Cannot store one batch in GPU memory at a time. Please choose a smaller batch size, as splitting"
+                " batches into chunks is not yet implemented."
+            )
+        except Exception as e:
+            raise NotImplementedError(str(e)) from None
 
-    num_pairs_can_be_stored_per_dl = int(free_ram_and_swap_B / bytes_per_input)
+    num_batches_can_be_stored_per_dl_CPU = int(free_ram_and_swap_B / (bytes_per_input * batch_size))
 
     assert (
         len(data["Kinase Sequence"]) == len(data["Site Sequence"]) or cartesian_product
     ), "Length of kinase and site lists must be equal."
 
-    assert (
-        num_pairs_can_be_stored_per_dl > 0
-    ), f"Can't fit one input (size required = {bytes_per_input}) in memory. Check system memory usage."
-    num_partitions = int(np.ceil(len(ids) / num_pairs_can_be_stored_per_dl))
-    assert num_partitions > 0, "num_partitions <= 0. Something went wrong."
+    # Make sure cpu can fit whole batch
+    try:
+        assert num_batches_can_be_stored_per_dl_CPU > 0, (
+            "Cannot store one batch in CPU memory at a time. Please choose a smaller batch size, as splitting batches"
+            " into chunks is not yet implemented."
+        )
+    except Exception as e:
+        raise NotImplementedError(str(e)) from None
 
-    partition_size = min(
-        num_pairs_can_be_stored_per_dl,
-        (
-            len(data["Kinase Sequence"]) * len(data["Site Sequence"])
-            if cartesian_product
-            else len(data["Kinase Sequence"])
-        ),
-    )
+    num_batches = int(np.ceil(len(ids) / batch_size))
+    num_chunks = int(np.ceil(num_batches / num_batches_can_be_stored_per_dl_CPU))
+    assert num_chunks > 0, "num_chunks <= 0. Something went wrong."
 
-    for partition_id in range(int(num_partitions)):
-        begin_idx = partition_size * partition_id
-        end_idx = partition_size * (partition_id + 1)
+    if cartesian_product:
+        num_inputs = len(data["Kinase Sequence"]) * len(data["Site Sequence"])
+    else:
+        num_inputs = len(data["Kinase Sequence"])
 
-        actual_partition_size = end_idx - begin_idx
+    chunk_size = min(num_batches_can_be_stored_per_dl_CPU * batch_size, num_inputs)
+    if chunk_size >= batch_size:
+        chunk_size -= chunk_size % batch_size
+
+    assert chunk_size % batch_size == 0, "The chunk size is not a multiple of the batch size."
+
+    for partition_id in range(int(num_chunks)):
+        begin_idx = chunk_size * partition_id
+        end_idx = min(chunk_size * (partition_id + 1), len(data))
+        actual_chunk_size = end_idx - begin_idx
         if isinstance(data_shuffled, pd.DataFrame):
             X_site = torch.IntTensor(
                 [encode_seq(x, tok_dict) for x in data_shuffled["Site Sequence"].values[begin_idx:end_idx]]
             )
-            X_site = X_site.to(device)
+            # X_site = X_site.to(device)
             X_kin = torch.IntTensor(
                 [
                     pad(encode_seq(x, tok_dict), max_kin_length, tok_dict)
                     for x in data_shuffled["Kinase Sequence"].values[begin_idx:end_idx]
                 ]
             )
-            X_kin = X_kin.to(device)
+            # X_kin = X_kin.to(device)
             if mc:
                 encoding = "mlt_cls"
             else:
                 encoding = "scalar"
             y = torch.IntTensor(encode_label(data_shuffled[class_col].values[begin_idx:end_idx].tolist(), encoding))
-            y = y.to(device)
+            # y = y.to(device)
 
         else:  # data is a dict
             rand_idx_to_kin_idx_site_idx = lambda rand_idx: (
@@ -436,15 +452,15 @@ def data_to_tensor(
             if len(kin_tensor_data) == 0:
                 X_kin = blank
             else:
-                X_kin = torch.stack(kin_tensor_data).to(device)
+                X_kin = torch.stack(kin_tensor_data)  # .to(device)
             if len(site_tensor_data) == 0:
                 X_site = blank
             else:
-                X_site = torch.stack(site_tensor_data).to(device)
+                X_site = torch.stack(site_tensor_data)  # .to(device)
             if len(class_tensor_data) == 0:
                 y = blank
             else:
-                y = torch.cat(class_tensor_data).to(device)
+                y = torch.cat(class_tensor_data)  # .to(device)
 
         yield package(
             X_site=X_site,
@@ -454,12 +470,12 @@ def data_to_tensor(
             ids=ids,
             batch_size=batch_size,
             group_by=group_by,
-            num_partitions=num_partitions,
+            num_chunks=num_chunks,
             max_kin_length=max_kin_length,
             remapping_class_label_dict_inv=remapping_class_label_dict_inv,
             class_labels=class_labels,
             tok_dict=tok_dict,
-            chunk_size=actual_partition_size,
+            chunk_size=actual_chunk_size,
             chunk_position=partition_id,
         )
 
