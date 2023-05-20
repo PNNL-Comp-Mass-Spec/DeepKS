@@ -12,8 +12,7 @@ import warnings
 
 
 def get_logger():
-    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file.
-    """
+    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file."""
     try:
         with open(f"{join_first('logging_config.json', 0, __file__)}") as f:
             kwargs = json.load(f)
