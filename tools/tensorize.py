@@ -226,7 +226,7 @@ def data_to_tensor(
     group_by: Literal["site", "kin"] = "site",
     kin_seq_to_group: dict = {},
     bytes_per_input: float = 2e6,
-    bytes_constant: float = 100e6,
+    bytes_constant: float = 0,
 ) -> Generator[tuple[torch.utils.data.DataLoader, dict[str, Any]], None, None]:
     """Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.
 
