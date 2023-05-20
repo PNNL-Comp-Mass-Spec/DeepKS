@@ -14,6 +14,7 @@ jsonschema
 kaleido
 lxml
 matplotlib
+memory_profiler
 mlrose_hiive
 more_itertools
 nbformat
