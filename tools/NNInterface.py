@@ -123,7 +123,7 @@ class NNInterface:
         if inp_size is not None and inp_types is None and isinstance(self.model_summary_name, str):
             self.write_model_summary()
 
-    def get_bytes_per_input(self) -> tuple[int, int]:
+    def get_bytes_per_input(self, batch_size) -> tuple[int, int]:
         if hasattr(self, "mem_per_input"):
             return getattr(self, "mem_per_input")
         if self.inp_size is None:
@@ -134,13 +134,14 @@ class NNInterface:
         assert len(self.inp_size) == len(self.inp_types)
         try:
             dummy_input = [
-                torch.randn(*insz, dtype=intp).to(self.device) for insz, intp in zip(self.inp_size, self.inp_types)
+                torch.randn(*insz, dtype=intp).to(self.device)
+                for insz, intp in list(zip(self.inp_size, self.inp_types))
             ]
         except RuntimeError as e:
             if '"normal_kernel_cpu"' in str(e):
                 dummy_input = [
-                    torch.randint(0, 100, insz, dtype=intp).to(self.device)
-                    for insz, intp in zip(self.inp_size, self.inp_types)
+                    torch.randint(0, 100, (batch_size, *insz[1:]), dtype=intp).to(self.device)
+                    for insz, intp in list(zip(self.inp_size, self.inp_types))
                 ]
             else:
                 raise e from None
@@ -290,6 +291,7 @@ class NNInterface:
         metric: Literal["roc", "acc"] = "roc",
         extra_description: str = "",
         pass_through_scores: dict | None = None,
+        step_batch_size: int | None = None,
         **training_kwargs,
     ):
         """Trains a `torch.nn.Module` -based neural network model.
@@ -352,26 +354,42 @@ class NNInterface:
 
             # Batch loop
             chunk_num = -1
+            inputs_seen: int = 0
             for train_loader, info_dict in cycler:
                 chunk_num += 1
                 batch_num = 0
                 for batch_num, (*X, labels) in enumerate(train_loader):
                     total_step = len(train_loader)
-                    print([x.device for x in X])
                     X = [x.to(self.device) for x in X]
+                    if step_batch_size is None:
+                        step_batch_size = X[0].shape[0]
+                    inputs_seen += X[0].shape[0]
+
                     labels = labels.to(self.device)
 
                     # Forward pass
                     logger.vstatus("Train Step A - Forward propogating.")
                     outputs = self.model.forward(*X)
-                    del X
                     if outputs.size() == torch.Size([]):
                         outputs = outputs.reshape([1])
                     try:
                         torch.cuda.empty_cache()
                     except Exception:
                         pass
-
+                    assert isinstance(step_batch_size, int)
+                    assert inputs_seen <= step_batch_size, (
+                        f"Something went wrong since I'm seeing inputs with larger batch dimension than, after which,"
+                        f" we wanted to step."
+                    )
+                    if inputs_seen < step_batch_size:
+                        logger.trinfo(
+                            f"Split batch for memory purposes. (My {step_batch_size=} but I've only seen"
+                            f" {inputs_seen} inputs so far.)"
+                        )
+                        continue
+                    if inputs_seen == step_batch_size:
+                        inputs_seen = 0
+                    del X
                     # Compute loss
                     print(
                         logger.vstatus("Train Step B - Computing loss."),

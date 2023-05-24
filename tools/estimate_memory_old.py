@@ -1,11 +1,13 @@
 import gc
 import tempfile
+import psutil
 import numpy as np, torch, os, sys, ast
 from typing import Callable, Protocol
 from torch.profiler import profile
 import inspect
 from copy import deepcopy
 import multiprocessing
+from sympy import factorint
 
 from DeepKS.config.join_first import join_first
 import tracemalloc
@@ -49,9 +51,9 @@ class MemoryCalculator(Protocol):
         model: torch.nn.Module,
         input_like_no_batch: list[torch.Tensor],
         loss_steps: Callable[[torch.Tensor], None],
-        calculating_batch_size: int = 256,
+        calculating_batch_size: int = 250,
         reps: int = 1,
-        safety_factor: float = 1.5,
+        safety_factor: float = 1.25,
         device: torch.device = torch.device("cpu"),
         cpu_no_compute=os.getenv("DOCKER_CONTAINER") is not None,
     ) -> tuple[int, int]:
@@ -79,9 +81,11 @@ class MemoryCalculator(Protocol):
 
         """
         pass_through_cuda = []
-        if str(device) == "cpu" and cpu_no_compute:
-            logger.info("Skipping memory estimation test (since we're on CPU). Assuming memory requirement values.")
-            return int(5e6), int(5e7)
+        # if str(device) == "cpu" and cpu_no_compute:
+        #     logger.info("Skipping memory estimation test (since we're on CPU). Assuming memory requirement values.")
+        #     return int(5e6), int(5e7)
+        if False:
+            ...
         elif str(device) == "cpu":
             logger.status("Calculating memory for batch_size == 1")
             one_tot_mem = rep_mem_wrapper(
@@ -94,16 +98,27 @@ class MemoryCalculator(Protocol):
                 pass_through_cuda,
             )
             logger.status(f"Calculating memory for batch_size == {calculating_batch_size}")
-            many_tot_mem = rep_mem_wrapper(
-                MemoryCalculator._calculate_memory_core,
-                model,
-                input_like_no_batch,
-                loss_steps,
-                calculating_batch_size,
-                device,
-                pass_through_cuda,
-            )
-            assert many_tot_mem > one_tot_mem
+            while True:
+                try:
+                    many_tot_mem = rep_mem_wrapper(
+                        MemoryCalculator._calculate_memory_core,
+                        model,
+                        input_like_no_batch,
+                        loss_steps,
+                        calculating_batch_size,
+                        device,
+                        pass_through_cuda,
+                    )
+                except Exception as e:
+                    logger.warning(str(e))
+                    logger.warning("The amount of memory required exceed the system limits.")
+                    calculating_batch_size /= min(list(factorint(calculating_batch_size).keys()))
+                    if calculating_batch_size == 0:
+                        raise ValueError("The batch size reduced to zero meaning one input cannot fit into memory.")
+                    logger.warning(f"Reducing batch size to {calculating_batch_size}")
+                else:
+                    assert many_tot_mem > one_tot_mem
+                    break
 
         else:
             logger.status("Calculating memory for batch_size == 1")

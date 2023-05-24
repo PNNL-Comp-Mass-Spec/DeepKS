@@ -314,7 +314,7 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(dummy[0])
             self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(dummy[0])
-            bpi, bc = self.interfaces[group_tr].get_bytes_per_input()
+            bpi, bc = self.interfaces[group_tr].get_bytes_per_input(batch_size=b)
             try:
                 val_loader, _ = list(
                     data_to_tensor(
@@ -353,6 +353,7 @@ class IndividualClassifiers:
                 **self.grp_to_training_args[group_tr],
                 extra_description="(Group: %s)" % group_tr.upper(),
                 pass_through_scores=pass_through_scores,
+                step_batch_size=b,
                 **training_kwargs,
             )
             if err:
@@ -410,7 +411,7 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_te].inp_size = self.interfaces[group_te].get_input_size(dummy[0])
             self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
-            bpi, bc = self.interfaces[group_te].get_bytes_per_input()
+            bpi, bc = self.interfaces[group_te].get_bytes_per_input(batch_size=256)
             for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,

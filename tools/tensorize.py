@@ -1,10 +1,9 @@
 """Functions to convert textual biological sequences into tensors for deep learning models."""
 
 import numpy as np, psutil, torch, pandas as pd, collections, json, tqdm, random, torch.utils.data
-from sympy import cartes
+from sympy import factorint
 from typing import Generator, Union, Literal, Any
 from ..tools import model_utils
-from termcolor import colored
 
 from ..config.logging import get_logger
 
@@ -178,6 +177,8 @@ def package(
     -------
         dataloader, metadata dictionary
     """
+    assert batch_size == int(batch_size)
+    batch_size = int(batch_size)
     loader = torch.utils.data.DataLoader(model_utils.KSDataset(X_site, X_kin, y), batch_size=batch_size)
     if group_by == "kin":
         other_group = "Site Sequence"
@@ -362,18 +363,20 @@ def data_to_tensor(
     assert all(isinstance(x, str) for x in data["Kinase Sequence"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
-    free_ram_and_swap_B = (psutil.virtual_memory().available) - bytes_constant  # amount of CPU memory available
+    max_batch_len_GPU = float("inf")
+    free_ram_and_swap_B = (
+        (psutil.virtual_memory().available + psutil.swap_memory().free) - bytes_constant
+    ) * 0.66  # amount of CPU memory available
     if "cuda" in str(device):
         free_GPU_mem = torch.cuda.mem_get_info(device)[0] - bytes_constant
         # Make sure gpu can fit whole batch
         max_batch_len_GPU = free_GPU_mem // (bytes_per_input)
-        try:
-            assert max_batch_len_GPU >= batch_size, (
-                "Cannot store one batch in GPU memory at a time. Please choose a smaller batch size, as splitting"
-                " batches into chunks is not yet implemented."
-            )
-        except Exception as e:
-            raise NotImplementedError(str(e)) from None
+        while max_batch_len_GPU < batch_size:
+            max_batch_len_GPU //= min(list(factorint(batch_size).keys()))
+            if batch_size == 0:
+                raise ValueError("The batch size reduced to zero meaning one input cannot fit into memory.")
+            logger.warning(f"Reducing batch size to {batch_size}")
+            num_batches_can_be_stored_per_dl_CPU = int(free_ram_and_swap_B / (bytes_per_input * batch_size))
 
     num_batches_can_be_stored_per_dl_CPU = int(free_ram_and_swap_B / (bytes_per_input * batch_size))
 
@@ -382,13 +385,19 @@ def data_to_tensor(
     ), "Length of kinase and site lists must be equal."
 
     # Make sure cpu can fit whole batch
-    try:
-        assert num_batches_can_be_stored_per_dl_CPU > 0, (
-            "Cannot store one batch in CPU memory at a time. Please choose a smaller batch size, as splitting batches"
-            " into chunks is not yet implemented."
-        )
-    except Exception as e:
-        raise NotImplementedError(str(e)) from None
+    while num_batches_can_be_stored_per_dl_CPU < 1:
+        try:
+            assert num_batches_can_be_stored_per_dl_CPU >= 1, (
+                "Cannot store one batch in CPU memory at a time. Reducing the batch size, but when training, I will"
+                " still only `.step()` after the originally provided batch size."
+            )
+        except Exception as e:
+            logger.warning(str(e))
+            batch_size //= min(list(factorint(batch_size).keys()))
+            if batch_size == 0:
+                raise ValueError("The batch size reduced to zero meaning one input cannot fit into memory.")
+            logger.warning(f"Reducing batch size to {batch_size}")
+            num_batches_can_be_stored_per_dl_CPU = int(free_ram_and_swap_B / (bytes_per_input * batch_size))
 
     num_batches = int(np.ceil(len(ids) / batch_size))
     num_chunks = int(np.ceil(num_batches / num_batches_can_be_stored_per_dl_CPU))
@@ -406,7 +415,8 @@ def data_to_tensor(
     assert (
         chunk_size % batch_size == 0 or num_inputs < num_batches_can_be_stored_per_dl_CPU * batch_size
     ), "The chunk size is not a multiple of the batch size."
-
+    assert chunk_size == int(chunk_size)
+    chunk_size = int(chunk_size)
     for partition_id in range(int(num_chunks)):
         begin_idx = chunk_size * partition_id
         end_idx = min(chunk_size * (partition_id + 1), num_inputs)

@@ -59,7 +59,7 @@ def join_first(path: str | None, levels: int, calling_from_file: str) -> str:
     if path is None:
         raise ValueError("Path cannot be None.")
     if os.path.isabs(path):
-        warnings.warn(f"Path {path} is already absolute. Returning it as is.")
+        # warnings.warn(f"Path {path} is already absolute. Returning it as is.")
         return path
     else:
         return os.path.join(pathlib.Path(calling_from_file).parent.resolve(), *[".."] * levels, path)
