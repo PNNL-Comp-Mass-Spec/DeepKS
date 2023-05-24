@@ -145,9 +145,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
-            {}
-        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[
+            str, dict[str, dict[str, list[Union[int, float]]]]
+        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,

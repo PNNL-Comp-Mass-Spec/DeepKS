@@ -188,14 +188,14 @@ def package(
         if "pair_id" in data.columns:
             pair_ids = data.loc[ids]["pair_id"].to_list()
         else:
-            pair_ids = [f"N/A # {i}" for i in range(len(ids))]
+            raise AssertionError()
         ret_info_dict = {"PairIDs": pair_ids}
     else:
         if chunk_size is None:
             chunk_size = len(data[other_group])
 
         ret_info_dict = {
-            "PairIDs": data["pair_id"][chunk_size * chunk_position : chunk_size * (chunk_position + 1)],
+            "PairIDs": [data["pair_id"][i] for i in ids],
         }
 
     update_dict = {
@@ -226,7 +226,7 @@ def data_to_tensor(
     group_by: Literal["site", "kin"] = "site",
     kin_seq_to_group: dict = {},
     bytes_per_input: float = 2e6,
-    bytes_constant: float = 0,
+    bytes_constant: float = 100e6,
 ) -> Generator[tuple[torch.utils.data.DataLoader, dict[str, Any]], None, None]:
     """Takes an input dataframe of kinase/substrate data and obtains a tensor representation of it.
 
@@ -405,11 +405,13 @@ def data_to_tensor(
     if chunk_size >= batch_size:
         chunk_size -= chunk_size % batch_size
 
-    assert chunk_size % batch_size == 0, "The chunk size is not a multiple of the batch size."
+    assert (
+        chunk_size % batch_size == 0 or num_inputs < num_batches_can_be_stored_per_dl_CPU * batch_size
+    ), "The chunk size is not a multiple of the batch size."
 
     for partition_id in range(int(num_chunks)):
         begin_idx = chunk_size * partition_id
-        end_idx = min(chunk_size * (partition_id + 1), len(data))
+        end_idx = min(chunk_size * (partition_id + 1), num_inputs)
         actual_chunk_size = end_idx - begin_idx
         if isinstance(data_shuffled, pd.DataFrame):
             X_site = torch.IntTensor(

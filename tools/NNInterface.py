@@ -64,7 +64,8 @@ logger = get_logger()
 
 
 class NNInterface:
-    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network"""
+    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network
+    """
 
     def __init__(
         self,
@@ -144,22 +145,20 @@ class NNInterface:
             else:
                 raise e from None
 
-        def loss_steps(t: torch.Tensor, num_labs=1):
-            if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-                l = self.criterion(t)
-                ll = l(t, torch.rand(t.shape[0]))
-                ll.backward()
-            elif isinstance(self.criterion, torch.nn.BCELoss):
-                l = self.criterion(t)
-                ll = l(t, torch.rand(t.shape[0], num_labs))
-                ll.backward()
-            else:
-                raise NotImplementedError("Need `torch.nn.BCEWithLogitsLoss` or `torch.nn.BCELoss`.")
-
         self.mem_per_input, self.constant_req_mem = MemoryCalculator.calculate_memory(
-            self.model, [x[0] for x in dummy_input], loss_steps=loss_steps, device=self.device
+            self.model, [x[0] for x in dummy_input], loss_steps=self.loss_steps, device=self.device
         )
         return self.mem_per_input, self.constant_req_mem
+
+    def loss_steps(self, t: torch.Tensor, num_labs=1):
+        if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
+            l = self.criterion(t, torch.rand(t.shape[0]))
+            l.backward()
+        elif isinstance(self.criterion, torch.nn.BCELoss):
+            l = self.criterion(t, torch.rand(t.shape[0], num_labs))
+            l.backward()
+        else:
+            raise NotImplementedError("Need `torch.nn.BCEWithLogitsLoss` or `torch.nn.BCELoss`.")
 
     def write_model_summary(self):
         """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""

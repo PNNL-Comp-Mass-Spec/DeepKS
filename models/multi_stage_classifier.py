@@ -6,6 +6,8 @@ if __name__ == "__main__":  # pragma: no cover
     write_splash("main_gc_trainer")
 
 from xmlrpc.client import boolean
+
+from sympy import numer
 from ..config.logging import get_logger
 
 logger = get_logger()
@@ -16,7 +18,7 @@ if __name__ == "__main__":  # pragma: no cover
 
 import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
 import torch, argparse, socket
-from typing import Any, Callable, Literal, Union
+from typing import Any, Callable, Collection, Iterable, Literal, Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
 from .individual_classifiers import IndividualClassifiers
 from . import individual_classifiers
@@ -205,8 +207,8 @@ class MultiStageClassifier:
         kinase_seqs,
         site_seqs,
         cartesian_product,
-        boolean_predictions,
-        numerical_scores,
+        boolean_predictions: Collection,
+        numerical_scores: Collection[float],
         group_predictions,
         scores,
         group_output,
@@ -327,7 +329,7 @@ class MultiStageClassifier:
 
         else:
             if scores:
-                ret = [(n, b) for n, b in zip(numerical_scores, boolean_predictions)]
+                ret = [(n, b) for n, b in list(zip(numerical_scores, boolean_predictions))]
             else:
                 ret = boolean_predictions
         if predictions_output_format not in ["inorder", "dictionary"]:
@@ -368,7 +370,7 @@ class MultiStageClassifier:
         convert_raw_to_prob=True,
     ):
         temp_df = pd.DataFrame({"kinase": kinase_seqs}).drop_duplicates(keep="first").reset_index()
-        seq_to_id = {seq: "KINID" + str(idx) for idx, seq in zip(temp_df.index, temp_df["kinase"])}
+        seq_to_id = {seq: "KINID" + str(idx) for idx, seq in list(zip(temp_df.index, temp_df["kinase"]))}
         id_to_seq = {v: k for k, v in seq_to_id.items()}
         assert len(seq_to_id) == len(id_to_seq), "Error: seq_to_id and id_to_seq are not the same length"
         site_seq_to_id = {seq: "SITEID" + str(idx) for idx, seq in enumerate(site_seqs)}
@@ -429,7 +431,7 @@ class MultiStageClassifier:
             if convert_raw_to_prob:
                 assert len(emp_eqns) == len(numerical_scores), "emp_eqns and numerical_scores are not the same length"
                 mapped_numerical_scores = []
-                for pred_id, x, emp_eqn in zip(pred_ids, numerical_scores, emp_eqns):
+                for pred_id, x, emp_eqn in list(zip(pred_ids, numerical_scores, emp_eqns)):
                     if isinstance(emp_eqn, Callable):
                         mapped_numerical_scores.append(emp_eqn([x])[0])
                     else:

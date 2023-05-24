@@ -33,7 +33,7 @@ def inner(fn, v, *args, **kwargs):
 
 def rep_mem_wrapper(fn, *args, **kwargs):
     gc.collect()
-    v = multiprocessing.Value("d")
+    v = multiprocessing.Value("d", 0)
     p = multiprocessing.Process(target=inner, args=(fn, v, *args), kwargs=kwargs)
     p.start()
     p.join()
@@ -41,17 +41,19 @@ def rep_mem_wrapper(fn, *args, **kwargs):
 
 
 class MemoryCalculator(Protocol):
-    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device"""
+    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device
+    """
 
     @staticmethod
     def calculate_memory(
         model: torch.nn.Module,
         input_like_no_batch: list[torch.Tensor],
         loss_steps: Callable[[torch.Tensor], None],
-        calculating_batch_size: int = 100,
+        calculating_batch_size: int = 256,
         reps: int = 1,
         safety_factor: float = 1.25,
         device: torch.device = torch.device("cpu"),
+        cpu_no_compute=True,
     ) -> tuple[int, int]:
         """Calculate the memory needed for a model and input, for a backward and forward pass
 
@@ -77,7 +79,10 @@ class MemoryCalculator(Protocol):
 
         """
         pass_through_cuda = []
-        if str(device) == "cpu":
+        if str(device) == "cpu" and cpu_no_compute:
+            logger.info("Skipping memory estimation test (since we're on CPU). Assuming memory requirement values.")
+            return int(5e6), int(5e7)
+        elif str(device) == "cpu":
             logger.status("Calculating memory for batch_size == 1")
             one_tot_mem = rep_mem_wrapper(
                 MemoryCalculator._calculate_memory_core,
@@ -350,5 +355,20 @@ def main():
 #     return MemoryCalculator.calculate_memory(model, [input], loss, calculating_batch_size=100)[0] / 1024 / 1024
 
 
+def main3():
+    from ..models.KinaseSubstrateRelationshipATTN import KinaseSubstrateRelationshipATTN
+
+    model = KinaseSubstrateRelationshipATTN()
+    input1 = torch.randint(0, 22, (15,), dtype=torch.int32)
+    input2 = torch.randint(0, 22, (4128,), dtype=torch.int32)
+    device = torch.device("cpu")
+    # device = torch.device("cuda:4")
+    return (
+        MemoryCalculator.calculate_memory(model, [input1, input2], loss, device=device, calculating_batch_size=200)[0]
+        / 1024
+        / 1024
+    )
+
+
 if __name__ == "__main__":
-    main()
+    main3()
