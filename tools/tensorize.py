@@ -362,9 +362,7 @@ def data_to_tensor(
     assert all(isinstance(x, str) for x in data["Kinase Sequence"]), "Kinase names must be strings"
     assert all(isinstance(x, str) for x in data["Site Sequence"]), "Site sequences must be strings"
 
-    free_ram_and_swap_B = (
-        psutil.virtual_memory().available + psutil.swap_memory().free
-    ) - bytes_constant  # amount of CPU memory available
+    free_ram_and_swap_B = (psutil.virtual_memory().available) - bytes_constant  # amount of CPU memory available
     if "cuda" in str(device):
         free_GPU_mem = torch.cuda.mem_get_info(device)[0] - bytes_constant
         # Make sure gpu can fit whole batch

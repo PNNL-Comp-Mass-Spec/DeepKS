@@ -51,9 +51,9 @@ class MemoryCalculator(Protocol):
         loss_steps: Callable[[torch.Tensor], None],
         calculating_batch_size: int = 256,
         reps: int = 1,
-        safety_factor: float = 1.25,
+        safety_factor: float = 1.5,
         device: torch.device = torch.device("cpu"),
-        cpu_no_compute=True,
+        cpu_no_compute=os.getenv("DOCKER_CONTAINER") is not None,
     ) -> tuple[int, int]:
         """Calculate the memory needed for a model and input, for a backward and forward pass
 
