@@ -1,12 +1,14 @@
 import gc
+import random
 import tempfile
+import time
 import psutil
 import numpy as np, torch, os, sys, ast
 from typing import Callable, Protocol
 from torch.profiler import profile
 import inspect
 from copy import deepcopy
-import multiprocessing
+import multiprocessing, contextlib
 from sympy import factorint
 
 from DeepKS.config.join_first import join_first
@@ -20,31 +22,93 @@ logger = get_logger()
 import numpy as np
 
 
-def inner(fn, v, *args, **kwargs):
-    interv = 0.001
-    mp = []
-    while len(mp) < 10 or max(mp) == min(mp) and interv >= 1e-16:
-        mp = memory_profiler.memory_usage(proc=(fn, args, kwargs), interval=interv)  # type: ignore
-        interv /= 10
-        if interv < 1e-7:
-            logger.status(
-                f"Retrying to get memory usage with smaller time interval since we didn't get enough memory data."
-            )
-    v.value = int((max(mp) - min(mp)) * 1024 * 1024)
+@contextlib.contextmanager
+def no_output():
+    devnull = open(os.devnull, "w")
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    sys.stdout = devnull
+    sys.stderr = devnull
+    try:
+        yield
+    finally:
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+        devnull.close()
 
 
-def rep_mem_wrapper(fn, *args, **kwargs):
-    gc.collect()
-    v = multiprocessing.Value("d", 0)
-    p = multiprocessing.Process(target=inner, args=(fn, v, *args), kwargs=kwargs)
-    p.start()
-    p.join()
-    return v.value  # type: ignore
+def mem_mon(v, q, thsh=15, interv=0.001):
+    i = 0
+    init_bytes = psutil.virtual_memory().free + psutil.swap_memory().free
+    peak_mem_usage = 0
+    try:
+        while True:
+            time.sleep(interv)
+            cur_bytes = psutil.virtual_memory().free + psutil.swap_memory().free
+            peak_mem_usage = max(init_bytes - cur_bytes, peak_mem_usage)
+            v.value = int(peak_mem_usage)
+
+            pct_rem = 100 - (100 * ((init_bytes - cur_bytes) / init_bytes))
+
+            # Check if memory usage exceeds the limit
+            i += 1
+            if i == int(0.1 / interv):
+                i = 1
+            if pct_rem < thsh:
+                raise RuntimeError("Memory threshold exceeded.")
+    except Exception as e:
+        q.put(e)
+
+
+def rep_mem_wrapper(fn, wrapper_kwargs={}, *args, **kwargs):
+    assert (
+        multiprocessing.get_start_method() == "spawn"
+    ), f"Multiprocessing start method needs to be 'spawn'. It was {multiprocessing.get_start_method()}."
+    calculating_batch_size = wrapper_kwargs["calculating_batch_size"]
+    while True:
+        m = multiprocessing.Manager()
+        v = m.Value("d", 0)
+        q = m.Queue(maxsize=1)
+        gc.collect()
+        if True:
+            mem_proc = multiprocessing.Process(target=mem_mon, args=(v, q))
+            calc_proc = multiprocessing.Process(target=fn, args=args, kwargs=kwargs)
+            other_err = ValueError("Initialization of error -- should never see this")
+            try:
+                mem_proc.start()
+                calc_proc.start()  # inner(fn, v, *args, **kwargs)
+                calc_proc.join()
+                assert q.empty(), "Assert Memory threshold exceeded."
+            except Exception as e:
+                if (
+                    str(e) == "Assert Memory threshold exceeded."
+                    and str(other_err := q.get()) == "Memory threshold exceeded."
+                ):
+                    calc_proc.kill()
+                    mem_proc.kill()
+                    logger.warning(
+                        "The memory threshold was exceeded which means the amount of memory required exceed the system"
+                        " limits"
+                    )
+                    if calculating_batch_size == 1:
+                        raise ValueError("The batch size reduced to 1, meaning one input cannot fit into memory.")
+                    calculating_batch_size //= min(list(factorint(calculating_batch_size).keys()))
+                    logger.warning(f"Reducing batch size to {calculating_batch_size}")
+                    largs = list(args)
+                    largs[3] = calculating_batch_size
+                    args = tuple(largs)
+                else:
+                    print(str(e))
+                    print(other_err)
+                    raise
+            else:
+                mem_proc.kill()
+                break
+    return v.value
 
 
 class MemoryCalculator(Protocol):
-    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device
-    """
+    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device"""
 
     @staticmethod
     def calculate_memory(
@@ -90,6 +154,7 @@ class MemoryCalculator(Protocol):
             logger.status("Calculating memory for batch_size == 1")
             one_tot_mem = rep_mem_wrapper(
                 MemoryCalculator._calculate_memory_core,
+                {"calculating_batch_size": calculating_batch_size},
                 model,
                 input_like_no_batch,
                 loss_steps,
@@ -98,27 +163,17 @@ class MemoryCalculator(Protocol):
                 pass_through_cuda,
             )
             logger.status(f"Calculating memory for batch_size == {calculating_batch_size}")
-            while True:
-                try:
-                    many_tot_mem = rep_mem_wrapper(
-                        MemoryCalculator._calculate_memory_core,
-                        model,
-                        input_like_no_batch,
-                        loss_steps,
-                        calculating_batch_size,
-                        device,
-                        pass_through_cuda,
-                    )
-                except Exception as e:
-                    logger.warning(str(e))
-                    logger.warning("The amount of memory required exceed the system limits.")
-                    calculating_batch_size /= min(list(factorint(calculating_batch_size).keys()))
-                    if calculating_batch_size == 0:
-                        raise ValueError("The batch size reduced to zero meaning one input cannot fit into memory.")
-                    logger.warning(f"Reducing batch size to {calculating_batch_size}")
-                else:
-                    assert many_tot_mem > one_tot_mem
-                    break
+            many_tot_mem = rep_mem_wrapper(
+                MemoryCalculator._calculate_memory_core,
+                {"calculating_batch_size": calculating_batch_size},
+                model,
+                input_like_no_batch,
+                loss_steps,
+                calculating_batch_size,
+                device,
+                pass_through_cuda,
+            )
+            assert many_tot_mem > one_tot_mem
 
         else:
             logger.status("Calculating memory for batch_size == 1")

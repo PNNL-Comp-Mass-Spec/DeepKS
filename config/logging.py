@@ -12,8 +12,7 @@ import warnings
 
 
 def get_logger():
-    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file.
-    """
+    """Wrapper for `custom_logging.CustomLogger`, that can be configured by a JSON file in the same directory as this file."""
     try:
         with open(f"{join_first('logging_config.json', 0, __file__)}") as f:
             kwargs = json.load(f)
@@ -34,7 +33,7 @@ def get_logger():
 
     # Define a custom warning handler
     def warning_handler(message, category, filename, lineno, file=None, line=None):
-        logger.warning(f"{category.__name__} — {message} ({filename}:{lineno})")
+        logger.warning(f"{category.__name__} — {message}")
 
     # Register the custom warning handler with the warnings module
     warnings.showwarning = warning_handler

@@ -4,6 +4,11 @@ import sys
 from termcolor import colored
 from ..config import logging
 
+import multiprocessing as mp
+
+if __name__ == "__main__":
+    mp.set_start_method("spawn")
+
 if (len(sys.argv) >= 2 and sys.argv[1] not in ["--help", "-h", "--usage", "-u"]) or len(sys.argv) < 2:
     if __name__ == "__main__":  # pragma: no cover
         logging.write_splash("main_api")
@@ -206,15 +211,15 @@ def make_predictions(
 
         if verbose:
             assert res is not None
-            msg_orig = msg = "\n" + "<" * 16 + " REQUESTED RESULTS " + ">" * 16 + "\n"
+            msg_orig = msg = "\n" + "-" * 16 + " REQUESTED RESULTS " + "-" * 16 + "\n"
             if all(isinstance(r, dict) for r in res):
                 msg += pprint.pformat([dict(collections.OrderedDict(sorted(r.items()))) for r in res], sort_dicts=False)
             else:
                 msg += pprint.pformat(res, sort_dicts=False)
             msg += (
                 "\n"
-                + ("<" * ((len(msg_orig) - 2) // 2))
-                + (">" * (len(msg_orig) - 2 - ((len(msg_orig) - 2) // 2)))
+                + ("-" * ((len(msg_orig) - 2) // 2))
+                + ("-" * (len(msg_orig) - 2 - ((len(msg_orig) - 2) // 2)))
                 + "\n"
             )
             logger.resinfo(msg)

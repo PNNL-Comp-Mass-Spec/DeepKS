@@ -1,8 +1,8 @@
 """Module building on top of the logging module to provide a custom logger with custom logging functions and colors"""
 from __future__ import annotations
-import logging
+import logging, inspect
 import os
-import time, tqdm
+import time, tqdm, pathlib
 from typing import Literal
 from termcolor import colored
 
@@ -201,6 +201,14 @@ class CustomLogger(logging.Logger):
         if self._upper_level >= logging.WARNING:
             self._blankit()
             if self.isEnabledFor(logging.WARNING):
+                frame = inspect.currentframe()
+                assert frame is not None
+                back_frame = frame.f_back
+                assert back_frame is not None
+                lineno = back_frame.f_lineno
+                finame = back_frame.f_code.co_filename
+                msg = f"{msg} ({os.path.relpath(finame, pathlib.Path(os.getcwd()))}:{lineno})"
+
                 self._log(logging.WARNING, msg, args, **kwargs)
             self.last_log = "warning"
 
@@ -226,7 +234,7 @@ class CustomFormatter(logging.Formatter):
 
     format_vanish = "{levelname}: {message}\033[F"
     format_neutral = "{levelname}: {message}"
-    format_danger = "{levelname}: {message} ({filename}:{lineno})"
+    format_danger = "{levelname}: {message}"
 
     FORMATS = {
         logging.DEBUG: colored(format_neutral, "grey"),

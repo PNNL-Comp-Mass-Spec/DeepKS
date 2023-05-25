@@ -1,5 +1,5 @@
 """All the tests for DeepKS"""
-import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect, time, signal
+import pickle, atexit, sys, os, functools, unittest, pathlib, jstyleson as json, inspect, time, signal
 from git.repo import Repo
 from parameterized import parameterized
 
@@ -658,7 +658,7 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             self.assertEqual(ar.exception.code, 0)
 
 
-with open(join_first("examples.json", 0, __file__)) as f:
+with open(join_first("examples.jsonc", 0, __file__)) as f:
     EXAMPLES = json.load(f)
     for ex in EXAMPLES:
         if "DEVICE_PLACEHOLDER" in ex:
