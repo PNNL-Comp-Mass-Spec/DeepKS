@@ -9,11 +9,14 @@ git+https://github.com/Ben-Drucker/psankey-modified@master#egg=psankey_modified
 git+https://github.com/Ben-Drucker/roc_comparison-modified@main#egg=roc_comparison_modified
 git+https://github.com/Ben-Drucker/torchinfo-modified@main#egg=torchinfo_modified
 graphviz
+GitPython
 html2text
 jsonschema
+jstyleson
 kaleido
 lxml
 matplotlib
+matplotlib_venn
 memory_profiler
 mlrose_hiive
 more_itertools
@@ -23,6 +26,7 @@ numpyencoder
 openpyxl
 pandas
 parameterized
+Pillow
 plotly
 pre-commit
 prettytable
@@ -35,5 +39,8 @@ scipy
 seaborn
 selenium
 sigfig
+svglib
+sympy
 termcolor
+torchinfo
 tqdm
