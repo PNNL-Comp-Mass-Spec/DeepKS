@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.get_array_percentile</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -230,6 +228,16 @@
 
         
             <div class="itemName"><code><a href="DeepKS.tools.custom_tqdm.html" class="internal-link" title="DeepKS.tools.custom_tqdm">custom<wbr></wbr>_tqdm</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
             </div>
         
 
@@ -476,12 +484,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Functionality to get array of numbers depending on how each element numerically compares to axiswise percentiles</p>
-</div>
+          <div><p>Functionality to get array of numbers depending on how each element numerically compares to axiswise percentiles</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id139">
+          <table class="children sortable" id="id155">
   
   
   <tr class="function">
@@ -508,7 +515,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_array_percentile</span>(arr, percentile, axes, tf=(<wbr></wbr>1, <wbr></wbr>0)):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_array_percentile</span><span class="function-signature">(arr: <code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code>, percentile: <code>(<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>)|<a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" class="intersphinx-link">Collection</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code>, axes: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" class="intersphinx-link">Collection</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code>, tf: <code><a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" class="intersphinx-link">Collection</a></code> = (<wbr></wbr>1, <wbr></wbr>0)) -&gt; <code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code></span>:
     
     <a class="headerLink" href="#get_array_percentile" title="DeepKS.tools.get_array_percentile.get_array_percentile">
       
@@ -518,8 +526,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Gets <code><a href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" class="intersphinx-link">np.array</a></code> of numbers of the same shape as an input depending on whether or not each element in the input array satisfies axiswise percentile</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">arr:</span><code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code></td><td class="fieldArgDesc">The input array</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">percentile:</span><code>(<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>)|<a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" class="intersphinx-link">Collection</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></td><td class="fieldArgDesc"><dl class="rst-docutils">
+    <div><p>Gets <code><a href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" class="intersphinx-link">np.array</a></code> of numbers of the same shape as an input depending on whether or not each element in the input array satisfies axiswise percentile</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">arr:</span><code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code></td><td class="fieldArgDesc">The input array</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">percentile:</span><code>(<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>)|<a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Collection" class="intersphinx-link">Collection</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></td><td class="fieldArgDesc"><dl class="rst-docutils">
 <dt>The percentile threshold.</dt>
 <dd><ul class="rst-first rst-last rst-simple">
 <li><dl class="rst-first rst-docutils">

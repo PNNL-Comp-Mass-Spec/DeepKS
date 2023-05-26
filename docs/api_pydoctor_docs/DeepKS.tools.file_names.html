@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.file_names</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -230,6 +228,16 @@
 
         
             <div class="itemName"><code><a href="DeepKS.tools.custom_tqdm.html" class="internal-link" title="DeepKS.tools.custom_tqdm">custom<wbr></wbr>_tqdm</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
             </div>
         
 
@@ -476,12 +484,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Get a file name with a timestamp, with Windows/Onedrive name compatibility</p>
-</div>
+          <div><p>Get a file name with a timestamp, with Windows/Onedrive name compatibility</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id132">
+          <table class="children sortable" id="id148">
   
   
   <tr class="function">
@@ -508,7 +515,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get</span>(prefix=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, suffix=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, prefix_sep=<span class="rst-variable-quote">'</span><span class="rst-variable-string">_</span><span class="rst-variable-quote">'</span>, suffix_sep=<span class="rst-variable-quote">'</span><span class="rst-variable-string">.</span><span class="rst-variable-quote">'</span>, win_compat=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, directory=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get</span><span class="function-signature">(prefix=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, suffix=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, prefix_sep=<span class="rst-variable-quote">'</span><span class="rst-variable-string">_</span><span class="rst-variable-quote">'</span>, suffix_sep=<span class="rst-variable-quote">'</span><span class="rst-variable-string">.</span><span class="rst-variable-quote">'</span>, win_compat=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, directory=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></span>:
     
     <a class="headerLink" href="#get" title="DeepKS.tools.file_names.get">
       
@@ -518,8 +526,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Get a file name with a timestamp, with Windows/Onedrive name compatibility</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">prefix:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The prefix to add to the file name, by default ""</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">suffix:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The suffix (file extension) to add to the file name, by default ""</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">prefix<wbr></wbr>_sep:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The separator between the prefix and the timestamp, by default "_"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">suffix<wbr></wbr>_sep:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The separator between the timestamp and the suffix (file extension), by default "."</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">win<wbr></wbr>_compat:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether to make the file name compatible with Windows/Onedrive, by default True</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">directory:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The directory to put the file in, by default ""</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The resultant file name</td></tr></table></div>
+    <div><p>Get a file name with a timestamp, with Windows/Onedrive name compatibility</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">prefix:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The prefix to add to the file name, by default ""</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">suffix:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The suffix (file extension) to add to the file name, by default ""</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">prefix<wbr></wbr>_sep:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The separator between the prefix and the timestamp, by default "_"</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">suffix<wbr></wbr>_sep:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The separator between the timestamp and the suffix (file extension), by default "."</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">win<wbr></wbr>_compat:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether to make the file name compatible with Windows/Onedrive, by default True</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">directory:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The directory to put the file in, by default ""</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The resultant file name</td></tr></table></div>
   </div>
 </div>
         </div>

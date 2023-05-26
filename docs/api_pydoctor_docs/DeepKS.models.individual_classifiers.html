@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.individual_classifiers</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -365,6 +363,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.models.KinaseSubstrateRelationshipGRU.html" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipGRU"><wbr></wbr>Kinase<wbr></wbr>Substrate<wbr></wbr>Relationship<wbr></wbr>GRU</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.models.KinaseSubstrateRelationshipLSTM.html" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipLSTM"><wbr></wbr>Kinase<wbr></wbr>Substrate<wbr></wbr>Relationship<wbr></wbr>LSTM</a></code>
             </div>
         
@@ -462,12 +470,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Contains class definition of <code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">IndividualClassifiers</a></code>, which is used to train/validate group-specific neural network classifiers.</p>
-</div>
+          <div><p>Contains class definition of <code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">IndividualClassifiers</a></code>, which is used to train/validate group-specific neural network classifiers.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id97">
+          <table class="children sortable" id="id106">
   
   
   <tr class="class">
@@ -539,7 +546,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">device_eligibility</span>(arg_value):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">device_eligibility</span><span class="function-signature">(arg_value)</span>:
     
     <a class="headerLink" href="#device_eligibility" title="DeepKS.models.individual_classifiers.device_eligibility">
       
@@ -562,7 +570,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">main</span>(args_pass_in=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, **training_kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">main</span><span class="function-signature">(args_pass_in: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code> = <a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, **training_kwargs) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></span>:
     
     <a class="headerLink" href="#main" title="DeepKS.models.individual_classifiers.main">
       
@@ -572,8 +581,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Main function for training the neural network(s).</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">args<wbr></wbr>_pass<wbr></wbr>_in:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">If None, uses sys.argv[1:]. Otherwise, uses the passed in list of strings as the command line arguments.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">**training<wbr></wbr>_kwargs:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code>, <em>optional</em>, keyword only, variable length</td><td class="fieldArgDesc">Keyword arguments to pass to the training function. See <code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html#train" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers.train">train</a></code> for more details.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc">The first element is the final-epoch validation performance. The second element is a string containing any notes from the training process.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If the <tt class="rst-docutils literal"><span class="pre">--pre-trained-gc</span></tt> argument is not passed in.</td></tr></table></div>
+    <div><p>Main function for training the neural network(s).</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">args<wbr></wbr>_pass<wbr></wbr>_in:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">If None, uses sys.argv[1:]. Otherwise, uses the passed in list of strings as the command line arguments.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">**training<wbr></wbr>_kwargs:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code>, <em>optional</em>, keyword only, variable length</td><td class="fieldArgDesc">Keyword arguments to pass to the training function. See <code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html#train" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers.train">train</a></code> for more details.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc">The first element is the final-epoch validation performance. The second element is a string containing any notes from the training process.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If the <tt class="rst-docutils literal"><span class="pre">--pre-trained-gc</span></tt> argument is not passed in.</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -586,7 +594,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">parse_args</span>(args_pass_in=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">parse_args</span><span class="function-signature">(args_pass_in: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code> = <a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]]</code></span>:
     
     <a class="headerLink" href="#parse_args" title="DeepKS.models.individual_classifiers.parse_args">
       
@@ -596,8 +605,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Argument parser for training a neural network.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">args<wbr></wbr>_pass<wbr></wbr>_in:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">A list of arguments to parse. If None, defaults to sys.argv[1:].</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]]</code></td><td class="fieldArgDesc">A dictionary of arguments mapping to their values.</td></tr></table></div>
+    <div><p>Argument parser for training a neural network.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">args<wbr></wbr>_pass<wbr></wbr>_in:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">A list of arguments to parse. If None, defaults to sys.argv[1:].</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]]</code></td><td class="fieldArgDesc">A dictionary of arguments mapping to their values.</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -610,7 +618,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">smart_save_nn</span>(individual_classifier, optional_idx=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">smart_save_nn</span><span class="function-signature">(individual_classifier: <code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">IndividualClassifiers</a></code>, optional_idx: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code> = <a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>)</span>:
     
     <a class="headerLink" href="#smart_save_nn" title="DeepKS.models.individual_classifiers.smart_save_nn">
       
@@ -620,7 +629,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">individual<wbr></wbr>_classifier:</span><code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">IndividualClassifiers</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">optional<wbr></wbr>_idx:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="baseconstant">
   
@@ -643,8 +652,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Simple lambda to remove parentheses and asterisks from a string and convert it to uppercase.</p>
-</div>
+    <div><p>Simple lambda to remove parentheses and asterisks from a string and convert it to uppercase.</p></div>
     <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>(lambda x: re.sub('[\\(\\)\\*]', '', x).upper())</code></pre></td></tr></table>
   </div>
 </div><div class="baseconstant">
@@ -716,8 +724,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Logger for this module</p>
-</div>
+    <div><p>Logger for this module</p></div>
     
   </div>
 </div><div class="basevariable">

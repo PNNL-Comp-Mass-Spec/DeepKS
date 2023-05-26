@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -440,17 +438,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">PseudoSiteGroupClassifier</span>(<a href="DeepKS.models.GroupClassifier.SiteGroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.SiteGroupClassifier">SiteGroupClassifier</a>):</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">PseudoSiteGroupClassifier</span>(<a href="DeepKS.models.GroupClassifier.SiteGroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.SiteGroupClassifier">SiteGroupClassifier</a>):</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.__init__">PseudoSiteGroupClassifier(sequences, ground_truth)</a></code></p>
           <p><a href="classIndex.html#DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>A group classifier that groups on the presence of a tyrosine at the center of the sequence. The predictions         are, hence, either 'TK' or 'NON-TK'.</p>
-</div>
+          <div><p>A group classifier that groups on the presence of a tyrosine at the center of the sequence. The predictions         are, hence, either 'TK' or 'NON-TK'.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id71">
+          <table class="children sortable" id="id75">
   
   
   <tr class="staticmethod">
@@ -489,7 +486,7 @@
             <p class="inheritedFrom">
               Inherited from <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code> (via <code><a href="DeepKS.models.GroupClassifier.SiteGroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.SiteGroupClassifier">SiteGroupClassifier</a></code>):
             </p>
-            <table class="children sortable" id="id72">
+            <table class="children sortable" id="id76">
   
   
   <tr class="baseinstancevariable">
@@ -530,8 +527,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">get_ground_truth</span>(self_cls, X):
+    <span class="py-keyword">def</span> <span class="py-defname">get_ground_truth</span><span class="function-signature">(self_cls: <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code>, X: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>)</span>:
     
     <a class="headerLink" href="#get_ground_truth" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.get_ground_truth">
       
@@ -541,8 +539,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overrides <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html#get_ground_truth" class="internal-link">DeepKS.models.GroupClassifier.GroupClassifier.get_ground_truth</a></code></div>
-    <div><p>Gets the ground truth for the sequences in <tt class="rst-docutils literal">X</tt>.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self<wbr></wbr>_cls:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier for which we want to get the ground truth.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">X:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Sequences for which we want to get the ground truth.</td></tr></table></div>
+    <div><p>Gets the ground truth for the sequences in <tt class="rst-docutils literal">X</tt>.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self<wbr></wbr>_cls:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier for which we want to get the ground truth.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">X:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Sequences for which we want to get the ground truth.</td></tr></table></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -554,8 +551,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">is_aa</span>(x):
+    <span class="py-keyword">def</span> <span class="py-defname">is_aa</span><span class="function-signature">(x: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>) -&gt; <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></span>:
     
     <a class="headerLink" href="#is_aa" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.is_aa">
       
@@ -565,7 +563,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">x:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -577,8 +575,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">package</span>(train_file, kin_fam_grp, is_testing=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    <span class="py-keyword">def</span> <span class="py-defname">package</span><span class="function-signature">(train_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, kin_fam_grp: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, is_testing: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>)</span>:
     
     <a class="headerLink" href="#package" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.package">
       
@@ -588,7 +587,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">train<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_fam<wbr></wbr>_grp:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">is<wbr></wbr>_testing:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -600,8 +599,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">predict</span>(self_cls, X):
+    <span class="py-keyword">def</span> <span class="py-defname">predict</span><span class="function-signature">(self_cls: <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code>, X: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>)</span>:
     
     <a class="headerLink" href="#predict" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.predict">
       
@@ -611,8 +611,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overrides <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html#predict" class="internal-link">DeepKS.models.GroupClassifier.GroupClassifier.predict</a></code></div>
-    <div><p>Gets the group-classification predictions for the sequences in <tt class="rst-docutils literal">X</tt>.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self<wbr></wbr>_cls:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier for which we want to get the predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">X:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Sequences for which we want to get the predictions.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">List of predictions corresponding to the sequences in <tt class="rst-docutils literal">X</tt>.</td></tr></table></div>
+    <div><p>Gets the group-classification predictions for the sequences in <tt class="rst-docutils literal">X</tt>.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self<wbr></wbr>_cls:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier for which we want to get the predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">X:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Sequences for which we want to get the predictions.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">List of predictions corresponding to the sequences in <tt class="rst-docutils literal">X</tt>.</td></tr></table></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -624,8 +623,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">simulated_predict</span>(self_cls, X, simulated_acc=0.8):
+    <span class="py-keyword">def</span> <span class="py-defname">simulated_predict</span><span class="function-signature">(self_cls: <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code>, X: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code>, simulated_acc: <code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code> = 0.8) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="DeepKS.models.GroupClassifier.GCPrediction.html" class="internal-link" title="DeepKS.models.GroupClassifier.GCPrediction">GCPrediction</a>]</code></span>:
     
     <a class="headerLink" href="#simulated_predict" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.simulated_predict">
       
@@ -635,8 +635,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overrides <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html#simulated_predict" class="internal-link">DeepKS.models.GroupClassifier.GroupClassifier.simulated_predict</a></code></div>
-    <div><p>Simulates predictions for the sequences in <tt class="rst-docutils literal">X</tt>.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self<wbr></wbr>_cls:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier for which we want to simulate predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">X:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Sequences for which we want to get the simulated predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">simulated<wbr></wbr>_acc:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The simulated accuracy of the predictions.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="DeepKS.models.GroupClassifier.GCPrediction.html" class="internal-link" title="DeepKS.models.GroupClassifier.GCPrediction">GCPrediction</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p>Simulates predictions for the sequences in <tt class="rst-docutils literal">X</tt>.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self<wbr></wbr>_cls:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier for which we want to simulate predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">X:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]]</code></td><td class="fieldArgDesc">Sequences for which we want to get the simulated predictions.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">simulated<wbr></wbr>_acc:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The simulated accuracy of the predictions.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="DeepKS.models.GroupClassifier.GCPrediction.html" class="internal-link" title="DeepKS.models.GroupClassifier.GCPrediction">GCPrediction</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -649,7 +648,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, sequences, ground_truth):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, sequences, ground_truth)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.models.GroupClassifier.PseudoSiteGroupClassifier.__init__">
       
@@ -659,8 +659,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overrides <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html#__init__" class="internal-link">DeepKS.models.GroupClassifier.GroupClassifier.__init__</a></code></div>
-    <div><p>Initializes the Group Classifier.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">sequences</span></td><td class="fieldArgDesc">Sequences for which we have ground truth.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">ground<wbr></wbr>_truth</span></td><td class="fieldArgDesc">Corresponding ground truth for the sequences.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#AssertionError" class="intersphinx-link">AssertionError</a></code></td><td>If the length of <tt class="rst-docutils literal">sequences</tt> and <tt class="rst-docutils literal">ground_truth</tt> are not equal.</td></tr></table></div>
+    <div><p>Initializes the Group Classifier.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">sequences</span></td><td class="fieldArgDesc">Sequences for which we have ground truth.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">ground<wbr></wbr>_truth</span></td><td class="fieldArgDesc">Corresponding ground truth for the sequences.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#AssertionError" class="intersphinx-link">AssertionError</a></code></td><td>If the length of <tt class="rst-docutils literal">sequences</tt> and <tt class="rst-docutils literal">ground_truth</tt> are not equal.</td></tr></table></div>
   </div>
 </div>
         </div>

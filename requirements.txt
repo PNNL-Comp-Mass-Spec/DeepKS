@@ -32,6 +32,7 @@ pre-commit
 prettytable
 psutil
 pycallgraph2
+pydoctor
 python_dateutil
 requests
 scikit_learn

@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.make_fasta</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -262,6 +260,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.tools.file_names.html" class="internal-link" title="DeepKS.tools.file_names">file<wbr></wbr>_names</a></code>
             </div>
         
@@ -499,12 +507,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Make a fasta file from a dataframe with biological sequences.</p>
-</div>
+          <div><p>Make a fasta file from a dataframe with biological sequences.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id147">
+          <table class="children sortable" id="id163">
   
   
   <tr class="function">
@@ -541,7 +548,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">make_fasta</span>(df_in, fasta_out):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">make_fasta</span><span class="function-signature">(df_in: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, fasta_out: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></span>:
     
     <a class="headerLink" href="#make_fasta" title="DeepKS.tools.make_fasta.make_fasta">
       
@@ -551,8 +559,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Make a fasta file from a dataframe with biological sequences.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">df<wbr></wbr>_in:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The input dataframe. Must have columns "kinase" -- the UniProt ID, "kinase_seq" -- the sequence itself, and "gene_name" -- the UniProt gene name.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fasta<wbr></wbr>_out:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The output fasta filename</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The output fasta filename (unmodified from the input parameter)</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#RuntimeError" class="intersphinx-link">RuntimeError</a></code></td><td>If there is an NA in the "gene_name" column of the input dataframe.</td></tr></table></div>
+    <div><p>Make a fasta file from a dataframe with biological sequences.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">df<wbr></wbr>_in:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The input dataframe. Must have columns "kinase" -- the UniProt ID, "kinase_seq" -- the sequence itself, and "gene_name" -- the UniProt gene name.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fasta<wbr></wbr>_out:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The output fasta filename</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The output fasta filename (unmodified from the input parameter)</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#RuntimeError" class="intersphinx-link">RuntimeError</a></code></td><td>If there is an NA in the "gene_name" column of the input dataframe.</td></tr></table></div>
   </div>
 </div><div class="basevariable">
   
@@ -575,8 +582,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Simple lambda to reverse <tt class="rst-docutils literal">format_for_needle</tt></p>
-</div>
+    <div><p>Simple lambda to reverse <tt class="rst-docutils literal">format_for_needle</tt></p></div>
     
   </div>
 </div><div class="basevariable">
@@ -600,8 +606,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Simple lambda to filter out characters that cause problems for <tt class="rst-docutils literal">needle</tt></p>
-</div>
+    <div><p>Simple lambda to filter out characters that cause problems for <tt class="rst-docutils literal">needle</tt></p></div>
     
   </div>
 </div>

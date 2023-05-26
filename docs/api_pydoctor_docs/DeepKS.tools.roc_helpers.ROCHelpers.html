@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.roc_helpers.ROCHelpers</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -284,17 +282,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">ROCHelpers</span>:</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">ROCHelpers</span>:</code></p>
           <p><a href="classIndex.html#DeepKS.tools.roc_helpers.ROCHelpers">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Contains static methods for computing ROC curves and AUC scores</p>
-</div>
+          <div><p>Contains static methods for computing ROC curves and AUC scores</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id156">
+          <table class="children sortable" id="id172">
   
   
   <tr class="class">
@@ -335,8 +332,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">auc_confidence_interval</span>(truths, pred_scores, alpha=0.05):
+    <span class="py-keyword">def</span> <span class="py-defname">auc_confidence_interval</span><span class="function-signature">(truths, pred_scores, alpha=0.05) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>], <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></span>:
     
     <a class="headerLink" href="#auc_confidence_interval" title="DeepKS.tools.roc_helpers.ROCHelpers.auc_confidence_interval">
       
@@ -346,8 +344,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Based off of <a class="rst-reference external" href="https://gist.github.com/RaulSanchezVazquez/d338c271ace3e218d83e3cb6400a769c" target="_top">https://gist.github.com/RaulSanchezVazquez/d338c271ace3e218d83e3cb6400a769c</a></p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>], <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p>Based off of <a class="rst-reference external" href="https://gist.github.com/RaulSanchezVazquez/d338c271ace3e218d83e3cb6400a769c" target="_top">https://gist.github.com/RaulSanchezVazquez/d338c271ace3e218d83e3cb6400a769c</a></p></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -359,8 +356,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">get_p_stars</span>(p_val):
+    <span class="py-keyword">def</span> <span class="py-defname">get_p_stars</span><span class="function-signature">(p_val)</span>:
     
     <a class="headerLink" href="#get_p_stars" title="DeepKS.tools.roc_helpers.ROCHelpers.get_p_stars">
       
@@ -382,8 +380,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">protected_roc_auc_score</span>(y_true, y_score, *args, **kwargs):
+    <span class="py-keyword">def</span> <span class="py-defname">protected_roc_auc_score</span><span class="function-signature">(y_true: <code><a href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" class="intersphinx-link">ArrayLike</a></code>, y_score: <code><a href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" class="intersphinx-link">ArrayLike</a></code>, *args, **kwargs) -&gt; <code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></span>:
     
     <a class="headerLink" href="#protected_roc_auc_score" title="DeepKS.tools.roc_helpers.ROCHelpers.protected_roc_auc_score">
       
@@ -407,7 +406,7 @@
 <dd>Additional keyword arguments to pass to <code><a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score" class="intersphinx-link">sklearn.metrics.roc_auc_score</a></code></dd>
 </dl>
 </div>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">y<wbr></wbr>_true:</span><code><a href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" class="intersphinx-link">ArrayLike</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">y<wbr></wbr>_score:</span><code><a href="https://numpy.org/doc/stable/reference/typing.html#numpy.typing.ArrayLike" class="intersphinx-link">ArrayLike</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">*args</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">**kwargs</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The roc_auc_score</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code>e :</code></td><td>Error that is not a multi class error or single class present error</td></tr></table></div>
+<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc">The roc_auc_score</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code>e :</code></td><td>Error that is not a multi class error or single class present error</td></tr></table></div>
   </div>
 </div>
         </div>

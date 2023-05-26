@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.bipartite_derangement</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -240,6 +238,16 @@
 
         
             <div class="itemName"><code><a href="DeepKS.tools.custom_tqdm.html" class="internal-link" title="DeepKS.tools.custom_tqdm">custom<wbr></wbr>_tqdm</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
             </div>
         
 
@@ -486,12 +494,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Contains functions to generate derangements of bipartite sets, using maximum bipartite matching</p>
-</div>
+          <div><p>Contains functions to generate derangements of bipartite sets, using maximum bipartite matching</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id125">
+          <table class="children sortable" id="id135">
   
   
   <tr class="function">
@@ -523,7 +530,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_derangement</span>(order, sizes, distance_matrix_file, percentile=90, cache_derangement=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_derangement</span><span class="function-signature">(order: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code>, sizes: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code>, distance_matrix_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, percentile: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code> = 90, cache_derangement: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>]</code></span>:
     
     <a class="headerLink" href="#get_derangement" title="DeepKS.tools.bipartite_derangement.get_derangement">
       
@@ -592,7 +600,8 @@ adjacency weights   =   [ 1 , 1 , 1 , 1 | 0 , 0 | 1 , 1 , 1 ], B5    — 0    &l
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">memory_efficient_np_to_sparse</span>(base, chunk_multiplier=10):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">memory_efficient_np_to_sparse</span><span class="function-signature">(base: <code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code>, chunk_multiplier: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 10) -&gt; <code><a href="https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" class="intersphinx-link">csr_matrix</a></code></span>:
     
     <a class="headerLink" href="#memory_efficient_np_to_sparse" title="DeepKS.tools.bipartite_derangement.memory_efficient_np_to_sparse">
       
@@ -602,8 +611,7 @@ adjacency weights   =   [ 1 , 1 , 1 , 1 | 0 , 0 | 1 , 1 , 1 ], B5    — 0    &l
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Converts a numpy array to a sparse matrix in a memory efficient way.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">base:</span><code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code></td><td class="fieldArgDesc">The array to convert to a sparse matrix.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">chunk<wbr></wbr>_multiplier:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The pseudo-aspect ratio the input array gets reshaped to before chunking, by default 10</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" class="intersphinx-link">csr_matrix</a></code></td><td class="fieldArgDesc">Sparse matrix representation of the input array.</td></tr></table></div>
+    <div><p>Converts a numpy array to a sparse matrix in a memory efficient way.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">base:</span><code><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" class="intersphinx-link">np.ndarray</a></code></td><td class="fieldArgDesc">The array to convert to a sparse matrix.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">chunk<wbr></wbr>_multiplier:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The pseudo-aspect ratio the input array gets reshaped to before chunking, by default 10</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.scipy.org/doc/scipy/reference/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" class="intersphinx-link">csr_matrix</a></code></td><td class="fieldArgDesc">Sparse matrix representation of the input array.</td></tr></table></div>
   </div>
 </div>
         </div>

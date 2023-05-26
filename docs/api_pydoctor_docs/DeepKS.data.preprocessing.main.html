@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.data.preprocessing.main</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -359,8 +357,7 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>The main script for preprocessing the data.</p>
-</div>
+          <div><p>The main script for preprocessing the data.</p></div>
         </div>
 
         <div id="splitTables">
@@ -371,7 +368,7 @@
     
     <td>Function</td>
     <td><code><a href="#main" class="internal-link" title="DeepKS.data.preprocessing.main.main">main</a></code></td>
-    <td>The main function for preprocessing the data. Does the following: 1. Downloads PSP 2. Downloads Uniprot data 3. Maps kinases to families and groups 4. Gets pairwise distance matrix 5. Gets train/val/test split...</td>
+    <td>The main function for preprocessing the data. Does the following: 1. Downloads PSP 2. Downloads Uniprot data 3. Maps kinases to families and groups 4. Gets pairwise distance matrix 5a. Gets train/val/test split through hill climbing 5b...</td>
   </tr><tr class="function">
     
     <td>Function</td>
@@ -436,7 +433,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">main</span>(seq_filename_B, data_filename, new_mtx_file, eval_or_train_on_all, seq_filename_A=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, kin_fam_grp_filename=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">main</span><span class="function-signature">()</span>:
     
     <a class="headerLink" href="#main" title="DeepKS.data.preprocessing.main.main">
       
@@ -451,8 +449,10 @@
 2. Downloads Uniprot data
 3. Maps kinases to families and groups
 4. Gets pairwise distance matrix
-5. Gets train/val/test split</p>
-</div>
+5a. Gets train/val/test split through hill climbing
+5b. Provides one file with all inputs
+5c. Provides, tr, vl, te files (analagous to 5b)
+6. Drops overlapping sites</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -465,7 +465,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_1_download_psp</span>(outfile=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../raw_data/PSP_script_download.xlsx</span><span class="rst-variable-quote">'</span>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_1_download_psp</span><span class="function-signature">(outfile=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../raw_data/PSP_script_download.xlsx</span><span class="rst-variable-quote">'</span>)</span>:
     
     <a class="headerLink" href="#step_1_download_psp" title="DeepKS.data.preprocessing.main.step_1_download_psp">
       
@@ -475,8 +476,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.html#get_phospho" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.get_phospho">PreprocessingSteps.download_psp.get_phospho</a></code>. Same Parameters.</p>
-</div>
+    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.html#get_phospho" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.download_psp.get_phospho">PreprocessingSteps.download_psp.get_phospho</a></code>. Same Parameters.</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -489,7 +489,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_2_download_uniprot</span>():
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_2_download_uniprot</span><span class="function-signature">()</span>:
     
     <a class="headerLink" href="#step_2_download_uniprot" title="DeepKS.data.preprocessing.main.step_2_download_uniprot">
       
@@ -499,8 +500,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Wrapper for <tt class="rst-docutils literal">PreprocessingSteps/ML_data_pipeline.R</tt>.</p>
-</div>
+    <div><p>Wrapper for <tt class="rst-docutils literal">PreprocessingSteps/ML_data_pipeline.R</tt>.</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -513,7 +513,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_3_get_kin_to_fam_to_grp</span>(seq_filename_A):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_3_get_kin_to_fam_to_grp</span><span class="function-signature">(seq_filename_A)</span>:
     
     <a class="headerLink" href="#step_3_get_kin_to_fam_to_grp" title="DeepKS.data.preprocessing.main.step_3_get_kin_to_fam_to_grp">
       
@@ -523,8 +524,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.html#get_kin_to_fam_to_grp" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp">PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp</a></code>. Same parameters.</p>
-</div>
+    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.html#get_kin_to_fam_to_grp" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp">PreprocessingSteps.get_kin_fam_grp.get_kin_to_fam_to_grp</a></code>. Same parameters.</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -537,7 +537,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_4_get_pairwise_mtx</span>(seq_filename_A, *addl_seq_filenames):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_4_get_pairwise_mtx</span><span class="function-signature">(seq_filename_A, *addl_seq_filenames)</span>:
     
     <a class="headerLink" href="#step_4_get_pairwise_mtx" title="DeepKS.data.preprocessing.main.step_4_get_pairwise_mtx">
       
@@ -547,8 +548,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Wrapper for <code><a href="DeepKS.tools.get_needle_pairwise.html#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_pairwise.get_needle_pairwise_mtx</a></code>.</p>
-</div>
+    <div><p>Wrapper for <code><a href="DeepKS.tools.get_needle_pairwise.html#get_needle_pairwise_mtx" class="internal-link" title="DeepKS.tools.get_needle_pairwise.get_needle_pairwise_mtx">get_pairwise.get_needle_pairwise_mtx</a></code>.</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -561,7 +561,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_5_get_train_val_test_split</span>(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part, data_gen_conf={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">held_out_percentile</span><span class="rst-variable-quote">'</span>: 95, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">train_percentile</span><span class="rst-variable-quote">'</span>: 65, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dataframe_generation_mode</span><span class="rst-variable-quote">'</span>: <span class="rst-variable-quote">'</span><span class="rst-variable-string">tr-all</span><span class="rst-variable-quote">'</span>}, num_restarts=60):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_5_get_train_val_test_split</span><span class="function-signature">(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">a</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">b</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">c</span><span class="rst-variable-quote">'</span>]</code>, data_gen_conf={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">held_out_percentile</span><span class="rst-variable-quote">'</span>: 95, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">train_percentile</span><span class="rst-variable-quote">'</span>: 65, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">dataframe_generation_mode</span><span class="rst-variable-quote">'</span>: <span class="rst-variable-quote">'</span><span class="rst-variable-string">tr-all</span><span class="rst-variable-quote">'</span>}, num_restarts=60) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></span>:
     
     <a class="headerLink" href="#step_5_get_train_val_test_split" title="DeepKS.data.preprocessing.main.step_5_get_train_val_test_split">
       
@@ -571,8 +572,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.html#split_into_sets" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets</a></code> and <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.html#get_input_dataframe" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.get_input_dataframe">PreprocessingSteps.format_raw_data.get_input_dataframe</a></code>.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_fam<wbr></wbr>_grp<wbr></wbr>_filename</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">data<wbr></wbr>_filename</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">seq_filename_<wbr></wbr>A</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">new<wbr></wbr>_mtx<wbr></wbr>_file</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">part:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">a</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">b</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">c</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">data<wbr></wbr>_gen<wbr></wbr>_conf</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_restarts</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p>Wrapper for <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.html#split_into_sets" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets">PreprocessingSteps.split_into_sets_individual_deterministic_top_k.split_into_sets</a></code> and <code><a href="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.html#get_input_dataframe" class="internal-link" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.get_input_dataframe">PreprocessingSteps.format_raw_data.get_input_dataframe</a></code>.</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -585,7 +585,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">step_6_drop_overlapping_sites</span>(train_file, val_file, test_file):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">step_6_drop_overlapping_sites</span><span class="function-signature">(train_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, val_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, test_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>)</span>:
     
     <a class="headerLink" href="#step_6_drop_overlapping_sites" title="DeepKS.data.preprocessing.main.step_6_drop_overlapping_sites">
       
@@ -595,7 +596,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">train<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">val<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">test<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="baseconstant">
   
@@ -618,8 +619,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Whether or not to use the cached version of the PSP database.</p>
-</div>
+    <div><p>Whether or not to use the cached version of the PSP database.</p></div>
     <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code><a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a></code></pre></td></tr></table>
   </div>
 </div><div class="basevariable">
@@ -643,8 +643,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The logger for this script.</p>
-</div>
+    <div><p>The logger for this script.</p></div>
     
   </div>
 </div><div class="basevariable">
@@ -668,8 +667,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The steps to perform. If empty, all steps will be performed.</p>
-</div>
+    <div><p>The steps to perform. If empty, all steps will be performed.</p></div>
     
   </div>
 </div>

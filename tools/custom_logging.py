@@ -157,7 +157,7 @@ class CustomLogger(logging.Logger):
             self.last_log = "status"
 
     def info(self, msg, *args, **kwargs):
-        """Log information."""
+        """Log information not related to program progress."""
         if self._upper_level >= logging.INFO:
             self._blankit()
             if self.isEnabledFor(logging.INFO):

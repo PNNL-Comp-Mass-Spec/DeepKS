@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.multi_stage_classifier.MultiStageClassifier</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -380,17 +378,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">MultiStageClassifier</span>:</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">MultiStageClassifier</span>:</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.__init__">MultiStageClassifier(group_classifier, individual_classifiers)</a></code></p>
           <p><a href="classIndex.html#DeepKS.models.multi_stage_classifier.MultiStageClassifier">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>A class that allows group pre-classification before neural network classification.</p>
-</div>
+          <div><p>A class that allows group pre-classification before neural network classification.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id100">
+          <table class="children sortable" id="id109">
   
   
   <tr class="method">
@@ -452,7 +449,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, group_classifier, individual_classifiers):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, group_classifier: <code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code>, individual_classifiers: <code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">individual_classifiers.IndividualClassifiers</a></code>)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.__init__">
       
@@ -462,8 +460,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Initialize a MultiStageClassifier object.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_classifier:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier to use</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">individual<wbr></wbr>_classifiers:</span><code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">IndividualClassifiers</a></code></td><td class="fieldArgDesc">The individual (neural network) classifiers to use</td></tr></table></div>
+    <div><p>Initialize a MultiStageClassifier object.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_classifier:</span><code><a href="DeepKS.models.GroupClassifier.GroupClassifier.html" class="internal-link" title="DeepKS.models.GroupClassifier.GroupClassifier">GroupClassifier</a></code></td><td class="fieldArgDesc">The group classifier to use</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">individual<wbr></wbr>_classifiers:</span><code><a href="DeepKS.models.individual_classifiers.IndividualClassifiers.html" class="internal-link" title="DeepKS.models.individual_classifiers.IndividualClassifiers">IndividualClassifiers</a></code></td><td class="fieldArgDesc">The individual (neural network) classifiers to use</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -476,7 +473,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__str__</span>(self):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__str__</span><span class="function-signature">(self)</span>:
     
     <a class="headerLink" href="#__str__" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.__str__">
       
@@ -486,8 +484,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Return a string representation of this object.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">Simple string representation of this objectprints both the group classifier and the individual classifier string representations.</td></tr></table></div>
+    <div><p>Return a string representation of this object.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">Simple string representation of this objectprints both the group classifier and the individual classifier string representations.</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -500,7 +497,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">group_classify_then_evaluate</span>(self, addl_args, Xy_formatted_input_file, predict_mode=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier={}, get_emp_eqn=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, cartesian_product=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, device=<span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, group_on=<span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">group_classify_then_evaluate</span><span class="function-signature">(self, addl_args: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]</code>, Xy_formatted_input_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, predict_mode: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>|<a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a></code> = {}, get_emp_eqn: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, cartesian_product: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, device: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, group_on: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>]</code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>)</span>:
     
     <a class="headerLink" href="#group_classify_then_evaluate" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.group_classify_then_evaluate">
       
@@ -523,7 +521,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">predict</span>(self, kinase_seqs, kin_info, site_seqs, site_info, predictions_output_format=<span class="rst-variable-quote">'</span><span class="rst-variable-string">inorder</span><span class="rst-variable-quote">'</span>, suppress_seqs_in_output=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, device=<span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, scores=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, normalize_scores=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, cartesian_product=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, group_on=<span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>, group_output=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier=[], convert_raw_to_prob=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">predict</span><span class="function-signature">(self, kinase_seqs: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code>, kin_info: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code>, site_seqs: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code>, site_info: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code>, predictions_output_format: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">inorder</span><span class="rst-variable-quote">'</span>, suppress_seqs_in_output: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, device: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">cpu</span><span class="rst-variable-quote">'</span>, scores: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, normalize_scores: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, cartesian_product: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, group_on: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>]</code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>, group_output: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, bypass_group_classifier: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code> = [], convert_raw_to_prob=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>)</span>:
     
     <a class="headerLink" href="#predict" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier.predict">
       
@@ -533,7 +532,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kinase<wbr></wbr>_seqs:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_info:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seqs:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_info:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">predictions<wbr></wbr>_output<wbr></wbr>_format:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">suppress<wbr></wbr>_seqs<wbr></wbr>_in<wbr></wbr>_output:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">device:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">scores:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">normalize<wbr></wbr>_scores:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cartesian<wbr></wbr>_product:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_on:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">group<wbr></wbr>_output:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">bypass<wbr></wbr>_group<wbr></wbr>_classifier:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">convert<wbr></wbr>_raw<wbr></wbr>_to<wbr></wbr>_prob</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -617,8 +616,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">_package_results</span>(predictions_output_format, kin_info, site_info, kinase_seqs, site_seqs, cartesian_product, boolean_predictions, numerical_scores, group_predictions, scores, group_output, suppress_seqs_in_output):
+    <span class="py-keyword">def</span> <span class="py-defname">_package_results</span><span class="function-signature">(predictions_output_format, kin_info, site_info, kinase_seqs, site_seqs, cartesian_product, boolean_predictions: <code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code>, numerical_scores: <code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code>, group_predictions, scores, group_output, suppress_seqs_in_output)</span>:
     
     <a class="headerLink" href="#_package_results" title="DeepKS.models.multi_stage_classifier.MultiStageClassifier._package_results">
       

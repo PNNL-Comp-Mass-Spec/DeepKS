@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.config.cfg</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -306,8 +304,7 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Provides the ability to change the model mode between aligned and non-aligned. Currently, this should not be touched.</p>
-</div>
+          <div><p>Provides the ability to change the model mode between aligned and non-aligned. Currently, this should not be touched.</p></div>
         </div>
 
         <div id="splitTables">
@@ -353,7 +350,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_mode</span>():
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_mode</span><span class="function-signature">() -&gt; <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></span>:
     
     <a class="headerLink" href="#get_mode" title="DeepKS.config.cfg.get_mode">
       
@@ -363,8 +361,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Get the alignment mode of the model.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">'alin' if the aligned version should be used, 'no_alin' if the aligned version should not be used.</td></tr></table></div>
+    <div><p>Get the alignment mode of the model.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">'alin' if the aligned version should be used, 'no_alin' if the aligned version should not be used.</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -377,7 +374,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">set_mode</span>(mode):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">set_mode</span><span class="function-signature">(mode: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code>)</span>:
     
     <a class="headerLink" href="#set_mode" title="DeepKS.config.cfg.set_mode">
       
@@ -387,8 +385,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Set the alignment mode of the model.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">mode:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">'alin' if the aligned version should be used, 'no_alin' if the aligned version should not be used.</td></tr></table></div>
+    <div><p>Set the alignment mode of the model.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">mode:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">alin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">no_alin</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">'alin' if the aligned version should be used, 'no_alin' if the aligned version should not be used.</td></tr></table></div>
   </div>
 </div><div class="basefunction private">
   
@@ -401,7 +398,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">_postrun</span>(old_wd):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_postrun</span><span class="function-signature">(old_wd: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>)</span>:
     
     <a class="headerLink" href="#_postrun" title="DeepKS.config.cfg._postrun">
       
@@ -411,8 +409,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Change the working directory back to the old working directory.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">old<wbr></wbr>_wd:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The old working directory.</td></tr></table></div>
+    <div><p>Change the working directory back to the old working directory.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">old<wbr></wbr>_wd:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The old working directory.</td></tr></table></div>
   </div>
 </div><div class="basefunction private">
   
@@ -425,7 +422,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">_prerun</span>():
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_prerun</span><span class="function-signature">() -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></span>:
     
     <a class="headerLink" href="#_prerun" title="DeepKS.config.cfg._prerun">
       
@@ -435,8 +433,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Change the working directory to the directory of this file.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The old working directory.</td></tr></table></div>
+    <div><p>Change the working directory to the directory of this file.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The old working directory.</td></tr></table></div>
   </div>
 </div>
         </div>

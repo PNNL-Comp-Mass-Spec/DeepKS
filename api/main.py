@@ -28,6 +28,7 @@ from ..tools import schema_validation
 from ..tools.informative_tb import informative_exception
 from ..models.GroupClassifier import GroupClassifier
 from ..config.join_first import join_first
+from ..tools.custom_logging import ERROR, VANISHING_STATUS
 
 
 NO_PARSE_NO_PRED: bool
@@ -482,6 +483,14 @@ def parse_api() -> dict[str, typing.Any]:
         default=False,
         required=False,
         action="store_true",
+    )
+
+    ap.add_argument(
+        "--lower-logging-level", help="Log statements at or above this level", default=VANISHING_STATUS, required=False
+    )
+
+    ap.add_argument(
+        "--upper-logging-level", help="Log statements at or below this level", default=ERROR + 1, required=False
     )
 
     try:

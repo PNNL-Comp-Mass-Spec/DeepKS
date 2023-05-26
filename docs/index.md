@@ -290,6 +290,25 @@ usage: python -m DeepKS.api.main [-h] (-k <kinase sequences> | -kf <kinase seque
 - Curly braces show available options for a flag.
 - That is, as a minimal example, you may run `python -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt`.
 - You might also run `python3 -m DeepKS.api.main -kf my_kinase_sequences.txt -sf my_site_sequences.txt --kin-info my_kinase_info.txt --site-info my_site_info.txt --cartesian-product -p in_order_json -v --pre_trained_nn my_pre_trained_nn.pt --pre_trained_gc my_pre_trained_gc.pt --device cuda:0 --scores --normalize-scores --groups --dry-run`.
+- A note on `--lower-logging-level` and `--upper-logging-level`: Each type of log statment in the program (e.g., Status, Info, Warning, Error) is associated with an integer. The integer value increases with the importance/severity of the log statement. Below is a table of integers, their associated log statements, and their usages.
+
+
+|Log Type | Integer | Log Type Description |
+|---------|---------|----------------------|
+|Debug    |   5     | Log debugging statements.|
+|Vanishing Status |9| Log a status that is overwritten by the next logging statement.     |
+|Status   |   10    | Log a status that is not overwritten by the next logging statement. |
+|Progress |   15    | Log progress bars at and above this level                           |
+|Info     |   20    | Log information not related to program progress.                    |
+|Train Info|  21    | Log information about performance in the training process.          |
+|Validation Info| 23| Log information about performance in the validation process.        |
+|Res Info |   25    | Log information about performance in the testing process.           |
+|Warning  |   30    | Log warnings                                                        |
+|User Error|  35    | Log errors that are caused and/or partially anticipated by the user.|
+|Error    |   45    | Log errors that are totally unexpected                              |
+
+The following is an example of how the above log types are presented:
+
 
 ***Note: If using CUDA, it may be helpful to run `nvidia-smi` to see which GPUs is being used extensively. DeepKS can automatically scale for the available hardware, but it will run much faster if it is run on a GPU with no other concurrent processes.***
 
