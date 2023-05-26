@@ -122,7 +122,7 @@ class NNInterface:
         if inp_size is not None and inp_types is None and isinstance(self.model_summary_name, str):
             self.write_model_summary()
 
-    def get_bytes_per_input(self, batch_size) -> tuple[int, int]:
+    def get_bytes_per_input(self, no_backprop=False) -> tuple[int, int]:
         if hasattr(self, "mem_per_input"):
             return getattr(self, "mem_per_input")
         if self.inp_size is None:
@@ -139,14 +139,17 @@ class NNInterface:
         except RuntimeError as e:
             if '"normal_kernel_cpu"' in str(e):
                 dummy_input = [
-                    torch.randint(0, 100, (batch_size, *insz[1:]), dtype=intp).to(self.device)
+                    torch.randint(0, 100, (256, *insz[1:]), dtype=intp).to(self.device)
                     for insz, intp in list(zip(self.inp_size, self.inp_types))
                 ]
             else:
                 raise e from None
-
+        if not no_backprop:
+            loss_fn = self.loss_steps
+        else:
+            loss_fn = self.loss_steps_eval_only
         self.mem_per_input, self.constant_req_mem = MemoryCalculator.calculate_memory(
-            self.model, [x[0] for x in dummy_input], loss_steps=self.loss_steps, device=self.device
+            self.model, [x[0] for x in dummy_input], loss_steps=loss_fn, device=self.device
         )
         return self.mem_per_input, self.constant_req_mem
 
@@ -159,6 +162,9 @@ class NNInterface:
             l.backward()
         else:
             raise NotImplementedError("Need `torch.nn.BCEWithLogitsLoss` or `torch.nn.BCELoss`.")
+
+    def loss_steps_eval_only(self, t: torch.Tensor, num_labs=1):
+        pass
 
     def write_model_summary(self):
         """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""
@@ -579,7 +585,10 @@ class NNInterface:
                 performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
             case "roc":
                 scores = outputs.data.cpu()
-                performance = protected_roc_auc_score(labels.cpu(), scores)
+                if set(labels.data.numpy().tolist()) != {-1}:
+                    performance = protected_roc_auc_score(labels.cpu(), scores)
+                else:
+                    performance = -1
 
         return float(performance), predictions
 

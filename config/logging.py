@@ -33,7 +33,7 @@ def get_logger():
 
     # Define a custom warning handler
     def warning_handler(message, category, filename, lineno, file=None, line=None):
-        logger.warning(f"{category.__name__} — {message}")
+        logger.warning(f"{category.__name__} — {message}", loc_msg=f"{filename}:{lineno}")
 
     # Register the custom warning handler with the warnings module
     warnings.showwarning = warning_handler

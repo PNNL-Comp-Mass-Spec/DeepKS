@@ -39,16 +39,16 @@ def no_output():
 
 def mem_mon(v, q, thsh=15, interv=0.001):
     i = 0
-    init_bytes = psutil.virtual_memory().free + psutil.swap_memory().free
+    init_avail = psutil.virtual_memory().available + psutil.swap_memory().free
     peak_mem_usage = 0
     try:
         while True:
             time.sleep(interv)
-            cur_bytes = psutil.virtual_memory().free + psutil.swap_memory().free
-            peak_mem_usage = max(init_bytes - cur_bytes, peak_mem_usage)
+            cur_avail = psutil.virtual_memory().available + psutil.swap_memory().free
+            peak_mem_usage = max((init_avail - cur_avail), peak_mem_usage)
             v.value = int(peak_mem_usage)
 
-            pct_rem = 100 - (100 * ((init_bytes - cur_bytes) / init_bytes))
+            pct_rem = 100 - (100 * ((init_avail - cur_avail) / init_avail))
 
             # Check if memory usage exceeds the limit
             i += 1
@@ -86,6 +86,10 @@ def rep_mem_wrapper(fn, wrapper_kwargs={}, *args, **kwargs):
                 ):
                     calc_proc.kill()
                     mem_proc.kill()
+                    calc_proc.join()
+                    mem_proc.join()
+                    calc_proc.close()
+                    mem_proc.close()
                     logger.warning(
                         "The memory threshold was exceeded which means the amount of memory required exceed the system"
                         " limits"
@@ -102,9 +106,12 @@ def rep_mem_wrapper(fn, wrapper_kwargs={}, *args, **kwargs):
                     print(other_err)
                     raise
             else:
+                calc_proc.close()
                 mem_proc.kill()
+                mem_proc.join()
+                mem_proc.close()
                 break
-    return v.value
+    return v.value, calculating_batch_size
 
 
 class MemoryCalculator(Protocol):
@@ -117,7 +124,7 @@ class MemoryCalculator(Protocol):
         loss_steps: Callable[[torch.Tensor], None],
         calculating_batch_size: int = 250,
         reps: int = 1,
-        safety_factor: float = 1.25,
+        safety_factor: float = 1.333,
         device: torch.device = torch.device("cpu"),
         cpu_no_compute=os.getenv("DOCKER_CONTAINER") is not None,
     ) -> tuple[int, int]:
@@ -148,11 +155,12 @@ class MemoryCalculator(Protocol):
         # if str(device) == "cpu" and cpu_no_compute:
         #     logger.info("Skipping memory estimation test (since we're on CPU). Assuming memory requirement values.")
         #     return int(5e6), int(5e7)
+        calculating_batch_size_eventual = calculating_batch_size
         if False:
             ...
         elif str(device) == "cpu":
             logger.status("Calculating memory for batch_size == 1")
-            one_tot_mem = rep_mem_wrapper(
+            one_tot_mem, _ = rep_mem_wrapper(
                 MemoryCalculator._calculate_memory_core,
                 {"calculating_batch_size": calculating_batch_size},
                 model,
@@ -163,7 +171,7 @@ class MemoryCalculator(Protocol):
                 pass_through_cuda,
             )
             logger.status(f"Calculating memory for batch_size == {calculating_batch_size}")
-            many_tot_mem = rep_mem_wrapper(
+            many_tot_mem, calculating_batch_size_eventual = rep_mem_wrapper(
                 MemoryCalculator._calculate_memory_core,
                 {"calculating_batch_size": calculating_batch_size},
                 model,
@@ -192,7 +200,7 @@ class MemoryCalculator(Protocol):
         ## many_tot_mem = constant_mem + var_mem * calculating_batch_size
         ## many_tot_mem - one_tot_mem = var_mem * (calculating_batch_size - 1)
         ## var_mem = (many_tot_mem - one_tot_mem) / (calculating_batch_size - 1)
-        var_mem = int((many_tot_mem - one_tot_mem) / (calculating_batch_size - 1)) + 1
+        var_mem = int((many_tot_mem - one_tot_mem) / (calculating_batch_size_eventual - 1)) + 1
         constant_mem = int(one_tot_mem - var_mem) + 1
         logger.info(f"Memory Needed as a Base for the Model: {constant_mem / 1024 / 1024:,.3f} MiB")
         logger.info(f"Memory Needed Per Additional Input: {var_mem / 1024 / 1024:,.3f} MiB")

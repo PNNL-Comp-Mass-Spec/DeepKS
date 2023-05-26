@@ -340,7 +340,7 @@ class MultiStageClassifier:
             logger.info(f"Writing results to {file_name}")
             table = pd.DataFrame(ret)
             if "json" in predictions_output_format:
-                table.to_json(open(file_name, "w"), orient="records", indent=3)
+                table.to_json(file_name, orient="records", indent=3)
             elif predictions_output_format == "csv":
                 table.to_csv(file_name, index=False)
             else:

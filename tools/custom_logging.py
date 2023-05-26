@@ -129,8 +129,8 @@ class CustomLogger(logging.Logger):
                 self.handler.setLevel(max(self._level, STATUS))
 
     def _blankit(self):
-        if self.last_log and self.last_log == "vstatus":
-            print(" " * os.get_terminal_size().columns, end="\r")
+        # if self.last_log and self.last_log == "vstatus":
+        print(" " * os.get_terminal_size().columns, end="\r")
 
     def debug(self, msg, *args, **kwargs):
         """Log debugging statements."""
@@ -207,7 +207,10 @@ class CustomLogger(logging.Logger):
                 assert back_frame is not None
                 lineno = back_frame.f_lineno
                 finame = back_frame.f_code.co_filename
-                msg = f"{msg} ({os.path.relpath(finame, pathlib.Path(os.getcwd()))}:{lineno})"
+                loc_msg = kwargs.get("loc_msg", f"{finame}:{lineno}")
+                msg = f"{msg} ({kwargs.get('loc_msg', loc_msg)})"
+                if "loc_msg" in kwargs:
+                    del kwargs["loc_msg"]
 
                 self._log(logging.WARNING, msg, args, **kwargs)
             self.last_log = "warning"

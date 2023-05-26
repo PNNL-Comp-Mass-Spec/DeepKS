@@ -3,6 +3,10 @@ import pickle, atexit, sys, os, functools, unittest, pathlib, jstyleson as json,
 from git.repo import Repo
 from parameterized import parameterized
 
+import multiprocessing as mp
+
+mp.set_start_method("spawn")
+
 from DeepKS.models.multi_stage_classifier import MultiStageClassifier
 from ..config.join_first import join_first
 from ..models.GroupClassifier import PseudoSiteGroupClassifier
