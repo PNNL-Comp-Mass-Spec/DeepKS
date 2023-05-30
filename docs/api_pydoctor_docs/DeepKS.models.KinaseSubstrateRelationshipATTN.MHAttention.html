@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -397,17 +395,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">MHAttention</span>(<a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">nn.Module</a>):</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">MHAttention</span>(<a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">nn.Module</a>):</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.__init__">MHAttention(embed_dim, num_heads, do_transform, q_k_v_transform_in_features)</a></code></p>
           <p><a href="classIndex.html#DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Wrapper (that adds an optional linear transform) for <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html#torch.nn.MultiheadAttention" class="intersphinx-link">nn.MultiheadAttention</a></code> (MHA)</p>
-</div>
+          <div><p>Wrapper (that adds an optional linear transform) for <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html#torch.nn.MultiheadAttention" class="intersphinx-link">nn.MultiheadAttention</a></code> (MHA)</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id77">
+          <table class="children sortable" id="id81">
   
   
   <tr class="method">
@@ -489,7 +486,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, embed_dim, num_heads, do_transform=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, q_k_v_transform_in_features=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, embed_dim: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, num_heads: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, do_transform: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, q_k_v_transform_in_features: <code><a href="https://docs.python.org/3/library/typing.html#typing.Tuple" class="intersphinx-link">Tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]|<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a></code> = <a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.__init__">
       
@@ -499,8 +497,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Initialize the MHAttention module.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">embed<wbr></wbr>_dim:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The dimension of the embedding space for multi-head attention.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_heads:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of attention heads.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">do<wbr></wbr>_transform:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether or not to do a linear transform on the input tensors before running data through <code><a href="#forward" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.forward">forward</a></code>, by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">q<wbr></wbr>_k<wbr></wbr>_v<wbr></wbr>_transform<wbr></wbr>_in<wbr></wbr>_features:</span><em>optional</em></td><td class="fieldArgDesc">The Q in-dimension, the K in-dimension, and the V in-dimension for the linear transform, by default None. Cannot be None if <code><a href="#do_transform" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.do_transform">do_transform</a></code> is True.</td></tr></table></div>
+    <div><p>Initialize the MHAttention module.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">embed<wbr></wbr>_dim:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The dimension of the embedding space for multi-head attention.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_heads:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of attention heads.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">do<wbr></wbr>_transform:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether or not to do a linear transform on the input tensors before running data through <code><a href="#forward" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.forward">forward</a></code>, by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">q<wbr></wbr>_k<wbr></wbr>_v<wbr></wbr>_transform<wbr></wbr>_in<wbr></wbr>_features:</span><em>optional</em></td><td class="fieldArgDesc">The Q in-dimension, the K in-dimension, and the V in-dimension for the linear transform, by default None. Cannot be None if <code><a href="#do_transform" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.do_transform">do_transform</a></code> is True.</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -513,7 +510,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">forward</span>(self, site, kin):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">forward</span><span class="function-signature">(self, site: <code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code>, kin: <code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code>) -&gt; <code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></span>:
     
     <a class="headerLink" href="#forward" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.forward">
       
@@ -523,8 +521,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Forward pass of the MHAttention module.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">Tensor representing a site of shape <tt class="rst-docutils literal">(batch_size, site_length, emb_dim)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">Tensor representing a kinase of shape <tt class="rst-docutils literal">(batch_size, kin_length, emb_dim)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">Resultant Tensor of shape <tt class="rst-docutils literal">(batch_size, kin_length, emb_dim)</tt></td></tr></table></div>
+    <div><p>Forward pass of the MHAttention module.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">Tensor representing a site of shape <tt class="rst-docutils literal">(batch_size, site_length, emb_dim)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">Tensor representing a kinase of shape <tt class="rst-docutils literal">(batch_size, kin_length, emb_dim)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">Resultant Tensor of shape <tt class="rst-docutils literal">(batch_size, kin_length, emb_dim)</tt></td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -547,8 +544,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Whether or not to do a linear transform on the input tensors before running data through <code><a href="#forward" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.forward">forward</a></code>.</p>
-</div>
+    <div><p>Whether or not to do a linear transform on the input tensors before running data through <code><a href="#forward" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MHAttention.forward">forward</a></code>.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -572,8 +568,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The dimension of the embedding space for multi-head attention.</p>
-</div>
+    <div><p>The dimension of the embedding space for multi-head attention.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -597,8 +592,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The K in-dimension for the K-linear layer</p>
-</div>
+    <div><p>The K in-dimension for the K-linear layer</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -622,8 +616,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The multi-head attention module.</p>
-</div>
+    <div><p>The multi-head attention module.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -647,8 +640,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The number of attention heads.</p>
-</div>
+    <div><p>The number of attention heads.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -672,8 +664,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The Q in-dimension for the Q-linear layer</p>
-</div>
+    <div><p>The Q in-dimension for the Q-linear layer</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -697,8 +688,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The linear transform for the K tensor.</p>
-</div>
+    <div><p>The linear transform for the K tensor.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -722,8 +712,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The linear transform for the Q tensor.</p>
-</div>
+    <div><p>The linear transform for the Q tensor.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -747,8 +736,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The linear transform for the V tensor.</p>
-</div>
+    <div><p>The linear transform for the V tensor.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -772,8 +760,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The V in-dimension for the V-linear layer</p>
-</div>
+    <div><p>The V in-dimension for the V-linear layer</p></div>
     
   </div>
 </div>

@@ -376,7 +376,6 @@ def data_to_tensor(
             if batch_size == 0:
                 raise ValueError("The batch size reduced to zero meaning one input cannot fit into memory.")
             logger.warning(f"Reducing batch size to {batch_size}")
-            num_batches_can_be_stored_per_dl_CPU = int(free_ram_and_swap_B / (bytes_per_input * batch_size))
 
     num_batches_can_be_stored_per_dl_CPU = int(free_ram_and_swap_B / (bytes_per_input * batch_size))
 
@@ -388,7 +387,7 @@ def data_to_tensor(
     while num_batches_can_be_stored_per_dl_CPU < 1:
         try:
             assert num_batches_can_be_stored_per_dl_CPU >= 1, (
-                "Cannot store one batch in CPU memory at a time. Reducing the batch size, but when training, I will"
+                "Cannot store one batch in CPU memory at a time. Reducing the batch size, but if/when training, I will"
                 " still only `.step()` after the originally provided batch size."
             )
         except Exception as e:

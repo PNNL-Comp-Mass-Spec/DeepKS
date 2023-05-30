@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.informative_tb</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -262,6 +260,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.tools.file_names.html" class="internal-link" title="DeepKS.tools.file_names">file<wbr></wbr>_names</a></code>
             </div>
         
@@ -499,12 +507,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Contains functionality to print a more informative traceback, giving the user a concrete format from which to debug.</p>
-</div>
+          <div><p>Contains functionality to print a more informative traceback, giving the user a concrete format from which to debug.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id141">
+          <table class="children sortable" id="id157">
   
   
   <tr class="function">
@@ -541,7 +548,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_exception_description</span>(exception_type):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_exception_description</span><span class="function-signature">(exception_type: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></span>:
     
     <a class="headerLink" href="#get_exception_description" title="DeepKS.tools.informative_tb.get_exception_description">
       
@@ -551,8 +559,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Gets the description of an exception from the Python docs.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">exception<wbr></wbr>_type:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The name of the exception to get the description of.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The description of the exception.</td></tr></table></div>
+    <div><p>Gets the description of an exception from the Python docs.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">exception<wbr></wbr>_type:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The name of the exception to get the description of.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc">The description of the exception.</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -565,7 +572,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">informative_exception</span>(e, top_message=<span class="rst-variable-quote">'</span><span class="rst-variable-string">Error: Something went wrong! Error message(s) below.</span><span class="rst-variable-quote">'</span>, print_full_tb=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, exitcode=1, fake_root_dir=<span class="rst-variable-quote">'</span><span class="rst-variable-string">DeepKS</span><span class="rst-variable-quote">'</span>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">informative_exception</span><span class="function-signature">(e: <code><a href="https://docs.python.org/3/library/exceptions.html#Exception" class="intersphinx-link">Exception</a></code>, top_message=<span class="rst-variable-quote">'</span><span class="rst-variable-string">Error: Something went wrong! Error message(s) below.</span><span class="rst-variable-quote">'</span>, print_full_tb=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, exitcode=1, fake_root_dir=<span class="rst-variable-quote">'</span><span class="rst-variable-string">DeepKS</span><span class="rst-variable-quote">'</span>) -&gt; <code><a href="https://docs.python.org/3/library/typing.html#typing.NoReturn" class="intersphinx-link">typing.NoReturn</a></code></span>:
     
     <a class="headerLink" href="#informative_exception" title="DeepKS.tools.informative_tb.informative_exception">
       
@@ -575,8 +583,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Prints a more informative traceback, giving the user a concrete format from which to debug.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">e:</span><code><a href="https://docs.python.org/3/library/exceptions.html#Exception" class="intersphinx-link">Exception</a></code></td><td class="fieldArgDesc">The exception for which to print information</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">top<wbr></wbr>_message:</span><em>optional</em></td><td class="fieldArgDesc">The message to print at the top of the informative traceback, by default "Error: Something went wrong! Error message(s) below."</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">print<wbr></wbr>_full<wbr></wbr>_tb:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not to print a full traceback as part of the informative exception, by default True</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">exitcode:</span><em>optional</em></td><td class="fieldArgDesc">The exitcode to give the terminal after printing information, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fake<wbr></wbr>_root<wbr></wbr>_dir:</span><em>optional</em></td><td class="fieldArgDesc">The fake root directory to allow VSCode to provide links to files &amp; line numbers in the integrated terminal, by default "DeepKS"</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.NoReturn" class="intersphinx-link">typing.NoReturn</a></code></td><td class="fieldArgDesc">Does not return, but exits the program with the given exitcode.</td></tr></table></div>
+    <div><p>Prints a more informative traceback, giving the user a concrete format from which to debug.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">e:</span><code><a href="https://docs.python.org/3/library/exceptions.html#Exception" class="intersphinx-link">Exception</a></code></td><td class="fieldArgDesc">The exception for which to print information</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">top<wbr></wbr>_message:</span><em>optional</em></td><td class="fieldArgDesc">The message to print at the top of the informative traceback, by default "Error: Something went wrong! Error message(s) below."</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">print<wbr></wbr>_full<wbr></wbr>_tb:</span><em>optional</em></td><td class="fieldArgDesc">Whether or not to print a full traceback as part of the informative exception, by default True</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">exitcode:</span><em>optional</em></td><td class="fieldArgDesc">The exitcode to give the terminal after printing information, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">fake<wbr></wbr>_root<wbr></wbr>_dir:</span><em>optional</em></td><td class="fieldArgDesc">The fake root directory to allow VSCode to provide links to files &amp; line numbers in the integrated terminal, by default "DeepKS"</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/typing.html#typing.NoReturn" class="intersphinx-link">typing.NoReturn</a></code></td><td class="fieldArgDesc">Does not return, but exits the program with the given exitcode.</td></tr></table></div>
   </div>
 </div><div class="baseconstant">
   
@@ -599,8 +606,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>How long should we assume the terminal will be?</p>
-</div>
+    <div><p>How long should we assume the terminal will be?</p></div>
     <table class="valueTable"><tr class="fieldStart"><td class="fieldName">Value</td></tr><tr><td><pre class="constant-value"><code>90</code></pre></td></tr></table>
   </div>
 </div>

@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -379,8 +377,7 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Contains functionality to take raw PSP data and format it into a dataframe that can be used by the model (first by <code><a href="DeepKS.tools.tensorize.html" class="internal-link" title="DeepKS.tools.tensorize">tools.tensorize</a></code>).</p>
-</div>
+          <div><p>Contains functionality to take raw PSP data and format it into a dataframe that can be used by the model (first by <code><a href="DeepKS.tools.tensorize.html" class="internal-link" title="DeepKS.tools.tensorize">tools.tensorize</a></code>).</p></div>
         </div>
 
         <div id="splitTables">
@@ -441,7 +438,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_input_dataframe</span>(input_fn, kin_seq_file, distance_matrix_file, config):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_input_dataframe</span><span class="function-signature">(input_fn, kin_seq_file, distance_matrix_file, config)</span>:
     
     <a class="headerLink" href="#get_input_dataframe" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.get_input_dataframe">
       
@@ -464,7 +462,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_input_dataframe_core</span>(section_df, input_fn, kin_seq_file, percentile, distance_matrix_file, write_file=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, testing_mode=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_input_dataframe_core</span><span class="function-signature">(section_df: <code><a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" class="intersphinx-link">pd.DataFrame</a></code>, input_fn: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, kin_seq_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, percentile: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code>, distance_matrix_file: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, write_file=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>, testing_mode=<a href="https://docs.python.org/3/library/constants.html#True" class="intersphinx-link">True</a>)</span>:
     
     <a class="headerLink" href="#get_input_dataframe_core" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.get_input_dataframe_core">
       
@@ -474,7 +473,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">section<wbr></wbr>_df:</span><code><a href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" class="intersphinx-link">pd.DataFrame</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">input<wbr></wbr>_fn:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">percentile:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">distance<wbr></wbr>_matrix<wbr></wbr>_file:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">write<wbr></wbr>_file</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">testing<wbr></wbr>_mode</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -487,7 +486,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">my_pop</span>(df, index):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">my_pop</span><span class="function-signature">(df, index)</span>:
     
     <a class="headerLink" href="#my_pop" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.my_pop">
       
@@ -497,8 +497,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Based on <a class="rst-reference external" href="https://stackoverflow.com/a/58548326" target="_top">https://stackoverflow.com/a/58548326</a></p>
-</div>
+    <div><p>Based on <a class="rst-reference external" href="https://stackoverflow.com/a/58548326" target="_top">https://stackoverflow.com/a/58548326</a></p></div>
   </div>
 </div><div class="basefunction">
   
@@ -511,7 +510,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">toupper</span>(x):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">toupper</span><span class="function-signature">(x)</span>:
     
     <a class="headerLink" href="#toupper" title="DeepKS.data.preprocessing.PreprocessingSteps.format_raw_data.toupper">
       

@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -367,17 +365,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">MultipleCNN</span>(<a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">nn.Module</a>):</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">MultipleCNN</span>(<a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">nn.Module</a>):</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN.__init__">MultipleCNN(out_channels, conv_kernel_size, pool_kernel_size, in_channels, ...)</a></code></p>
           <p><a href="classIndex.html#DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Module that applies a single CNNs to the input data, but allows for easy chaining of multiple <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN.html" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN">MultipleCNN</a></code> s.</p>
-</div>
+          <div><p>Module that applies a single CNNs to the input data, but allows for easy chaining of multiple <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN.html" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN">MultipleCNN</a></code> s.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id78">
+          <table class="children sortable" id="id82">
   
   
   <tr class="method">
@@ -444,7 +441,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, out_channels, conv_kernel_size, pool_kernel_size, in_channels, do_flatten=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, do_transpose=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, out_channels: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, conv_kernel_size: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, pool_kernel_size: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, in_channels: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, do_flatten: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>, do_transpose: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN.__init__">
       
@@ -454,8 +452,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Initialize the MultipleCNN module.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">out<wbr></wbr>_channels:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of output channels for the convolutional layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">conv<wbr></wbr>_kernel<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The kernel size for the convolutional layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pool<wbr></wbr>_kernel<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The kernel size/stride for the pooling layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">in<wbr></wbr>_channels:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of input channels for the convolutional layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">do<wbr></wbr>_flatten:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether or not to flatten the output, by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">do<wbr></wbr>_transpose:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether or not to transpose the 1st and 2nd dimensions of the output, by default False</td></tr></table></div>
+    <div><p>Initialize the MultipleCNN module.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">out<wbr></wbr>_channels:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of output channels for the convolutional layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">conv<wbr></wbr>_kernel<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The kernel size for the convolutional layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pool<wbr></wbr>_kernel<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The kernel size/stride for the pooling layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">in<wbr></wbr>_channels:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The number of input channels for the convolutional layer.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">do<wbr></wbr>_flatten:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether or not to flatten the output, by default False</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">do<wbr></wbr>_transpose:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Whether or not to transpose the 1st and 2nd dimensions of the output, by default False</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -468,7 +465,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">forward</span>(self, x, ret_size=<a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">forward</span><span class="function-signature">(self, x: <code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code>, ret_size: <code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code> = <a href="https://docs.python.org/3/library/constants.html#False" class="intersphinx-link">False</a>) -&gt; <code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></span>:
     
     <a class="headerLink" href="#forward" title="DeepKS.models.KinaseSubstrateRelationshipATTN.MultipleCNN.forward">
       
@@ -478,8 +476,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Forward pass of the MultipleCNN module.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">x:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The input tensor of shape <tt class="rst-docutils literal">(batch_size, in_channels, seq_length)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">ret<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Should be Depricated, by default False</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The output tensor of shape <tt class="rst-docutils literal">(batch_size, out_channels, seq_length)</tt></td></tr></table></div>
+    <div><p>Forward pass of the MultipleCNN module.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">x:</span><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The input tensor of shape <tt class="rst-docutils literal">(batch_size, in_channels, seq_length)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">ret<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#bool" class="intersphinx-link">bool</a></code>, <em>optional</em></td><td class="fieldArgDesc">Should be Depricated, by default False</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" class="intersphinx-link">torch.Tensor</a></code></td><td class="fieldArgDesc">The output tensor of shape <tt class="rst-docutils literal">(batch_size, out_channels, seq_length)</tt></td></tr></table></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -502,8 +499,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The activation function to apply to the output of the convolutional layer.</p>
-</div>
+    <div><p>The activation function to apply to the output of the convolutional layer.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -527,8 +523,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The underlying convolutional layer.</p>
-</div>
+    <div><p>The underlying convolutional layer.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -552,8 +547,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Whether or not to flatten the output.</p>
-</div>
+    <div><p>Whether or not to flatten the output.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -577,8 +571,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Whether or not to transpose the 1st and 2nd dimensions of the output.</p>
-</div>
+    <div><p>Whether or not to transpose the 1st and 2nd dimensions of the output.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -602,8 +595,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The flattening layer, if flattening needs to be done</p>
-</div>
+    <div><p>The flattening layer, if flattening needs to be done</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -627,8 +619,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The pooling layer to apply to the output of the activated convolutional layer.</p>
-</div>
+    <div><p>The pooling layer to apply to the output of the activated convolutional layer.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -652,8 +643,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The transposing layer, if transposition needs to be done.</p>
-</div>
+    <div><p>The transposing layer, if transposition needs to be done.</p></div>
     
   </div>
 </div>

@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.legacy_plotting</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -259,6 +257,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.tools.file_names.html" class="internal-link" title="DeepKS.tools.file_names">file<wbr></wbr>_names</a></code>
             </div>
         
@@ -496,12 +504,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Old plotting functions that may be useful to take from in the future.</p>
-</div>
+          <div><p>Old plotting functions that may be useful to take from in the future.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id142">
+          <table class="children sortable" id="id158">
   
   
   <tr class="function">
@@ -538,7 +545,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_all_conf_mats</span>(self, *loaders, savefile=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, cutoffs=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, metric=<span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, cm_labels=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_all_conf_mats</span><span class="function-signature">(self, *loaders, savefile=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, cutoffs=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, metric: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">acc</span><span class="rst-variable-quote">'</span>]</code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, cm_labels=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>)</span>:
     
     <a class="headerLink" href="#get_all_conf_mats" title="DeepKS.tools.legacy_plotting.get_all_conf_mats">
       
@@ -548,7 +556,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">self</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">*loaders</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">savefile</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cutoffs</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">metric:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">roc</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">acc</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cm<wbr></wbr>_labels</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -561,7 +569,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_all_rocs</span>(self, tl, vl, tel, ho, savefile=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_all_rocs</span><span class="function-signature">(self, tl, vl, tel, ho, savefile=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>)</span>:
     
     <a class="headerLink" href="#get_all_rocs" title="DeepKS.tools.legacy_plotting.get_all_rocs">
       
@@ -584,7 +593,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_all_rocs_by_group</span>(self, loader, kinase_order, savefile=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, kin_fam_grp_file=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../data/preprocessing/kin_to_fam_to_grp_817.csv</span><span class="rst-variable-quote">'</span>):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_all_rocs_by_group</span><span class="function-signature">(self, loader, kinase_order, savefile=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>, kin_fam_grp_file=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../data/preprocessing/kin_to_fam_to_grp_817.csv</span><span class="rst-variable-quote">'</span>)</span>:
     
     <a class="headerLink" href="#get_all_rocs_by_group" title="DeepKS.tools.legacy_plotting.get_all_rocs_by_group">
       

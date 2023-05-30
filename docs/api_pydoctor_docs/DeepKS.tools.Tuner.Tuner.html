@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.Tuner.Tuner</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -440,7 +438,7 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">Tuner</span>(<a href="https://docs.python.org/3/library/typing.html#typing.Protocol" class="intersphinx-link">Protocol</a>):</code></p><p>Known subclasses: <code><a href="DeepKS.tools.Tuner.BasicTuner.html" class="internal-link">DeepKS.tools.Tuner.BasicTuner</a></code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">Tuner</span>(<a href="https://docs.python.org/3/library/typing.html#typing.Protocol" class="intersphinx-link">Protocol</a>):</code></p><p>Known subclasses: <code><a href="DeepKS.tools.Tuner.BasicTuner.html" class="internal-link">DeepKS.tools.Tuner.BasicTuner</a></code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.tools.Tuner.Tuner.__init__">Tuner(num_sim_procs, train_fn, config_dict, num_samples, ...)</a></code></p>
           <p><a href="classIndex.html#DeepKS.tools.Tuner.Tuner">View In Hierarchy</a></p>
         </div>
 
@@ -449,7 +447,7 @@
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id122">
+          <table class="children sortable" id="id132">
   
   
   <tr class="staticmethod">
@@ -540,8 +538,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">get_config_dict</span>(config_key):
+    <span class="py-keyword">def</span> <span class="py-defname">get_config_dict</span><span class="function-signature">(config_key)</span>:
     
     <a class="headerLink" href="#get_config_dict" title="DeepKS.tools.Tuner.Tuner.get_config_dict">
       
@@ -563,8 +562,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">table_intermediates</span>(config, *args):
+    <span class="py-keyword">def</span> <span class="py-defname">table_intermediates</span><span class="function-signature">(config, *args)</span>:
     
     <a class="headerLink" href="#table_intermediates" title="DeepKS.tools.Tuner.Tuner.table_intermediates">
       
@@ -587,7 +587,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, num_sim_procs, train_fn, config_dict, num_samples, random_seed=84, collapse=[<wbr></wbr>[]], num_gpu=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, max_output_width=512, start_at=0, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, num_sim_procs: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, train_fn: <code><a href="https://docs.python.org/3/library/typing.html#typing.Callable" class="intersphinx-link">Callable</a></code>, config_dict: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]</code>, num_samples: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, random_seed: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 84, collapse=[<wbr></wbr>[]], num_gpu: <code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code> = <a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, max_output_width=512, start_at=0, **kwargs)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.tools.Tuner.Tuner.__init__">
       
@@ -597,7 +598,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overridden in <code><a href="DeepKS.tools.Tuner.BasicTuner.html" class="internal-link">DeepKS.tools.Tuner.BasicTuner</a></code></div>
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_sim<wbr></wbr>_procs:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">train<wbr></wbr>_fn:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Callable" class="intersphinx-link">Callable</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">config<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/typing.html#typing.Any" class="intersphinx-link">Any</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_samples:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">random<wbr></wbr>_seed:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">collapse</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_gpu:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Union" class="intersphinx-link">Union</a>[<wbr></wbr><a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, <wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">max<wbr></wbr>_output<wbr></wbr>_width</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">start<wbr></wbr>_at</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">**kwargs</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -610,7 +611,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">display_final_results</span>(self, results):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">display_final_results</span><span class="function-signature">(self, results)</span>:
     
     <a class="headerLink" href="#display_final_results" title="DeepKS.tools.Tuner.Tuner.display_final_results">
       
@@ -633,7 +635,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_result_from_config</span>(self, cmdl, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_result_from_config</span><span class="function-signature">(self, cmdl, **kwargs)</span>:
     
     <a class="headerLink" href="#get_result_from_config" title="DeepKS.tools.Tuner.Tuner.get_result_from_config">
       
@@ -655,8 +658,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/abc.html#abc.abstractmethod" class="intersphinx-link">abstractmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">go</span>(self, args_collection, **kwargs):
+    <span class="py-keyword">def</span> <span class="py-defname">go</span><span class="function-signature">(self, args_collection: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code>, **kwargs)</span>:
     
     <a class="headerLink" href="#go" title="DeepKS.tools.Tuner.Tuner.go">
       
@@ -666,7 +670,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overridden in <code><a href="DeepKS.tools.Tuner.BasicTuner.html" class="internal-link">DeepKS.tools.Tuner.BasicTuner</a></code></div>
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">args<wbr></wbr>_collection:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">**kwargs</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -679,7 +683,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">init_pool</span>(self):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">init_pool</span><span class="function-signature">(self)</span>:
     
     <a class="headerLink" href="#init_pool" title="DeepKS.tools.Tuner.Tuner.init_pool">
       
@@ -702,7 +707,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">print_combinations</span>(self):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">print_combinations</span><span class="function-signature">(self)</span>:
     
     <a class="headerLink" href="#print_combinations" title="DeepKS.tools.Tuner.Tuner.print_combinations">
       

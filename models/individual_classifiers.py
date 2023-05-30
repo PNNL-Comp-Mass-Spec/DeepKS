@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import multiprocessing as mp
+
+if __name__ == "__main__":
+    mp.set_start_method("spawn")
+
 import numpy as np
 
 if __name__ == "__main__":  # pragma: no cover
@@ -145,9 +150,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -314,7 +319,7 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_tr].inp_size = self.interfaces[group_tr].get_input_size(dummy[0])
             self.interfaces[group_tr].inp_types = self.interfaces[group_tr].get_input_types(dummy[0])
-            bpi, bc = self.interfaces[group_tr].get_bytes_per_input(batch_size=b)
+            bpi, bc = self.interfaces[group_tr].get_bytes_per_input(no_backprop=False)
             try:
                 val_loader, _ = list(
                     data_to_tensor(
@@ -392,6 +397,7 @@ class IndividualClassifiers:
             cartesian_product=cartesian_product,
         )
         count = 0
+        bytes = None
         for group_te, partial_group_df_te in gen_te:
             if len(partial_group_df_te) == 0:
                 print("Info: No inputs to evaluate for group =", group_te)
@@ -411,7 +417,8 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_te].inp_size = self.interfaces[group_te].get_input_size(dummy[0])
             self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
-            bpi, bc = self.interfaces[group_te].get_bytes_per_input(batch_size=256)
+            bpi, bc = bytes if bytes is not None else self.interfaces[group_te].get_bytes_per_input(no_backprop=True)
+            bytes = bpi, bc if bytes is None else bytes
             for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,

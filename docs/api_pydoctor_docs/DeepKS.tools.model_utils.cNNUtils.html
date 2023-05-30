@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.model_utils.cNNUtils</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -163,6 +161,16 @@
         
 
         
+            <div class="itemName"><code><a href="#calculate_cNN_params" class="internal-link" title="DeepKS.tools.model_utils.cNNUtils.calculate_cNN_params">calculate_c<wbr></wbr>NN_params</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="#close_by_out_sizes" class="internal-link" title="DeepKS.tools.model_utils.cNNUtils.close_by_out_sizes">close<wbr></wbr>_by<wbr></wbr>_out<wbr></wbr>_sizes</a></code>
             </div>
         
@@ -301,20 +309,24 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">cNNUtils</span>:</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">cNNUtils</span>:</code></p>
           <p><a href="classIndex.html#DeepKS.tools.model_utils.cNNUtils">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>General useful utilities for working with CNNs</p>
-</div>
+          <div><p>General useful utilities for working with CNNs</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id149">
+          <table class="children sortable" id="id165">
   
   
   <tr class="staticmethod">
+    
+    <td>Static Method</td>
+    <td><code><a href="#calculate_cNN_params" class="internal-link" title="DeepKS.tools.model_utils.cNNUtils.calculate_cNN_params">calculate_c<wbr></wbr>NN_params</a></code></td>
+    <td>Calculates the parameters for the CNN(s) for either the kinase or site sequence.</td>
+  </tr><tr class="staticmethod">
     
     <td>Static Method</td>
     <td><code><a href="#close_by_out_sizes" class="internal-link" title="DeepKS.tools.model_utils.cNNUtils.close_by_out_sizes">close<wbr></wbr>_by<wbr></wbr>_out<wbr></wbr>_sizes</a></code></td>
@@ -345,6 +357,30 @@
           <div class="basestaticmethod">
   
   
+  <a name="DeepKS.tools.model_utils.cNNUtils.calculate_cNN_params">
+    
+  </a>
+  <a name="calculate_cNN_params">
+    
+  </a>
+  <div class="functionHeader">
+    
+    @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
+    <span class="py-keyword">def</span> <span class="py-defname">calculate_cNN_params</span><span class="function-signature">(model_self, kin_or_site: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>]</code>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></span>:
+    
+    <a class="headerLink" href="#calculate_cNN_params" title="DeepKS.tools.model_utils.cNNUtils.calculate_cNN_params">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Calculates the parameters for the CNN(s) for either the kinase or site sequence.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">model<wbr></wbr>_self</span></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_or<wbr></wbr>_site:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc">Either "kin" or "site".</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></td><td class="fieldArgDesc">Calculated pool sizes, in channels, whether to flatten, and whether to transpose, for each CNN layer.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If <tt class="rst-docutils literal">kin_or_site</tt> is not <tt class="rst-docutils literal">kin</tt> or <tt class="rst-docutils literal">site</tt>.</td></tr></table></div>
+  </div>
+</div><div class="basestaticmethod">
+  
+  
   <a name="DeepKS.tools.model_utils.cNNUtils.close_by_out_sizes">
     
   </a>
@@ -352,8 +388,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">close_by_out_sizes</span>(base_len, desired_out):
+    <span class="py-keyword">def</span> <span class="py-defname">close_by_out_sizes</span><span class="function-signature">(base_len: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, desired_out: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></span>:
     
     <a class="headerLink" href="#close_by_out_sizes" title="DeepKS.tools.model_utils.cNNUtils.close_by_out_sizes">
       
@@ -363,8 +400,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Get a list of output sizes that are close to the desired output size.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">base<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The length of the input</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">desired<wbr></wbr>_out:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The desired output length</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">List of output sizes that are close to the desired output size</td></tr></table></div>
+    <div><p>Get a list of output sizes that are close to the desired output size.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">base<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The length of the input</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">desired<wbr></wbr>_out:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The desired output length</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code></td><td class="fieldArgDesc">List of output sizes that are close to the desired output size</td></tr></table></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -376,8 +412,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">desired_conv_then_pool_shape</span>(length, desired_length, kernel_size=10, dilation=1, pad=0, conv_stride=1, err_message=<span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>):
+    <span class="py-keyword">def</span> <span class="py-defname">desired_conv_then_pool_shape</span><span class="function-signature">(length: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, desired_length: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, kernel_size: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 10, dilation: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 1, pad: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 0, conv_stride: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 1, err_message: <code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string"></span><span class="rst-variable-quote">'</span>) -&gt; <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></span>:
     
     <a class="headerLink" href="#desired_conv_then_pool_shape" title="DeepKS.tools.model_utils.cNNUtils.desired_conv_then_pool_shape">
       
@@ -387,8 +424,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Calculate the stride for a pooling layer if it follows a convolutional layer to get a desired output shape.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">length:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The input length (unconvolved)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">desired<wbr></wbr>_length:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The desired output length (after convolution and pooling)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kernel<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The kernel for the convolution, by default 10. (The kernel for the pooling is assumed to be the same as the resultant stride)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dilation:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The convolutional dilation, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pad:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The convolutional padding, by default 0</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">conv<wbr></wbr>_stride:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The stride for the convolution, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">err<wbr></wbr>_message:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The error message to print if no stride can be found that satisfies the input constraints, by default ""</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The pooling stride that will result in the desired output shape</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If no stride can be found that satisfies the input constraints</td></tr></table></div>
+    <div><p>Calculate the stride for a pooling layer if it follows a convolutional layer to get a desired output shape.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">length:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The input length (unconvolved)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">desired<wbr></wbr>_length:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The desired output length (after convolution and pooling)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kernel<wbr></wbr>_size:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The kernel for the convolution, by default 10. (The kernel for the pooling is assumed to be the same as the resultant stride)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dilation:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The convolutional dilation, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">pad:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The convolutional padding, by default 0</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">conv<wbr></wbr>_stride:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The stride for the convolution, by default 1</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">err<wbr></wbr>_message:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <em>optional</em></td><td class="fieldArgDesc">The error message to print if no stride can be found that satisfies the input constraints, by default ""</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc">The pooling stride that will result in the desired output shape</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If no stride can be found that satisfies the input constraints</td></tr></table></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -400,8 +436,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">id_params</span>(config, db_file=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../architectures/HP_config_DB.tsv</span><span class="rst-variable-quote">'</span>, index_column=0):
+    <span class="py-keyword">def</span> <span class="py-defname">id_params</span><span class="function-signature">(config, db_file=<span class="rst-variable-quote">'</span><span class="rst-variable-string">../architectures/HP_config_DB.tsv</span><span class="rst-variable-quote">'</span>, index_column=0)</span>:
     
     <a class="headerLink" href="#id_params" title="DeepKS.tools.model_utils.cNNUtils.id_params">
       
@@ -423,8 +460,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">output_shape</span>(length, kernel_size, stride=1, pad=0, dilation=1):
+    <span class="py-keyword">def</span> <span class="py-defname">output_shape</span><span class="function-signature">(length: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, kernel_size: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, stride: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 1, pad: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 0, dilation: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 1) -&gt; <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></span>:
     
     <a class="headerLink" href="#output_shape" title="DeepKS.tools.model_utils.cNNUtils.output_shape">
       

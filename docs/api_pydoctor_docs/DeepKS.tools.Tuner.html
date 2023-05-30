@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.Tuner</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -295,6 +293,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.tools.estimate_memory_old.html" class="internal-link" title="DeepKS.tools.estimate_memory_old">estimate<wbr></wbr>_memory<wbr></wbr>_old</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.tools.file_names.html" class="internal-link" title="DeepKS.tools.file_names">file<wbr></wbr>_names</a></code>
             </div>
         
@@ -532,12 +540,11 @@
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Module to perform hyperparameter tuning on <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code> -based neural networks.</p>
-</div>
+          <div><p>Module to perform hyperparameter tuning on <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module" class="intersphinx-link">torch.nn.Module</a></code> -based neural networks.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id121">
+          <table class="children sortable" id="id131">
   
   
   <tr class="class">
@@ -589,7 +596,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">main</span>(cmdl, train_fn, num_samples=200, max_epoch=20):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">main</span><span class="function-signature">(cmdl: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code>, train_fn: <code><a href="https://docs.python.org/3/library/typing.html#typing.Callable" class="intersphinx-link">Callable</a></code>, num_samples: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 200, max_epoch: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 20)</span>:
     
     <a class="headerLink" href="#main" title="DeepKS.tools.Tuner.main">
       
@@ -599,7 +607,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">cmdl:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">train<wbr></wbr>_fn:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Callable" class="intersphinx-link">Callable</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_samples:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">max<wbr></wbr>_epoch:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basefunction">
   
@@ -612,7 +620,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">sigfig_iter</span>(iterable, sigfigs=3):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">sigfig_iter</span><span class="function-signature">(iterable: <code><a href="https://docs.python.org/3/library/typing.html#typing.Iterable" class="intersphinx-link">Iterable</a></code>, sigfigs: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 3)</span>:
     
     <a class="headerLink" href="#sigfig_iter" title="DeepKS.tools.Tuner.sigfig_iter">
       
@@ -622,8 +631,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>Rounds all floats in an iterable to a certain number of significant figures.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">iterable:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Iterable" class="intersphinx-link">Iterable</a></code></td><td class="fieldArgDesc">The iterable to round.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">sigfigs:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of significant figures to round the elements to, by default 3</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a></code></td><td class="fieldArgDesc">The rounded iterable.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If the iterable contains non-floats.</td></tr></table></div>
+    <div><p>Rounds all floats in an iterable to a certain number of significant figures.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">iterable:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Iterable" class="intersphinx-link">Iterable</a></code></td><td class="fieldArgDesc">The iterable to round.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">sigfigs:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of significant figures to round the elements to, by default 3</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a></code></td><td class="fieldArgDesc">The rounded iterable.</td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Raises</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/exceptions.html#ValueError" class="intersphinx-link">ValueError</a></code></td><td>If the iterable contains non-floats.</td></tr></table></div>
   </div>
 </div><div class="basevariable">
   
@@ -670,8 +678,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The logger for this module.</p>
-</div>
+    <div><p>The logger for this module.</p></div>
     
   </div>
 </div>

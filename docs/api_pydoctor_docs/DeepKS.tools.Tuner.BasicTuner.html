@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.Tuner.BasicTuner</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -536,7 +534,7 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">BasicTuner</span>(<a href="DeepKS.tools.Tuner.Tuner.html" class="internal-link" title="DeepKS.tools.Tuner.Tuner">Tuner</a>):</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">BasicTuner</span>(<a href="DeepKS.tools.Tuner.Tuner.html" class="internal-link" title="DeepKS.tools.Tuner.Tuner">Tuner</a>):</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.tools.Tuner.BasicTuner.__init__">BasicTuner(num_sim_procs, train_fn, config_dict, which_map, ...)</a></code></p>
           <p><a href="classIndex.html#DeepKS.tools.Tuner.BasicTuner">View In Hierarchy</a></p>
         </div>
 
@@ -545,7 +543,7 @@
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id123">
+          <table class="children sortable" id="id133">
   
   
   <tr class="staticmethod">
@@ -609,7 +607,7 @@
             <p class="inheritedFrom">
               Inherited from <code><a href="DeepKS.tools.Tuner.Tuner.html" class="internal-link" title="DeepKS.tools.Tuner.Tuner">Tuner</a></code>:
             </p>
-            <table class="children sortable" id="id124">
+            <table class="children sortable" id="id134">
   
   
   <tr class="basestaticmethod">
@@ -690,8 +688,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">get_one_layer_cnn</span>(seq_len, kern_range, out_range, channels):
+    <span class="py-keyword">def</span> <span class="py-defname">get_one_layer_cnn</span><span class="function-signature">(seq_len: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, kern_range: <code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code>, out_range: <code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code>, channels: <code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code>)</span>:
     
     <a class="headerLink" href="#get_one_layer_cnn" title="DeepKS.tools.Tuner.BasicTuner.get_one_layer_cnn">
       
@@ -701,7 +700,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">seq<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kern<wbr></wbr>_range:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">out<wbr></wbr>_range:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">channels:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Collection" class="intersphinx-link">Collection</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basestaticmethod">
   
@@ -713,8 +712,9 @@
     
   </a>
   <div class="functionHeader">
+    
     @<a href="https://docs.python.org/3/library/functions.html#staticmethod" class="intersphinx-link">staticmethod</a><br />
-    <span class="py-keyword">def</span> <span class="py-defname">ll_sizes</span>():
+    <span class="py-keyword">def</span> <span class="py-defname">ll_sizes</span><span class="function-signature">()</span>:
     
     <a class="headerLink" href="#ll_sizes" title="DeepKS.tools.Tuner.BasicTuner.ll_sizes">
       
@@ -737,7 +737,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, num_sim_procs, train_fn, config_dict, which_map, num_samples, random_seed=84, collapse=[<wbr></wbr>[]], num_gpu=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, max_output_width=512, start_at=0):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, num_sim_procs, train_fn, config_dict, which_map, num_samples, random_seed=84, collapse=[<wbr></wbr>[]], num_gpu=<a href="https://docs.python.org/3/library/constants.html#None" class="intersphinx-link">None</a>, max_output_width=512, start_at=0)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.tools.Tuner.BasicTuner.__init__">
       
@@ -760,7 +761,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">generate_args_for_go</span>(self, base_args, tempdir):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">generate_args_for_go</span><span class="function-signature">(self, base_args, tempdir)</span>:
     
     <a class="headerLink" href="#generate_args_for_go" title="DeepKS.tools.Tuner.BasicTuner.generate_args_for_go">
       
@@ -783,7 +785,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">go</span>(self, args_collection, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">go</span><span class="function-signature">(self, args_collection, **kwargs)</span>:
     
     <a class="headerLink" href="#go" title="DeepKS.tools.Tuner.BasicTuner.go">
       

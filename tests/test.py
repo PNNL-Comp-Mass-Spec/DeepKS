@@ -1,7 +1,11 @@
 """All the tests for DeepKS"""
-import pickle, atexit, sys, os, functools, unittest, pathlib, json, inspect, time, signal
+import pickle, atexit, sys, os, functools, unittest, pathlib, jstyleson as json, inspect, time, signal
 from git.repo import Repo
 from parameterized import parameterized
+
+import multiprocessing as mp
+
+mp.set_start_method("spawn")
 
 from DeepKS.models.multi_stage_classifier import MultiStageClassifier
 from ..config.join_first import join_first
@@ -658,7 +662,7 @@ class TestMainAPIFromCMDL(unittest.TestCase):
             self.assertEqual(ar.exception.code, 0)
 
 
-with open(join_first("examples.json", 0, __file__)) as f:
+with open(join_first("examples.jsonc", 0, __file__)) as f:
     EXAMPLES = json.load(f)
     for ex in EXAMPLES:
         if "DEVICE_PLACEHOLDER" in ex:

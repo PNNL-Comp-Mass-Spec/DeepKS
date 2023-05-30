@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -540,17 +538,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">KinaseSubstrateRelationshipATTN</span>(<a href="DeepKS.models.KSRProtocol.KSR.html" class="internal-link" title="DeepKS.models.KSRProtocol.KSR">KSR</a>):</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">KinaseSubstrateRelationshipATTN</span>(<a href="DeepKS.models.KSRProtocol.KSR.html" class="internal-link" title="DeepKS.models.KSRProtocol.KSR">KSR</a>):</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.__init__">KinaseSubstrateRelationshipATTN(num_classes, linear_layer_sizes, emb_dim_site, emb_dim_kin, ...)</a></code></p>
           <p><a href="classIndex.html#DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>DeepKS model containing a <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html#torch.nn.MultiheadAttention" class="intersphinx-link">torch.nn.MultiheadAttention</a></code> layer as the attention layer. Otherwise analogous to     <code><a href="DeepKS.models.KinaseSubstrateRelationshipClassic.html" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipClassic">models.KinaseSubstrateRelationshipClassic</a></code>.</p>
-</div>
+          <div><p>DeepKS model containing a <code><a href="https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html#torch.nn.MultiheadAttention" class="intersphinx-link">torch.nn.MultiheadAttention</a></code> layer as the attention layer. Otherwise analogous to     <code><a href="DeepKS.models.KinaseSubstrateRelationshipClassic.html" class="internal-link" title="DeepKS.models.KinaseSubstrateRelationshipClassic">models.KinaseSubstrateRelationshipClassic</a></code>.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id79">
+          <table class="children sortable" id="id83">
   
   
   <tr class="method">
@@ -684,7 +681,7 @@
             <p class="inheritedFrom">
               Inherited from <code><a href="DeepKS.models.KSRProtocol.KSRProtocol.html" class="internal-link" title="DeepKS.models.KSRProtocol.KSRProtocol">KSRProtocol</a></code> (via <code><a href="DeepKS.models.KSRProtocol.KSR.html" class="internal-link" title="DeepKS.models.KSRProtocol.KSR">KSR</a></code>):
             </p>
-            <table class="children sortable" id="id80">
+            <table class="children sortable" id="id84">
   
   
   <tr class="basemethod">
@@ -711,7 +708,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, num_classes=1, linear_layer_sizes=[], emb_dim_site=22, emb_dim_kin=22, site_param_dict={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kernels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>4], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_lengths</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>12], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_channels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>11]}, kin_param_dict={<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kernels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>10], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_lengths</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>12], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_channels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>11]}, dropout_pr=0.3, site_len=15, kin_len=4128, num_aa=22, attn_num_heads=8, padding_idx=21):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, num_classes: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 1, linear_layer_sizes: <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code> = [], emb_dim_site: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 22, emb_dim_kin: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 22, site_param_dict: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code> = {<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kernels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>8], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_lengths</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>8], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_channels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>8]}, kin_param_dict: <code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<wbr></wbr><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code> = {<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kernels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>10], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_lengths</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>8], <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">out_channels</span><span class="rst-variable-quote">'</span>: [<wbr></wbr>8]}, dropout_pr: <code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code> = 0.3, site_len: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 15, kin_len: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 4128, num_aa: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 22, attn_num_heads: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 8, padding_idx: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = 21)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.__init__">
       
@@ -721,8 +719,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overrides <code><a href="DeepKS.models.KSRProtocol.KSRProtocol.html#__init__" class="internal-link">DeepKS.models.KSRProtocol.KSRProtocol.__init__</a></code></div>
-    <div><p>Initialize the KinaseSubstrateRelationshipATTN model.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_classes:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of classes to predict, by default 1. This would be changed if we wanted to output a probability distribution over the classes, rather than a single scalar.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">linear<wbr></wbr>_layer<wbr></wbr>_sizes:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code>, <em>optional</em></td><td class="fieldArgDesc">Input sizes of additional linear layers between the output of CNN pooling and the final prediction, by default <tt class="rst-docutils literal">[]</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">emb<wbr></wbr>_dim<wbr></wbr>_site:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The embedding dimension of the site sequence, by default 22</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">emb<wbr></wbr>_dim<wbr></wbr>_kin:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The embedding dimension of the kinase sequence, by default 22</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_param<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">A dictionary mapping parameters to lists of values for the site CNN(s), by default <tt class="rst-docutils literal">{"kernels": [4], "out_lengths": [12], "out_channels": [11]}</tt>. The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_param<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">A dictionary mapping parameters to lists of values for the kinase CNN(s), by default <tt class="rst-docutils literal">{"kernels": [10], "out_lengths": [12], "out_channels": [11]}</tt>. The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dropout<wbr></wbr>_pr:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code>, <em>optional</em></td><td class="fieldArgDesc">The dropout layers' probability, by default 0.3</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The length of site the model should expect, by default 15</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The length of kinase the model should expect, by default 4128</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_aa:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of amino acids (or by extension, n-grams) the model should expect, by default 22. (20 amino acids + "X" to pad flanking sequences whose central kinase is &lt; 7 residues away from the ending + padding token for kinases &lt; than 4128 residues long)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">attn<wbr></wbr>_num<wbr></wbr>_heads:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">padding<wbr></wbr>_idx:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The index of the kinase padding token within the <tt class="rst-docutils literal">num_aa</tt> tokens, by default 21</td></tr></table></div>
+    <div><p>Initialize the KinaseSubstrateRelationshipATTN model.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_classes:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of classes to predict, by default 1. This would be changed if we wanted to output a probability distribution over the classes, rather than a single scalar.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">linear<wbr></wbr>_layer<wbr></wbr>_sizes:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]</code>, <em>optional</em></td><td class="fieldArgDesc">Input sizes of additional linear layers between the output of CNN pooling and the final prediction, by default <tt class="rst-docutils literal">[]</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">emb<wbr></wbr>_dim<wbr></wbr>_site:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The embedding dimension of the site sequence, by default 22</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">emb<wbr></wbr>_dim<wbr></wbr>_kin:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The embedding dimension of the kinase sequence, by default 22</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_param<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">A dictionary mapping parameters to lists of values for the site CNN(s), by default <tt class="rst-docutils literal">{"kernels": [4], "out_lengths": [12], "out_channels": [11]}</tt>. The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_param<wbr></wbr>_dict:</span><code><a href="https://docs.python.org/3/library/stdtypes.html#dict" class="intersphinx-link">dict</a>[<a href="https://docs.python.org/3/library/stdtypes.html#str" class="intersphinx-link">str</a></code>, <code><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>[<a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>]]</code>, <em>optional</em></td><td class="fieldArgDesc">A dictionary mapping parameters to lists of values for the kinase CNN(s), by default <tt class="rst-docutils literal">{"kernels": [10], "out_lengths": [12], "out_channels": [11]}</tt>. The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">dropout<wbr></wbr>_pr:</span><code><a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code>, <em>optional</em></td><td class="fieldArgDesc">The dropout layers' probability, by default 0.3</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The length of site the model should expect, by default 15</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_len:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The length of kinase the model should expect, by default 4128</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">num<wbr></wbr>_aa:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The number of amino acids (or by extension, n-grams) the model should expect, by default 22. (20 amino acids + "X" to pad flanking sequences whose central kinase is &lt; 7 residues away from the ending + padding token for kinases &lt; than 4128 residues long)</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">attn<wbr></wbr>_num<wbr></wbr>_heads:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">padding<wbr></wbr>_idx:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>, <em>optional</em></td><td class="fieldArgDesc">The index of the kinase padding token within the <tt class="rst-docutils literal">num_aa</tt> tokens, by default 21</td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -735,7 +732,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">calculate_cNN_params</span>(self, kin_or_site):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">calculate_cNN_params</span><span class="function-signature">(self, kin_or_site: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>]</code>) -&gt; <code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></span>:
     
     <a class="headerLink" href="#calculate_cNN_params" title="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.calculate_cNN_params">
       
@@ -745,7 +743,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_or<wbr></wbr>_site:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">kin</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">site</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code><a href="https://docs.python.org/3/library/stdtypes.html#tuple" class="intersphinx-link">tuple</a>[<wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>, <wbr></wbr><a href="https://docs.python.org/3/library/stdtypes.html#list" class="intersphinx-link">list</a>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -758,7 +756,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">forward</span>(self, site_seq, kin_seq):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">forward</span><span class="function-signature">(self, site_seq, kin_seq)</span>:
     
     <a class="headerLink" href="#forward" title="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.forward">
       
@@ -768,8 +767,7 @@
   </div>
   <div class="docstring functionBody">
     <div class="interfaceinfo">overrides <code><a href="DeepKS.models.KSRProtocol.KSRProtocol.html#forward" class="internal-link">DeepKS.models.KSRProtocol.KSRProtocol.forward</a></code></div>
-    <div><p>KSRs should have a forward method that takes in a site sequence and a kinase sequence and returns a tensor of logits.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seq</span></td><td class="fieldArgDesc">The site sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq</span></td><td class="fieldArgDesc">The kinase sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">The logits, as a torch.FloatTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len, 1)</tt></td></tr></table></div>
+    <div><p>KSRs should have a forward method that takes in a site sequence and a kinase sequence and returns a tensor of logits.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seq</span></td><td class="fieldArgDesc">The site sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq</span></td><td class="fieldArgDesc">The kinase sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td colspan="2">The logits, as a torch.FloatTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len, 1)</tt></td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -782,7 +780,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">get_flat_size</span>(self):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">get_flat_size</span><span class="function-signature">(self)</span>:
     
     <a class="headerLink" href="#get_flat_size" title="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.get_flat_size">
       
@@ -887,8 +886,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The embedding dimension of the kinase sequence.</p>
-</div>
+    <div><p>The embedding dimension of the kinase sequence.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -912,8 +910,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The embedding dimension of the site sequence.</p>
-</div>
+    <div><p>The embedding dimension of the site sequence.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -937,8 +934,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The kinase sequence embedding layer.</p>
-</div>
+    <div><p>The kinase sequence embedding layer.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -962,8 +958,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The site sequence embedding layer.</p>
-</div>
+    <div><p>The site sequence embedding layer.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1011,8 +1006,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The length of kinase the model is expecting.</p>
-</div>
+    <div><p>The length of kinase the model is expecting.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1036,8 +1030,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A dictionary mapping parameters to lists of values for the kinase CNN(s). The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</p>
-</div>
+    <div><p>A dictionary mapping parameters to lists of values for the kinase CNN(s). The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1109,8 +1102,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The number of convolutional layers to apply to the kinase sequence.</p>
-</div>
+    <div><p>The number of convolutional layers to apply to the kinase sequence.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1134,8 +1126,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The number of convolutional layers to apply to the site sequence.</p>
-</div>
+    <div><p>The number of convolutional layers to apply to the site sequence.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1207,8 +1198,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>The length of site the model is expecting.</p>
-</div>
+    <div><p>The length of site the model is expecting.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1232,8 +1222,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A dictionary mapping parameters to lists of values for the site CNN(s). The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</p>
-</div>
+    <div><p>A dictionary mapping parameters to lists of values for the site CNN(s). The keys should be <tt class="rst-docutils literal">"kernels"</tt>, <tt class="rst-docutils literal">"out_lengths"</tt>, and <tt class="rst-docutils literal">"out_channels"</tt>. The values should be lists of integers.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1257,8 +1246,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A layer to squeeze the output of the site CNN(s) in the 1st dimension.</p>
-</div>
+    <div><p>A layer to squeeze the output of the site CNN(s) in the 1st dimension.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1282,8 +1270,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A layer to squeeze the output of the kinase CNN(s) in the 2nd dimension.</p>
-</div>
+    <div><p>A layer to squeeze the output of the kinase CNN(s) in the 2nd dimension.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">

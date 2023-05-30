@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.tools.custom_logging.CustomLogger</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -203,6 +201,16 @@
         
 
         
+            <div class="itemName"><code><a href="#resinfo" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.resinfo">resinfo</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="#status" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.status">status</a></code>
             </div>
         
@@ -343,6 +351,16 @@
 
         
             <div class="itemName"><code><a href="#PROGRESS" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.PROGRESS">PROGRESS</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
+            <div class="itemName"><code><a href="#RESINFO" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.RESINFO">RESINFO</a></code>
             </div>
         
 
@@ -517,6 +535,16 @@
         
 
         
+            <div class="itemName"><code><a href="DeepKS.tools.custom_logging.html#RESINFO" class="internal-link" title="DeepKS.tools.custom_logging.RESINFO">RESINFO</a></code>
+            </div>
+        
+
+    </li><li class="">
+        
+        
+        
+
+        
             <div class="itemName"><code><a href="DeepKS.tools.custom_logging.html#STATUS" class="internal-link" title="DeepKS.tools.custom_logging.STATUS">STATUS</a></code>
             </div>
         
@@ -607,7 +635,7 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">CustomLogger</span>(<a href="https://docs.python.org/3/library/logging.html#logging.Logger" class="intersphinx-link">logging.Logger</a>):</code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">CustomLogger</span>(<a href="https://docs.python.org/3/library/logging.html#logging.Logger" class="intersphinx-link">logging.Logger</a>):</code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.__init__">CustomLogger(logging_level, output_method, upper_logging_level)</a></code></p>
           <p><a href="classIndex.html#DeepKS.tools.custom_logging.CustomLogger">View In Hierarchy</a></p>
         </div>
 
@@ -616,7 +644,7 @@
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id128">
+          <table class="children sortable" id="id138">
   
   
   <tr class="method">
@@ -628,52 +656,57 @@
     
     <td>Method</td>
     <td><code><a href="#debug" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.debug">debug</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log debugging statements.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#error" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.error">error</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log errors.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#info" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.info">info</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log information not related to program progress.</td>
+  </tr><tr class="method">
+    
+    <td>Method</td>
+    <td><code><a href="#resinfo" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.resinfo">resinfo</a></code></td>
+    <td>Log information that are prediction results.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#status" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.status">status</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log a status that is not overwritten by the next logging statement.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#teinfo" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.teinfo">teinfo</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log information about performance in the testing process.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#trinfo" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.trinfo">trinfo</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log information about performance in the training process.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#uerror" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.uerror">uerror</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log errors that are caused and/or partially anticipated by the user.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#valinfo" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.valinfo">valinfo</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log information about performance in the validation process.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#vstatus" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.vstatus">vstatus</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log a status that is overwritten by the next logging statement.</td>
   </tr><tr class="method">
     
     <td>Method</td>
     <td><code><a href="#warning" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.warning">warning</a></code></td>
-    <td><span class="undocumented">Undocumented</span></td>
+    <td>Log warnings.</td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
@@ -694,6 +727,11 @@
     <td>Instance Variable</td>
     <td><code><a href="#PROGRESS" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.PROGRESS">PROGRESS</a></code></td>
     <td>Whether or not to show progress bars.</td>
+  </tr><tr class="instancevariable">
+    
+    <td>Instance Variable</td>
+    <td><code><a href="#RESINFO" class="internal-link" title="DeepKS.tools.custom_logging.CustomLogger.RESINFO">RESINFO</a></code></td>
+    <td>Information about performance in the testing process.</td>
   </tr><tr class="instancevariable">
     
     <td>Instance Variable</td>
@@ -768,7 +806,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, logging_level=logging.DEBUG, output_method=<span class="rst-variable-quote">'</span><span class="rst-variable-string">console</span><span class="rst-variable-quote">'</span>, upper_logging_level=<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>(<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">inf</span><span class="rst-variable-quote">'</span>)):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, logging_level: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> = logging.DEBUG, output_method: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">console</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">logfile</span><span class="rst-variable-quote">'</span>]</code> = <span class="rst-variable-quote">'</span><span class="rst-variable-string">console</span><span class="rst-variable-quote">'</span>, upper_logging_level: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code> = <a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a>(<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">inf</span><span class="rst-variable-quote">'</span>))</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.tools.custom_logging.CustomLogger.__init__">
       
@@ -778,7 +817,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">logging<wbr></wbr>_level:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">output<wbr></wbr>_method:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">console</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">logfile</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">upper<wbr></wbr>_logging<wbr></wbr>_level:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a>|<a href="https://docs.python.org/3/library/functions.html#float" class="intersphinx-link">float</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -791,7 +830,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">debug</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">debug</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#debug" title="DeepKS.tools.custom_logging.CustomLogger.debug">
       
@@ -801,7 +841,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log debugging statements.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -814,7 +854,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">error</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">error</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#error" title="DeepKS.tools.custom_logging.CustomLogger.error">
       
@@ -824,7 +865,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log errors.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -837,7 +878,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">info</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">info</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#info" title="DeepKS.tools.custom_logging.CustomLogger.info">
       
@@ -847,7 +889,31 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log information not related to program progress.</p></div>
+  </div>
+</div><div class="basemethod">
+  
+  
+  <a name="DeepKS.tools.custom_logging.CustomLogger.resinfo">
+    
+  </a>
+  <a name="resinfo">
+    
+  </a>
+  <div class="functionHeader">
+    
+    
+    <span class="py-keyword">def</span> <span class="py-defname">resinfo</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
+    
+    <a class="headerLink" href="#resinfo" title="DeepKS.tools.custom_logging.CustomLogger.resinfo">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="docstring functionBody">
+    
+    <div><p>Log information that are prediction results.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -860,7 +926,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">status</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">status</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#status" title="DeepKS.tools.custom_logging.CustomLogger.status">
       
@@ -870,7 +937,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log a status that is not overwritten by the next logging statement.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -883,7 +950,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">teinfo</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">teinfo</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#teinfo" title="DeepKS.tools.custom_logging.CustomLogger.teinfo">
       
@@ -893,7 +961,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log information about performance in the testing process.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -906,7 +974,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">trinfo</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">trinfo</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#trinfo" title="DeepKS.tools.custom_logging.CustomLogger.trinfo">
       
@@ -916,7 +985,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log information about performance in the training process.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -929,7 +998,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">uerror</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">uerror</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#uerror" title="DeepKS.tools.custom_logging.CustomLogger.uerror">
       
@@ -939,7 +1009,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log errors that are caused and/or partially anticipated by the user.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -952,7 +1022,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">valinfo</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">valinfo</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#valinfo" title="DeepKS.tools.custom_logging.CustomLogger.valinfo">
       
@@ -962,7 +1033,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log information about performance in the validation process.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -975,7 +1046,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">vstatus</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">vstatus</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#vstatus" title="DeepKS.tools.custom_logging.CustomLogger.vstatus">
       
@@ -985,7 +1057,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log a status that is overwritten by the next logging statement.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -998,7 +1070,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">warning</span>(self, msg, *args, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">warning</span><span class="function-signature">(self, msg, *args, **kwargs)</span>:
     
     <a class="headerLink" href="#warning" title="DeepKS.tools.custom_logging.CustomLogger.warning">
       
@@ -1008,7 +1081,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p></div>
+    <div><p>Log warnings.</p></div>
   </div>
 </div><div class="baseinstancevariable">
   
@@ -1021,7 +1094,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">ERROR</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">ERROR</span> =
     
     <a class="headerLink" href="#ERROR" title="DeepKS.tools.custom_logging.CustomLogger.ERROR">
       
@@ -1031,8 +1104,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A totally unexpected error.</p>
-</div>
+    <div><p>A totally unexpected error.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1094,7 +1166,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">PROGRESS</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">PROGRESS</span> =
     
     <a class="headerLink" href="#PROGRESS" title="DeepKS.tools.custom_logging.CustomLogger.PROGRESS">
       
@@ -1104,8 +1176,31 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Whether or not to show progress bars.</p>
-</div>
+    <div><p>Whether or not to show progress bars.</p></div>
+    
+  </div>
+</div><div class="baseinstancevariable">
+  
+  
+  <a name="DeepKS.tools.custom_logging.CustomLogger.RESINFO">
+    
+  </a>
+  <a name="RESINFO">
+    
+  </a>
+  <div class="functionHeader">
+    
+    <span class="py-defname">RESINFO</span> =
+    
+    <a class="headerLink" href="#RESINFO" title="DeepKS.tools.custom_logging.CustomLogger.RESINFO">
+      
+      
+      ¶
+    </a>
+  </div>
+  <div class="functionBody">
+    
+    <div><p>Information about performance in the testing process.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1119,7 +1214,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">STATUS</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">STATUS</span> =
     
     <a class="headerLink" href="#STATUS" title="DeepKS.tools.custom_logging.CustomLogger.STATUS">
       
@@ -1129,8 +1224,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A status that is not overwritten by the next logging statement.</p>
-</div>
+    <div><p>A status that is not overwritten by the next logging statement.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1144,7 +1238,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">TEST_INFO</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">TEST_INFO</span> =
     
     <a class="headerLink" href="#TEST_INFO" title="DeepKS.tools.custom_logging.CustomLogger.TEST_INFO">
       
@@ -1154,8 +1248,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Information about performance in the testing process.</p>
-</div>
+    <div><p>Information about performance in the testing process.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1169,7 +1262,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">TRAIN_INFO</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">TRAIN_INFO</span> =
     
     <a class="headerLink" href="#TRAIN_INFO" title="DeepKS.tools.custom_logging.CustomLogger.TRAIN_INFO">
       
@@ -1179,8 +1272,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Information about performance in the training process.</p>
-</div>
+    <div><p>Information about performance in the training process.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1194,7 +1286,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">USER_ERROR</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">USER_ERROR</span> =
     
     <a class="headerLink" href="#USER_ERROR" title="DeepKS.tools.custom_logging.CustomLogger.USER_ERROR">
       
@@ -1204,8 +1296,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>An error that is caused and/or partially expected by the user.</p>
-</div>
+    <div><p>An error that is caused and/or partially expected by the user.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1219,7 +1310,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">VAL_INFO</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">VAL_INFO</span> =
     
     <a class="headerLink" href="#VAL_INFO" title="DeepKS.tools.custom_logging.CustomLogger.VAL_INFO">
       
@@ -1229,8 +1320,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>Information about performance in the validation process.</p>
-</div>
+    <div><p>Information about performance in the validation process.</p></div>
     
   </div>
 </div><div class="baseinstancevariable">
@@ -1244,7 +1334,7 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-defname">VANISHING_STATUS</span>: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code> =
+    <span class="py-defname">VANISHING_STATUS</span> =
     
     <a class="headerLink" href="#VANISHING_STATUS" title="DeepKS.tools.custom_logging.CustomLogger.VANISHING_STATUS">
       
@@ -1254,8 +1344,7 @@
   </div>
   <div class="functionBody">
     
-    <div><p>A status that is overwritten by the next logging statement.</p>
-</div>
+    <div><p>A status that is overwritten by the next logging statement.</p></div>
     
   </div>
 </div><div class="basemethod private">
@@ -1269,7 +1358,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">_blankit</span>(self):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_blankit</span><span class="function-signature">(self)</span>:
     
     <a class="headerLink" href="#_blankit" title="DeepKS.tools.custom_logging.CustomLogger._blankit">
       
@@ -1292,7 +1382,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">_update_logging_level</span>(self, new_level):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_update_logging_level</span><span class="function-signature">(self, new_level: <code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code>)</span>:
     
     <a class="headerLink" href="#_update_logging_level" title="DeepKS.tools.custom_logging.CustomLogger._update_logging_level">
       
@@ -1302,7 +1393,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">new<wbr></wbr>_level:</span><code><a href="https://docs.python.org/3/library/functions.html#int" class="intersphinx-link">int</a></code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="basemethod private">
   
@@ -1315,7 +1406,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">_update_logging_method</span>(self, new_method):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">_update_logging_method</span><span class="function-signature">(self, new_method: <code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">console</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">logfile</span><span class="rst-variable-quote">'</span>]</code>)</span>:
     
     <a class="headerLink" href="#_update_logging_method" title="DeepKS.tools.custom_logging.CustomLogger._update_logging_method">
       
@@ -1325,7 +1417,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p class="undocumented">Undocumented</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">new<wbr></wbr>_method:</span><code><a href="https://docs.python.org/3/library/typing.html#typing.Literal" class="intersphinx-link">Literal</a>[<wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">console</span><span class="rst-variable-quote">'</span>, <wbr></wbr><span class="rst-variable-quote">'</span><span class="rst-variable-string">logfile</span><span class="rst-variable-quote">'</span>]</code></td><td class="fieldArgDesc"><span class="undocumented">Undocumented</span></td></tr></table></div>
+    <div><p class="undocumented">Undocumented</p></div>
   </div>
 </div><div class="baseinstancevariable private">
   

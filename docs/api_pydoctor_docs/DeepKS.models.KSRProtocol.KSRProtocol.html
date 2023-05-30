@@ -7,9 +7,7 @@
   <head>
     
     <title>DeepKS.models.KSRProtocol.KSRProtocol</title>
-    <meta name="generator" content="pydoctor 22.9.1"> 
-        
-    </meta>
+
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1 maximum-scale=1" />
     <link rel="stylesheet" type="text/css" href="bootstrap.min.css" />
@@ -281,17 +279,16 @@
         </div>
 
         <div class="extrasDocstring">
-          <p><code><span class="py-keyword">class</span> <span class="py-defname">KSRProtocol</span>(<a href="https://docs.python.org/3/library/typing.html#typing.Protocol" class="intersphinx-link">Protocol</a>):</code></p><p>Known subclasses: <code><a href="DeepKS.models.KSRProtocol.KSR.html" class="internal-link">DeepKS.models.KSRProtocol.KSR</a></code></p>
+          <p class="class-signature"><code><span class="py-keyword">class</span> <span class="py-defname">KSRProtocol</span>(<a href="https://docs.python.org/3/library/typing.html#typing.Protocol" class="intersphinx-link">Protocol</a>):</code></p><p>Known subclasses: <code><a href="DeepKS.models.KSRProtocol.KSR.html" class="internal-link">DeepKS.models.KSRProtocol.KSR</a></code></p><p>Constructor: <code><a href="#__init__" class="internal-link" title="DeepKS.models.KSRProtocol.KSRProtocol.__init__">KSRProtocol(**kwargs)</a></code></p>
           <p><a href="classIndex.html#DeepKS.models.KSRProtocol.KSRProtocol">View In Hierarchy</a></p>
         </div>
 
         <div class="moduleDocstring">
-          <div><p>Protocol for Kinase-Substrate Relationship models.</p>
-</div>
+          <div><p>Protocol for Kinase-Substrate Relationship models.</p></div>
         </div>
 
         <div id="splitTables">
-          <table class="children sortable" id="id74">
+          <table class="children sortable" id="id78">
   
   
   <tr class="method">
@@ -328,7 +325,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__call__</span>(self, site_seq, kin_seq):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__call__</span><span class="function-signature">(self, site_seq: <code>torch.LongTensor</code>, kin_seq: <code>torch.LongTensor</code>) -&gt; <code>torch.FloatTensor</code></span>:
     
     <a class="headerLink" href="#__call__" title="DeepKS.models.KSRProtocol.KSRProtocol.__call__">
       
@@ -338,8 +336,7 @@
   </div>
   <div class="docstring functionBody">
     
-    <div><p>KSRs should be callable, taking in a site sequence and a kinase sequence and returning a tensor of logits. Should be alias for <tt class="rst-docutils literal">forward</tt>.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The site sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The kinase sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code>torch.FloatTensor</code></td><td class="fieldArgDesc">The logits, as a torch.FloatTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len, 1)</tt></td></tr></table></div>
+    <div><p>KSRs should be callable, taking in a site sequence and a kinase sequence and returning a tensor of logits. Should be alias for <tt class="rst-docutils literal">forward</tt>.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The site sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The kinase sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code>torch.FloatTensor</code></td><td class="fieldArgDesc">The logits, as a torch.FloatTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len, 1)</tt></td></tr></table></div>
   </div>
 </div><div class="basemethod">
   
@@ -352,7 +349,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">__init__</span>(self, **kwargs):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">__init__</span><span class="function-signature">(self, **kwargs)</span>:
     
     <a class="headerLink" href="#__init__" title="DeepKS.models.KSRProtocol.KSRProtocol.__init__">
       
@@ -361,9 +359,8 @@
     </a>
   </div>
   <div class="docstring functionBody">
-    <div class="interfaceinfo">overridden in <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM</a></code></div>
-    <div><p>KSRs should have a varible number of keyword initialization arguments.</p>
-</div>
+    <div class="interfaceinfo">overridden in <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipGRU.KinaseSubstrateRelationshipGRU.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipGRU.KinaseSubstrateRelationshipGRU</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM</a></code></div>
+    <div><p>KSRs should have a varible number of keyword initialization arguments.</p></div>
   </div>
 </div><div class="basemethod">
   
@@ -376,7 +373,8 @@
   </a>
   <div class="functionHeader">
     
-    <span class="py-keyword">def</span> <span class="py-defname">forward</span>(self, site_seq, kin_seq):
+    
+    <span class="py-keyword">def</span> <span class="py-defname">forward</span><span class="function-signature">(self, site_seq: <code>torch.LongTensor</code>, kin_seq: <code>torch.LongTensor</code>) -&gt; <code>torch.FloatTensor</code></span>:
     
     <a class="headerLink" href="#forward" title="DeepKS.models.KSRProtocol.KSRProtocol.forward">
       
@@ -385,9 +383,8 @@
     </a>
   </div>
   <div class="docstring functionBody">
-    <div class="interfaceinfo">overridden in <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM</a></code></div>
-    <div><p>KSRs should have a forward method that takes in a site sequence and a kinase sequence and returns a tensor of logits.</p>
-<table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The site sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The kinase sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code>torch.FloatTensor</code></td><td class="fieldArgDesc">The logits, as a torch.FloatTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len, 1)</tt></td></tr></table></div>
+    <div class="interfaceinfo">overridden in <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTN.KinaseSubstrateRelationshipATTN</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipATTNWSELF.KinaseSubstrateRelationshipATTNWSELF</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipClassic.KinaseSubstrateRelationshipClassic</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipGRU.KinaseSubstrateRelationshipGRU.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipGRU.KinaseSubstrateRelationshipGRU</a></code>, <code><a href="DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM.html" class="internal-link">DeepKS.models.KinaseSubstrateRelationshipLSTM.KinaseSubstrateRelationshipLSTM</a></code></div>
+    <div><p>KSRs should have a forward method that takes in a site sequence and a kinase sequence and returns a tensor of logits.</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName" colspan="2">Parameters</td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">site<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The site sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr><td class="fieldArgContainer"><span class="fieldArg">kin<wbr></wbr>_seq:</span><code>torch.LongTensor</code></td><td class="fieldArgDesc">The kinase sequence, as a torch.LongTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len)</tt></td></tr><tr class="fieldStart"><td class="fieldName" colspan="2">Returns</td></tr><tr><td class="fieldArgContainer"><code>torch.FloatTensor</code></td><td class="fieldArgDesc">The logits, as a torch.FloatTensor of shape <tt class="rst-docutils literal">(batch_size, seq_len, 1)</tt></td></tr></table></div>
   </div>
 </div>
         </div>

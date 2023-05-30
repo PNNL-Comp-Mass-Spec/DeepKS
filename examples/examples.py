@@ -1,13 +1,12 @@
 """The main example script"""
 
 import logging
-import sys, os, pathlib, warnings, json
+import sys, os, pathlib, warnings, jstyleson as json
 from ..api import main
 from ..config.join_first import join_first
 from ..config.logging import get_logger
 import atexit
 from termcolor import colored
-
 
 logger = get_logger()
 """The logger for this script."""
@@ -15,7 +14,7 @@ logger = get_logger()
 DEVICE = os.environ.get("DEVICE", "cpu")
 """The device to use for training. Can be configured with the `DEVICE` environment variable."""
 
-with open(join_first("tests/examples.json", 1, __file__)) as f:
+with open(join_first("tests/examples.jsonc", 1, __file__)) as f:
     EXAMPLES = json.load(f)
     """Global list of lists that are command line arguments, each of which is an example."""
     for ex in EXAMPLES:
@@ -41,7 +40,7 @@ def _main():
         print()
         logger.status(
             f"[Example {i+1}/{len(EXAMPLES)}] Simulating the following command line from the directory"
-            f" '/':\n{colored('$', 'black', attrs=['bold'])} {colored(' '.join(example), 'green')}\n"
+            f" '/':\n{colored('$', 'black', attrs=['bold'])} {colored(' '.join(example), 'black')}\n"
         )
         sys.argv = example
         with warnings.catch_warnings():
