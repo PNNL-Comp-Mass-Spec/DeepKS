@@ -439,7 +439,7 @@ def main3():
 
     model = KinaseSubstrateRelationshipATTN()
     input1 = torch.randint(0, 22, (15,), dtype=torch.int32)
-    input2 = torch.randint(0, 22, (4128,), dtype=torch.int32)
+    input2 = torch.randint(0, 22, (2064,), dtype=torch.int32)
     device = torch.device("cpu")
     # device = torch.device("cuda:4")
     return (

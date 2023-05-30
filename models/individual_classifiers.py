@@ -51,7 +51,7 @@ torch.manual_seed(42)
 
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 """Simple lambda to remove parentheses and asterisks from a string and convert it to uppercase."""
-MAX_SIZE_DS = 4128
+MAX_SIZE_DS = 2064
 memory_multiplier = 2**6
 EVAL_BATCH_SIZE = 0
 from ..config.join_first import join_first

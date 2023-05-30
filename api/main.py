@@ -66,7 +66,7 @@ def make_predictions(
     Parameters
     __________
     kinase_seqs:
-        The kinase sequences. Each must be ≥ 1 and ≤ 4128 residues long.
+        The kinase sequences. Each must be ≥ 1 and ≤ 2064 residues long.
     kin_info:
         The kinase (meta-) information. See ``./kin-info_file_format.txt`` for the required format.
     site_seqs:
@@ -127,9 +127,9 @@ def make_predictions(
             f" {len(site_seqs)} sites.)"
         )
         for i, kinase_seq in enumerate(kinase_seqs):
-            assert 1 <= len(kinase_seq) <= 4128, (
-                "Warning: DeepKS currently only accepts kinase sequences of length <= 4128. The input kinase at index"
-                f" {i} --- {kinase_seq[0:10]}... is {len(kinase_seq)}. (It was trained on sequences of length <= 4128.)"
+            assert 1 <= len(kinase_seq) <= 2064, (
+                "Warning: DeepKS currently only accepts kinase sequences of length <= 2064. The input kinase at index"
+                f" {i} --- {kinase_seq[0:10]}... is {len(kinase_seq)}. (It was trained on sequences of length <= 2064.)"
             )
             f"Kinase sequences must only contain letters. The input kinase at index {i} --- {kinase_seq[:10]}..."
             " is problematic."
@@ -173,7 +173,7 @@ def make_predictions(
         # nn_sample = list(individual_classifiers.interfaces.values())[0]
         # summary_stringio = io.StringIO()
         # FAKE_BATCH_SIZE = 101
-        # nn_sample.device = torch.device(device); nn_sample.inp_types = [torch.int32, torch.int32]; nn_sample.inp_size = [(FAKE_BATCH_SIZE, 15), (FAKE_BATCH_SIZE, 4128)]; nn_sample.model_summary_name = summary_stringio
+        # nn_sample.device = torch.device(device); nn_sample.inp_types = [torch.int32, torch.int32]; nn_sample.inp_size = [(FAKE_BATCH_SIZE, 15), (FAKE_BATCH_SIZE, 2064)]; nn_sample.model_summary_name = summary_stringio
         # nn_sample.write_model_summary()
         # summary_stringio.seek(0)
         # summary_string = re.sub(str(FAKE_BATCH_SIZE), "BaS", summary_stringio.read())
@@ -290,12 +290,12 @@ def parse_api() -> dict[str, typing.Any]:
     k_group = ap.add_mutually_exclusive_group(required=True)
     k_group.add_argument(
         "-k",
-        help="Comma-delimited kinase sequences (no spaces). Each must be <= 4128 residues long.",
+        help="Comma-delimited kinase sequences (no spaces). Each must be <= 2064 residues long.",
         metavar="<kinase sequences>",
     )
     k_group.add_argument(
         "-kf",
-        help="The file containing line-delimited kinase sequences. Each must be <= 4128 residues long.",
+        help="The file containing line-delimited kinase sequences. Each must be <= 2064 residues long.",
         metavar="<kinase sequences file>",
     )
 

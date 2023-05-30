@@ -1,6 +1,6 @@
 # %%
 # Imports and formatting
-KIN_LEN_MAX = 4128
+KIN_LEN_MAX = 2064
 
 import pandas as pd, numpy as np, re, os, collections, requests, asyncio, aiohttp, itertools, tqdm, time, json, pathlib
 import warnings

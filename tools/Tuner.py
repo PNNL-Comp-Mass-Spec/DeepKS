@@ -406,7 +406,7 @@ class BasicTuner(Tuner):
 
 def main(cmdl: list[str], train_fn: Callable, num_samples: int = 200, max_epoch: int = 20):
     cnn_kin_one_layer_options = BasicTuner.get_one_layer_cnn(
-        4128, *[np.unique(np.logspace(3, 7, 5, base=2, dtype=int))] * 3
+        2064, *[np.unique(np.logspace(3, 7, 5, base=2, dtype=int))] * 3
     )
     cnn_site_one_layer_options = BasicTuner.get_one_layer_cnn(
         15, list(range(1, 16, 3)), list(range(1, 16, 3)), np.unique(np.logspace(4, 8, 5, base=2, dtype=int))
