@@ -64,7 +64,8 @@ logger = get_logger()
 
 
 class NNInterface:
-    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network"""
+    """A flexible class that allows for training, validation, testing, and summarization of a `torch.nn.Module`-based neural network
+    """
 
     def __init__(
         self,

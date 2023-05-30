@@ -10,6 +10,7 @@ library(stringr)
 library(broman)
 library(numbers)
 library(this.path)
+library(Cairo)
 set.seed(0)
 
 set_wd <- function() {
