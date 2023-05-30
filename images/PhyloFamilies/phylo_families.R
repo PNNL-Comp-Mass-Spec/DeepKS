@@ -29,12 +29,12 @@ is_dark <- function(color) {
   return(lum < 0.5)
 }
 
-kfg <- read.csv("../../data/preprocessing/kin_to_fam_to_grp_817.csv") %>%
+kfg <- read.csv("../../data/preprocessing/kin_to_fam_to_grp_826.csv") %>%
   mutate(mtx_names = paste(gsub("[\\(\\)\\*]", "", Kinase), sep = "|", Uniprot)) # %>%
 
 the_subset <- seq_len(nrow(kfg)) # 100:175
 
-dm <- read.csv("../../data/preprocessing/mtx_822.csv", row.names = 1) %>%
+dm <- read.csv("../../data/preprocessing/pairwise_mtx_826.csv", row.names = 1) %>%
   filter(rownames(.) %in% kfg$mtx_names)
 # Distance matrix
 d <- dist(dm)
