@@ -99,3 +99,7 @@ tools/fix_flashing.py
 tools/fix_flashing_b.py
 !docs/API Docs Icon.png
 .coverage
+discovery/nature_atlas/decoy_hist.pdf
+.gitignore
+discovery/nature_atlas/PSP-boxplot.pdf
+discovery/nature_atlas/PSP-hist.pdf
