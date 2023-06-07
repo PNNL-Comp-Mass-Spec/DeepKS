@@ -1,3 +1,3 @@
 #!/bin/zsh
 
-python3 build/remove-pd-helper.py 2>&1
+python3 scripts/remove-pd-helper.py 2>&1
