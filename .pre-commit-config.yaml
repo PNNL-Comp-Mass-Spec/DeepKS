@@ -3,9 +3,9 @@ repos:
     hooks:
     -   id: selective-black
         name: Format with Black on Modified Files
-        entry: build/selective_black.sh
+        entry: scripts/selective_black.sh
         language: script
     -   id: no-symlinks
         name: Remove Symlinks
-        entry: build/remove-symlinks.sh
+        entry: scripts/remove-symlinks.sh
         language: script
