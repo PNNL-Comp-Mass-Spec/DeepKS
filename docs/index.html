@@ -258,7 +258,7 @@
 <ol start="0">
 <li>Make sure you are connected to the cluster's VPN. (In the case of PNNL, make sure you are on campus or connected to the Onekey VPN.)</li>
 <li>Open a terminal SSH into the cluster with <code>ssh &lt;username&gt;@deception</code>, making sure to replace <code>&lt;username&gt;</code> with your actual username.</li>
-<li>Download the interactive Slurm script by running <code>cd ~ &amp;&amp; wget https://raw.githubusercontent.com/Ben-Drucker/DeepKS/main/build/hpc/.interactive_slurm_script.py</code></li>
+<li>Download the interactive Slurm script by running <code>cd ~ &amp;&amp; wget https://raw.githubusercontent.com/Ben-Drucker/DeepKS/main/scripts/hpc/.interactive_slurm_script.py</code></li>
 <li>Run <code>python .interactive_slurm_script.py</code>. This will request an interactive session on a compute node.</li>
 <li>Ensure your session is loaded (i.e., that you are now in a terminal on the HPC. You can check this by running <code>hostname</code>. It should no longer be <code>deception0X</code>.)</li>
 <li>Run <code>module load apptainer</code> to load Apptainer.</li>
@@ -285,7 +285,7 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 <p>Because we will use Apptainer to run the docker container, the commands are different from cases A/B.</p>
 <ol>
 <li>Ensure Apptainer is loaded (<code>module load apptainer</code>).</li>
-<li>Run <code>apptainer build --sandbox deepks-latest.sif docker://benndrucker/deepks:latest</code> to build the Apptainer-compatible <code>.sif</code> directory. This will take a while (~30-60+ mins) depending on your internet connection and processor speed. You may get <code>xattr</code>-related warnings, but these are fine.</li>
+<li>Run <code>apptainer scripts --sandbox deepks-latest.sif docker://benndrucker/deepks:latest</code> to scripts the Apptainer-compatible <code>.sif</code> directory. This will take a while (~30-60+ mins) depending on your internet connection and processor speed. You may get <code>xattr</code>-related warnings, but these are fine.</li>
 <li>Copy necessary Nvidia files using the following script (ensuring you are in the same directory as <code>deepks-latest.sif</code>):</li>
 </ol>
 <pre><code class="language-{bash}">cp /usr/bin/nvidia-smi deepks-latest.sif/usr/bin/

@@ -55,7 +55,7 @@
     }
 </style>
 # Explanation
-Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: [cuda_wsl_installer.sh](https://gitlab.com/Ben-Drucker/deepks/-/raw/main/build/cuda_wsl_installer.sh?inline=false). For consistency with the instructions below, please save this file in your Downloads folder.
+Since docker/cuda is not supported on Windows, we will use WSL (Windows Subsystem for Linux) to run docker and cuda. To accomplish this, you must download from the DeepKS repository the following file: [cuda_wsl_installer.sh](https://gitlab.com/Ben-Drucker/deepks/-/raw/main/scripts/cuda_wsl_installer.sh?inline=false). For consistency with the instructions below, please save this file in your Downloads folder.
 
 # WSL Setup
 ***Note: It is recommended to run each command, one line at a time so that you can see the output of each command and make sure each worked.***

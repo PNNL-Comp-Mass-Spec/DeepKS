@@ -189,7 +189,7 @@ Most likely, your computer will be running Windows. If this is the case, there i
 
 0. Make sure you are connected to the cluster's VPN. (In the case of PNNL, make sure you are on campus or connected to the Onekey VPN.)
 1. Open a terminal SSH into the cluster with `ssh <username>@deception`, making sure to replace `<username>` with your actual username.
-2. Download the interactive Slurm script by running `cd ~ && wget https://raw.githubusercontent.com/Ben-Drucker/DeepKS/main/build/hpc/.interactive_slurm_script.py`
+2. Download the interactive Slurm script by running `cd ~ && wget https://raw.githubusercontent.com/Ben-Drucker/DeepKS/main/scripts/hpc/.interactive_slurm_script.py`
 3. Run `python .interactive_slurm_script.py`. This will request an interactive session on a compute node.
 4. Ensure your session is loaded (i.e., that you are now in a terminal on the HPC. You can check this by running `hostname`. It should no longer be `deception0X`.)
 5. Run `module load apptainer` to load Apptainer.
@@ -215,7 +215,7 @@ Please read this explanation: "[An image is a blueprint for a snapshot of a 'sys
 ### Case C: Running on HPC cluster
 Because we will use Apptainer to run the docker container, the commands are different from cases A/B.
 1. Ensure Apptainer is loaded (`module load apptainer`).
-2. Run `apptainer build --sandbox deepks-latest.sif docker://benndrucker/deepks:latest` to build the Apptainer-compatible `.sif` directory. This will take a while (~30-60+ mins) depending on your internet connection and processor speed. You may get `xattr`-related warnings, but these are fine.
+2. Run `apptainer scripts --sandbox deepks-latest.sif docker://benndrucker/deepks:latest` to scripts the Apptainer-compatible `.sif` directory. This will take a while (~30-60+ mins) depending on your internet connection and processor speed. You may get `xattr`-related warnings, but these are fine.
 3. Copy necessary Nvidia files using the following script (ensuring you are in the same directory as `deepks-latest.sif`):
 ```{bash}
 cp /usr/bin/nvidia-smi deepks-latest.sif/usr/bin/
