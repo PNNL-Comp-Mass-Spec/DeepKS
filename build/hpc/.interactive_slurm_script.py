@@ -2,6 +2,13 @@ import os
 import argparse
 import traceback
 
+# Defaults
+DEF_CPU = 4
+DEF_TIME = 180
+DEF_ACCT = "ppi_concerto"
+DEF_SHELL = "/bin/zsh"
+DEF_PARTN = "a100_shared"
+
 def main():
 	try:
 		ap = argparse.ArgumentParser()
@@ -11,15 +18,15 @@ def main():
 		print("Error with arguments of `interactive_slurm_script.py:`", e)
 	
 	try:
-		cpus = input("# CPUs? (RETURN for default = 4): ")
+		cpus = input(f"# CPUs? (RETURN for default = {DEF_CPU}): ")
 		if cpus == "": 
-			cpus = 4
+			cpus = DEF_CPU
 		else:
 			cpus = int(cpus)
 		exclude = ""
-		partition = input("Partition? (RETURN for default = a100_shared OR '<partition> --E <exlude nodelist>' to exclude certain nodes: ")
+		partition = input(f"Partition? (RETURN for default = {DEF_PARTN} OR '<partition> --E <exlude nodelist>' to exclude certain nodes: ")
 		if partition == "":
-			partition = "-p a100_shared"
+			partition = f"-p {DEF_PARTN}"
 		elif " --E " in partition:
 			partition_ = f"-p {partition.split(' --E ')[0]}"
 			exclude = f"--exclude={partition.split(' --E ')[1]}" # input("Node List? (e.g., `a100-05` or `a100-[04-06]` -- without the backticks): ")
@@ -28,19 +35,19 @@ def main():
 			partition = f"-p {partition}"
 			
 		
-		runtime = input("Allocated Time (minutes)? (RETURN for default = 90): " )
+		runtime = input(f"Allocated Time (minutes)? (RETURN for default = {DEF_TIME}): " )
 		if runtime == "":
-			runtime = 90
+			runtime = DEF_TIME
 		else:
 			runtime = int(runtime)
 
-		account = input("Account? (RETURN for default = mq_dance): ")
+		account = input(f"Account? (RETURN for default = {DEF_ACCT}): ")
 		if account == "":
-			account = "mq_dance"
+			account = DEF_ACCT
 
-		shell = input("Shell? (RETURN for default = /bin/zsh): ")
+		shell = input(f"Shell? (RETURN for default = {DEF_SHELL}): ")
 		if shell == "":
-			shell = "/bin/zsh"
+			shell = DEF_SHELL
 		
 		cmd = f"srun -A {account} {partition} {exclude} --time={runtime} -n {cpus} -N 1 --pty -u {shell}"
 		if verbose:
@@ -51,5 +58,5 @@ def main():
 		print("Error with `interactive_slurm_script.py`:", e)
 		raise RuntimeError()
 		
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":
 	main()
