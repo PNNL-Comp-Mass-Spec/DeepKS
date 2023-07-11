@@ -91,11 +91,20 @@ def main():
             shell = DEF_SHELL
 
         # PUTTING EVERYTHING TOGETHER
-        cmd = (
-            f"srun --account {account} --partition"
-            f" {partition} {f'--exclude {exclude}' if exclude else ''} --time={runtime} --ntasks {tasks} --nodes"
-            f" {nodes} --cpus-per-task {cpus_per_task} --pty --unbuffered {shell}"
-        )
+        cmds = [
+            f"srun",
+            f"--account {account}",
+            f"--partition {partition}",
+            f"{f'--exclude {exclude}' if exclude else ''}",
+            f"--time {runtime}",
+            f"--ntasks {tasks}",
+            f"--nodes {nodes}",
+            f"--cpus-per-task {cpus_per_task}",
+            "--pty",
+            "--unbuffered",
+            f"{shell}"
+        ]
+        cmd = " ".join(cmds)
         if verbose:
             input(f"Slurm command about to be run:\n{cmd}\nPress RETURN to execute (ctrl+c to quit).\n")
         os.system(cmd)
