@@ -25,7 +25,7 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
         If the download fails
     """
     url = "https://www.phosphosite.org/downloads/Kinase_Substrate_Dataset.gz"
-    if not os.path.exists("Kinase_Substrate_Dataset.gz") and not redownload:
+    if not os.path.exists("Kinase_Substrate_Dataset.gz") or redownload:
         try:
             r = requests.request(
                 "GET",
@@ -98,10 +98,10 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
             exit(1)
 
     table = table.sort_values(by=["GENE", "KIN_ORGANISM"])
-    logger.info(f"Info: Number of unique uniprot IDs in PSP: {len(table['KIN_ACC_ID'].unique())}")
+    logger.info(f"Number of unique uniprot IDs in PSP: {len(table['KIN_ACC_ID'].unique())}")
     logger.status("Saving PSP to Excel file...")
     table.to_excel(outfile, index=False)
 
 
 if __name__ == "__main__": # pragma: no cover
-    get_phospho()
+    get_phospho(redownload=True)

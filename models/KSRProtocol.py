@@ -8,7 +8,7 @@ class KSRProtocol(Protocol):
     """Protocol for Kinase-Substrate Relationship models."""
 
     def __init__(self, **kwargs) -> None:
-        """KSRs should have a varible number of keyword initialization arguments."""
+        """KSRs should have a variable number of keyword initialization arguments."""
         ...  # pragma: no cover
 
     def forward(self, site_seq: torch.LongTensor, kin_seq: torch.LongTensor) -> torch.FloatTensor:

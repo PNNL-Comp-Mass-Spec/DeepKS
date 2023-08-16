@@ -278,11 +278,9 @@ class NNInterface:
 
         method(
             logger,
-            (
-                f"{prepend_str}Epoch [{epoch + 1}/{num_epochs}] | Batch [{batch_str}/{total_step}] | "
-                f"Memory Chunk [{chunk_num + 1}/{total_chunks}] | "
-                f"Loss {loss:.4f} | {expand_metric(metric)} {score:.2f}"
-            ),
+            f"{prepend_str}Epoch [{epoch + 1}/{num_epochs}] | Batch [{batch_str}/{total_step}] | "
+            f"Memory Chunk [{chunk_num + 1}/{total_chunks}] | "
+            f"Loss {loss:.4f} | {expand_metric(metric)} {score:.2f}",
         )
 
     def train(

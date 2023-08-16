@@ -192,10 +192,10 @@ class ROC(PerformancePlot, ABC):
         acc_col = cut_colors[0]
 
         fig, ax = self.fig, self.ax
-        ax.set_xticks(np.arange(0, 1.05, 0.05))
-        ax.set_xticklabels([f"{_:.2f}" for _ in np.arange(0, 1.05, 0.05)], rotation=90)
-        ax.set_yticks(np.arange(0, 1.05, 0.05))
-        ax.set_title(f"ROC Curves{title_extra})")
+        ax.set_xticks(np.arange(0, 1.05, 0.1))
+        ax.set_xticklabels([f"{_:.2f}" for _ in np.arange(0, 1.05, 0.1)], rotation=90)
+        ax.set_yticks(np.arange(0, 1.05, 0.1))
+        ax.set_title(f"ROC Curves{title_extra}")
         ax.set_xlabel("False Positive Rate")
         ax.set_ylabel("True Positive Rate")
         if show_cutoff:
@@ -244,13 +244,14 @@ class ROC(PerformancePlot, ABC):
                 linew, is_focus = 1, True
 
             roc_style_kwargs = dict(linewidth=linew, markersize=7, color=col, alpha=alp, zorder=2)
-            if i == 0 and not legend_all_lines:
-                roc_style_kwargs.update(dict(label=f"ROC curve of a{roc_lab_extra}"))
-            elif unif:
-                roc_style_kwargs.update(dict(label=f"ROC curve of all{roc_lab_extra}s"))
-            elif legend_all_lines:
-                roc_style_kwargs.update(dict(label=roc_labels_list[i]))
+            # if i == 0 and not legend_all_lines:
+            #     roc_style_kwargs.update(dict(label=f"ROC curve of a{roc_lab_extra}"))
+            # elif unif:
+            #     roc_style_kwargs.update(dict(label=f"ROC curve of all{roc_lab_extra}s"))
+            # elif legend_all_lines:
+            #     roc_style_kwargs.update(dict(label=roc_labels_list[i]))
 
+            roc_style_kwargs |= {"label": roc_labels_list[i]}
             aucscore = ROCHelpers.protected_roc_auc_score(truths, scores)
             alpha_level = plotting_kwargs.get("alpha_level", 0.05)
             if fancy_legend:
@@ -627,10 +628,8 @@ class SplitIntoGroupsROC(ROC):
                     warnings.warn(f"Couldn't repickle Individual Classifiers with empirical equation: {e}", UserWarning)
             else:
                 warnings.warn(
-                    (
-                        "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
-                        " equation."
-                    ),
+                    "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
+                    " equation.",
                     UserWarning,
                 )
 
@@ -656,10 +655,118 @@ class SplitIntoGroupsROC(ROC):
         self._roc_core_components(truthses, scorses, groups, plotting_kwargs)
 
 
+class PlainROC(ROC):
+    def __init__(self, fig_kwargs={"figsize": (5, 5)}) -> None:
+        super().__init__(fig_kwargs=fig_kwargs)
+
+    def make_plot(self, outputs, labels, plotting_kwargs={"fancy_legend": False}):
+        return self._make_plot_core([outputs], [labels], plotting_kwargs=plotting_kwargs)
+
+    def _make_plot_core(self, scoreses, truthses, plotting_kwargs):
+        ret = self._roc_core_components(
+            truthses, scoreses, roc_labels_list=["Test Set"], plotting_kwargs=plotting_kwargs
+        )
+        self._is_made = True
+        return ret
+
+    def compute_test_evaluations(
+        self,
+        test_filename: str,
+        multi_stage_classifier: MultiStageClassifier,
+        device="cpu",
+        cartesian_product=False,
+        bypass_gc=False,
+    ):
+        assert multi_stage_classifier.__class__.__name__ == "MultiStageClassifier"
+        kin_to_grp = pd.read_csv(kin_to_fam_to_grp_file)[["Kinase", "Uniprot", "Group"]]
+        kin_to_grp["Symbol"] = (
+            kin_to_grp["Kinase"].apply(lambda x: re.sub(r"[\(\)\*]", "", x)) + "|" + kin_to_grp["Uniprot"]
+        )
+        kin_to_grp = kin_to_grp.set_index("Symbol").to_dict()["Group"]
+        gene_order = pd.read_csv(test_filename)["Gene Name of Kin Corring to Provided Sub Seq"]
+        true_grps = [kin_to_grp[x] for x in gene_order]
+        grp_to_interface = multi_stage_classifier.individual_classifiers.interfaces
+        groups = list(grp_to_interface.keys())
+        seen_groups = []
+        all_predictions_outputs = {}
+        info_dict_passthrough = {}
+        pred_items = ()
+        simulated_bypass_acc = 1
+        random.seed(42)
+        kin_to_grp_simulated_acc = {}
+        for k, v in kin_to_grp.items():
+            if random.random() < simulated_bypass_acc:
+                kin_to_grp_simulated_acc[k] = v
+            else:
+                kin_to_grp_simulated_acc[k] = "CMGC"
+
+        kwargs = {}
+        if bypass_gc:
+            kwargs["bypass_gc"] = kin_to_grp_simulated_acc
+        for grp, loader in multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
+            which_groups=groups,
+            Xy_formatted_input_file=test_filename,
+            group_classifier=multi_stage_classifier.group_classifier,
+            info_dict_passthrough=info_dict_passthrough,
+            seen_groups_passthrough=seen_groups,
+            device=torch.device(device),
+            cartesian_product=cartesian_product,
+            **kwargs,
+        ):
+            jumbled_predictions = multi_stage_classifier.individual_classifiers.interfaces[grp].predict(
+                loader,
+                int(info_dict_passthrough["on_chunk"] + 1),
+                int(info_dict_passthrough["total_chunks"]),
+                cutoff=0.5,
+                group=grp,
+            )  # TODO: Make adjustable cutoff
+            # jumbled_predictions = list[predictions], list[output scores], list[group]
+            del loader
+
+            new_info = info_dict_passthrough[grp]["PairIDs"]
+            try:
+                all_predictions_outputs.update(
+                    {
+                        pair_id: (
+                            jumbled_predictions[0][i],
+                            jumbled_predictions[1][i],
+                            jumbled_predictions[2][i],
+                            jumbled_predictions[3][i],
+                            (
+                                multi_stage_classifier.individual_classifiers.__dict__["grp_to_emp_eqn"].get(grp)
+                                if get_emp_eqn
+                                else None
+                            ),
+                        )
+                        for pair_id, i in zip(new_info, range(len(new_info)))
+                    }
+                )
+            except KeyError:
+                raise AttributeError(
+                    "`--convert-raw-to-prob` was set but the attribute `grp_to_emp_eqn` (aka a"
+                    " dictionary that maps a kinase group to a function capible of converting raw"
+                    " scores to empirical probabilities) was not found in the pretrained neural"
+                    " network file. (To change the neural network file, use the `--pre-trained-nn`"
+                    " command line option.)"
+                ) from None
+        key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
+        pred_items = sorted(all_predictions_outputs.items(), key=key_lambda)  # Pair # {i}
+        pred_items = dict(
+            ground_truth_labels=[x[1][3] for x in pred_items],
+            scores=[x[1][1] for x in pred_items],
+            ground_truth_groups=true_grps,
+        )
+
+        assert len(pred_items) != 0
+        setattr(multi_stage_classifier, "completed_test_evaluations", pred_items)
+        with open(resave_loc, "wb") as f:
+            pickle.dump(multi_stage_classifier, f)
+
+
 def eval_and_roc_workflow(
     multi_stage_classifier, kin_to_fam_to_grp_file, test_filename, resave_loc, bypass_gc=False, force_recompute=False
 ):
-    roc = SplitIntoGroupsROC()
+    roc = PlainROC()
     if hasattr(multi_stage_classifier, "completed_test_evaluations") and not force_recompute:
         logger.info("Using pre-computed test evaluations.")
     else:
@@ -728,20 +835,27 @@ def get_multi_stage_classifier():
 
 
 if __name__ == "__main__":  # pragma: no cover
-    import cloudpickle
+    # import cloudpickle
 
-    # main()
-    # test()
-    with open(
-        join_first(1, "bin/deepks_msc_weights_resaved_fake.cornichon"),
-        "rb",
-    ) as mscfp:
-        msc = cloudpickle.load(mscfp)
-        eval_and_roc_workflow(
-            msc,
-            join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
-            join_first(1, "data/raw_data_6406_formatted_95_5616.csv"),
-            join_first(1, "bin/deepks_msc_weights_resaved_bypassed.cornichon"),
-            force_recompute=False,
-            bypass_gc=True,
-        )
+    # # main()
+    # # test()
+    # with open(
+    #     join_first(1, "bin/deepks_msc_weights_resaved_fake.cornichon"),
+    #     "rb",
+    # ) as mscfp:
+    #     msc = cloudpickle.load(mscfp)
+    #     eval_and_roc_workflow(
+    #         msc,
+    #         join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
+    #         join_first(1, "data/raw_data_6406_formatted_95_5616.csv"),
+    #         join_first(1, "bin/deepks_msc_weights_resaved_bypassed.cornichon"),
+    #         force_recompute=False,
+    #         bypass_gc=True,
+    #     )
+
+    fake_scores = [max(min(x / 100 - 0.5 + random.random(), 1), 0) for x in range(100)]
+    fake_truths = [0 for _ in range(50)] + [1 for _ in range(50)]
+
+    roc = PlainROC()
+    roc.make_plot(fake_scores, fake_truths)
+    roc.display_plot()
