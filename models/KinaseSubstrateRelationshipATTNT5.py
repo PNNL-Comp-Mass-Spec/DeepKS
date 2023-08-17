@@ -179,11 +179,9 @@ class KinaseSubstrateRelationshipATTN(KSR):
         site_param_dict: dict[str, list[int]] = {"kernels": [8], "out_lengths": [8], "out_channels": [8]},
         kin_param_dict: dict[str, list[int]] = {"kernels": [10], "out_lengths": [8], "out_channels": [8]},
         dropout_pr: float = 0.3,
-        site_len: int = 15,
-        kin_len: int = 2064,
-        num_aa: int = 22,  # 20 + X + padding
+        site_len: int = 1024,
+        kin_len: int = 1024,
         attn_num_heads: int = 8,
-        padding_idx: int = 21,
     ):
         """Initialize the KinaseSubstrateRelationshipATTN model.
 
@@ -227,15 +225,7 @@ class KinaseSubstrateRelationshipATTN(KSR):
         """The number of convolutional layers to apply to the site sequence."""
         self.num_conv_kin = num_conv_kin
         """The number of convolutional layers to apply to the kinase sequence."""
-        self.emb_dim_site = emb_dim_site
-        """The embedding dimension of the site sequence."""
-        self.emb_dim_kin = emb_dim_kin
-        """The embedding dimension of the kinase sequence."""
 
-        self.emb_site = nn.Embedding(num_aa, self.emb_dim_site)
-        """The site sequence embedding layer."""
-        self.emb_kin = nn.Embedding(num_aa, self.emb_dim_kin, padding_idx=padding_idx)
-        """The kinase sequence embedding layer."""
         self.site_param_dict = site_param_dict
         """A dictionary mapping parameters to lists of values for the site CNN(s). The keys should be ``"kernels"``, ``"out_lengths"``, and ``"out_channels"``. The values should be lists of integers."""
         self.kin_param_dict = kin_param_dict
@@ -251,6 +241,9 @@ class KinaseSubstrateRelationshipATTN(KSR):
 
         pools_site, in_channels_site, do_flatten_site, do_transpose_site = self.calculate_cNN_params("site")
         pools_kin, in_channels_kin, do_flatten_kin, do_transpose_kin = self.calculate_cNN_params("kin")
+
+        assert in_channels_kin[0] == 1
+        assert in_channels_site[0] == 1
 
         site_cnn_list = []
         kin_cnn_list = []
@@ -368,16 +361,13 @@ class KinaseSubstrateRelationshipATTN(KSR):
         )
 
     def forward(self, site_seq, kin_seq):
-        emb_site = self.emb_site(site_seq)
-        emb_kin = self.emb_kin(kin_seq)
-
-        cnn_out_site = self.site_cnns(emb_site)  # Includes MaxPool'ing
-        cnn_out_kin = self.kin_cnns(emb_kin)
+        cnn_out_site = self.site_cnns(site_seq)  # Includes MaxPool'ing
+        cnn_out_kin = self.kin_cnns(kin_seq)
 
         transp_out_site = self.transpose(cnn_out_site)
         transp_out_kin = self.transpose(cnn_out_kin)
 
-        attn_out, attn_del = self.attn(transp_out_site, transp_out_kin)
+        attn_out, _ = self.attn(transp_out_site, transp_out_kin)
         attn_transp_out = self.transpose(attn_out)
         avg_pool_out = self.post_attn_avg_pool(attn_transp_out)
 

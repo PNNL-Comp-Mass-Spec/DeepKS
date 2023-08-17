@@ -1,10 +1,13 @@
 # ### Setup
+import json
+from itertools import cycle
 from matplotlib.figure import Figure
-import pandas as pd, tqdm, json
+import pandas as pd, tqdm
 from transformers import T5Tokenizer, T5EncoderModel
-import torch, re, random
+import torch, re
 import matplotlib
 import matplotlib.pyplot as plt
+from sklearn import manifold
 
 matplotlib.rcParams["font.family"] = "P052"
 # %config InlineBackend.figure_formats = ['svg']
@@ -57,10 +60,55 @@ def do_normalize(data: list[list[int | float]], mat=1, mit=-1):
     return [[((mat - mit) * (x - mi) / (ma - mi)) + mit for x in d] for d in data]
 
 
+# ### T-SNE
+
+
+def get_manifold(
+    embeddings: np.ndarray,
+    annotations: list[str],
+    idx_to_color={},
+    all_mappings={},
+    the_manifold=manifold.TSNE,
+    **manifold_kwargs,
+) -> Figure:
+    with ionoff():
+        assert len(annotations) == len(embeddings), (
+            "The number of embeddings (i.e., sequences) equal the number of annotations (i.e., labels) for said"
+            " embeddings."
+        )
+        manifold = the_manifold(**manifold_kwargs)
+        X_trans = manifold.fit_transform(embeddings)
+        fig, ax = plt.subplots()
+        ax.scatter(
+            X_trans[:, 0],
+            X_trans[:, 1],
+            c=[idx_to_color.get(i, "blue") for i in range(len(X_trans))],
+            label="embedded kinase",
+        )
+        for i in range(len(annotations)):
+            plt.annotate(
+                text="".join([se for se in annotations[i] if se != " "]),
+                xy=(X_trans[i, 0], X_trans[i, 1]),
+                fontfamily="Fira Code",
+                fontweight=500,
+                fontsize=8,
+                color="#00000020",
+            )
+
+        ax.set_title("PCA of ProtT5")
+        ax.set_xlabel(f"First t-SNE feature")
+        ax.set_ylabel(f"Second t-SNE feature")
+        labels = sorted(list(all_mappings.keys()))
+        values = sorted(list(all_mappings.values()))
+        legend_elements = [plt.scatter([0], [0], alpha=1, c=[values[i]], label=labels[i]) for i in range(len(labels))]
+        ax.legend(handles=legend_elements, title="Kinase Group")
+    return fig
+
+
 # ### PCA
 
 
-def get_pca(embeddings: np.ndarray, annotations: list[str], idx_to_color={}) -> Figure:
+def get_pca(embeddings: np.ndarray, annotations: list[str], idx_to_color={}, all_mappings={}) -> Figure:
     with ionoff():
         assert len(annotations) == len(embeddings), (
             "The number of embeddings (i.e., sequences) equal the number of annotations (i.e., labels) for said"
@@ -69,7 +117,12 @@ def get_pca(embeddings: np.ndarray, annotations: list[str], idx_to_color={}) -> 
         pca = decomposition.PCA()
         X_trans = pca.fit_transform(embeddings)
         fig, ax = plt.subplots()
-        ax.scatter(X_trans[:, 0], X_trans[:, 1], c=[idx_to_color.get(i, "blue") for i in range(len(X_trans))])
+        ax.scatter(
+            X_trans[:, 0],
+            X_trans[:, 1],
+            c=[idx_to_color.get(i, "blue") for i in range(len(X_trans))],
+            label="embedded kinase",
+        )
         for i in range(len(annotations)):
             plt.annotate(
                 text="".join([se for se in annotations[i] if se != " "]),
@@ -77,11 +130,16 @@ def get_pca(embeddings: np.ndarray, annotations: list[str], idx_to_color={}) -> 
                 fontfamily="Fira Code",
                 fontweight=500,
                 fontsize=8,
+                color="#00000020",
             )
 
         ax.set_title("PCA of ProtT5")
         ax.set_xlabel(f"First Component ({pca.explained_variance_ratio_[0]*100:2.2f}%)")
         ax.set_ylabel(f"Second Component ({pca.explained_variance_ratio_[1]*100:2.2f}%)")
+        labels = sorted(list(all_mappings.keys()))
+        values = sorted(list(all_mappings.values()))
+        legend_elements = [plt.scatter([0], [0], alpha=1, c=[values[i]], label=labels[i]) for i in range(len(labels))]
+        ax.legend(handles=legend_elements, title="Kinase Group")
     return fig
 
 
@@ -99,7 +157,7 @@ def get_scree(embeddings: np.ndarray) -> Figure:
 
         ax.plot(
             range(1, len(pca.explained_variance_ratio_) + 1),
-            [sum(100 * pca.explained_variance_ratio_[:i]) for i in range(len(pca.explained_variance_ratio_))],
+            [sum(100 * pca.explained_variance_ratio_[:i]) for i in range(1, len(pca.explained_variance_ratio_) + 1)],
             "-go",
             label="Cum. Variance Explained",
         )
@@ -154,9 +212,57 @@ def kinase_pca(kinase_filename: str, sequence_col: str, anno_col: str, pickle_lo
     # get_pca(X_embeddings, df[keep_indices, anno_col].tolist())
 
 
+def get_color_iter():
+    # Define a named color palette
+    palette_name = "tab10"
+
+    # Get the named color palette
+    palette = plt.get_cmap(palette_name)
+
+    # Create a cycle object that cycles through the palette
+    color_cycle = cycle(palette.colors)
+
+    # Create an iterator from the cycle object
+    return iter(color_cycle)
+
+
+def annot_idx_to_color(annotations, group_dict):
+    res = {}
+    color_iter = get_color_iter()
+    color_to_group = {g: c for g, c in zip(sorted(list(set(group_dict.values()))), color_iter)}
+    for a, anno in enumerate(annotations):
+        group = group_dict[anno]
+        res[a] = color_to_group[group]
+    return res, color_to_group
+
+
 if __name__ == "__main__":
-    kinase_pca(
-        "/home/dockeruser/DeepKS2/DeepKS/data/raw_data_31834_formatted_65_26610.csv",
-        "Kinase Sequence",
-        "Gene Name of Provided Kin Seq",
+    # kinase_pca(
+    #     "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_45176_formatted_65.csv",
+    #     "Kinase Sequence",
+    #     "Gene Name of Provided Kin Seq",
+    # )
+    with open("./embeddings.json") as f:
+        embeddings = json.load(f)
+    # get_scree(list(embeddings.values()))
+
+    symb_to_grp = {}
+    for i, r in pd.read_csv(
+        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/preprocessing/kin_to_fam_to_grp_826.csv"
+    ).iterrows():
+        symb_to_grp[re.sub(r"[\(\)\*]", r"", r["Kinase"]) + "|" + r["Uniprot"]] = r["Group"]
+
+    sequence_col = "lab"
+    df = pd.read_csv(
+        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_45176_formatted_65.csv"
+    )
+    keep_indices = [int(i) for i, r in (~df[sequence_col].duplicated(keep="first")).items() if r]
+    df = df.loc[keep_indices]
+
+    annot_idx_to_color_ = annot_idx_to_color(df["orig_lab_name"], symb_to_grp)
+    get_pca(
+        np.array(list(embeddings.values())),
+        list(embeddings.keys()),
+        annot_idx_to_color_[0],
+        all_mappings=annot_idx_to_color_[1],
     )

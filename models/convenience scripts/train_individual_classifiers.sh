@@ -12,5 +12,5 @@ else
     --device cpu \
     --pre-trained-gc bin/deepks_gc_weights.-1.cornichon \
     --ksr-params models/hyperparameters/KSR_params.json \
-    --groups NON-TK
+    --groups TK
 fi
