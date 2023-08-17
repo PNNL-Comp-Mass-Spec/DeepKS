@@ -115,8 +115,7 @@ def rep_mem_wrapper(fn, wrapper_kwargs={}, *args, **kwargs):
 
 
 class MemoryCalculator(Protocol):
-    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device
-    """
+    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device"""
 
     @staticmethod
     def calculate_memory(
@@ -439,7 +438,7 @@ def main3():
 
     model = KinaseSubstrateRelationshipATTN()
     input1 = torch.randint(0, 22, (15,), dtype=torch.int32)
-    input2 = torch.randint(0, 22, (4128,), dtype=torch.int32)
+    input2 = torch.randint(0, 22, (2064,), dtype=torch.int32)
     device = torch.device("cpu")
     # device = torch.device("cuda:4")
     return (

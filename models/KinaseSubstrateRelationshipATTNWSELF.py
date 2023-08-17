@@ -106,7 +106,7 @@ class KinaseSubstrateRelationshipATTNWSELF(KSR):
         kin_param_dict={"kernels": [10], "out_lengths": [12], "out_channels": [11]},
         dropout_pr: float = 0.3,
         site_len: int = 15,
-        kin_len: int = 4128,
+        kin_len: int = 2064,
         num_aa: int = 22,  # 20 + X + padding
         attn_num_heads: int = 8,
         padding_idx=21,

@@ -55,7 +55,7 @@ def n_tile_hist(data: list[int] | list[float] | list[int | float], n_tile: int =
         patches[i].set_facecolor(col)
         patches[i].set_alpha(alphs[which_shade_idx])
         print(pctl, which_shade_idx)
-    plt.vlines(4128, 0, 200, color='red', label='Current length of padded Tensor (remove longer from dataset)')
+    plt.vlines(2064, 0, 200, color='red', label='Current length of padded Tensor (remove longer from dataset)')
     # Add labels and title
     plt.xlabel("Length of Kinase")
     plt.ylabel("Frequency")

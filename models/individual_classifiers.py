@@ -25,7 +25,7 @@ if __name__ == "__main__":  # pragma: no cover
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, argparse, torch.utils.data, more_itertools
 import socket, pathlib, os, itertools, functools, numpy as np, pickle
 from ..tools.NNInterface import NNInterface
-from ..tools.tensorize import data_to_tensor
+from ..tools.tensorize import data_to_tensor_T5
 from ..tools.model_utils import KSDataset
 from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Any
 
@@ -51,7 +51,7 @@ torch.manual_seed(42)
 
 DEL_DECOR = lambda x: re.sub(r"[\(\)\*]", "", x).upper()
 """Simple lambda to remove parentheses and asterisks from a string and convert it to uppercase."""
-MAX_SIZE_DS = 4128
+MAX_SIZE_DS = 2064
 memory_multiplier = 2**6
 EVAL_BATCH_SIZE = 0
 from ..config.join_first import join_first
@@ -150,9 +150,9 @@ class IndividualClassifiers:
             )
             for i, grp in enumerate(gia)
         }
-        self.evaluations: dict[
-            str, dict[str, dict[str, list[Union[int, float]]]]
-        ] = {}  # Group -> Tr/Vl/Te -> outputs/labels -> list
+        self.evaluations: dict[str, dict[str, dict[str, list[Union[int, float]]]]] = (
+            {}
+        )  # Group -> Tr/Vl/Te -> outputs/labels -> list
 
         self.default_tok_dict = {
             "M": 0,
@@ -309,10 +309,9 @@ class IndividualClassifiers:
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
             dummy = list(
-                data_to_tensor(
+                data_to_tensor_T5(
                     partial_group_df_vl,
                     tokdict=self.default_tok_dict,
-                    n_gram=ng,
                     device=self.device,
                     maxsize=MAX_SIZE_DS,
                 )
@@ -322,10 +321,9 @@ class IndividualClassifiers:
             bpi, bc = self.interfaces[group_tr].get_bytes_per_input(no_backprop=False)
             try:
                 val_loader, _ = list(
-                    data_to_tensor(
+                    data_to_tensor_T5(
                         partial_group_df_vl,
                         tokdict=self.default_tok_dict,
-                        n_gram=ng,
                         device=self.device,
                         maxsize=MAX_SIZE_DS,
                         bytes_per_input=bpi,
@@ -337,11 +335,10 @@ class IndividualClassifiers:
                     logger.warning(f"No validation data for group {group_vl}.")
                 val_loader = torch.utils.data.DataLoader(KSDataset([], [], []), batch_size=1)
             train_generator = more_itertools.peekable(
-                data_to_tensor(
+                data_to_tensor_T5(
                     partial_group_df_tr,
                     tokdict=self.default_tok_dict,
                     batch_size=b,
-                    n_gram=ng,
                     device=self.device,
                     maxsize=MAX_SIZE_DS,
                     bytes_per_input=bpi,
@@ -406,10 +403,9 @@ class IndividualClassifiers:
             assert isinstance(ng, int), "N-gram must be an integer"
             seen_groups_passthrough.append(group_te)
             dummy = list(
-                data_to_tensor(
+                data_to_tensor_T5(
                     partial_group_df_te,
                     tokdict=self.default_tok_dict,
-                    n_gram=ng,
                     device=device,
                     maxsize=MAX_SIZE_DS,
                     cartesian_product=cartesian_product,
@@ -419,10 +415,9 @@ class IndividualClassifiers:
             self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
             bpi, bc = bytes if bytes is not None else self.interfaces[group_te].get_bytes_per_input(no_backprop=True)
             bytes = bpi, bc if bytes is None else bytes
-            for test_loader, info_dict in data_to_tensor(
+            for test_loader, info_dict in data_to_tensor_T5(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,
-                n_gram=ng,
                 device=device,
                 maxsize=MAX_SIZE_DS,
                 cartesian_product=cartesian_product,

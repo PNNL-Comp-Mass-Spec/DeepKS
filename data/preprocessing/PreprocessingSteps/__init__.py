@@ -4,6 +4,7 @@ from . import get_kin_fam_grp
 from . import remove_overlaps
 from . import split_into_sets_individual_deterministic_top_k
 from . import download_psp
+from . import Truncator
 
 __all__ = [
     "format_raw_data",
@@ -11,4 +12,5 @@ __all__ = [
     "remove_overlaps",
     "split_into_sets_individual_deterministic_top_k",
     "download_psp",
+    "Truncator"
 ]

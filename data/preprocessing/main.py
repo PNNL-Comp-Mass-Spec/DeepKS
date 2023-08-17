@@ -188,6 +188,17 @@ def step_5_get_train_val_test_split(
 def step_6_drop_overlapping_sites(train_file: str, val_file: str, test_file: str):
     PreprocessingSteps.remove_overlaps.main(train_file, val_file, test_file)
 
+def step_7_trucate_kinases(seq_filename: str, max_len: int = 2064, resave: bool | str = True):
+    truncator = PreprocessingSteps.Truncator.DataShorteningTrucator(max_len)
+    seq_df = pd.read_csv(seq_filename)
+    seq_df = truncator.shrink_data(seq_df, 'Kinase Sequence')
+    if resave:
+        if isinstance(resave, str):
+            seq_df.to_csv(resave, index=False)
+        elif resave:
+            seq_df.to_csv(seq_filename, index=False)
+
+
 
 def main():
     """The main function for preprocessing the data. Does the following:
@@ -219,3 +230,10 @@ def main():
     assert isinstance(fn_res, tuple)
     assert len(fn_res) == 3
     step_6_drop_overlapping_sites(*fn_res)
+    step_7_trucate_kinases(seq_filename_A)
+
+
+if __name__ == "__main__":
+    step_7_trucate_kinases(join_first('/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv', 1, __file__))
+    step_7_trucate_kinases(join_first('/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6500_formatted_95_5698.csv', 1, __file__))
+    step_7_trucate_kinases(join_first('/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv', 1, __file__))

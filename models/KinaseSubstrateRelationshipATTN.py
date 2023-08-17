@@ -180,7 +180,7 @@ class KinaseSubstrateRelationshipATTN(KSR):
         kin_param_dict: dict[str, list[int]] = {"kernels": [10], "out_lengths": [8], "out_channels": [8]},
         dropout_pr: float = 0.3,
         site_len: int = 15,
-        kin_len: int = 4128,
+        kin_len: int = 2064,
         num_aa: int = 22,  # 20 + X + padding
         attn_num_heads: int = 8,
         padding_idx: int = 21,
@@ -206,9 +206,9 @@ class KinaseSubstrateRelationshipATTN(KSR):
         site_len : int, optional
             The length of site the model should expect, by default 15
         kin_len : int, optional
-            The length of kinase the model should expect, by default 4128
+            The length of kinase the model should expect, by default 2064
         num_aa : int, optional
-            The number of amino acids (or by extension, n-grams) the model should expect, by default 22. (20 amino acids + "X" to pad flanking sequences whose central kinase is < 7 residues away from the ending + padding token for kinases < than 4128 residues long)
+            The number of amino acids (or by extension, n-grams) the model should expect, by default 22. (20 amino acids + "X" to pad flanking sequences whose central kinase is < 7 residues away from the ending + padding token for kinases < than 2064 residues long)
         padding_idx : int, optional
             The index of the kinase padding token within the ``num_aa`` tokens, by default 21
         """

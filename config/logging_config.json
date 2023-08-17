@@ -1,4 +1,4 @@
 {
-   "logging_level": 10,
-   "upper_logging_level": 29
+   "logging_level": 4,
+   "upper_logging_level": 100
 }
