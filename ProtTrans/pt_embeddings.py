@@ -1,6 +1,6 @@
 # ### Setup
 from matplotlib.figure import Figure
-import pandas as pd, tqdm
+import pandas as pd, tqdm, json
 from transformers import T5Tokenizer, T5EncoderModel
 import torch, re, random
 import matplotlib
@@ -25,11 +25,15 @@ class ionoff:
 
 
 # ### Embeddings
-def get_embeddings(sequence_examples, model, device, tokenizer, chunk_size=1):
+def get_embeddings(sequence_examples, model, device, tokenizer, chunk_size=None):
     sequence_examples = [" ".join(list(re.sub(r"[UZOB]", "X", sequence))) for sequence in sequence_examples]
     assert tokenizer is not None
     # tokenize sequences and pad up to the longest sequence in the batch
-
+    if chunk_size is None:
+        if "cpu" in str(device):
+            chunk_size = 1
+        else:
+            chunk_size = 18
     # generate embeddings
     with torch.no_grad():
         res = []
@@ -111,8 +115,8 @@ def get_scree(embeddings: np.ndarray) -> Figure:
         return fig
 
 
-def main(sequence_examples=["PEPTIDE", "SEQWENCES"]):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def main(sequence_examples=["PEPTIDE", "SEQWENCES"], pickle_loc=f"./embeddings"):
+    device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
     print("Using device: {}".format(device))
     transformer_link = "Rostlab/prot_t5_xl_half_uniref50-enc"
     print("Loading: {}".format(transformer_link))
@@ -123,13 +127,13 @@ def main(sequence_examples=["PEPTIDE", "SEQWENCES"]):
     model = model.eval()
     tokenizer = T5Tokenizer.from_pretrained(transformer_link, do_lower_case=False)
     embeddings = get_embeddings(sequence_examples, model, device, tokenizer)
-    X_embeddings = np.array(embeddings)
-    get_scree(X_embeddings)
-    get_pca(X_embeddings, [f"{str(x)[:10]}..." for x in X_embeddings])
+    # X_embeddings = np.array(embeddings)
+    # get_scree(X_embeddings)
+    # get_pca(X_embeddings, [f"{str(x)[:10]}..." for x in X_embeddings])
 
 
-def kinase_pca(kinase_filename: str, sequence_col: str, anno_col: str):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+def kinase_pca(kinase_filename: str, sequence_col: str, anno_col: str, pickle_loc=f"./embeddings.json"):
+    device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
     print("Using device: {}".format(device))
     transformer_link = "Rostlab/prot_t5_xl_half_uniref50-enc"
     print("Loading: {}".format(transformer_link))
@@ -143,14 +147,16 @@ def kinase_pca(kinase_filename: str, sequence_col: str, anno_col: str):
     keep_indices = [int(i) for i, r in (~df[sequence_col].duplicated(keep="first")).items() if r]
     sequence_examples = df[sequence_col].loc[keep_indices].tolist()
     embeddings = get_embeddings(sequence_examples, model, device, tokenizer)
-    X_embeddings = np.array(embeddings)
-    get_scree(X_embeddings)
-    get_pca(X_embeddings, df[keep_indices, anno_col].tolist())
+    with open(pickle_loc, "w") as f:
+        json.dump(dict(zip(df[anno_col].loc[keep_indices], embeddings)), f, indent=3)
+    # X_embeddings = np.array(embeddings)
+    # get_scree(X_embeddings)
+    # get_pca(X_embeddings, df[keep_indices, anno_col].tolist())
 
 
 if __name__ == "__main__":
     kinase_pca(
-        "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv",
+        "/home/dockeruser/DeepKS2/DeepKS/data/raw_data_31834_formatted_65_26610.csv",
         "Kinase Sequence",
         "Gene Name of Provided Kin Seq",
     )

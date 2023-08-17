@@ -115,8 +115,7 @@ def rep_mem_wrapper(fn, wrapper_kwargs={}, *args, **kwargs):
 
 
 class MemoryCalculator(Protocol):
-    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device
-    """
+    """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device"""
 
     @staticmethod
     def calculate_memory(

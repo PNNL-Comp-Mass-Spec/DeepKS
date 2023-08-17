@@ -1,7 +1,7 @@
 """Module building on top of the logging module to provide a custom logger with custom logging functions and colors"""
 from __future__ import annotations
 import logging, inspect
-import os
+import os, sys
 import time, tqdm, pathlib
 from typing import Literal
 from termcolor import colored
@@ -222,6 +222,7 @@ class CustomLogger(logging.Logger):
             if self.isEnabledFor(logging.ERROR):
                 self._log(logging.ERROR, msg, args, **kwargs)
             self.last_log = "error"
+        sys.exit(1)
 
     def uerror(self, msg, *args, **kwargs):
         """Log errors that are caused and/or partially anticipated by the user."""
@@ -230,6 +231,7 @@ class CustomLogger(logging.Logger):
             if self.isEnabledFor(USER_ERROR):
                 self._log(USER_ERROR, msg, args, **kwargs)
             self.last_log = "uerror"
+        sys.exit(1)
 
 
 class CustomFormatter(logging.Formatter):
