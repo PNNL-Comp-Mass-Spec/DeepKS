@@ -1,7 +1,7 @@
 """DeepKS model containing a `torch.nn.MultiheadAttention` layer as the attention layer. Otherwise analogous to \
     `models.KinaseSubstrateRelationshipClassic`."""
 import torch, torch.nn as nn
-from ..tools.formal_layers import Transpose, Squeeze
+from ..tools.formal_layers import Transpose, Squeeze, Unsqueeze
 from ..tools.model_utils import cNNUtils as cNNUtils
 from .KSRProtocol import KSR
 from typing import Literal, Tuple
@@ -227,8 +227,8 @@ class KinaseSubstrateRelationshipATTNT5(KSR):
         """The number of convolutional layers to apply to the site sequence."""
         self.num_conv_kin = num_conv_kin
         """The number of convolutional layers to apply to the kinase sequence."""
-        self.emb_dim_site = 1024
-        self.emb_dim_kin = 1024
+        self.emb_dim_site = 1
+        self.emb_dim_kin = 1
         self.site_param_dict = site_param_dict
         """A dictionary mapping parameters to lists of values for the site CNN(s). The keys should be ``"kernels"``, ``"out_lengths"``, and ``"out_channels"``. The values should be lists of integers."""
         self.kin_param_dict = kin_param_dict
@@ -241,6 +241,8 @@ class KinaseSubstrateRelationshipATTNT5(KSR):
         """A layer to squeeze the output of the site CNN(s) in the 1st dimension."""
         self.squeeze_2 = Squeeze(2)
         """A layer to squeeze the output of the kinase CNN(s) in the 2nd dimension."""
+        self.unsqueeze_1 = Unsqueeze(1)
+        """A layer to squeeze the output of the kinase CNN(s) in the 1st dimension."""
 
         pools_site, in_channels_site, do_flatten_site, do_transpose_site = self.calculate_cNN_params("site")
         pools_kin, in_channels_kin, do_flatten_kin, do_transpose_kin = self.calculate_cNN_params("kin")
@@ -333,7 +335,7 @@ class KinaseSubstrateRelationshipATTNT5(KSR):
         calculated_do_transpose = []
 
         for i in range(num_conv):
-            calculated_do_transpose.append(i == 0)
+            calculated_do_transpose.append(False)
             calculated_do_flatten.append(False)
             if i == 0:
                 calculated_in_channel = emb
@@ -361,13 +363,11 @@ class KinaseSubstrateRelationshipATTNT5(KSR):
         )
 
     def forward(self, site_seq, kin_seq):
-        print("Here")
-        logger.debug(f"{site_seq.shape=}")
-        logger.debug(f"{kin_seq.shape=}")
-        logger.debug(f"{site_seq.dtype=}")
-        logger.debug(f"{kin_seq.dtype=}")
-        cnn_out_site = self.site_cnns(site_seq)  # Includes MaxPool'ing
-        cnn_out_kin = self.kin_cnns(kin_seq)
+        site_unsqueeze = self.unsqueeze_1(site_seq)
+        kin_unsqueeze = self.unsqueeze_1(kin_seq)
+
+        cnn_out_site = self.site_cnns(site_unsqueeze)  # Includes MaxPool'ing
+        cnn_out_kin = self.kin_cnns(kin_unsqueeze)
 
         transp_out_site = self.transpose(cnn_out_site)
         transp_out_kin = self.transpose(cnn_out_kin)
