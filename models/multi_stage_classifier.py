@@ -180,8 +180,10 @@ class MultiStageClassifier:
             addl_args[key] = Xy_formatted_input_file
             print(
                 colored(
-                    "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
-                    " step [1/2]",
+                    (
+                        "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
+                        " step [1/2]"
+                    ),
                     "green",
                 )
             )

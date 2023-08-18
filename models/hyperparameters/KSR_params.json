@@ -1,12 +1,11 @@
 {
     "NON-TK": {
-        "model_class": "KinaseSubstrateRelationshipATTN",
+        "model_class": "KinaseSubstrateRelationshipATTNT5",
         "linear_layer_sizes": [
             50,
             25
         ],
         "emb_dim_kin": 22,
-        "emb_dim_site": 22,
         "dropout_pr": 0.4,
         "site_param_dict": {
             "kernels": [
@@ -33,13 +32,12 @@
         "attn_num_heads": 4
     },
     "TK": {
-        "model_class": "KinaseSubstrateRelationshipATTN",
+        "model_class": "KinaseSubstrateRelationshipATTNT5",
         "linear_layer_sizes": [
             50,
             25
         ],
         "emb_dim_kin": 22,
-        "emb_dim_site": 22,
         "dropout_pr": 0.4,
         "site_param_dict": {
             "kernels": [

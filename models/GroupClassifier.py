@@ -145,6 +145,8 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
         are, hence, either 'TK' or 'NON-TK'."""
 
     def __init__(self, sequences, ground_truth) -> None:
+        if isinstance(sequences, type(...)):
+            return
         super().__init__(sequences, ground_truth)
 
     @staticmethod

@@ -9,8 +9,8 @@ else
     -m DeepKS.models.individual_classifiers \
     --train data/raw_data_31834_formatted_65_26610.csv \
     --val data/raw_data_6500_formatted_95_5698.csv \
-    --device cpu \
-    --pre-trained-gc bin/deepks_gc_weights.-1.cornichon \
-    --ksr-params models/hyperparameters/KSR_params.json \
+    --device cuda:4 \
+    --pre-trained-gc bin/pseudo_gc.cornichon \
     --groups TK
+    # --ksr-params models/hyperparameters/KSR_params.json
 fi

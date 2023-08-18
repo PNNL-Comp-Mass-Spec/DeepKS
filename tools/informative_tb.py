@@ -78,8 +78,10 @@ def informative_exception(
     print(
         colored(
             textwrap.fill(
-                f"  * Error Type: {e.__class__.__name__} (Description:"
-                f" {get_exception_description(e.__class__.__name__)})",
+                (
+                    f"  * Error Type: {e.__class__.__name__} (Description:"
+                    f" {get_exception_description(e.__class__.__name__)})"
+                ),
                 width=width,
                 subsequent_indent=" " * 8,
             ),

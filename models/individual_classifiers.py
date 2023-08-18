@@ -116,7 +116,16 @@ class IndividualClassifiers:
         self.device = torch.device(device)
         self.grp_to_training_args = grp_to_training_args
         for group in grp_to_model_args:
-            exec(f"from .{grp_to_model_args[group]['model_class']} import {grp_to_model_args[group]['model_class']}")
+            try:
+                exec(
+                    f"from .{grp_to_model_args[group]['model_class']} import {grp_to_model_args[group]['model_class']}"
+                )
+            except SyntaxError as se:
+                # TODO Print traceback
+                print(
+                    'There was an error importing the specified Kinase-Substrate model (did you accidently add ".py" to'
+                    " the class name?)."
+                )
         self.individual_classifiers = {}
         for group in grp_to_model_args:
             clss = eval(grp_to_model_args[group]["model_class"])
