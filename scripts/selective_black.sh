@@ -1,9 +1,23 @@
-#!/bin/bash
+#!/bin/zsh
 
 # If any command fails, exit immediately with that command's exit status
 set -eo pipefail
+source ~/.zshrc
 
-black -v --line-length 120 --preview **/*.py
+STAGED=$(
+    python3 -c \
+    'import os, re; \
+    print(
+        " ".join([x for x in 
+                os.popen("git diff --name-only --cached").read().split("\n") if re.search("(\.ipynb|\.py)$", x)
+            ]
+    ), end = "")'
+)
+
+if [[ ${#STAGED} -gt 1 ]]; 
+then
+    black -v --line-length 120 --preview $STAGED;
+fi
 
 # # Find all changed files for this commit
 # # Compute the diff only once to save a small amount of time.

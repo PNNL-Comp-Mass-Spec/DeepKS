@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # If any command fails, exit immediately with that command's exit status
 set -eo pipefail
