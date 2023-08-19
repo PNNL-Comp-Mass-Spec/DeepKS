@@ -9,9 +9,8 @@ class Truncator(Protocol):
 
     def __init__(self, max_len: int | float):
         assert max_len >= 0
-        assert int(max_len) == max_len, '`max_len` cannot have a decimal part.'
+        assert int(max_len) == max_len, "`max_len` cannot have a decimal part."
         self.max_len = int(max_len)
-
 
     def _validate_data(self, seq_list: list[str]):
         for seq in seq_list:
@@ -24,6 +23,7 @@ class Truncator(Protocol):
     def shrink_data(self, df: pd.DataFrame, seq_col: str) -> pd.DataFrame:
         ...
 
+
 class DataRemovingTrucator(Truncator):
     def shrink_data(self, df: pd.DataFrame, seq_col: str) -> pd.DataFrame:
         dfdc = deepcopy(df)
@@ -33,12 +33,12 @@ class DataRemovingTrucator(Truncator):
         self._validate_data(df[seq_col].tolist())
         return df
 
+
 class DataShorteningTrucator(Truncator):
     def shrink_data(self, df: pd.DataFrame, seq_col: str):
         for i, _ in df.iterrows():
             # print(df.index.tolist()[:10])
             # print(df.columns.tolist()[:10])
-            df.at[i, seq_col] = df.at[i, seq_col][:self.max_len]
+            df.at[i, seq_col] = df.at[i, seq_col][: self.max_len]
         self._validate_data(df[seq_col].tolist())
         return df
-

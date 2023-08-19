@@ -34,6 +34,7 @@ else:
     perform_steps = {}
 """The steps to perform. If empty, all steps will be performed."""
 
+
 def step_1_download_psp(outfile="../raw_data/PSP_script_download.xlsx"):
     """Wrapper for `PreprocessingSteps.download_psp.get_phospho`. Same Parameters."""
     logger.status("Step 1: Download most recent version of the PhosphositePlus database.")
@@ -185,19 +186,20 @@ def step_5_get_train_val_test_split(
                 config=config,
             )
 
+
 def step_6_drop_overlapping_sites(train_file: str, val_file: str, test_file: str):
     PreprocessingSteps.remove_overlaps.main(train_file, val_file, test_file)
+
 
 def step_7_trucate_kinases(seq_filename: str, max_len: int = 2064, resave: bool | str = True):
     truncator = PreprocessingSteps.Truncator.DataShorteningTrucator(max_len)
     seq_df = pd.read_csv(seq_filename)
-    seq_df = truncator.shrink_data(seq_df, 'Kinase Sequence')
+    seq_df = truncator.shrink_data(seq_df, "Kinase Sequence")
     if resave:
         if isinstance(resave, str):
             seq_df.to_csv(resave, index=False)
         elif resave:
             seq_df.to_csv(seq_filename, index=False)
-
 
 
 def main():
@@ -216,15 +218,11 @@ def main():
     seq_filename_A, data_filename = step_2_download_uniprot()
     kin_fam_grp_filename = step_3_get_kin_to_fam_to_grp(seq_filename_A)
     new_mtx_file = step_4_get_pairwise_mtx(seq_filename_A)
-    step_5_get_train_val_test_split(
-        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='a'
-    )
-    step_5_get_train_val_test_split(
-        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='b'
-    )
-    
+    step_5_get_train_val_test_split(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part="a")
+    step_5_get_train_val_test_split(kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part="b")
+
     fn_res = step_5_get_train_val_test_split(
-        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part='c'
+        kin_fam_grp_filename, data_filename, seq_filename_A, new_mtx_file, part="c"
     )
     assert fn_res is not None
     assert isinstance(fn_res, tuple)
@@ -234,6 +232,24 @@ def main():
 
 
 if __name__ == "__main__":
-    step_7_trucate_kinases(join_first('/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv', 1, __file__))
-    step_7_trucate_kinases(join_first('/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6500_formatted_95_5698.csv', 1, __file__))
-    step_7_trucate_kinases(join_first('/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv', 1, __file__))
+    step_7_trucate_kinases(
+        join_first(
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_31834_formatted_65_26610.csv",
+            1,
+            __file__,
+        )
+    )
+    step_7_trucate_kinases(
+        join_first(
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6500_formatted_95_5698.csv",
+            1,
+            __file__,
+        )
+    )
+    step_7_trucate_kinases(
+        join_first(
+            "/Users/druc594/Library/CloudStorage/OneDrive-PNNL/Desktop/DeepKS_/DeepKS/data/raw_data_6406_formatted_95_5616.csv",
+            1,
+            __file__,
+        )
+    )

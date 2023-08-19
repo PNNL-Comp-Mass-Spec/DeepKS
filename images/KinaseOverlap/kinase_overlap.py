@@ -10,42 +10,59 @@ import textwrap as tw
 
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.rcParams['font.family'] = 'FPL Neu'
+
+matplotlib.rcParams["font.family"] = "FPL Neu"
 
 # %%
 with open("Uniprot_ST_Kinases.xlsx", "wb") as st:
-    r = requests.get("https://rest.uniprot.org/uniprotkb/stream?download=true&fields=accession%2Cid%2Cgene_primary%2Corganism_name%2Clength%2Creviewed&format=xlsx&query=%28%28keyword%3AKW-0723%29%29%20AND%20%28reviewed%3Atrue%29%20AND%20%28model_organism%3A9606%29")
+    r = requests.get(
+        "https://rest.uniprot.org/uniprotkb/stream?download=true&fields=accession%2Cid%2Cgene_primary%2Corganism_name%2Clength%2Creviewed&format=xlsx&query=%28%28keyword%3AKW-0723%29%29%20AND%20%28reviewed%3Atrue%29%20AND%20%28model_organism%3A9606%29"
+    )
     if r.ok:
         st.write(r.content)
 
 with open("Uniprot_Y_Kinases.xlsx", "wb") as y:
-    r = requests.get("https://rest.uniprot.org/uniprotkb/stream?fields=accession%2Cid%2Cgene_primary%2Corganism_name%2Clength%2Creviewed&format=xlsx&query=%28%28keyword%3AKW-0829%29%29%20AND%20%28reviewed%3Atrue%29%20AND%20%28model_organism%3A9606%29")
+    r = requests.get(
+        "https://rest.uniprot.org/uniprotkb/stream?fields=accession%2Cid%2Cgene_primary%2Corganism_name%2Clength%2Creviewed&format=xlsx&query=%28%28keyword%3AKW-0829%29%29%20AND%20%28reviewed%3Atrue%29%20AND%20%28model_organism%3A9606%29"
+    )
     if r.ok:
         y.write(r.content)
 
 # %%
 with warnings.catch_warnings():
-    warnings.filterwarnings(action='ignore', category=UserWarning, message="Workbook contains no default style")
-    with open ("Uniprot_ST_Kinases.xlsx", "rb") as st:
+    warnings.filterwarnings(action="ignore", category=UserWarning, message="Workbook contains no default style")
+    with open("Uniprot_ST_Kinases.xlsx", "rb") as st:
         st_kinases = pd.read_excel(st)
-    with open ("Uniprot_Y_Kinases.xlsx", "rb") as y:
+    with open("Uniprot_Y_Kinases.xlsx", "rb") as y:
         y_kinases = pd.read_excel(y)
 
 # %%
-all_uniprot = pd.concat([st_kinases, y_kinases], ignore_index=True).sort_values(by = ["Entry Name", "Gene Names (primary)"])[['Entry', 'Entry Name', 'Gene Names (primary)']].rename(columns={'Entry': 'Uniprot ID', 'Gene Names (primary)': 'Gene Name'}).reset_index(drop=True)
+all_uniprot = (
+    pd.concat([st_kinases, y_kinases], ignore_index=True)
+    .sort_values(by=["Entry Name", "Gene Names (primary)"])[["Entry", "Entry Name", "Gene Names (primary)"]]
+    .rename(columns={"Entry": "Uniprot ID", "Gene Names (primary)": "Gene Name"})
+    .reset_index(drop=True)
+)
 
 # %%
-all_uniprot['Symbol'] = all_uniprot['Gene Name'] + "|" + all_uniprot['Uniprot ID']
+all_uniprot["Symbol"] = all_uniprot["Gene Name"] + "|" + all_uniprot["Uniprot ID"]
 
 # %%
-psp_kinase_table = pd.read_excel("../../data/raw_data/PSP_script_download.xlsx").rename(columns={'GENE': 'Gene Name', 'KIN_ACC_ID': 'Uniprot ID', 'KIN_ORGANISM': 'Organism'}, inplace=False)[['Gene Name', 'Uniprot ID', 'Organism']].drop_duplicates(keep='first').reset_index(drop=True)
+psp_kinase_table = (
+    pd.read_excel("../../data/raw_data/PSP_script_download.xlsx")
+    .rename(columns={"GENE": "Gene Name", "KIN_ACC_ID": "Uniprot ID", "KIN_ORGANISM": "Organism"}, inplace=False)[
+        ["Gene Name", "Uniprot ID", "Organism"]
+    ]
+    .drop_duplicates(keep="first")
+    .reset_index(drop=True)
+)
 
 psp_kinase_table.to_csv("psp_kinase_table.csv", index=False)
 
 # %%
 psp_kinase_table = pd.read_csv("psp_kinase_table.csv")
-psp_human_kinase_table = psp_kinase_table[psp_kinase_table['Organism'].apply(lambda x: x.lower()) == 'human']
-psp_human_kinase_table['Symbol'] = psp_human_kinase_table['Gene Name'] + "|" + psp_human_kinase_table['Uniprot ID']
+psp_human_kinase_table = psp_kinase_table[psp_kinase_table["Organism"].apply(lambda x: x.lower()) == "human"]
+psp_human_kinase_table["Symbol"] = psp_human_kinase_table["Gene Name"] + "|" + psp_human_kinase_table["Uniprot ID"]
 
 # %%
 p = prettytable.PrettyTable(
@@ -58,7 +75,7 @@ p = prettytable.PrettyTable(
         "# of Uni ID Only in Uniprot",
         "# of Uni ID Only in PSP",
     ],
-    max_width = 1
+    max_width=1,
 )
 
 
@@ -106,10 +123,10 @@ matplotlib_venn.venn3(
     subsets=[
         set(all_uniprot["Symbol"].apply(remove_unip).unique()),
         set(psp_human_kinase_table["Symbol"].apply(remove_unip).unique()),
-        set(kfg["Kinase"])
+        set(kfg["Kinase"]),
     ],
     set_labels=("Uniprot", "PSP", "Classifications"),
-    set_colors=("r", "b", 'y'),
+    set_colors=("r", "b", "y"),
     ax=ax,
 )
 for name, set_ in zip(["all_uniprot", "psp_human_kinase_table"], [psp_human_kinase_table, all_uniprot]):
@@ -151,10 +168,9 @@ plt.savefig("./human_kinase_overlap.pdf", bbox_inches="tight")
 
 # %%
 import os
+
 os.getcwd()
 os.chdir("/home/ubuntu")
 
 # %%
 matplotlib.get_configdir()
-
-

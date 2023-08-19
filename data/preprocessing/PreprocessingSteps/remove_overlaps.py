@@ -3,7 +3,7 @@
 import pandas as pd, random, collections, re, os, pathlib
 from ....config.join_first import join_first
 
-random.seed(0)
+random.seed(42)
 
 
 def remove_legitimate_duplicates(*input_files, rel_sizes):
@@ -57,9 +57,8 @@ def validate_data(input_files):
     for entry in val_dict.values():
         assert len(set(entry)) == 1
 
+
 def main(*files):
-    rel_sizes = {
-        y: int(x) for y, x in [(z, re.sub(r".*raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in files]
-    }
+    rel_sizes = {y: int(x) for y, x in [(z, re.sub(r".*raw_data_(.*)_formatted_.*\.csv", "\\1", z)) for z in files]}
     in_dict = remove_legitimate_duplicates(*files, rel_sizes=rel_sizes)
     validate_data(in_dict)

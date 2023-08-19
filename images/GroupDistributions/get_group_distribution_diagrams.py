@@ -114,7 +114,7 @@ def get_proportional_plot(counts, savefig=False):
         plt.show()
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     import os, pathlib
 
     where_am_i = pathlib.Path(__file__).parent.resolve()

@@ -18,7 +18,7 @@ import re
 import json
 
 mode = cfg.get_mode()
-random.seed(0)
+random.seed(42)
 
 from ....config.logging import get_logger
 from ....config.join_first import join_first
@@ -76,19 +76,23 @@ def get_input_dataframe(input_fn, kin_seq_file, distance_matrix_file, config):
                 .drop("lab", axis=1, inplace=False)
                 .rename(columns={"lab_updated": "lab"}, inplace=False)
             )
-            files_out.append(get_input_dataframe_core(
-                all_df, input_fn, kin_seq_file, percentile, distance_matrix_file, testing_mode=True
-            ))
+            files_out.append(
+                get_input_dataframe_core(
+                    all_df, input_fn, kin_seq_file, percentile, distance_matrix_file, testing_mode=True
+                )
+            )
 
     elif dataframe_generation_mode == "tr-all":
-        files_out.append(get_input_dataframe_core(
-            section_df=all_data,
-            input_fn=input_fn,
-            kin_seq_file=kin_seq_file,
-            percentile=train_percentile,
-            distance_matrix_file=distance_matrix_file,
-            write_file=True,
-        ))
+        files_out.append(
+            get_input_dataframe_core(
+                section_df=all_data,
+                input_fn=input_fn,
+                kin_seq_file=kin_seq_file,
+                percentile=train_percentile,
+                distance_matrix_file=distance_matrix_file,
+                write_file=True,
+            )
+        )
 
     else:
         raise ValueError("`dataframe_generation_mode` is not one of `tr-val-te` or `tr-all`.")

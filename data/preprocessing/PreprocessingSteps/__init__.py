@@ -12,5 +12,5 @@ __all__ = [
     "remove_overlaps",
     "split_into_sets_individual_deterministic_top_k",
     "download_psp",
-    "Truncator"
+    "Truncator",
 ]

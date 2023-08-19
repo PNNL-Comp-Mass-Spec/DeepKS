@@ -6,8 +6,9 @@ from ....config.logging import get_logger
 
 logger = get_logger()
 """The logger for this module."""
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
+
 
 def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug.xlsx")):
     """Downloads the most recent version of the PhosphoSitePlus database and saves it to an Excel file.
@@ -103,5 +104,5 @@ def get_phospho(redownload=False, outfile=(outfile := "PSP_script_download_debug
     table.to_excel(outfile, index=False)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     get_phospho(redownload=True)

@@ -143,5 +143,5 @@ def add_gmm_curves(
     return cutoff3SD  # X, Y[order]
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main("CDK1", "HUMAN")

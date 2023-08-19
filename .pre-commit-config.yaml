@@ -5,6 +5,7 @@ repos:
         name: Format with Black on Modified Files
         entry: scripts/selective_black.sh
         language: script
+        pass_filenames: false
     -   id: no-symlinks
         name: Remove Symlinks
         entry: scripts/remove-symlinks.sh

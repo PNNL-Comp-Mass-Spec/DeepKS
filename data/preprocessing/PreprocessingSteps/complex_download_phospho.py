@@ -4,7 +4,7 @@
 import re, requests, pandas as pd, tqdm, aiohttp, asyncio
 
 
-async def complex_download_phospho(): # pragma: no cover
+async def complex_download_phospho():  # pragma: no cover
     global pb, lock
     url = "http://kinase.com/web/current/kinbase/"
     r = requests.get(url)
@@ -31,7 +31,7 @@ async def complex_download_phospho(): # pragma: no cover
     pd.concat(tabs, axis=0, ignore_index=True).drop("Select", axis=1)
 
 
-async def async_get(url, session): # pragma: no cover
+async def async_get(url, session):  # pragma: no cover
     global pb, lock
     try:
         async with session.get(url=url) as r:
@@ -45,5 +45,5 @@ async def async_get(url, session): # pragma: no cover
         print("Unable to get url {} due to {} --- {}.".format(url, e.__class__.__name__, e))
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     asyncio.run(complex_download_phospho())

@@ -16,7 +16,7 @@ STAGED=$(
 
 if [[ ${#STAGED} -gt 1 ]]; 
 then
-    black -v --line-length 120 --preview $STAGED;
+    black -v --line-length 120 --preview $=STAGED;
 fi
 
 # # Find all changed files for this commit

@@ -16,11 +16,13 @@ logger = get_logger()
 # newstream = open("debug_non_det.log", "a")
 np.set_printoptions(linewidth=240)
 
+
 def toupper(x):
     if isinstance(x, str):
         return x.upper()
     else:
         return x
+
 
 def get_kin_assignments_from_state(
     states: dict[str, list[list[int]]], which_seed: int, fam_to_kin: dict[str, list[int]]
@@ -191,7 +193,7 @@ def ma_from_inds(base_ar: np.ndarray, inds: Iterable[int]) -> np.ma.MaskedArray:
             mask_data.append(base_ar[i])
     initial = np.ma.MaskedArray(mask_data)
     if isinstance(base_ar, np.ndarray):
-        post_processing = lambda x: x.astype(base_ar.dtype) 
+        post_processing = lambda x: x.astype(base_ar.dtype)
     else:
         post_processing = lambda x: x
     return post_processing(initial)
@@ -364,9 +366,9 @@ def split_into_sets(
         json.dump(tks, open(join_first("tr_kins_large.json", 1, __file__), "w"), indent=4)
         json.dump(vks, open(join_first("vl_kins_large.json", 1, __file__), "w"), indent=4)
         json.dump(teks, open(join_first("te_kins_large.json", 1, __file__), "w"), indent=4)
-        json.dump(tks[f"seed rank {0}"], open(join_first("tr_kins.json", 1, __file__), 'w'), indent=4)
-        json.dump(vks[f"seed rank {0}"], open(join_first("vl_kins.json", 1, __file__), 'w'), indent=4)
-        json.dump(teks[f"seed rank {0}"], open(join_first("te_kins.json", 1, __file__), 'w'), indent=4)
+        json.dump(tks[f"seed rank {0}"], open(join_first("tr_kins.json", 1, __file__), "w"), indent=4)
+        json.dump(vks[f"seed rank {0}"], open(join_first("vl_kins.json", 1, __file__), "w"), indent=4)
+        json.dump(teks[f"seed rank {0}"], open(join_first("te_kins.json", 1, __file__), "w"), indent=4)
 
 
 def hill_climbing_score(
@@ -436,7 +438,7 @@ def get_assignment_info_dict(kin_fam_grp_file, raw_input_file, jt, jv, jte):
     return ret_dict
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     import os, pathlib
 
     where_am_i = pathlib.Path(__file__).parent.resolve()

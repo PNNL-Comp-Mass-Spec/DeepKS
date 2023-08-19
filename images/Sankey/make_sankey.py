@@ -44,5 +44,5 @@ def make_sankey():
     os_system_and_get_stdout("inkscape -D big_sankey.svg -o big_sankey.svg", prepend="[inkscape] ")
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     make_sankey()

@@ -5,16 +5,19 @@ HELD_OUT_FAMILY = "SGK"
 
 from ....config.join_first import join_first
 from ....config.logging import get_logger
+
 logger = get_logger()
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
+
 
 def get_kin_to_fam_to_grp(relevant_kinases):
     def up(x):
         if isinstance(x, str):
-            return x.upper() 
+            return x.upper()
         else:
             return x
+
     url = "http://www.kinhub.org/kinases.html"
     r = req.request("GET", url)
     if r.status_code == 200:
@@ -146,7 +149,7 @@ def get_kin_to_fam_to_grp(relevant_kinases):
     return fn
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     get_kin_to_fam_to_grp("../../raw_data/kinase_seq_822.txt")
     print("(<kinase>) - Kinase with inferred family.")
     print("(*<kinase>) - Kinase with no family found. Setting family to name of kinase.")
