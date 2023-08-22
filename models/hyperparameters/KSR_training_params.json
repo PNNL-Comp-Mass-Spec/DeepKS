@@ -1,8 +1,14 @@
 {
-    "default": {
+    "NON-TK": {
         "lr_decay_amount": 0.4,
         "lr_decay_freq": 15,
         "num_epochs": 8,
+        "metric": "roc"
+    },
+    "TK": {
+        "lr_decay_amount": 0.4,
+        "lr_decay_freq": 15,
+        "num_epochs": 6,
         "metric": "roc"
     }
 }
