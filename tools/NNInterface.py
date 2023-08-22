@@ -155,10 +155,10 @@ class NNInterface:
 
     def loss_steps(self, t: torch.Tensor, num_labs=1):
         if isinstance(self.criterion, torch.nn.BCEWithLogitsLoss):
-            l = self.criterion(t, torch.rand(t.shape[0]))
+            l = self.criterion(t, torch.rand(t.shape[0]).to(self.device))
             l.backward()
         elif isinstance(self.criterion, torch.nn.BCELoss):
-            l = self.criterion(t, torch.rand(t.shape[0], num_labs))
+            l = self.criterion(t, torch.rand(t.shape[0], num_labs).to(self.device))
             l.backward()
         else:
             raise NotImplementedError("Need `torch.nn.BCEWithLogitsLoss` or `torch.nn.BCELoss`.")
@@ -168,7 +168,7 @@ class NNInterface:
 
     def write_model_summary(self):
         """Writes the model summary (calls `NNInterface.__str__`) to a file specified by `model_summary_name`."""
-        logger.info(f"Writing model summary to file {self.model_summary_name}.")
+        logger.info(f"Wrote model summary to file {self.model_summary_name}.")
         self.model_summary_name = join_first(self.model_summary_name, 0, __file__)
         if isinstance(self.model_summary_name, str):
             with open(self.model_summary_name, "w", encoding="utf-8") as f:
@@ -360,6 +360,7 @@ class NNInterface:
             # Batch loop
             chunk_num = -1
             inputs_seen: int = 0
+            did_train: bool = False
             for train_loader, info_dict in cycler:
                 chunk_num += 1
                 batch_num = 0
@@ -413,9 +414,9 @@ class NNInterface:
                     logger.vstatus("Train Step C - Backpropogating.")
                     loss.backward()
                     logger.vstatus("Train Step D - Stepping in ∇'s direction.")
-                    logger.debug(f"{self.device=}")
-                    self.optimizer.step()
 
+                    self.optimizer.step()
+                    did_train = True
                     # Report Progress
                     performance_score = None
                     performance_score, _ = self._get_acc_or_auc_and_predictions(outputs, labels, metric, cutoff)
@@ -502,7 +503,7 @@ class NNInterface:
                 ):
                     logger.warning("Stopping early because train loss is not decreasing.")
                     return -epoch
-            if chunk_num == -1:
+            if not did_train:
                 logger.warning(
                     f"No data for {extra_description}, skipping training for this group. Neural network weights will"
                     " be random."
@@ -585,7 +586,7 @@ class NNInterface:
                 performance = sklearn.metrics.accuracy_score(labels.cpu(), predictions)
             case "roc":
                 scores = outputs.data.cpu()
-                if set(labels.data.numpy().tolist()) != {-1}:
+                if set(labels.cpu().data.numpy().tolist()) != {-1}:
                     performance = protected_roc_auc_score(labels.cpu(), scores)
                 else:
                     performance = -1

@@ -161,7 +161,8 @@ class PseudoSiteGroupClassifier(SiteGroupClassifier):
 
     @staticmethod
     def get_ground_truth(self_cls: GroupClassifier, X: Union[np.ndarray, list[str]]):
-        warnings.warn(colored("Warning: Using ground truth groups. (Normal for training/val/simulated gc)", "yellow"))
+        # TODO: make validation more sophisticated?
+        logger.info("Warning: Using ground truth groups. (Normal for training/val/simulated gc)")
         return PseudoSiteGroupClassifier.predict(self_cls, X)
 
     @staticmethod

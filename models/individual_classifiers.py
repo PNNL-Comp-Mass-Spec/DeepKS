@@ -25,7 +25,7 @@ if __name__ == "__main__":  # pragma: no cover
 import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, argparse, torch.utils.data, more_itertools
 import socket, pathlib, os, itertools, functools, numpy as np, pickle
 from ..tools.NNInterface import NNInterface
-from ..tools.tensorize import data_to_tensor_T5
+from ..tools.tensorize import data_to_tensor
 from ..tools.model_utils import KSDataset
 from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Any
 
@@ -318,7 +318,7 @@ class IndividualClassifiers:
             assert isinstance(b, int), "Batch size must be an integer"
             assert isinstance(ng, int), "N-gram must be an integer"
             dummy = list(
-                data_to_tensor_T5(
+                data_to_tensor(
                     partial_group_df_vl,
                     tokdict=self.default_tok_dict,
                     device=self.device,
@@ -330,7 +330,7 @@ class IndividualClassifiers:
             bpi, bc = self.interfaces[group_tr].get_bytes_per_input(no_backprop=False)
             try:
                 val_loader, _ = list(
-                    data_to_tensor_T5(
+                    data_to_tensor(
                         partial_group_df_vl,
                         tokdict=self.default_tok_dict,
                         device=self.device,
@@ -344,7 +344,7 @@ class IndividualClassifiers:
                     logger.warning(f"No validation data for group {group_vl}.")
                 val_loader = torch.utils.data.DataLoader(KSDataset([], [], []), batch_size=1)
             train_generator = more_itertools.peekable(
-                data_to_tensor_T5(
+                data_to_tensor(
                     partial_group_df_tr,
                     tokdict=self.default_tok_dict,
                     batch_size=b,
@@ -412,7 +412,7 @@ class IndividualClassifiers:
             assert isinstance(ng, int), "N-gram must be an integer"
             seen_groups_passthrough.append(group_te)
             dummy = list(
-                data_to_tensor_T5(
+                data_to_tensor(
                     partial_group_df_te,
                     tokdict=self.default_tok_dict,
                     device=device,
@@ -424,7 +424,7 @@ class IndividualClassifiers:
             self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
             bpi, bc = bytes if bytes is not None else self.interfaces[group_te].get_bytes_per_input(no_backprop=True)
             bytes = bpi, bc if bytes is None else bytes
-            for test_loader, info_dict in data_to_tensor_T5(
+            for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
                 tokdict=self.default_tok_dict,
                 device=device,
