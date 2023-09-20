@@ -61,6 +61,8 @@ def make_predictions(
     bypass_group_classifier: list[str] = [],
     convert_raw_to_prob: bool = True,
     group_on: Literal["site", "kin"] = "site",
+    lower_logging_level: int = 0,
+    upper_logging_level: int = 100,
 ):
     """Make a target/decoy prediction for a kinase-substrate pair.
     Parameters

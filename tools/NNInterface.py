@@ -123,8 +123,8 @@ class NNInterface:
             self.write_model_summary()
 
     def get_bytes_per_input(self, no_backprop=False) -> tuple[int, int]:
-        if hasattr(self, "mem_per_input"):
-            return getattr(self, "mem_per_input")
+        # if hasattr(self, "mem_per_input"):
+        #     return getattr(self, "mem_per_input")
         if self.inp_size is None:
             raise ValueError("Cannot calculate bytes per input without input size.")
         if self.inp_types is None:
@@ -660,9 +660,9 @@ class NNInterface:
                         labels = labels.long()
                     case torch.nn.BCEWithLogitsLoss():
                         labels = labels.float()
+                        outputs = torch.sigmoid(outputs)
 
                 loss = self.criterion(outputs, labels)
-                outputs = torch.sigmoid(outputs)
 
                 try:
                     torch.cuda.empty_cache()

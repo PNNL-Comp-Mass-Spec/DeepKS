@@ -422,7 +422,8 @@ class IndividualClassifiers:
             )[0]
             self.interfaces[group_te].inp_size = self.interfaces[group_te].get_input_size(dummy[0])
             self.interfaces[group_te].inp_types = self.interfaces[group_te].get_input_types(dummy[0])
-            bpi, bc = bytes if bytes is not None else self.interfaces[group_te].get_bytes_per_input(no_backprop=True)
+            res = self.interfaces[group_te].get_bytes_per_input(no_backprop=True)
+            bpi, bc = bytes if bytes is not None else res
             bytes = bpi, bc if bytes is None else bytes
             for test_loader, info_dict in data_to_tensor(
                 partial_group_df_te,
