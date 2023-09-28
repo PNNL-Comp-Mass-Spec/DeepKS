@@ -129,8 +129,11 @@ class CustomLogger(logging.Logger):
                 self.handler.setLevel(max(self._level, STATUS))
 
     def _blankit(self):
-        # if self.last_log and self.last_log == "vstatus":
-        print(" " * os.get_terminal_size().columns, end="\r")
+        if self.last_log and self.last_log == "vstatus":
+            try:
+                print(" " * os.get_terminal_size().columns, end="\r")
+            except OSError:
+                print(" " * 80, end="\r")
 
     def debug(self, msg, *args, **kwargs):
         """Log debugging statements."""

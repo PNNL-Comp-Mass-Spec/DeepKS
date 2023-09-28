@@ -16,7 +16,7 @@ if __name__ == "__main__":  # pragma: no cover
     logger.status("Loading Modules")
 
 
-import pandas as pd, numpy as np, tempfile as tf, json, cloudpickle as pickle, pathlib, os, tqdm, re, sqlite3, warnings
+import pandas as pd, numpy as np, tempfile as tf, json, pickle, pathlib, os, tqdm, re, sqlite3, warnings
 import torch, argparse, socket
 from typing import Any, Callable, Collection, Iterable, Literal, Union
 from ..tools.get_needle_pairwise import get_needle_pairwise_mtx
@@ -180,10 +180,8 @@ class MultiStageClassifier:
             addl_args[key] = Xy_formatted_input_file
             print(
                 colored(
-                    (
-                        "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
-                        " step [1/2]"
-                    ),
+                    "Status: Prediction Step [2/2]: Sending input kinases to individual group classifiers, based on"
+                    " step [1/2]",
                     "green",
                 )
             )
@@ -524,8 +522,8 @@ def efficient_to_csv(data_dict: dict, outfile: str):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    nn = IndividualClassifiers.load_all(join_first("bin/deepks_nn_weights.11.cornichon", 1, __file__))
-    with open(join_first("bin/deepks_gc_weights.2.cornichon", 1, __file__), "rb") as f:
+    nn = IndividualClassifiers.load_all(join_first("bin/deepks_nn_weights.15.cornichon", 1, __file__))
+    with open(join_first("bin/deepks_gc_weights.0.cornichon", 1, __file__), "rb") as f:
         gc: GroupClassifier = pickle.load(f)
 
     smart_save_msc(MultiStageClassifier(gc, nn))

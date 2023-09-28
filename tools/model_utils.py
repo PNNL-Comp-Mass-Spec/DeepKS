@@ -1,9 +1,11 @@
 """Contains various useful functions for working with models (specifically CNNs) and data"""
 
+from abc import ABC
 import warnings, json, pandas as pd, numpy as np
 from matplotlib.pyplot import figure, rcParams
 from matplotlib import colors, pyplot as plt, cm
 from torch.utils.data import Dataset
+from torch import IntTensor, Tensor
 from math import floor, ceil
 from numpy import logspace
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -13,6 +15,11 @@ from typing import Literal, Union
 
 rcParams["font.family"] = "monospace"
 rcParams["font.size"] = "8"
+
+from ..config.logging import get_logger
+
+logger = get_logger()
+"""The logger for this module."""
 
 
 class cNNUtils:
@@ -222,24 +229,51 @@ class cNNUtils:
         return sorted(list(possible))
 
 
-class KSDataset(Dataset):
-    """Dataset for the Kinase - Substrate data."""
+class KSDataset(Dataset, ABC):
+    def __init__(self, all_encoded_site_tensors: IntTensor, all_encoded_kin_tensors: IntTensor, all_labels: IntTensor):
+        self.sites = all_encoded_site_tensors
+        self.kins = all_encoded_kin_tensors
+        self.labels = all_labels
 
-    def __init__(self, encoded_site, encoded_kinase, class_):
-        self.encoded_site = encoded_site
-        self.encoded_kinase = encoded_kinase
-        self.class_ = class_
-        assert (encoded_site is None and encoded_kinase is None and class_ is None) or (
-            len(self.encoded_site) == len(self.encoded_kinase) == len(self.class_)
+
+class TandemKSDataset(KSDataset):
+    def __init__(self, all_encoded_site_tensors: IntTensor, all_encoded_kin_tensors: IntTensor, all_labels: IntTensor):
+        super().__init__(all_encoded_site_tensors, all_encoded_kin_tensors, all_labels)
+        assert len(self.sites) == len(self.kins) == len(all_labels), (
+            f"For a `TandemKSDataset`, the number of input sites (gave {len(all_encoded_site_tensors)}) must equal the"
+            f" number of input kinases (gave {len(all_encoded_kin_tensors)}), which must equal the the number of labels"
+            f" (gave {len(all_labels)})."
         )
-
-    def __getitem__(self, index):
-        return (self.encoded_site[index], self.encoded_kinase[index], self.class_[index])
+        self.length = len(self.sites)
 
     def __len__(self):
-        if self.encoded_site is None:
-            return 0
-        return len(self.encoded_site)
+        return self.length
+
+    def __getitem__(self, index):
+        return (self.sites[index], self.kins[index], self.labels[index])
+
+
+class CartesianKSDataset(KSDataset):
+    def __init__(self, all_encoded_site_tensors: IntTensor, all_encoded_kin_tensors: IntTensor, all_labels: IntTensor):
+        super().__init__(all_encoded_site_tensors, all_encoded_kin_tensors, all_labels)
+        if len(self.sites) == len(self.kins):
+            logger.warn(
+                f"The number of input sites (just gave {len(all_encoded_site_tensors)}) is equal to the number of input"
+                " kinases. Did you mean to use a `TandemKSDataset`?"
+            )
+        self.length = len(self.sites) * len(self.kins)
+        assert self.length == len(all_labels), (
+            "For a `CartesianKSDataset`, the length of the dataset (gave number of sites * number of kinases ="
+            f" {self.length}) must equal the number of labels (gave {len(all_labels)})"
+        )
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        site_idx = index // len(self.kins)
+        kin_idx = index % len(self.kins)
+        return (self.sites[site_idx], self.kins[kin_idx], self.labels[index])
 
 
 class DLWeightPlot:

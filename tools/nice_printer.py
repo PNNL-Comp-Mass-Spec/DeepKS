@@ -2,13 +2,19 @@
 
 import os, random, copy, typing, pprint, sys, numpy as np
 
+default_max_width = 80
+try:
+    default_max_width = int(os.get_terminal_size().columns * 0.8)
+except Exception:
+    pass
+
 
 def nice_printer(
     obj,
     max_depth=5,
     max_items=10,
     min_singleton_width=20,
-    max_width=int(os.get_terminal_size().columns * 0.8),
+    max_width=default_max_width,
     initial_indent=4,
     subsequent_indent=4,
     file=sys.stdout,

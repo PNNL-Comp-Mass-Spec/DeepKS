@@ -26,7 +26,7 @@ import pandas as pd, json, re, torch, tqdm, torch.utils, io, warnings, argparse,
 import socket, pathlib, os, itertools, functools, numpy as np, pickle
 from ..tools.NNInterface import NNInterface
 from ..tools.tensorize import data_to_tensor
-from ..tools.model_utils import KSDataset
+from ..tools.model_utils import KSDataset, TandemKSDataset
 from typing import Callable, Generator, Literal, Protocol, Union, Tuple, Any
 
 import pprint
@@ -97,7 +97,7 @@ class IndividualClassifiers:
         device : str
             The device to train the neural networks on.
         args : dict[str, Union[str, None, list[str]]]
-            Should Be Depricated.
+            Should Be Deprecated.
         groups : list[str]
             The groups to train neural networks for.
         """
@@ -120,11 +120,11 @@ class IndividualClassifiers:
                 exec(
                     f"from .{grp_to_model_args[group]['model_class']} import {grp_to_model_args[group]['model_class']}"
                 )
-            except SyntaxError as se:
+            except SyntaxError:
                 # TODO Print traceback
                 print(
-                    'There was an error importing the specified Kinase-Substrate model (did you accidently add ".py" to'
-                    " the class name?)."
+                    'There was an error importing the specified Kinase-Substrate model (did you accidentally add ".py"'
+                    " to the class name?)."
                 )
         self.individual_classifiers = {}
         for group in grp_to_model_args:
@@ -207,7 +207,7 @@ class IndividualClassifiers:
         cartesian_product: bool = False,
     ):
         which_groups_ordered = sorted(list(set(which_groups)))
-        Xy_formatted_input_file = join_first(Xy_formatted_input_file, 1, __file__)
+        Xy_formatted_input_file = join_first(Xy_formatted_input_file, 0, __file__)
         Xy: Union[pd.DataFrame, dict]
         if not cartesian_product:
             Xy = pd.read_csv(Xy_formatted_input_file)
@@ -342,7 +342,10 @@ class IndividualClassifiers:
             except ValueError as e:
                 if str(e) == "Input data is empty":
                     logger.warning(f"No validation data for group {group_vl}.")
-                val_loader = torch.utils.data.DataLoader(KSDataset([], [], []), batch_size=1)
+                blank_tensor = torch.IntTensor()
+                val_loader = torch.utils.data.DataLoader(
+                    TandemKSDataset(blank_tensor, blank_tensor, blank_tensor), batch_size=1
+                )
             train_generator = more_itertools.peekable(
                 data_to_tensor(
                     partial_group_df_tr,
@@ -759,7 +762,7 @@ def parse_args(args_pass_in: Union[None, list[str]] = None) -> dict[str, Union[s
     parser.add_argument(
         "--nni-params",
         type=str,
-        help="Specify Nerual Net Interface options file name",
+        help="Specify Neural Net Interface options file name",
         required=False,
         default=join_first("models/hyperparameters/NNI_params.json", 1, __file__),
         metavar="<ksr_params.json>",

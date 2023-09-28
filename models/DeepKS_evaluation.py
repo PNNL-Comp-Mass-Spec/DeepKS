@@ -1,13 +1,19 @@
+from functools import cache
+from math import sqrt
 import warnings, matplotlib, numpy as np, pandas as pd, json, traceback, sys, os
 import sklearn, sklearn.metrics, tempfile, collections, random, cloudpickle as pickle, re, torch, pathlib
+
+# from sklearn._typing import float
 from ..tools.roc_helpers import ROCHelpers
 from ..models.multi_stage_classifier import MultiStageClassifier
+from multipledispatch import dispatch
 
 random.seed(42)
 from abc import ABC, abstractmethod
 from matplotlib import pyplot as plt, patches as ptch, collections as clct
 from matplotlib import colormaps  # type: ignore
-from typing import Union, Any
+from matplotlib import axes
+from typing import Callable, Hashable, Literal, Union, Any
 from termcolor import colored
 
 get_cmap = colormaps.get_cmap
@@ -41,17 +47,23 @@ warnings.showwarning = warning_handler
 
 
 class PerformancePlot(ABC):  # ABC = Abstract Base Class
-    def __init__(self, fig_kwargs={"figsize": (10, 10)}) -> None:
+    def __init__(self, fig_kwargs={"figsize": (10, 10)}, pass_in_ax=None) -> None:
         self._is_made = False
         matplotlib.rcParams["font.family"] = "P052"
-        self.fig, self.ax = plt.subplots(**fig_kwargs)
         self.cn = self.__class__.__name__
         self._not_made_error_msg = (
             f"{self.cn} Plot is not made yet. Ignoring Request. Call `my_{_.snake_case(self.cn)}_instance.make_plot()`"
             " first."
         )
+        self.fig_kwargs = fig_kwargs
+        self.pass_in_ax: axes.Axes | None = pass_in_ax
 
     def make_plot(self, *args, **kwargs):
+        if self.pass_in_ax is None:
+            self.fig, self.ax = plt.subplots(**self.fig_kwargs)
+        else:
+            self.ax = self.pass_in_ax
+            self.fig = self.ax.figure
         self._make_plot_core(*args, **kwargs)
         self._is_made = True
 
@@ -100,8 +112,8 @@ class CM(PerformancePlot, ABC):
 
 
 class ROC(PerformancePlot, ABC):
-    def __init__(self, **fig_kwargs) -> None:
-        super().__init__(**fig_kwargs)
+    def __init__(self, pass_in_ax=None, **fig_kwargs) -> None:
+        super().__init__(pass_in_ax=pass_in_ax, **fig_kwargs)
 
     def _get_roc_info(self, truthses: list[list[Any]], scoreses: list[list[float]], plot_unified_line: bool):
         fprses = []
@@ -140,7 +152,6 @@ class ROC(PerformancePlot, ABC):
         show_cutoff = plotting_kwargs.get("show_cutoff", False)
         show_acc = plotting_kwargs.get("show_acc", False)
         focus_on = plotting_kwargs.get("focus_on", None)
-        legend_all_lines = plotting_kwargs.get("legend_all_lines", False)
         plot_pointer_labels = plotting_kwargs.get("plot_pointer_labels", False)
         fancy_legend = plotting_kwargs.get("fancy_legend", True)
         plot_unified_line = plotting_kwargs.get("plot_unified_line", False)
@@ -154,17 +165,17 @@ class ROC(PerformancePlot, ABC):
             truthses.append(np.concatenate(truthses))
             roc_labels_list.append("All Data")
 
-        roc_colors = plotting_kwargs.get("roc_colors", "plasma")
-        cut_colors = plotting_kwargs.get("cut_colors", "plasma")
-        acc_colors = plotting_kwargs.get("acc_colors", "plasma")
+        # roc_colors = plotting_kwargs.get("roc_colors", "plasma")
+        # cut_colors = plotting_kwargs.get("cut_colors", "plasma")
+        # acc_colors = plotting_kwargs.get("acc_colors", "plasma")
 
-        cmap_roc, cmap_cut, cmap_acc = get_cmap(roc_colors), get_cmap(cut_colors), get_cmap(acc_colors)
+        # cmap_roc, cmap_cut, cmap_acc = get_cmap(roc_colors), get_cmap(cut_colors), get_cmap(acc_colors)
 
-        color_places = np.linspace(0, 1, len(fprses), endpoint=True)
-        convert = lambda ls: [matplotlib.colors.to_hex(c) for c in ls]
-        roc_colors = convert(cmap_roc(color_places))
-        cut_colors = convert(cmap_cut(color_places))
-        acc_colors = convert(cmap_acc(color_places))
+        # color_places = np.linspace(0, 1, len(fprses), endpoint=True)
+        # convert = lambda ls: [matplotlib.colors.to_hex(c) for c in ls]
+        # roc_colors = convert(cmap_roc(color_places))
+        # cut_colors = convert(cmap_cut(color_places))
+        # acc_colors = convert(cmap_acc(color_places))
 
         assert len(fprses) == len(tprses) == len(thresholdses), "Lengths of lists must be equal"
 
@@ -187,9 +198,9 @@ class ROC(PerformancePlot, ABC):
             roc_labels_list = roc_labels_list
         else:
             roc_labels_list = [f"ROC {i}" for i in range(len(fprses))]
-        roc_col = roc_colors[0]
-        cut_col = acc_colors[0]
-        acc_col = cut_colors[0]
+        # roc_col = roc_colors[0]
+        # cut_col = acc_colors[0]
+        # acc_col = cut_colors[0]
 
         fig, ax = self.fig, self.ax
         ax.set_xticks(np.arange(0, 1.05, 0.1))
@@ -201,9 +212,9 @@ class ROC(PerformancePlot, ABC):
         if show_cutoff:
             tax = ax.twinx()
             tax.set_ylabel("Cutoff")
-            tax.set_ylim(0, 1.1)
-            tax.yaxis.label.set_color(cut_col)
-            tax.tick_params(axis="y", colors=cut_col)
+            tax.set_ylim(0, 1)
+            # tax.yaxis.label.set_color(cut_col)
+            # tax.tick_params(axis="y", colors=cut_col)
         aucs = []
         if plot_unified_line:
             pct_mult = 2
@@ -230,7 +241,7 @@ class ROC(PerformancePlot, ABC):
             else:
                 mar = f"{roc_labels_list[i]}"
 
-            col = roc_colors[i]
+            # col = roc_colors[i]
             if not diff_by_opacity:
                 alp = 0.65
             else:
@@ -243,7 +254,8 @@ class ROC(PerformancePlot, ABC):
             if focus_on is not None and roc_labels_list[i] == focus_on:
                 linew, is_focus = 1, True
 
-            roc_style_kwargs = dict(linewidth=linew, markersize=7, color=col, alpha=alp, zorder=2)
+            # roc_style_kwargs = dict(linewidth=linew, markersize=7, color=col, alpha=alp, zorder=2)
+            roc_style_kwargs = dict(linewidth=linew, markersize=7, alpha=alp, zorder=2)
             # if i == 0 and not legend_all_lines:
             #     roc_style_kwargs.update(dict(label=f"ROC curve of a{roc_lab_extra}"))
             # elif unif:
@@ -269,10 +281,11 @@ class ROC(PerformancePlot, ABC):
                 else:
                     pct_mult = 1
                 fancy_lab = (
-                    f"{roc_labels_list[i]:>{indent_amt}}"
-                    f" | AUC {aucscore:1.3f} — {100-int(alpha*100)}% CI = [{ci[0]:1.3f}, {ci[1]:1.3f}]"
-                    f" {ROCHelpers.get_p_stars(p)} | n = {len(scores):5} = {len(scores)*100/sd*pct_mult:6.2f}%"
-                    " all data"
+                    f"{roc_labels_list[i]:>{indent_amt}}\n"
+                    f"• AUC = {aucscore:1.3f}\n"
+                    f"• {100-int(alpha*100)}% CI of AUC = [{ci[0]:1.3f}, {ci[1]:1.3f}]\n"
+                    # f" {ROCHelpers.get_p_stars(p)}\n"
+                    f"• n = {len(scores)} = {len(scores)*100/sd*pct_mult:.2f}% of all data"
                 )
                 roc_style_kwargs.update(dict(label=fancy_lab))
 
@@ -349,9 +362,9 @@ class ROC(PerformancePlot, ABC):
                 taxacc = ax.twinx()
                 taxacc.spines.right.set_position(("axes", 1.15))
                 taxacc.set_ylabel("Accuracy")
-                taxacc.yaxis.label.set_color(acc_col)
-                taxacc.tick_params(axis="y", colors=acc_col)
-                taxacc.set_ylim(-0.05, 1.05)
+                # taxacc.yaxis.label.set_color(acc_col)
+                # taxacc.tick_params(axis="y", colors=acc_col)
+                taxacc.set_ylim(0, 1)
 
                 if unif:
                     alpha = 1
@@ -364,7 +377,7 @@ class ROC(PerformancePlot, ABC):
                     label="accuracy",
                     marker=None,
                     markersize=6,
-                    color=acc_colors[i],
+                    # color=acc_colors[i],
                     linewidth=linew / 3,
                     markeredgewidth=0,
                     alpha=alpha,
@@ -384,13 +397,13 @@ class ROC(PerformancePlot, ABC):
                     alpha = alp / 2
                 tax = ax.twinx()
                 tax.set_ylabel("Cutoff")
-                tax.set_ylim(0, 1.1)
-                tax.yaxis.label.set_color(cut_col)
-                tax.tick_params(axis="y", colors=cut_col)
+                tax.set_ylim(0, 1)
+                # tax.yaxis.label.set_color(cut_col)
+                # tax.tick_params(axis="y", colors=cut_col)
                 tax.plot(
                     jitter(fprs),
                     thresholds,
-                    color=cut_colors[i],
+                    # color=cut_colors[i],
                     label="cutoff",
                     marker=None,
                     markersize=6,
@@ -408,17 +421,23 @@ class ROC(PerformancePlot, ABC):
             ax.plot(Xavg, Yavg, color="grey", linewidth=2, label=lab)
 
         if fancy_legend:
-            extra = " | AUC 0.5    " + " " * 29 + "| n =     ∞"
+            extra = "\n• AUC = 0.5\n• n = ∞"
         else:
             extra = ""
-        random_model_label = f"{'Random':>{indent_amt}}{extra}"
+        random_model_label = f"{'Random Model':>{indent_amt}}{extra}"
         ax.plot([0, 1], [0, 1], color="black", lw=0.4, linestyle="--", label=random_model_label)
 
-        ax.yaxis.label.set_color(roc_col)
-        ax.tick_params(axis="y", colors=roc_col)
+        # ax.yaxis.label.set_color(roc_col)
+        # ax.tick_params(axis="y", colors=roc_col)
 
-        ax.legend(loc="best", prop={"family": ["Fira Code", "monospace"], "size": 5})
-        ax.set_ylim(-0.05, 1.05)
+        ax.legend(
+            loc="lower right",
+            prop={"family": ["Fira Code", "monospace"], "size": 5},
+            # bbox_to_anchor=(1, 0.5),
+            labelspacing=2,
+        )
+        ax.set_ylim(-0.01, 1.01)
+        ax.set_xlim(-0.01, 1.01)
         self.fig = fig
 
 
@@ -628,10 +647,8 @@ class SplitIntoGroupsROC(ROC):
                     warnings.warn(f"Couldn't repickle Individual Classifiers with empirical equation: {e}", UserWarning)
             else:
                 warnings.warn(
-                    (
-                        "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
-                        " equation."
-                    ),
+                    "No repickle location found for Individual Classifiers. Not repickling; can't save empirical"
+                    " equation.",
                     UserWarning,
                 )
 
@@ -658,15 +675,29 @@ class SplitIntoGroupsROC(ROC):
 
 
 class PlainROC(ROC):
-    def __init__(self, fig_kwargs={"figsize": (5, 5)}) -> None:
-        super().__init__(fig_kwargs=fig_kwargs)
+    def __init__(self, fig_kwargs={"figsize": (5, 5)}, pass_in_ax=None) -> None:
+        super().__init__(fig_kwargs=fig_kwargs, pass_in_ax=pass_in_ax)
 
-    def make_plot(self, outputs, labels, plotting_kwargs={"fancy_legend": False}):
-        return self._make_plot_core([outputs], [labels], plotting_kwargs=plotting_kwargs)
+    def make_plot_multiple(
+        self,
+        outputs_multiple: list[list[float]],
+        labels_multiple: list[list[int]],
+        roc_line_labels: list[str] = [],
+        plotting_kwargs={"fancy_legend": False},
+    ):
+        if roc_line_labels == []:
+            roc_line_labels = [f"Test Set {i}" for i in range(1, 1 + len(outputs_multiple))]
+        assert len(outputs_multiple) == len(labels_multiple) == len(roc_line_labels)
+        args = [outputs_multiple, labels_multiple, roc_line_labels, plotting_kwargs]
+        super().make_plot(*args)
 
-    def _make_plot_core(self, scoreses, truthses, plotting_kwargs):
+    def make_plot(self, outputs: list[float], labels: list[int], plotting_kwargs={"fancy_legend": False}):
+        args = [[outputs], [labels], [], plotting_kwargs]
+        super().make_plot(*args)
+
+    def _make_plot_core(self, scoreses, truthses, roc_line_labels, plotting_kwargs):
         ret = self._roc_core_components(
-            truthses, scoreses, roc_labels_list=["Test Set"], plotting_kwargs=plotting_kwargs
+            truthses, scoreses, roc_labels_list=roc_line_labels, plotting_kwargs=plotting_kwargs
         )
         self._is_made = True
         return ret
@@ -675,36 +706,18 @@ class PlainROC(ROC):
         self,
         test_filename: str,
         multi_stage_classifier: MultiStageClassifier,
+        resave_loc,
         device="cpu",
         cartesian_product=False,
-        bypass_gc=False,
     ):
-        assert multi_stage_classifier.__class__.__name__ == "MultiStageClassifier"
-        kin_to_grp = pd.read_csv(kin_to_fam_to_grp_file)[["Kinase", "Uniprot", "Group"]]
-        kin_to_grp["Symbol"] = (
-            kin_to_grp["Kinase"].apply(lambda x: re.sub(r"[\(\)\*]", "", x)) + "|" + kin_to_grp["Uniprot"]
-        )
-        kin_to_grp = kin_to_grp.set_index("Symbol").to_dict()["Group"]
-        gene_order = pd.read_csv(test_filename)["Gene Name of Kin Corring to Provided Sub Seq"]
-        true_grps = [kin_to_grp[x] for x in gene_order]
         grp_to_interface = multi_stage_classifier.individual_classifiers.interfaces
         groups = list(grp_to_interface.keys())
         seen_groups = []
         all_predictions_outputs = {}
+        input_df = None
         info_dict_passthrough = {}
-        pred_items = ()
-        simulated_bypass_acc = 1
-        random.seed(42)
-        kin_to_grp_simulated_acc = {}
-        for k, v in kin_to_grp.items():
-            if random.random() < simulated_bypass_acc:
-                kin_to_grp_simulated_acc[k] = v
-            else:
-                kin_to_grp_simulated_acc[k] = "CMGC"
 
         kwargs = {}
-        if bypass_gc:
-            kwargs["bypass_gc"] = kin_to_grp_simulated_acc
         for grp, loader in multi_stage_classifier.individual_classifiers.obtain_group_and_loader(
             which_groups=groups,
             Xy_formatted_input_file=test_filename,
@@ -719,27 +732,20 @@ class PlainROC(ROC):
                 loader,
                 int(info_dict_passthrough["on_chunk"] + 1),
                 int(info_dict_passthrough["total_chunks"]),
-                cutoff=0.5,
                 group=grp,
-            )  # TODO: Make adjustable cutoff
-            # jumbled_predictions = list[predictions], list[output scores], list[group]
-            del loader
+            )
+            # del loader
 
             new_info = info_dict_passthrough[grp]["PairIDs"]
             try:
+                partial_orig_data = pd.DataFrame.from_dict(info_dict_passthrough[grp]["original_data"])
+                if input_df is None:
+                    input_df = partial_orig_data
+                else:
+                    input_df = pd.concat([input_df, partial_orig_data], axis="rows")
                 all_predictions_outputs.update(
                     {
-                        pair_id: (
-                            jumbled_predictions[0][i],
-                            jumbled_predictions[1][i],
-                            jumbled_predictions[2][i],
-                            jumbled_predictions[3][i],
-                            (
-                                multi_stage_classifier.individual_classifiers.__dict__["grp_to_emp_eqn"].get(grp)
-                                if get_emp_eqn
-                                else None
-                            ),
-                        )
+                        pair_id: tuple([jumbled_predictions[j][i] for j in range(len(jumbled_predictions))])
                         for pair_id, i in zip(new_info, range(len(new_info)))
                     }
                 )
@@ -751,46 +757,100 @@ class PlainROC(ROC):
                     " network file. (To change the neural network file, use the `--pre-trained-nn`"
                     " command line option.)"
                 ) from None
-        key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x[0]))
-        pred_items = sorted(all_predictions_outputs.items(), key=key_lambda)  # Pair # {i}
-        pred_items = dict(
-            ground_truth_labels=[x[1][3] for x in pred_items],
-            scores=[x[1][1] for x in pred_items],
-            ground_truth_groups=true_grps,
-        )
 
-        assert len(pred_items) != 0
+        key_lambda = lambda x: int(re.sub("Pair # ([0-9]+)", "\\1", x))
+        key_lambda_vec = lambda X: [int(re.sub("Pair # ([0-9]+)", "\\1", x)) for x in X]
+
+        all_predictions_outputs_sorted = sorted(list(all_predictions_outputs.items()), key=lambda X: key_lambda(X[0]))
+        scores = [x[1][1] for x in all_predictions_outputs_sorted]
+        truths = [x[1][3] for x in all_predictions_outputs_sorted]
+
+        assert isinstance(input_df, pd.DataFrame)
+        input_df.sort_values(by="pair_id", key=key_lambda_vec, inplace=True)
+        input_df["DeepKS-Score"] = scores
+        assert truths == input_df["Class"].values.tolist()
+
         setattr(multi_stage_classifier, "completed_test_evaluations", pred_items)
+        setattr(multi_stage_classifier, "input_df", input_df)
+
         with open(resave_loc, "wb") as f:
             pickle.dump(multi_stage_classifier, f)
 
 
-def eval_and_roc_workflow(
-    multi_stage_classifier, kin_to_fam_to_grp_file, test_filename, resave_loc, bypass_gc=False, force_recompute=False
-):
+# def calibrate(truths, scores):
+#     sklearn.
+
+
+def eval_and_roc_workflow(multi_stage_classifier, test_filename, resave_loc, force_recompute=False):
     roc = PlainROC()
     if hasattr(multi_stage_classifier, "completed_test_evaluations") and not force_recompute:
         logger.info("Using pre-computed test evaluations.")
     else:
         logger.info("Computing test evaluations.")
-        roc.compute_test_evaluations(
-            test_filename, multi_stage_classifier, resave_loc, kin_to_fam_to_grp_file, bypass_gc=bypass_gc
-        )
+        PlainROC.compute_test_evaluations(roc, test_filename, multi_stage_classifier, resave_loc)
 
-    roc.make_plot(
-        multi_stage_classifier.completed_test_evaluations,
-        multi_stage_classifier.individual_classifiers,
-        plotting_kwargs={
-            "plot_pointer_labels": False,
-            "legend_all_lines": True,
-            "plot_unified_line": True,
-            "diff_by_opacity": False,
-            "focus_on": None,
-            "plot_mean_value_line": True,
-            "plot_unified_line": True,
-        },
+    test_evaluations = multi_stage_classifier.completed_test_evaluations
+    original_data = multi_stage_classifier.original_data
+    original_data_df = multi_stage_classifier.original_data_df
+    org_pred_data = organize_pred_items(test_evaluations, original_data, by="Group")
+    # org_pred_data = sorted(list(org_pred_data.items()), key = lambda x: -len(x[1][0]))
+    # pd.DataFrame(list(zip(*org_pred_data[0][1])), columns = ["truths", "scores"]).to_csv("~/ts.csv")
+
+    scores_multiple = [org_pred_data[grp][1] for grp in org_pred_data]
+    labels_multiple = [[int(x) for x in org_pred_data[grp][0]] for grp in org_pred_data]
+
+    # roc.make_plot_multiple(
+    #     scores_multiple,
+    #     labels_multiple,
+    #     roc_line_labels=[f"Test Set (Group = {group})" for group in org_pred_data],
+    #     plotting_kwargs={"fancy_legend": True},
+    # )
+    # roc.save_plot(join_first(1, "images/EvaluationandResults/"))
+
+    org_pred_data_by_kinase = organize_pred_items(test_evaluations, original_data, by="Kinase Sequence")
+    original_data = pd.DataFrame.from_dict(original_data)
+
+    orig_data_dict = original_data[original_data["Class"] == 1].to_dict(orient="list")
+    kin_to_grp = dict(zip(orig_data_dict["Kinase Sequence"], orig_data_dict["Group"]))
+    kin_to_name_token = dict(zip(orig_data_dict["Kinase Sequence"], orig_data_dict["Gene Name of Provided Kin Seq"]))
+    kin_to_uniprot = {k: re.sub(r"^.*\|(.*)", "\\1", v) for k, v in kin_to_name_token.items()}
+    psp_avail_kins = set(kin_to_uniprot.values())
+    atlas_avail_kins = set(
+        pd.read_excel("/Users/druc594/Downloads/41586_2022_5575_MOESM3_ESM.xlsx", sheet_name="Table S1 Data")[
+            "Uniprot id"
+        ]
     )
-    roc.save_plot(join_first(1, "images/EvaluationandResults/"))
+    mutually_avail_kins = set.intersection(psp_avail_kins, atlas_avail_kins)
+    org_pred_data_by_uniprot = {re.sub(r"^.*\|(.*)", "\\1", k): v for k, v in org_pred_data_by_kinase.items()}
+    org_pred_data_by_kinase = {
+        kin_to_uniprot[k]: v
+        for k, v in org_pred_data_by_uniprot.items()
+        if kin_to_uniprot.get(k) in mutually_avail_kins and kin_to_grp.get(k) == "NON-TK"
+    }
+    # roc_map3k14 = PlainROC(fig_kwargs={"figsize": (8, 8)})
+    # scores_map3k14 = org_pred_data_by_kinase["MAVMEMACPGAPGSAVGQQKELPKAKEKTPPLGKKQSSVYKLEAVEKSPVFCGKWEILNDVITKGTAKEGSEAGPAAISIIAQAECENSQEFSPTFSERIFIAGSKQYSQSESLDQIPNNVAHATEGKMARVCWKGKRRSKARKKRKKKSSKSLAHAGVALAKPLPRTPEQESCTIPVQEDESPLGAPYVRNTPQFTKPLKEPGLGQLCFKQLGEGLRPALPRSELHKLISPLQCLNHVWKLHHPQDGGPLPLPTHPFPYSRLPHPFPFHPLQPWKPHPLESFLGKLACVDSQKPLPDPHLSKLACVDSPKPLPGPHLEPSCLSRGAHEKFSVEEYLVHALQGSVSSGQAHSLTSLAKTWAARGSRSREPSPKTEDNEGVLLTEKLKPVDYEYREEVHWATHQLRLGRGSFGEVHRMEDKQTGFQCAVKKVRLEVFRAEELMACAGLTSPRIVPLYGAVREGPWVNIFMELLEGGSLGQLVKEQGCLPEDRALYYLGQALEGLEYLHSRRILHGDVKADNVLLSSDGSHAALCDFGHAVCLQPDGLGKSLLTGDYIPGTETHMAPEVVLGRSCDAKVDVWSSCCMMLHMLNGCHPWTQFFRGPLCLKIASEPPPVREIPPSCAPLTAQAIQEGLRKEPIHRVSAAELGGKVNRALQQVGGLKSPWRGEYKEPRHPPPNQANYHQTLHAQPRELSPRAPGPRPAEETTGRAPKLQPPLPPEPPEPNKSPPLTLSKEESGMWEPLPLSSLEPAPARNPSSPERKATVPEQELQQLEIELFLNSLSQPFSLEEQEQILSCLSIDSLSLSDDSEKNPSKASQSSRDTLSSGVHSWSSQAEARSSSWNMVLARGRPTDTPSYFNGVKVQIQSLNGEHLHIREFHRVKVGDIATGISSQIPAAAFSLVTKDGQPVRYDMEVPDSGIDLQCTLAPDGSFAWSWRVKHGQLENRP"][1]
+    # labels_map3k14 = org_pred_data_by_kinase["MAVMEMACPGAPGSAVGQQKELPKAKEKTPPLGKKQSSVYKLEAVEKSPVFCGKWEILNDVITKGTAKEGSEAGPAAISIIAQAECENSQEFSPTFSERIFIAGSKQYSQSESLDQIPNNVAHATEGKMARVCWKGKRRSKARKKRKKKSSKSLAHAGVALAKPLPRTPEQESCTIPVQEDESPLGAPYVRNTPQFTKPLKEPGLGQLCFKQLGEGLRPALPRSELHKLISPLQCLNHVWKLHHPQDGGPLPLPTHPFPYSRLPHPFPFHPLQPWKPHPLESFLGKLACVDSQKPLPDPHLSKLACVDSPKPLPGPHLEPSCLSRGAHEKFSVEEYLVHALQGSVSSGQAHSLTSLAKTWAARGSRSREPSPKTEDNEGVLLTEKLKPVDYEYREEVHWATHQLRLGRGSFGEVHRMEDKQTGFQCAVKKVRLEVFRAEELMACAGLTSPRIVPLYGAVREGPWVNIFMELLEGGSLGQLVKEQGCLPEDRALYYLGQALEGLEYLHSRRILHGDVKADNVLLSSDGSHAALCDFGHAVCLQPDGLGKSLLTGDYIPGTETHMAPEVVLGRSCDAKVDVWSSCCMMLHMLNGCHPWTQFFRGPLCLKIASEPPPVREIPPSCAPLTAQAIQEGLRKEPIHRVSAAELGGKVNRALQQVGGLKSPWRGEYKEPRHPPPNQANYHQTLHAQPRELSPRAPGPRPAEETTGRAPKLQPPLPPEPPEPNKSPPLTLSKEESGMWEPLPLSSLEPAPARNPSSPERKATVPEQELQQLEIELFLNSLSQPFSLEEQEQILSCLSIDSLSLSDDSEKNPSKASQSSRDTLSSGVHSWSSQAEARSSSWNMVLARGRPTDTPSYFNGVKVQIQSLNGEHLHIREFHRVKVGDIATGISSQIPAAAFSLVTKDGQPVRYDMEVPDSGIDLQCTLAPDGSFAWSWRVKHGQLENRP"][0]
+    # roc_map3k14.make_plot_multiple([scores_map3k14], [[int(x) for x in labels_map3k14]], roc_line_labels=["MAP3K14_HUMAN (Test Set)"], plotting_kwargs={"fancy_legend": True})
+    # roc_map3k14.save_plot("map3k14")
+    # with open(os.path.expanduser("~/by_kinase_perf.csv"), "w") as fp:
+    df = SqrtPerfScorer.get_perf(org_pred_data_by_kinase)
+    #     df.to_csv(fp)
+    return df, org_pred_data_by_uniprot, original_data_df
+
+    # roc.make_plot(
+    #     multi_stage_classifier.completed_test_evaluations,
+    #     multi_stage_classifier.individual_classifiers,
+    #     plotting_kwargs={
+    #         "plot_pointer_labels": False,
+    #         "legend_all_lines": True,
+    #         "plot_unified_line": True,
+    #         "diff_by_opacity": False,
+    #         "focus_on": None,
+    #         "plot_mean_value_line": True,
+    #         "plot_unified_line": True,
+    #     },
+    # )
+    #
 
 
 def test():
@@ -836,28 +896,113 @@ def get_multi_stage_classifier():
         raise FileNotFoundError("No cache found")
 
 
+def organize_pred_items(
+    pred_items: dict[str, list[float]],
+    input_data: dict[Hashable, list],
+    by: Literal["Site Sequence", "Kinase Sequence", "Group"] = "Site Sequence",
+) -> dict[str, tuple[list[float], list[float]]]:
+    """Obtains a mapping from desired ``by`` specification to a tuple of truths, scores for that specifications
+
+    Parameters
+    ----------
+    pred_items :
+        Dictionary with keys 'ground_truth_labels' and 'scores', each of which maps to a list of such ``float``s. The order must correspond to that in ``input_data``
+    input_data :
+        A dictionary with keys 'Site Sequence', 'Kinase Sequence', 'Group', and 'Class', corresponding to the results in ``pred_items``
+    by :
+        The column (specification) by which to organize the ``pred_items``
+
+    Returns
+    -------
+        Mapping from each ``by`` to a tuple of (truths, scores)
+    """
+    scores = pred_items["scores"]
+    truths = pred_items["ground_truth_labels"]
+    spec_to_indexes: dict[str, list[int]] = collections.defaultdict(list[int])
+    for i, s in enumerate(input_data[by]):
+        spec_to_indexes[s].append(i)
+    spec_to_results: dict[str, tuple[list[float], list[float]]] = {
+        s: ([truths[li] for li in l], [scores[li] for li in l]) for s, l in spec_to_indexes.items()
+    }
+    return spec_to_results
+
+
+class PerfScorer(ABC):
+    @staticmethod
+    @abstractmethod
+    def _get_perf_core(metric_score: float, num_obs: int) -> float: ...
+
+    @staticmethod
+    @abstractmethod
+    def get_perf(org_pred_items: dict[str, list[float]]) -> dict[str, float]: ...
+
+
+class SqrtPerfScorer(PerfScorer):
+    @staticmethod
+    def step_fn(x) -> float:
+        if x < 30:
+            return 3.0
+        elif x < 60:
+            return 6.0
+        elif x < 120:
+            return 7.0
+        elif x < 240:
+            return 8.0
+        else:
+            return 9.0
+
+    @staticmethod
+    def _get_perf_core(metric_score: float | float, num_obs: int) -> float:
+        return (metric_score**0.5) * SqrtPerfScorer.step_fn(num_obs)
+
+    @staticmethod
+    def get_perf(
+        org_pred_items: dict[str, tuple[list[float], list[float]]],
+        base_score_metric: Callable[[list[float | int], list[float | int]], float] = lambda *args: float(
+            sklearn.metrics.roc_auc_score(*args)
+        ),
+    ) -> pd.DataFrame:
+        perf_table = pd.DataFrame(columns=["Orged by Item", "Metric Score", "Num Obs", "Perf"])
+        for orged_by in org_pred_items:
+            truths, scores = org_pred_items[orged_by][0], org_pred_items[orged_by][1]
+            if len(set(truths)) == 1:
+                continue
+            metric_score = base_score_metric(truths, scores)
+            num_obs = len(org_pred_items[orged_by][0])
+            perf = SqrtPerfScorer._get_perf_core(metric_score, num_obs)
+            perf_table.loc[len(perf_table), :] = [orged_by, metric_score, num_obs, perf]
+        perf_table = perf_table.sort_values(by="Perf", ascending=[False], inplace=False).reset_index(drop=True)
+        return perf_table
+
+
+def main(test_filename, force_recompute: bool):
+    with open(
+        join_first(1, "bin/deepks_msc_weights.resaved.3.cornichon"),
+        "rb",
+    ) as mscfp:
+        msc = pickle.load(mscfp)
+        df, d, df2 = eval_and_roc_workflow(
+            msc,
+            join_first(1, test_filename),
+            join_first(1, "bin/deepks_msc_weights.resaved.3.cornichon"),
+            force_recompute=force_recompute,
+        )
+        df.rename(columns={"Orged by Item": "Kinase"}, inplace=True)
+        df = df[[c for c in df.columns if c != "Perf"]].sort_values(by="Metric Score", inplace=False, ascending=False)
+        return df, d, df2
+
+
 if __name__ == "__main__":  # pragma: no cover
+    pass
+    # main()
     # import cloudpickle
 
     # # main()
     # # test()
-    # with open(
-    #     join_first(1, "bin/deepks_msc_weights_resaved_fake.cornichon"),
-    #     "rb",
-    # ) as mscfp:
-    #     msc = cloudpickle.load(mscfp)
-    #     eval_and_roc_workflow(
-    #         msc,
-    #         join_first(1, "data/preprocessing/kin_to_fam_to_grp_826.csv"),
-    #         join_first(1, "data/raw_data_6406_formatted_95_5616.csv"),
-    #         join_first(1, "bin/deepks_msc_weights_resaved_bypassed.cornichon"),
-    #         force_recompute=False,
-    #         bypass_gc=True,
-    #     )
 
-    fake_scores = [max(min(x / 100 - 0.5 + random.random(), 1), 0) for x in range(100)]
-    fake_truths = [0 for _ in range(50)] + [1 for _ in range(50)]
+    # fake_scores = [max(min(x / 100 - 0.5 + random.random(), 1), 0) for x in range(100)]
+    # fake_truths = [0 for _ in range(50)] + [1 for _ in range(50)]
 
-    roc = PlainROC()
-    roc.make_plot(fake_scores, fake_truths)
-    roc.display_plot()
+    # roc = PlainROC()
+    # roc.make_plot(fake_scores, fake_truths)
+    # roc.display_plot()

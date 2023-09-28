@@ -118,7 +118,11 @@ class MemoryCalculator(Protocol):
     """Determine the amount of memory needed for a model and input, for a backward and forward pass, on a given device"""
 
     @staticmethod
-    def calculate_memory(
+    def calculate_memory(*args, **kwargs) -> tuple[int, int]:
+        return (1, 1)
+
+    @staticmethod
+    def calculate_memory_todo(
         model: torch.nn.Module,
         input_like_no_batch: list[torch.Tensor],
         loss_steps: Callable[[torch.Tensor], None],
@@ -156,8 +160,7 @@ class MemoryCalculator(Protocol):
         #     logger.info("Skipping memory estimation test (since we're on CPU). Assuming memory requirement values.")
         #     return int(5e6), int(5e7)
         calculating_batch_size_eventual = calculating_batch_size
-        if False:
-            ...
+        if False: ...
         elif str(device) == "cpu":
             logger.status("Calculating memory for batch_size == 1")
             one_tot_mem, _ = rep_mem_wrapper(
@@ -181,7 +184,7 @@ class MemoryCalculator(Protocol):
                 device,
                 pass_through_cuda,
             )
-            assert many_tot_mem > one_tot_mem
+            assert many_tot_mem > one_tot_mem, f"{many_tot_mem}, {one_tot_mem}"
 
         else:
             logger.status("Calculating memory for batch_size == 1")
